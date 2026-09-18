@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
-import { assetManifest } from './plugins/asset-manifest';
+import { assetManifest } from './plugins/asset-manifest.ts';
 
 export default defineConfig({
   base: './',
