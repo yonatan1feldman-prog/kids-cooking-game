@@ -4,7 +4,7 @@ export const pizza: Recipe = {
   id: 'pizza',
   card: 'card-pizza',
   steps: [
-    { type: 'roll', params: { ball: 'dough-ball', flat: 'dough-flat', tool: 'rolling-pin', rubWidths: 7 } },
+    { type: 'roll', params: { ball: 'dough-ball', flat: 'dough-flat', tool: 'rolling-pin', rubWidths: 5 } },
     { type: 'spread', params: { source: 'sauce-bowl', blob: 'sauce-blob', coverage: 0.7 } },
     { type: 'sprinkle', params: { tool: 'cheese-shaker', piece: 'cheese-shred', count: 45 } },
     {

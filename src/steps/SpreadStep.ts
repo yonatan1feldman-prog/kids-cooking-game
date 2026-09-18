@@ -23,8 +23,8 @@ export class SpreadStep extends Step<SpreadParams> {
   start() {
     const { u, W } = this.layout;
     const R = this.dish.R;
-    this.paintR = R * 0.84;
-    this.blobSize = R * 0.34;
+    this.paintR = R * 0.76;
+    this.blobSize = R * 0.3;
 
     const bowl = this.own(this.scene.add.image(0, 0, this.params.source));
     fit(bowl, u * 0.28, u * 0.22);
@@ -79,7 +79,7 @@ export class SpreadStep extends Step<SpreadParams> {
 
   private stamp(x: number, y: number) {
     this.dish.stampSauce(this.params.blob, x, y, this.blobSize);
-    const reach = this.blobSize * 0.45;
+    const reach = this.blobSize * 0.38;
     let gained = false;
     for (const c of this.cells) {
       if (!c.covered && Math.abs(c.x - x) < reach && Math.abs(c.y - y) < reach && Math.hypot(c.x - x, c.y - y) < reach) {
@@ -104,7 +104,11 @@ export class SpreadStep extends Step<SpreadParams> {
     if (this.finishing) return;
     this.finishing = true;
     this.painting = false;
-    const gaps = Phaser.Utils.Array.Shuffle(this.cells.filter((c) => !c.covered));
+    // Uncovered cells first, then every cell once more so no thin streaks remain.
+    const gaps = [
+      ...Phaser.Utils.Array.Shuffle(this.cells.filter((c) => !c.covered)),
+      ...Phaser.Utils.Array.Shuffle(this.cells.filter((c) => c.covered)),
+    ];
     this.cells.forEach((c) => (c.covered = true));
     this.covered = this.cells.length;
     let i = 0;

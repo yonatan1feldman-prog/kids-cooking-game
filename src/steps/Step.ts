@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import type { HandHint } from '../core/hand';
-import type { Layout } from '../core/layout';
+import { PALM_ZONE, type Layout } from '../core/layout';
 import type { Dish } from './Dish';
 
 /** Seconds of no progress before the guiding hand shows the gesture. */
@@ -111,7 +111,8 @@ export abstract class Step<P> {
     this.listen(Phaser.Input.Events.POINTER_DOWN, (p: Phaser.Input.Pointer, over: Phaser.GameObjects.GameObject[]) => {
       if (this.isAuto) return;
       if (over && over.length > 0) return;
-      if (p.worldY > this.layout.safeBottom) return;
+      // Palm zone is a physical screen area, so test screen y (not world y, which a camera zoom shifts).
+      if (p.y > this.scene.scale.height * (1 - PALM_ZONE)) return;
       fn(p);
     });
   }

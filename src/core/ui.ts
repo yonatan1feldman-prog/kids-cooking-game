@@ -1,11 +1,11 @@
 import Phaser from 'phaser';
-import { fit } from './layout';
+import { fit, PALM_ZONE } from './layout';
 import { sfx } from './sfx';
 
 /**
  * Big icon button. Reacts instantly on touch (squash + tap sound) and fires on
  * release — even if the finger slid off the button, because small fingers do.
- * The touch area is a circle 25% larger than the image.
+ * The touch area is a circle 25% larger than the image, minus the palm zone.
  */
 export function iconButton(
   scene: Phaser.Scene,
@@ -30,8 +30,10 @@ export function iconButton(
     pulse = scene.tweens.add({ targets: img, scale: rest * 1.08, duration: 700, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
   }
 
-  img.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, () => {
+  img.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, (p: Phaser.Input.Pointer) => {
     if (!enabled) return;
+    // Presses that start where the palm rests never count.
+    if (p.y > scene.scale.height * (1 - PALM_ZONE)) return;
     pressed = true;
     pulse?.pause();
     img.setScale(rest * 0.88);

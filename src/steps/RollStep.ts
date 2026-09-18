@@ -78,7 +78,6 @@ export class RollStep extends Step<RollParams> {
     this.poke();
     const need = this.params.rubWidths * this.dish.R * 2;
     this.progress = Math.min(1, this.progress + dist / need);
-    this.pin.rotation += dist * 0.004;
     this.sinceSound += dist;
     this.sincePuff += dist;
     if (this.sinceSound > 90) {

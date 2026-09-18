@@ -70,6 +70,7 @@ const DRAW: Record<ImageKey, Draw> = {
     g.fillStyle(0x8a5a33).fillRoundedRect(0, h / 2 - bh * 0.22, w, bh * 0.44, bh * 0.2);
     g.fillStyle(0xc68a52).fillRoundedRect(w * 0.18, h / 2 - bh / 2, w * 0.64, bh, bh * 0.3);
     g.fillStyle(0xe0ad75).fillRoundedRect(w * 0.2, h / 2 - bh * 0.38, w * 0.6, bh * 0.2, bh * 0.1);
+    g.lineStyle(6, 0x5a3418).strokeRoundedRect(w * 0.18, h / 2 - bh / 2, w * 0.64, bh, bh * 0.3);
   },
   'sauce-bowl': (g, w, h) => {
     g.fillStyle(0xd8342a).fillEllipse(w / 2, h * 0.38, w * 0.86, h * 0.3);

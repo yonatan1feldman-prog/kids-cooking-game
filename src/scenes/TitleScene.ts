@@ -20,7 +20,7 @@ export class TitleScene extends Phaser.Scene {
   }
 
   private go(x: number, y: number) {
-    enterFullscreen(this);
+    enterFullscreen();
     stars(this, x, y, 16, getLayout(this).u * 0.08);
     sfx(this, 'pop');
     this.time.delayedCall(450, () => this.scene.start('Home'));
@@ -28,12 +28,18 @@ export class TitleScene extends Phaser.Scene {
 }
 
 /** Best effort: fullscreen + portrait lock. Silently ignored where unsupported. */
-export function enterFullscreen(scene: Phaser.Scene) {
+export function enterFullscreen() {
+  const lockPortrait = () => {
+    const orientation = screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> };
+    orientation?.lock?.('portrait').catch(() => {});
+  };
   try {
     const standalone = window.matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches;
-    if (!standalone && !scene.scale.isFullscreen && scene.sys.game.device.fullscreen.available) scene.scale.startFullscreen();
-    const orientation = screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> };
-    orientation.lock?.('portrait').catch(() => {});
+    const el = document.documentElement;
+    if (!standalone && !document.fullscreenElement && el.requestFullscreen) {
+      // The scale manager (EXPAND) picks up the new size through the resize event.
+      el.requestFullscreen({ navigationUI: 'hide' }).then(lockPortrait, () => {});
+    } else lockPortrait();
   } catch {
     /* not supported: fine */
   }

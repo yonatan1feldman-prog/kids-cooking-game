@@ -55,7 +55,7 @@ export class FeedStep extends Step<FeedParams> {
     const plateY = Math.min(this.ctx.dishHome.y + u * 0.08, (charBottom + this.layout.safeBottom) / 2 + u * 0.02);
     const n = this.params.slices;
     const sliceSize = Math.max(u * 0.27, W * MIN_DRAG_SHARE);
-    const ring = sliceSize * 0.62;
+    const ring = sliceSize * 0.56;
     sfx(this.scene, 'whoosh');
     this.scene.tweens.add({
       targets: this.dish,
@@ -69,7 +69,7 @@ export class FeedStep extends Step<FeedParams> {
     for (let i = 0; i < n; i++) {
       const a = -Math.PI / 2 + (i / n) * Math.PI * 2;
       // Tip of the slice (bottom of the image) points to the plate center.
-      const home = { x: this.layout.cx + Math.cos(a) * ring, y: plateY + Math.sin(a) * ring, angle: Phaser.Math.RadToDeg(a) - 90 };
+      const home = { x: this.layout.cx + Math.cos(a) * ring, y: plateY + Math.sin(a) * ring, angle: Phaser.Math.RadToDeg(a) + 90 };
       const img = this.own(this.scene.add.image(this.layout.cx, plateY, this.params.slice).setDepth(20).setAngle(home.angle));
       fit(img, sliceSize);
       this.sliceScale = img.scale;

@@ -50,7 +50,7 @@ export class RecipeScene extends Phaser.Scene {
     this.ctx = { scene: this, layout: L, dish, hand: new HandHint(this, L), dishHome };
 
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.step?.abort());
-    this.runStep(0);
+    this.runStep(devStartStep(this.recipe.steps.length));
   }
 
   private runStep(i: number) {
@@ -82,4 +82,11 @@ export class RecipeScene extends Phaser.Scene {
   update(_time: number, delta: number) {
     this.step?.update(delta);
   }
+}
+
+/** Dev only: `?step=N` (0-based) jumps straight to step N for testing. Always 0 in production builds. */
+function devStartStep(count: number) {
+  if (!import.meta.env.DEV) return 0;
+  const n = Number(new URLSearchParams(location.search).get('step'));
+  return Number.isInteger(n) && n > 0 && n < count ? n : 0;
 }
