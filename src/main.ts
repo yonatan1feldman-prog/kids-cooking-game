@@ -23,3 +23,8 @@ const game = new Phaser.Game({
 
 // Handy for debugging from the browser console.
 (window as unknown as { game: Phaser.Game }).game = game;
+
+// Offline support (service worker). Browsers only allow it over HTTPS or on localhost.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  import('virtual:pwa-register').then(({ registerSW }) => registerSW({ immediate: true })).catch(() => {});
+}
