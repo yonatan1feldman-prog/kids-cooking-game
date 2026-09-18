@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { FX_DOT, FX_SOFT, IMAGES, type ImageKey } from './assets';
+import { CREAM, FX_DOT, FX_SOFT, IMAGES, INK, SAUCE_BRUSH, SAUCE_RED, UI_BIN, type ImageKey } from './assets';
 
 /**
  * Temporary art drawn in code for every image that is missing on disk.
@@ -133,62 +133,84 @@ const DRAW: Record<ImageKey, Draw> = {
     g.lineStyle(r * 0.14, 0xd9a6f0).strokeCircle(w / 2, h / 2, r * 0.55);
   },
   tray: (g, w, h) => {
-    g.fillStyle(0x000000, 0.15).fillRoundedRect(w * 0.06, h * 0.1, w * 0.9, h * 0.86, 40);
-    g.fillStyle(0x8fb8de).fillRoundedRect(w * 0.03, h * 0.04, w * 0.9, h * 0.86, 40);
-    g.fillStyle(0xd6ebff).fillRoundedRect(w * 0.1, h * 0.11, w * 0.76, h * 0.72, 28);
+    const r = Math.min(w, h) * 0.47;
+    g.fillStyle(0x5b3a29, 0.2).fillCircle(w / 2, h / 2 + 12, r);
+    g.fillStyle(0xe3a869).fillCircle(w / 2, h / 2, r);
+    g.lineStyle(8, 0x5b3a29).strokeCircle(w / 2, h / 2, r);
+  },
+  'oven-inside': (g, w, h) => {
+    g.fillStyle(0x3a1d14).fillRoundedRect(w * 0.2, h * 0.39, w * 0.6, h * 0.38, 30);
+    g.fillStyle(0xb8382b, 0.6).fillEllipse(w / 2, h * 0.72, w * 0.5, h * 0.08);
   },
   'oven-closed': (g, w, h) => {
-    g.fillStyle(0x5d6d7e).fillRoundedRect(0, 0, w, h, 40);
-    g.fillStyle(0x85929e).fillRoundedRect(w * 0.04, h * 0.04, w * 0.92, h * 0.16, 24);
-    g.fillStyle(0xf4d03f).fillCircle(w * 0.2, h * 0.12, w * 0.045).fillCircle(w * 0.36, h * 0.12, w * 0.045);
-    g.fillStyle(0xaab7b8).fillRoundedRect(w * 0.08, h * 0.26, w * 0.84, h * 0.66, 30);
-    g.fillStyle(0x2c3e50).fillRoundedRect(w * 0.16, h * 0.36, w * 0.68, h * 0.44, 24);
-    g.fillStyle(0xff9f43, 0.35).fillRoundedRect(w * 0.18, h * 0.38, w * 0.64, h * 0.4, 20);
-    g.fillStyle(0xecf0f1).fillRoundedRect(w * 0.3, h * 0.28, w * 0.4, h * 0.04, 10);
+    // Frame drawn around a transparent window hole (x 150-550, y 320-610 of 700x800).
+    const hx = w * (150 / 700), hy = h * (320 / 800), hw = w * (400 / 700), hh = h * (290 / 800);
+    g.fillStyle(0xe4523b);
+    g.fillRoundedRect(0, 0, w, hy, { tl: 40, tr: 40, bl: 0, br: 0 });
+    g.fillRect(0, hy, hx, hh).fillRect(hx + hw, hy, w - hx - hw, hh);
+    g.fillRoundedRect(0, hy + hh, w, h * 0.92 - hy - hh, { tl: 0, tr: 0, bl: 40, br: 40 });
+    g.fillStyle(0xfff6e6).fillCircle(w * 0.2, h * 0.1, w * 0.05).fillCircle(w * 0.34, h * 0.1, w * 0.05);
+    g.fillStyle(0xfff6e6).fillRoundedRect(w * 0.3, h * 0.3, w * 0.4, h * 0.03, 8);
+    g.lineStyle(8, 0x5b3a29).strokeRoundedRect(hx, hy, hw, hh, 30).strokeRoundedRect(4, 4, w - 8, h * 0.92 - 8, 40);
   },
   'oven-open': (g, w, h) => {
-    g.fillStyle(0x5d6d7e).fillRoundedRect(0, 0, w, h * 0.78, 40);
-    g.fillStyle(0x85929e).fillRoundedRect(w * 0.04, h * 0.04, w * 0.92, h * 0.16, 24);
-    g.fillStyle(0xf4d03f).fillCircle(w * 0.2, h * 0.12, w * 0.045).fillCircle(w * 0.36, h * 0.12, w * 0.045);
-    g.fillStyle(0x1b2631).fillRoundedRect(w * 0.1, h * 0.26, w * 0.8, h * 0.48, 24);
-    g.fillStyle(0xff7f2a, 0.8).fillRoundedRect(w * 0.14, h * 0.3, w * 0.72, h * 0.4, 20);
-    g.fillStyle(0xaab7b8).fillRoundedRect(w * 0.04, h * 0.76, w * 0.92, h * 0.22, 24);
-    g.fillStyle(0xecf0f1).fillRoundedRect(w * 0.3, h * 0.9, w * 0.4, h * 0.04, 10);
+    g.fillStyle(0xe4523b).fillRoundedRect(0, 0, w, h * 0.8, 40);
+    g.fillStyle(0xfff6e6).fillCircle(w * 0.2, h * 0.1, w * 0.05).fillCircle(w * 0.34, h * 0.1, w * 0.05);
+    g.fillStyle(0xb8382b).fillRoundedRect(w * 0.1, h * 0.24, w * 0.8, h * 0.5, 30);
+    g.fillStyle(0xf79a3e).fillEllipse(w / 2, h * 0.66, w * 0.6, h * 0.06);
+    g.fillStyle(0xf79a3e).fillTriangle(w * 0.05, h * 0.96, w * 0.95, h * 0.96, w * 0.5, h * 0.8);
+    g.lineStyle(8, 0x5b3a29).strokeRoundedRect(4, 4, w - 8, h * 0.8 - 8, 40);
   },
   'pizza-slice': (g, w, h) => {
     g.fillStyle(0xd9a45f).fillTriangle(w * 0.5, h * 0.95, w * 0.08, h * 0.12, w * 0.92, h * 0.12);
     g.fillStyle(0xd9a45f).fillRoundedRect(w * 0.04, h * 0.04, w * 0.92, h * 0.16, h * 0.08);
     g.fillStyle(0xffd23f).fillTriangle(w * 0.5, h * 0.86, w * 0.16, h * 0.2, w * 0.84, h * 0.2);
     g.fillStyle(0xe53935).fillCircle(w * 0.4, h * 0.34, w * 0.07).fillCircle(w * 0.6, h * 0.42, w * 0.07);
-    g.fillStyle(0x2e9e3e).fillCircle(w * 0.5, h * 0.6, w * 0.045);
   },
+  // Character layers: every part is drawn in the same 600x700 frame, so they stack at one position.
   'character-body': (g, w, h) => {
-    g.fillStyle(0x000000, 0.12).fillEllipse(w / 2, h * 0.95, w * 0.7, h * 0.08);
-    g.fillStyle(0x9b7bea).fillCircle(w * 0.2, h * 0.14, w * 0.11).fillCircle(w * 0.8, h * 0.14, w * 0.11);
-    g.fillStyle(0xf7a8c8).fillCircle(w * 0.2, h * 0.14, w * 0.055).fillCircle(w * 0.8, h * 0.14, w * 0.055);
-    g.fillStyle(0x9b7bea).fillEllipse(w / 2, h * 0.54, w * 0.9, h * 0.8);
-    g.fillStyle(0xc3b1f5).fillEllipse(w / 2, h * 0.66, w * 0.55, h * 0.45);
-    g.fillStyle(0xf7a8c8, 0.8).fillCircle(w * 0.2, h * 0.5, w * 0.06).fillCircle(w * 0.8, h * 0.5, w * 0.06);
+    g.fillStyle(0x5b3a29, 0.2).fillEllipse(w / 2, h * 0.95, w * 0.6, h * 0.05);
+    g.fillStyle(0xfff6e6).fillRoundedRect(w * 0.34, h * 0.02, w * 0.32, h * 0.14, 30);
+    g.fillStyle(0xf8ddae).fillEllipse(w / 2, h * 0.55, w * 0.72, h * 0.76);
+    g.fillStyle(0xfff6e6).fillEllipse(w / 2, h * 0.7, w * 0.4, h * 0.26);
+    g.fillStyle(0xf6a5a0).fillCircle(w * 0.3, h * 0.5, w * 0.05).fillCircle(w * 0.7, h * 0.5, w * 0.05);
+    g.lineStyle(8, 0x5b3a29).strokeEllipse(w / 2, h * 0.55, w * 0.72, h * 0.76);
   },
-  'character-mouth-open': (g, w, h) => {
-    g.fillStyle(0x5b1a2a).fillEllipse(w / 2, h / 2, w * 0.9, h * 0.9);
-    g.fillStyle(0xff6b8a).fillEllipse(w / 2, h * 0.7, w * 0.5, h * 0.35);
-    g.fillStyle(0xffffff).fillRoundedRect(w * 0.3, h * 0.06, w * 0.4, h * 0.14, 8);
+  'character-eyes-open': (g, w, h) => {
+    g.fillStyle(0x5b3a29).fillEllipse(w * 0.38, h * 0.42, w * 0.06, h * 0.07).fillEllipse(w * 0.62, h * 0.42, w * 0.06, h * 0.07);
+    g.fillStyle(0xffffff).fillCircle(w * 0.39, h * 0.41, w * 0.012).fillCircle(w * 0.63, h * 0.41, w * 0.012);
   },
-  'character-mouth-closed': (g, w, h) => {
-    g.lineStyle(h * 0.14, 0x5b1a2a).beginPath().arc(w / 2, h * 0.05, w * 0.36, 0.35, Math.PI - 0.35).strokePath();
+  'character-eyes-blink': (g, w, h) => {
+    g.lineStyle(8, 0x5b3a29);
+    g.beginPath().arc(w * 0.38, h * 0.41, w * 0.05, 0.3, Math.PI - 0.3).strokePath();
+    g.beginPath().arc(w * 0.62, h * 0.41, w * 0.05, 0.3, Math.PI - 0.3).strokePath();
+  },
+  'character-eyes-surprised': (g, w, h) => {
+    g.fillStyle(0xffffff).fillCircle(w * 0.38, h * 0.42, w * 0.06).fillCircle(w * 0.62, h * 0.42, w * 0.06);
+    g.lineStyle(8, 0x5b3a29).strokeCircle(w * 0.38, h * 0.42, w * 0.06).strokeCircle(w * 0.62, h * 0.42, w * 0.06);
+    g.fillStyle(0x5b3a29).fillCircle(w * 0.38, h * 0.42, w * 0.025).fillCircle(w * 0.62, h * 0.42, w * 0.025);
   },
   'character-eyes-happy': (g, w, h) => {
-    g.lineStyle(h * 0.16, 0x2c2140);
-    g.beginPath().arc(w * 0.25, h * 0.75, w * 0.14, Math.PI + 0.3, -0.3).strokePath();
-    g.beginPath().arc(w * 0.75, h * 0.75, w * 0.14, Math.PI + 0.3, -0.3).strokePath();
+    g.lineStyle(8, 0x5b3a29);
+    g.beginPath().arc(w * 0.38, h * 0.44, w * 0.05, Math.PI + 0.3, -0.3).strokePath();
+    g.beginPath().arc(w * 0.62, h * 0.44, w * 0.05, Math.PI + 0.3, -0.3).strokePath();
+  },
+  'character-mouth-closed': (g, w, h) => {
+    g.lineStyle(8, 0x5b3a29).beginPath().arc(w / 2, h * 0.5, w * 0.08, 0.4, Math.PI - 0.4).strokePath();
+  },
+  'character-mouth-open': (g, w, h) => {
+    g.fillStyle(0xb8382b).fillEllipse(w / 2, h * 0.57, w * 0.2, h * 0.12);
+    g.fillStyle(0xf6a5a0).fillEllipse(w / 2, h * 0.6, w * 0.1, h * 0.04);
+    g.lineStyle(8, 0x5b3a29).strokeEllipse(w / 2, h * 0.57, w * 0.2, h * 0.12);
+  },
+  'character-mouth-chew': (g, w, h) => {
+    g.fillStyle(0xb8382b).fillEllipse(w / 2, h * 0.56, w * 0.1, h * 0.04);
+    g.lineStyle(8, 0x5b3a29).strokeEllipse(w / 2, h * 0.56, w * 0.1, h * 0.04);
   },
   'hand-hint': (g, w, h) => {
-    g.fillStyle(0x000000, 0.2).fillEllipse(w * 0.55, h * 0.72, w * 0.7, h * 0.5);
-    g.fillStyle(0xffe0c7).fillRoundedRect(w * 0.36, h * 0.02, w * 0.2, h * 0.5, w * 0.1);
-    g.fillStyle(0xffe0c7).fillEllipse(w * 0.52, h * 0.66, w * 0.66, h * 0.5);
-    g.lineStyle(6, 0xc98b6b).strokeRoundedRect(w * 0.36, h * 0.02, w * 0.2, h * 0.5, w * 0.1);
-    g.fillStyle(0xffffff, 0.6).fillCircle(w * 0.46, h * 0.07, w * 0.05);
+    g.fillStyle(0xf3c9a8).fillRoundedRect(w * 0.14, h * 0.04, w * 0.22, h * 0.5, w * 0.1);
+    g.fillStyle(0xf3c9a8).fillEllipse(w * 0.5, h * 0.68, w * 0.76, h * 0.5);
+    g.lineStyle(8, 0x5b3a29).strokeRoundedRect(w * 0.14, h * 0.04, w * 0.22, h * 0.5, w * 0.1).strokeEllipse(w * 0.5, h * 0.68, w * 0.76, h * 0.5);
   },
   star: (g, w, h) => {
     const r = Math.min(w, h) / 2;
@@ -243,7 +265,7 @@ export function ensurePlaceholders(scene: Phaser.Scene): string[] {
   const drawn: string[] = [];
   for (const key of Object.keys(IMAGES) as ImageKey[]) {
     if (scene.textures.exists(key)) continue;
-    const [w, h] = IMAGES[key].box;
+    const [w, h] = IMAGES[key].size;
     bake(scene, key, w, h, DRAW[key]);
     drawn.push(key);
   }
@@ -257,4 +279,54 @@ export function makeFxTextures(scene: Phaser.Scene) {
     bake(scene, FX_SOFT, 64, 64, (g) => {
       for (let i = 8; i >= 1; i--) g.fillStyle(0xffffff, 0.12).fillCircle(32, 32, i * 4);
     });
+}
+
+/** Style-matched UI textures made in code: topping bin and the solid sauce brush. */
+export function makeUiTextures(scene: Phaser.Scene) {
+  if (!scene.textures.exists(UI_BIN))
+    bake(scene, UI_BIN, 240, 240, (g, w, h) => {
+      g.fillStyle(INK, 0.2).fillRoundedRect(8, 20, w - 16, h - 24, 48);
+      g.fillStyle(CREAM).fillRoundedRect(8, 8, w - 16, h - 24, 48);
+      g.lineStyle(8, INK).strokeRoundedRect(8, 8, w - 16, h - 24, 48);
+    });
+  if (scene.textures.exists(SAUCE_BRUSH)) scene.textures.remove(SAUCE_BRUSH);
+  // Silhouette of sauce-blob filled with sauce red: paint without outlines.
+  const src = scene.textures.get('sauce-blob').getSourceImage() as CanvasImageSource & { width: number; height: number };
+  const canvas = document.createElement('canvas');
+  canvas.width = src.width;
+  canvas.height = src.height;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.drawImage(src, 0, 0);
+    ctx.globalCompositeOperation = 'source-in';
+    ctx.fillStyle = '#' + SAUCE_RED.toString(16).padStart(6, '0');
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+  scene.textures.addCanvas(SAUCE_BRUSH, canvas);
+}
+
+/** Opaque bounds of a texture (from its source canvas), used to find e.g. the mouth. */
+export function opaqueBounds(scene: Phaser.Scene, key: string) {
+  try {
+    const src = scene.textures.get(key).getSourceImage() as CanvasImageSource & { width: number; height: number };
+    const canvas = document.createElement('canvas');
+    canvas.width = src.width;
+    canvas.height = src.height;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (!ctx) return null;
+    ctx.drawImage(src, 0, 0);
+    const { data, width, height } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    let x0 = width, y0 = height, x1 = -1, y1 = -1;
+    for (let y = 0; y < height; y += 2)
+      for (let x = 0; x < width; x += 2)
+        if (data[(y * width + x) * 4 + 3] > 40) {
+          if (x < x0) x0 = x;
+          if (x > x1) x1 = x;
+          if (y < y0) y0 = y;
+          if (y > y1) y1 = y;
+        }
+    return x1 < 0 ? null : { x: x0, y: y0, w: x1 - x0, h: y1 - y0, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 };
+  } catch {
+    return null;
+  }
 }

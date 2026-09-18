@@ -1,179 +1,224 @@
 import Phaser from 'phaser';
+import { UI_BIN } from '../core/assets';
 import { boing, burst, stars } from '../core/fx';
-import { fit, MIN_DRAG_SHARE } from '../core/layout';
+import { art } from '../core/layout';
 import { sfx } from '../core/sfx';
 import { iconButton } from '../core/ui';
 import type { DecorateParams } from '../recipes/types';
 import { clampToRadius } from './Dish';
 import { Step } from './Step';
 
-interface Tray {
+interface Bin {
   key: string;
   x: number;
   y: number;
-  tray: Phaser.GameObjects.Image;
+  bin: Phaser.GameObjects.Image;
   icon: Phaser.GameObjects.Image;
 }
 
+/** Idle timings for free play: the hand only comes after 15 s, and it ends itself after 30 s. */
+const DECORATE_HINT_MS = 15000;
+const DECORATE_AUTO_AFTER_HINT_MS = 15000;
+/** A dragged item is lifted: shown a bit bigger and above the finger so it stays visible. */
+const LIFT = 1.3;
+const LIFT_UP = 90;
+/** Layout (design coordinates): bin rows start below the home button; the pizza moves down a bit. */
+const BINS_TOP = 380;
+const DISH_AT = { x: 540, y: 1175 };
+const DONE_AT = { x: 900, y: 1620 };
+
 /**
- * Free decorating: drag items from trays onto the dish. No limit, no right or
- * wrong. A drop anywhere near the dish lands on it; elsewhere the item floats
- * back to its tray. The done button ends the step.
+ * Free decorating: drag items from bins onto the dish. No limit, no right or wrong.
+ * A drop anywhere near the dish lands on it; elsewhere the item floats back to its bin.
+ * A placed item can be dragged again, or dragged off the dish to take it back.
+ * The done button ends the step; the finished pizza is then captured as one image.
  */
 export class DecorateStep extends Step<DecorateParams> {
-  private trays: Tray[] = [];
-  private held?: { img: Phaser.GameObjects.Image; from: Tray };
+  private bins: Bin[] = [];
+  private held?: { img: Phaser.GameObjects.Image; key: string };
   private placed = 0;
   private done?: Phaser.GameObjects.Image;
-  private placedSize = 0;
-  private heldSize = 0;
+  private k = 1;
+  private finishing = false;
+  private donePulsing = false;
 
   start() {
-    const { u, W, H, safeBottom } = this.layout;
-    const R = this.dish.R;
+    const L = this.layout;
+    this.k = L.k;
+    this.hintAfterMs = DECORATE_HINT_MS;
+    this.autoAfterHintMs = DECORATE_AUTO_AFTER_HINT_MS;
+
     const items = this.params.items;
-    const cols = Math.min(3, items.length);
-    const rows = Math.ceil(items.length / cols);
-    const traySize = Math.max(u * 0.24, W * MIN_DRAG_SHARE);
-    const gap = traySize * 0.08;
-    const top = H * 0.11;
-
-    this.heldSize = Math.max(u * 0.17, W * MIN_DRAG_SHARE);
-    this.placedSize = R * 0.36;
-
+    const cols = 3;
     items.forEach((key, i) => {
       const row = Math.floor(i / cols);
       const col = i % cols;
       const inRow = Math.min(cols, items.length - row * cols);
-      const x = this.layout.cx + (col - (inRow - 1) / 2) * (traySize + gap);
-      const y = top + traySize / 2 + row * (traySize + gap);
-      const tray = this.own(this.scene.add.image(x, y, this.params.tray));
-      fit(tray, traySize);
-      const icon = this.own(this.scene.add.image(x, y, key));
-      fit(icon, traySize * 0.62);
-      const t: Tray = { key, x, y, tray, icon };
-      this.trays.push(t);
-      for (const o of [tray, icon]) {
-        const s = o.scale;
+      const { x, y } = L.P(540 + (col - (inRow - 1) / 2) * 290, BINS_TOP + row * 260);
+      const bin = this.own(art(this.scene.add.image(x, y, UI_BIN), L));
+      const icon = this.own(art(this.scene.add.image(x, y - 8 * L.k, key), L));
+      this.bins.push({ key, x, y, bin, icon });
+      for (const o of [bin, icon]) {
         o.setScale(0);
-        this.scene.tweens.add({ targets: o, scale: s, duration: 400, delay: i * 70, ease: 'Back.easeOut' });
+        this.scene.tweens.add({ targets: o, scale: L.k, duration: 400, delay: i * 70, ease: 'Back.easeOut' });
       }
+      // Gentle idle wiggle: these are the things you can grab.
+      this.scene.tweens.add({ targets: icon, angle: { from: -6, to: 6 }, duration: 900 + i * 60, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     });
 
-    // Fit the dish between the trays and the done button.
-    const traysBottom = top + rows * traySize + (rows - 1) * gap;
-    const btnSize = u * 0.2;
-    const room = safeBottom - btnSize * 1.1 - (traysBottom + u * 0.03);
-    const scale = Math.min(1, room / (R * 2));
-    const dishY = traysBottom + u * 0.03 + R * scale;
-    this.scene.tweens.add({ targets: this.dish, x: this.layout.cx, y: dishY, scale, duration: 500, ease: 'Sine.easeInOut' });
+    const to = L.P(DISH_AT.x, DISH_AT.y);
+    this.scene.tweens.add({ targets: [this.dish, this.ctx.board], x: to.x, y: to.y, duration: 450, ease: 'Sine.easeInOut' });
 
-    const btnY = Math.min(dishY + R * scale + btnSize * 0.6, safeBottom - btnSize * 0.55);
-    this.done = this.own(iconButton(this.scene, this.params.doneButton, this.layout.cx + R * scale * 0.95, btnY, btnSize, () => this.finish()));
+    const btn = L.P(DONE_AT.x, DONE_AT.y);
+    this.done = this.own(iconButton(this.scene, L, this.params.doneButton, btn.x, btn.y, () => this.finish()));
 
     this.onDown((p) => {
-      const t = this.trayAt(p.worldX, p.worldY);
-      if (!t) return;
+      const placed = this.toppingAt(p.worldX, p.worldY);
+      if (placed) return this.pickUp(placed, p);
+      const b = this.binAt(p.worldX, p.worldY);
+      if (!b) return;
       this.poke();
       sfx(this.scene, 'tap');
-      boing(this.scene, t.tray, 0.15);
-      const img = this.scene.add.image(p.worldX, p.worldY - u * 0.05, t.key).setDepth(40);
-      fit(img, this.heldSize);
-      const s = img.scale;
-      img.setScale(s * 0.6);
-      this.scene.tweens.add({ targets: img, scale: s, duration: 180, ease: 'Back.easeOut' });
-      this.held = { img, from: t };
+      boing(this.scene, b.bin, 0.15);
+      const img = art(this.scene.add.image(p.worldX, p.worldY - LIFT_UP * this.k, b.key), L, 0.8).setDepth(40);
+      this.scene.tweens.add({ targets: img, scale: L.k * LIFT, duration: 160, ease: 'Back.easeOut' });
+      this.held = { img, key: b.key };
     });
     this.onMove((p) => {
       if (!this.held) return;
-      this.held.img.setPosition(p.worldX, p.worldY - u * 0.05);
+      this.held.img.setPosition(p.worldX, p.worldY - LIFT_UP * this.k);
       this.poke();
     });
-    this.onUp(() => {
+    this.onUp((_p, cancelled) => {
       if (!this.held) return;
-      const { img, from } = this.held;
+      const { img, key } = this.held;
       this.held = undefined;
-      if (this.dish.reach(img.x, img.y) < 1.4) this.place(img, from.key);
-      else this.sendBack(img, from);
+      this.poke();
+      if (!cancelled && this.dish.reach(img.x, img.y) < 1.35) this.place(img, key);
+      else this.sendBack(img, key);
     });
 
     this.setIdle(true);
   }
 
-  /** Forgiving hit test: nearest tray within 0.7 tray widths. */
-  private trayAt(x: number, y: number) {
-    let best: Tray | undefined;
+  /** Forgiving hit test: nearest bin within ~1.5 bin half-widths. */
+  private binAt(x: number, y: number) {
+    let best: Bin | undefined;
     let bestD = Infinity;
-    for (const t of this.trays) {
-      const d = Phaser.Math.Distance.Between(x, y, t.x, t.y);
+    for (const b of this.bins) {
+      const d = Phaser.Math.Distance.Between(x, y, b.x, b.y);
+      if (d < bestD) {
+        bestD = d;
+        best = b;
+      }
+    }
+    return best && bestD < 180 * this.k ? best : undefined;
+  }
+
+  /** A topping already on the dish, under the finger. */
+  private toppingAt(x: number, y: number) {
+    const list = this.dish.toppings.list as Phaser.GameObjects.Image[];
+    let best: Phaser.GameObjects.Image | undefined;
+    let bestD = Infinity;
+    for (const t of list) {
+      const w = this.dish.toWorld(t.x, t.y);
+      const d = Phaser.Math.Distance.Between(x, y, w.x, w.y);
       if (d < bestD) {
         bestD = d;
         best = t;
       }
     }
-    return best && bestD < best.tray.displayWidth * 0.7 ? best : undefined;
+    return best && bestD < 85 * this.k ? best : undefined;
+  }
+
+  private pickUp(t: Phaser.GameObjects.Image, p: Phaser.Input.Pointer) {
+    const key = t.getData('key') as string;
+    this.dish.toppings.remove(t, true);
+    this.placed = Math.max(0, this.placed - 1);
+    this.poke();
+    sfx(this.scene, 'tap');
+    const img = art(this.scene.add.image(p.worldX, p.worldY - LIFT_UP * this.k, key), this.layout, LIFT).setDepth(40);
+    this.held = { img, key };
   }
 
   private place(img: Phaser.GameObjects.Image, key: string) {
     const spot = clampToRadius(this.dish.toLocal(img.x, img.y), this.dish.R * 0.78);
-    const wx = this.dish.x + spot.x * this.dish.scaleX;
-    const wy = this.dish.y + spot.y * this.dish.scaleY;
-    const endScale = (this.placedSize * this.dish.scaleX) / img.frame.realWidth;
+    const w = this.dish.toWorld(spot.x, spot.y);
     this.scene.tweens.add({
       targets: img,
-      x: wx,
-      y: wy,
-      scale: endScale,
-      duration: 160,
+      x: w.x,
+      y: w.y,
+      scale: this.k * this.dish.scaleX,
+      duration: 150,
       ease: 'Quad.easeOut',
       onComplete: () => {
         img.destroy();
-        const t = this.dish.addTopping(key, spot.x, spot.y, this.placedSize);
+        const t = this.dish.addTopping(key, spot.x, spot.y);
         boing(this.scene, t, 0.35);
         sfx(this.scene, 'pop');
-        burst(this.scene, wx, wy, { count: 8, size: 18, tint: [0xffffff, 0xffe066], speed: 350, gravityY: 400 });
+        burst(this.scene, w.x, w.y, { count: 8, size: 18 * this.k, tint: [0xffffff, 0xffcb47], speed: 350 * this.k, gravityY: 400 });
         this.placed++;
-        if (this.placed === 3 && this.done) {
-          const s = this.done.scale;
-          this.scene.tweens.add({ targets: this.done, scale: s * 1.12, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+        if (this.placed >= 3 && !this.donePulsing && this.done?.active) {
+          this.donePulsing = true;
+          this.scene.tweens.add({ targets: this.done, scale: this.k * 1.12, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
         }
       },
     });
   }
 
-  private sendBack(img: Phaser.GameObjects.Image, from: Tray) {
+  /** Gently back to its bin (also when the touch was lost mid-drag). */
+  private sendBack(img: Phaser.GameObjects.Image, key: string) {
+    const b = this.bins.find((x) => x.key === key) ?? this.bins[0];
     sfx(this.scene, 'whoosh', { volume: 0.4 });
     this.scene.tweens.add({
       targets: img,
-      x: from.x,
-      y: from.y,
-      scale: img.scale * 0.5,
+      x: b.x,
+      y: b.y,
+      scale: this.k * 0.6,
       alpha: 0,
-      duration: 350,
-      ease: 'Quad.easeIn',
+      duration: 380,
+      ease: 'Sine.easeInOut',
       onComplete: () => img.destroy(),
     });
   }
 
+  /** Done: celebrate, then capture the pizza exactly as she made it. */
   private finish() {
-    if (this.isAuto) return;
-    this.held?.img.destroy();
-    this.held = undefined;
-    stars(this.scene, this.dish.x, this.dish.y, 10, this.layout.u * 0.06);
-    this.complete();
+    if (this.finishing || this.isAuto) return;
+    this.finishing = true;
+    this.setIdle(false);
+    if (this.held) {
+      const { img, key } = this.held;
+      this.held = undefined;
+      this.sendBack(img, key);
+    }
+    stars(this.scene, this.dish.x, this.dish.y, 12, 70 * this.k);
+    // Let the last pops land before the snapshot.
+    this.scene.time.delayedCall(450, () => {
+      this.dish.capture().then((ok) => {
+        if (!ok) console.warn('[decorate] capture failed: slices will use the stock art');
+        this.complete();
+      });
+    });
   }
 
   protected showHint() {
-    const t = this.trays[Math.floor(this.trays.length / 2)] ?? this.trays[0];
-    this.hand.drag({ x: t.x, y: t.y }, { x: this.dish.x, y: this.dish.y });
+    if (this.placed === 0) {
+      // Nothing on the pizza yet: show how to drag a topping first.
+      const b = this.bins[1] ?? this.bins[0];
+      this.hand.drag({ x: b.x, y: b.y }, { x: this.dish.x, y: this.dish.y });
+    } else if (this.done) {
+      this.hand.tap({ x: this.done.x, y: this.done.y });
+    }
   }
 
   protected autoFinish() {
-    const picks = Phaser.Utils.Array.Shuffle([...this.trays]).slice(0, 5);
-    picks.forEach((t, i) => {
+    this.held?.img.destroy();
+    this.held = undefined;
+    const picks = this.placed > 0 ? [] : Phaser.Utils.Array.Shuffle([...this.bins]).slice(0, 5);
+    picks.forEach((b, i) => {
       this.scene.time.delayedCall(i * 260, () => {
-        const img = this.scene.add.image(t.x, t.y, t.key).setDepth(40);
-        fit(img, this.heldSize);
+        const img = art(this.scene.add.image(b.x, b.y, b.key), this.layout, LIFT).setDepth(40);
         const a = Phaser.Math.FloatBetween(0, Math.PI * 2);
         const r = this.dish.R * this.dish.scaleX * Phaser.Math.FloatBetween(0.2, 0.7);
         this.scene.tweens.add({
@@ -182,13 +227,14 @@ export class DecorateStep extends Step<DecorateParams> {
           y: this.dish.y + Math.sin(a) * r,
           duration: 380,
           ease: 'Sine.easeInOut',
-          onComplete: () => this.place(img, t.key),
+          onComplete: () => this.place(img, b.key),
         });
       });
     });
-    this.scene.time.delayedCall(picks.length * 260 + 700, () => {
-      stars(this.scene, this.dish.x, this.dish.y, 10, this.layout.u * 0.06);
-      this.complete();
+    this.scene.time.delayedCall(picks.length * 260 + 500, () => {
+      this.finishing = false;
+      this.resumeAfterAuto();
+      this.finish();
     });
   }
 }

@@ -1,37 +1,37 @@
 import Phaser from 'phaser';
+import { SAUCE_RED } from '../core/assets';
 import { burst } from '../core/fx';
-import { fit } from '../core/layout';
+import { art } from '../core/layout';
 import { sfx } from '../core/sfx';
 import type { SpreadParams } from '../recipes/types';
 import { clampToRadius } from './Dish';
 import { Step } from './Step';
 
 /**
- * Spreading: paint with one finger over the dish until enough of it is covered.
- * Strokes that stray outside are pulled onto the dish edge, so every stroke paints.
+ * Spreading: paint with one finger over the dish until enough of it is covered, then
+ * the game fills the rest. Strokes that stray outside are pulled onto the dish, so
+ * every stroke paints. The crust rim stays visible around the sauce.
  */
 export class SpreadStep extends Step<SpreadParams> {
   private cells: { x: number; y: number; covered: boolean }[] = [];
   private covered = 0;
   private painting = false;
   private last = { x: 0, y: 0 };
-  private blobSize = 0;
+  private brush = 0;
   private paintR = 0;
   private sinceSound = 0;
   private finishing = false;
 
   start() {
-    const { u, W } = this.layout;
+    const L = this.layout;
     const R = this.dish.R;
-    this.paintR = R * 0.76;
-    this.blobSize = R * 0.3;
+    this.paintR = R * 0.68;
+    this.brush = R * 0.42;
 
-    const bowl = this.own(this.scene.add.image(0, 0, this.params.source));
-    fit(bowl, u * 0.28, u * 0.22);
-    bowl.setPosition(Math.min(W - bowl.displayWidth * 0.55, this.dish.x + R * 0.95), this.dish.y - R - bowl.displayHeight * 0.35);
-    const bowlScale = bowl.scale;
+    const bowlAt = L.P(820, 500);
+    const bowl = this.own(art(this.scene.add.image(bowlAt.x, bowlAt.y, this.params.source), L));
     bowl.setScale(0);
-    this.scene.tweens.add({ targets: bowl, scale: bowlScale, duration: 450, ease: 'Back.easeOut' });
+    this.scene.tweens.add({ targets: bowl, scale: L.k, duration: 450, ease: 'Back.easeOut' });
 
     // Coverage grid over the paintable disc.
     const step = R / 9;
@@ -46,22 +46,22 @@ export class SpreadStep extends Step<SpreadParams> {
       this.paintAt(p.worldX, p.worldY);
       this.dish.flushSauce();
       sfx(this.scene, 'squish', { minGapMs: 150 });
+      burst(this.scene, p.worldX, p.worldY, { tint: SAUCE_RED, count: 4, size: 18 * L.k, speed: 250 * L.k });
     });
     this.onMove((p) => {
       if (!this.painting) return;
       const d = Phaser.Math.Distance.Between(this.last.x, this.last.y, p.worldX, p.worldY);
-      const stepPx = this.blobSize * 0.3 * this.dish.scaleX;
-      const n = Math.max(1, Math.ceil(d / stepPx));
+      const n = Math.max(1, Math.ceil(d / (this.brush * 0.3 * this.dish.scaleX)));
       for (let i = 1; i <= n; i++) {
         this.paintAt(Phaser.Math.Linear(this.last.x, p.worldX, i / n), Phaser.Math.Linear(this.last.y, p.worldY, i / n));
       }
       this.dish.flushSauce();
       this.last = { x: p.worldX, y: p.worldY };
       this.sinceSound += d;
-      if (this.sinceSound > 140) {
+      if (this.sinceSound > 140 * L.k) {
         this.sinceSound = 0;
         sfx(this.scene, 'squish', { minGapMs: 200, volume: 0.5 });
-        burst(this.scene, p.worldX, p.worldY, { tint: 0xd8342a, count: 3, size: 16, speed: 250 });
+        burst(this.scene, p.worldX, p.worldY, { tint: SAUCE_RED, count: 3, size: 16 * L.k, speed: 250 * L.k });
       }
       this.checkDone();
     });
@@ -78,8 +78,8 @@ export class SpreadStep extends Step<SpreadParams> {
   }
 
   private stamp(x: number, y: number) {
-    this.dish.stampSauce(this.params.blob, x, y, this.blobSize);
-    const reach = this.blobSize * 0.38;
+    this.dish.stampSauce(x, y, this.brush);
+    const reach = this.brush * 0.4;
     let gained = false;
     for (const c of this.cells) {
       if (!c.covered && Math.abs(c.x - x) < reach && Math.abs(c.y - y) < reach && Math.hypot(c.x - x, c.y - y) < reach) {
@@ -117,7 +117,7 @@ export class SpreadStep extends Step<SpreadParams> {
       delay: 30,
       loop: true,
       callback: () => {
-        for (let k = 0; k < perTick && i < gaps.length; k++, i++) this.dish.stampSauce(this.params.blob, gaps[i].x, gaps[i].y, this.blobSize);
+        for (let k = 0; k < perTick && i < gaps.length; k++, i++) this.dish.stampSauce(gaps[i].x, gaps[i].y, this.brush);
         this.dish.flushSauce();
         if (i >= gaps.length) {
           ev.remove();
@@ -128,7 +128,7 @@ export class SpreadStep extends Step<SpreadParams> {
   }
 
   protected showHint() {
-    this.hand.circle({ x: this.dish.x, y: this.dish.y }, this.dish.R * 0.55);
+    this.hand.circle({ x: this.dish.x, y: this.dish.y }, this.dish.R * 0.5);
   }
 
   protected autoFinish() {

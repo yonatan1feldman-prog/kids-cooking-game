@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { blockBrowserGestures, installLifecycle } from './core/device';
 import { BASE_H, BASE_W } from './core/layout';
 import { BootScene } from './scenes/BootScene';
 import { HomeScene } from './scenes/HomeScene';
@@ -17,9 +18,14 @@ const game = new Phaser.Game({
     width: BASE_W,
     height: BASE_H,
   },
-  input: { activePointers: 1 },
+  // Three touch slots so a resting palm can't take the only slot. Which touch "owns" an
+  // action is decided in Step / iconButton: the first finger rules until it is lifted.
+  input: { activePointers: 3 },
   scene: [BootScene, TitleScene, HomeScene, RecipeScene],
 });
+
+blockBrowserGestures();
+installLifecycle(game);
 
 // Handy for debugging from the browser console.
 (window as unknown as { game: Phaser.Game }).game = game;

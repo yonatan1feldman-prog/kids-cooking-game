@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { puff } from '../core/fx';
-import { fit } from '../core/layout';
+import { art } from '../core/layout';
 import { sfx } from '../core/sfx';
 import type { RollParams } from '../recipes/types';
 import { Step } from './Step';
@@ -19,28 +19,21 @@ export class RollStep extends Step<RollParams> {
   private last = { x: 0, y: 0 };
   private sinceSound = 0;
   private sincePuff = 0;
-  private ballScale = 1;
-  private flatScale = 1;
+  private k = 1;
 
   start() {
-    const { u } = this.layout;
+    const L = this.layout;
+    this.k = L.k;
     const { x, y } = this.ctx.dishHome;
-    const R = this.dish.R;
     this.dish.setPosition(x, y).setScale(1).setAlpha(1);
 
-    this.flat = this.own(this.scene.add.image(x, y, this.params.flat).setAlpha(0));
-    fit(this.flat, R * 2);
-    this.flatScale = this.flat.scale;
-
-    this.ball = this.own(this.scene.add.image(x, y, this.params.ball));
-    fit(this.ball, u * 0.42);
-    this.ballScale = this.ball.scale;
+    this.flat = this.own(art(this.scene.add.image(x, y, this.params.flat), L).setAlpha(0));
+    this.ball = this.own(art(this.scene.add.image(x, y, this.params.ball), L));
     this.ball.setScale(0);
-    this.scene.tweens.add({ targets: this.ball, scale: this.ballScale, duration: 500, ease: 'Back.easeOut' });
+    this.scene.tweens.add({ targets: this.ball, scale: this.k, duration: 500, ease: 'Back.easeOut' });
 
-    this.pinRest = { x, y: y + R + u * 0.1 };
-    this.pin = this.own(this.scene.add.image(this.pinRest.x, this.pinRest.y, this.params.tool).setDepth(20));
-    fit(this.pin, u * 0.55, u * 0.2);
+    this.pinRest = L.P(540, 540);
+    this.pin = this.own(art(this.scene.add.image(this.pinRest.x, this.pinRest.y, this.params.tool), L).setDepth(20));
 
     this.render();
 
@@ -50,6 +43,7 @@ export class RollStep extends Step<RollParams> {
       this.last = { x: p.worldX, y: p.worldY };
       this.movePin(p.worldX, p.worldY);
       sfx(this.scene, 'squish', { minGapMs: 200 });
+      puff(this.scene, p.worldX, p.worldY, 0xfff6e6, 3, 70 * this.k);
     });
     this.onMove((p) => {
       if (!this.rubbing) return;
@@ -80,26 +74,25 @@ export class RollStep extends Step<RollParams> {
     this.progress = Math.min(1, this.progress + dist / need);
     this.sinceSound += dist;
     this.sincePuff += dist;
-    if (this.sinceSound > 90) {
+    if (this.sinceSound > 90 * this.k) {
       this.sinceSound = 0;
       sfx(this.scene, 'squish', { minGapMs: 180, volume: 0.6 });
     }
-    if (this.sincePuff > 160) {
+    if (this.sincePuff > 160 * this.k) {
       this.sincePuff = 0;
-      puff(this.scene, x, y + this.layout.u * 0.03, 0xfff8ec, 3, this.layout.u * 0.07);
+      puff(this.scene, x, y + 30 * this.k, 0xfff6e6, 3, 70 * this.k);
     }
     this.render();
     if (this.progress >= 1) this.finish();
   }
 
-  /** Ball squashes wider and fades into the growing flat dough. */
+  /** The ball squashes wider and fades into the growing flat dough: progress lives in the object itself. */
   private render() {
     const p = this.progress;
-    const squash = 1 + p * 0.9;
-    this.ball.setScale(this.ballScale * squash, this.ballScale * (1 - p * 0.6));
+    this.ball.setScale(this.k * (1 + p * 0.9), this.k * (1 - p * 0.6));
     this.ball.setAlpha(1 - Phaser.Math.Clamp((p - 0.35) / 0.55, 0, 1));
     this.flat.setAlpha(Phaser.Math.Clamp(p / 0.4, 0, 1));
-    this.flat.setScale(this.flatScale * (0.45 + 0.55 * p));
+    this.flat.setScale(this.k * (0.45 + 0.55 * p));
   }
 
   private finish() {
@@ -107,8 +100,8 @@ export class RollStep extends Step<RollParams> {
     this.dish.setBase(this.params.flat);
     this.flat.setVisible(false);
     this.ball.setVisible(false);
-    this.scene.tweens.add({ targets: this.pin, x: this.pinRest.x, y: this.pinRest.y, alpha: 0, duration: 300 });
-    puff(this.scene, this.dish.x, this.dish.y, 0xfff8ec, 10, this.layout.u * 0.14);
+    this.scene.tweens.add({ targets: this.pin, x: this.pinRest.x, y: this.pinRest.y, duration: 300 });
+    puff(this.scene, this.dish.x, this.dish.y, 0xfff6e6, 10, 150 * this.k);
     this.complete();
   }
 

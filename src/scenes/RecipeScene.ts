@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { boing, stars } from '../core/fx';
 import { HandHint } from '../core/hand';
-import { addBackground, fit, getLayout, keepLayoutOnResize } from '../core/layout';
+import { addBackground, art, getLayout, keepLayoutOnResize } from '../core/layout';
 import { sfx } from '../core/sfx';
 import { iconButton } from '../core/ui';
 import { getRecipe } from '../recipes';
@@ -10,12 +10,17 @@ import { Dish } from '../steps/Dish';
 import { createStep } from '../steps/registry';
 import type { Step, StepContext } from '../steps/Step';
 
-/** Plays any recipe: runs its steps in order, carrying the dish between them. */
+/** Where the dish (on its board) rests by default, in design coordinates. */
+const DISH_HOME = { x: 540, y: 1110 };
+
+/**
+ * Plays any recipe: runs its steps in order, carrying the dish between them.
+ * Progress is shown only in the food itself (no bars or dots).
+ */
 export class RecipeScene extends Phaser.Scene {
   private recipe!: Recipe;
   private step?: Step<unknown>;
   private ctx!: StepContext;
-  private progress: Phaser.GameObjects.Image[] = [];
 
   constructor() {
     super('Recipe');
@@ -24,7 +29,6 @@ export class RecipeScene extends Phaser.Scene {
   init(data: { id?: string }) {
     this.recipe = getRecipe(data.id ?? 'pizza');
     this.step = undefined;
-    this.progress = [];
   }
 
   create() {
@@ -32,22 +36,13 @@ export class RecipeScene extends Phaser.Scene {
     keepLayoutOnResize(this, L);
     addBackground(this, L);
 
-    const topY = Math.max(L.H * 0.055, L.u * 0.08);
-    iconButton(this, 'btn-home', L.u * 0.1, topY, L.u * 0.13, () => this.goHome()).setDepth(900);
+    const home = L.P(130, 130);
+    iconButton(this, L, 'btn-home', home.x, home.y, () => this.goHome()).setDepth(900);
 
-    // Progress: one star per step, grey until done. Icons only.
-    const n = this.recipe.steps.length;
-    const s = L.u * 0.065;
-    for (let i = 0; i < n; i++) {
-      const star = this.add.image(L.cx + (i - (n - 1) / 2) * s * 1.35, topY, 'star').setDepth(900);
-      fit(star, s);
-      star.setTint(0x9a9a9a).setAlpha(0.55);
-      this.progress.push(star);
-    }
-
-    const dishHome = { x: L.cx, y: L.H * 0.52 };
-    const dish = new Dish(this, dishHome.x, dishHome.y, L.u * 0.34);
-    this.ctx = { scene: this, layout: L, dish, hand: new HandHint(this, L), dishHome };
+    const dishHome = L.P(DISH_HOME.x, DISH_HOME.y);
+    const board = art(this.add.image(dishHome.x, dishHome.y, this.recipe.board), L).setDepth(-1);
+    const dish = new Dish(this, dishHome.x, dishHome.y, L);
+    this.ctx = { scene: this, layout: L, dish, board, hand: new HandHint(this, L), dishHome };
 
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.step?.abort());
     this.runStep(devStartStep(this.recipe.steps.length));
@@ -58,19 +53,17 @@ export class RecipeScene extends Phaser.Scene {
     this.step.start();
   }
 
+  /** Each finished step gets its own celebration; the last step has the big one itself. */
   private stepDone(i: number) {
-    const star = this.progress[i];
-    if (star) {
-      star.clearTint().setAlpha(1);
-      boing(this, star, 0.4);
-    }
     const last = i >= this.recipe.steps.length - 1;
     if (last) {
       this.time.delayedCall(300, () => this.scene.start('Home'));
       return;
     }
+    const { dish, layout } = this.ctx;
     sfx(this, 'pop');
-    stars(this, this.ctx.dish.x, this.ctx.dish.y, 10, this.ctx.layout.u * 0.06);
+    stars(this, dish.x, dish.y, 18, 80 * layout.k);
+    boing(this, this.ctx.board, 0.06);
     this.time.delayedCall(800, () => this.runStep(i + 1));
   }
 

@@ -34,11 +34,12 @@ export interface SprinkleParams {
 
 export interface DecorateParams {
   items: ImageKey[];
-  tray: ImageKey;
   doneButton: ImageKey;
 }
 
 export interface BakeParams {
+  /** Oven layers sharing one frame: cavity, closed door with a see-through window, open door. */
+  inside: ImageKey;
   closed: ImageKey;
   open: ImageKey;
   bakeMs: number;
@@ -47,12 +48,18 @@ export interface BakeParams {
 }
 
 export interface FeedParams {
+  /** Fallback slice art, used only if capturing the child's own pizza failed. */
   slice: ImageKey;
   slices: number;
+  /** Character layers sharing one frame, stacked body -> eyes -> mouth. */
   body: ImageKey;
-  eyes: ImageKey;
-  mouthOpen: ImageKey;
+  eyesOpen: ImageKey;
+  eyesBlink: ImageKey;
+  eyesSurprised: ImageKey;
+  eyesHappy: ImageKey;
   mouthClosed: ImageKey;
+  mouthOpen: ImageKey;
+  mouthChew: ImageKey;
 }
 
 export type StepDef =
@@ -69,5 +76,7 @@ export interface Recipe {
   id: string;
   /** Card shown on the home screen. */
   card: ImageKey;
+  /** Board the dish sits on for the whole recipe. */
+  board: ImageKey;
   steps: StepDef[];
 }

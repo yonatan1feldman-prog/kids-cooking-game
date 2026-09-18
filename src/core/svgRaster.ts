@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
 
 /**
- * Loads an SVG and rasterizes it into a texture that fits inside `box`
- * while keeping the SVG's own aspect ratio (never distorted).
+ * Loads an SVG and rasterizes it at its native contract size (`box`), keeping the
+ * SVG's own aspect ratio (never distorted). One texture pixel = one design pixel.
  * Resolves false on any failure so the caller can fall back to a placeholder.
  */
 export async function loadSvgTexture(

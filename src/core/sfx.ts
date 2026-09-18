@@ -23,3 +23,26 @@ export function sfx(scene: Phaser.Scene, key: SoundKey, opts: { volume?: number;
     console.warn(`[sfx] ${key}`, err);
   }
 }
+
+/** Plays `key`, then calls `then` when it ends (right away if the sound is missing or fails). */
+export function sfxThen(scene: Phaser.Scene, key: SoundKey, then: () => void, volume = 0.9) {
+  let called = false;
+  const next = () => {
+    if (called) return;
+    called = true;
+    then();
+  };
+  if (!scene.cache.audio.exists(key)) return next();
+  try {
+    const snd = scene.sound.add(key, { volume });
+    snd.once(Phaser.Sound.Events.COMPLETE, () => {
+      snd.destroy();
+      next();
+    });
+    if (!snd.play()) next();
+    // Safety net if 'complete' never arrives (e.g. audio still locked).
+    scene.time.delayedCall(Math.max(500, (snd.duration || 1.5) * 1000 + 300), next);
+  } catch {
+    next();
+  }
+}

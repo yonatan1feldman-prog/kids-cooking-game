@@ -1,11 +1,12 @@
 import Phaser from 'phaser';
-import { fit, type Layout } from './layout';
+import { ART, IMAGES } from './assets';
+import { art, type Layout } from './layout';
 
 type P = { x: number; y: number };
 
 /**
  * The guiding hand. Demonstrates a gesture in a loop until stopped.
- * The fingertip is the image's top-center area (origin 0.5, 0.08).
+ * The image origin is the fingertip (ART.handTip), so every target point is where the finger touches.
  */
 export class HandHint {
   private img: Phaser.GameObjects.Image;
@@ -13,8 +14,9 @@ export class HandHint {
   private restScale: number;
 
   constructor(private scene: Phaser.Scene, layout: Layout) {
-    this.img = scene.add.image(0, 0, 'hand-hint').setOrigin(0.5, 0.08).setDepth(1000).setVisible(false);
-    fit(this.img, layout.u * 0.2, layout.u * 0.24);
+    const [w, h] = IMAGES['hand-hint'].size;
+    this.img = scene.add.image(0, 0, 'hand-hint').setOrigin(ART.handTip.x / w, ART.handTip.y / h).setDepth(1000).setVisible(false);
+    art(this.img, layout);
     this.restScale = this.img.scale;
   }
 

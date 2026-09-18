@@ -1,58 +1,74 @@
 import Phaser from 'phaser';
-import { fit, PALM_ZONE } from './layout';
+import { art, PALM_ZONE, type Layout } from './layout';
 import { sfx } from './sfx';
 
+/** True if some other finger is already on the screen (a second finger or a resting palm). */
+export function otherPointerDown(scene: Phaser.Scene, p: Phaser.Input.Pointer) {
+  return scene.input.manager.pointers.some((q) => q !== p && q.isDown);
+}
+
 /**
- * Big icon button. Reacts instantly on touch (squash + tap sound) and fires on
- * release — even if the finger slid off the button, because small fingers do.
- * The touch area is a circle 25% larger than the image, minus the palm zone.
+ * Big icon button shown at the uniform art scale. Touch area: a circle 25% larger
+ * than the art, minus the palm zone. It reacts instantly on touch (squash + tap sound).
+ * It fires on press by default (fastest feedback). `fireOn: 'up'` fires on release instead,
+ * which the browser requires for fullscreen / audio unlock / wake lock; a release
+ * anywhere counts, because small fingers slide.
+ * A press while another finger is already down is ignored.
  */
 export function iconButton(
   scene: Phaser.Scene,
+  layout: Layout,
   key: string,
   x: number,
   y: number,
-  size: number,
   onTap: () => void,
-  opts: { pulse?: boolean } = {},
+  opts: { pulse?: boolean; fireOn?: 'down' | 'up' } = {},
 ) {
-  const img = scene.add.image(x, y, key);
-  fit(img, size);
+  const img = art(scene.add.image(x, y, key), layout);
   const rest = img.scale;
   const fw = img.frame.realWidth;
   const fh = img.frame.realHeight;
   img.setInteractive(new Phaser.Geom.Circle(fw / 2, fh / 2, (Math.max(fw, fh) / 2) * 1.25), Phaser.Geom.Circle.Contains);
 
-  let pressed = false;
+  const fireOn = opts.fireOn ?? 'down';
+  let pressed: Phaser.Input.Pointer | null = null;
   let enabled = true;
   let pulse: Phaser.Tweens.Tween | undefined;
   if (opts.pulse) {
     pulse = scene.tweens.add({ targets: img, scale: rest * 1.08, duration: 700, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
   }
 
-  img.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, (p: Phaser.Input.Pointer) => {
-    if (!enabled) return;
-    // Presses that start where the palm rests never count.
-    if (p.y > scene.scale.height * (1 - PALM_ZONE)) return;
-    pressed = true;
-    pulse?.pause();
-    img.setScale(rest * 0.88);
-    sfx(scene, 'tap');
-  });
-  const release = () => {
-    if (!pressed) return;
-    pressed = false;
+  const fire = () => {
     enabled = false;
-    scene.tweens.add({ targets: img, scale: rest, duration: 300, ease: 'Back.easeOut' });
     onTap();
     scene.time.delayedCall(400, () => {
       enabled = true;
       pulse?.resume();
     });
   };
+
+  img.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, (p: Phaser.Input.Pointer) => {
+    if (!enabled || pressed) return;
+    // Presses that start where the palm rests, or while another finger is down, never count.
+    if (p.y > scene.scale.height * (1 - PALM_ZONE)) return;
+    if (otherPointerDown(scene, p)) return;
+    pulse?.pause();
+    sfx(scene, 'tap');
+    scene.tweens.add({ targets: img, scale: { from: rest * 0.86, to: rest }, duration: 320, ease: 'Back.easeOut' });
+    if (fireOn === 'down') fire();
+    else pressed = p;
+  });
+  const release = (p: Phaser.Input.Pointer) => {
+    if (!pressed || p !== pressed) return;
+    pressed = null;
+    if (!p.wasCanceled) fire();
+    else pulse?.resume();
+  };
   scene.input.on(Phaser.Input.Events.POINTER_UP, release);
+  scene.input.on(Phaser.Input.Events.POINTER_UP_OUTSIDE, release);
   img.once(Phaser.GameObjects.Events.DESTROY, () => {
     scene.input.off(Phaser.Input.Events.POINTER_UP, release);
+    scene.input.off(Phaser.Input.Events.POINTER_UP_OUTSIDE, release);
     pulse?.destroy();
   });
   return img;

@@ -1,51 +1,57 @@
 import Phaser from 'phaser';
+import { ART, IMAGES } from '../core/assets';
 import { boing, puff, stars } from '../core/fx';
-import { fit } from '../core/layout';
+import { art } from '../core/layout';
 import { sfx } from '../core/sfx';
 import type { BakeParams } from '../recipes/types';
 import { Step } from './Step';
 
 type Phase = 'toOven' | 'baking' | 'ready' | 'out';
 
+/** Oven center, and where the board + dish wait below it (design coordinates). */
+const OVEN_AT = { x: 540, y: 480 };
+const DISH_WAIT = { x: 540, y: 1330 };
+
 /**
- * Baking: drag the dish up into the open oven. The oven closes, glows and
- * shakes while baking, then dings. A tap opens it and the dish comes out golden.
+ * Baking: drag the dish up into the open oven. The door closes and the pizza is seen
+ * through the oven window (layers: oven-inside, pizza, oven-closed), slowly turning
+ * golden while the oven glows. A ding, then a tap opens it and the pizza comes out.
  */
 export class BakeStep extends Step<BakeParams> {
-  private oven!: Phaser.GameObjects.Image;
-  private ovenScale = 1;
+  private open!: Phaser.GameObjects.Image;
+  private inside!: Phaser.GameObjects.Image;
+  private closed!: Phaser.GameObjects.Image;
   private phase: Phase = 'toOven';
   private dragging = false;
   private grab = { dx: 0, dy: 0 };
-  private dishRest = { x: 0, y: 0, scale: 1 };
-  private bakeTweens: Phaser.Tweens.Tween[] = [];
+  private rest = { x: 0, y: 0 };
+  private loops: (Phaser.Tweens.Tween | Phaser.Time.TimerEvent)[] = [];
+  private k = 1;
 
   start() {
-    const { u, H, safeBottom } = this.layout;
-    const R = this.dish.R;
+    const L = this.layout;
+    this.k = L.k;
+    const o = L.P(OVEN_AT.x, OVEN_AT.y);
+    this.open = this.own(art(this.scene.add.image(o.x, o.y, this.params.open), L).setDepth(5));
+    this.inside = this.own(art(this.scene.add.image(o.x, o.y, this.params.inside), L).setDepth(5).setVisible(false));
+    this.closed = this.own(art(this.scene.add.image(o.x, o.y, this.params.closed), L).setDepth(7).setVisible(false));
+    this.open.setScale(0);
+    this.scene.tweens.add({ targets: this.open, scale: this.k, duration: 450, ease: 'Back.easeOut' });
 
-    this.oven = this.own(this.scene.add.image(this.layout.cx, 0, this.params.open).setDepth(5));
-    fit(this.oven, u * 0.62);
-    this.oven.setY(H * 0.1 + this.oven.displayHeight / 2);
-    this.ovenScale = this.oven.scale;
-    this.oven.setScale(0);
-    this.scene.tweens.add({ targets: this.oven, scale: this.ovenScale, duration: 450, ease: 'Back.easeOut' });
-
-    const ovenBottom = this.oven.y + (this.oven.frame.realHeight * this.ovenScale) / 2;
-    const scale = Math.min(0.8, (safeBottom - ovenBottom - u * 0.08) / (R * 2));
-    this.dishRest = { x: this.layout.cx, y: ovenBottom + u * 0.06 + R * scale, scale };
+    // Board and pizza slide down to make room under the oven.
+    this.rest = L.P(DISH_WAIT.x, DISH_WAIT.y);
     this.dish.setDepth(10);
-    this.scene.tweens.add({ targets: this.dish, x: this.dishRest.x, y: this.dishRest.y, scale, duration: 500, ease: 'Sine.easeInOut' });
+    this.scene.tweens.add({ targets: [this.dish, this.ctx.board], x: this.rest.x, y: this.rest.y, duration: 500, ease: 'Sine.easeInOut' });
 
     this.onDown((p) => {
       if (this.phase === 'toOven' && this.dish.reach(p.worldX, p.worldY) < 1.3) {
         this.dragging = true;
         this.grab = { dx: this.dish.x - p.worldX, dy: this.dish.y - p.worldY };
         this.scene.tweens.killTweensOf(this.dish);
-        this.dish.setScale(this.dishRest.scale * 1.06);
+        this.dish.setScale(1.06);
         sfx(this.scene, 'tap');
         this.poke();
-      } else if (this.phase === 'ready' && this.nearOven(p.worldX, p.worldY, 1.0)) {
+      } else if (this.phase === 'ready' && this.nearOven(p.worldX, p.worldY)) {
         this.openOven();
       }
     });
@@ -54,121 +60,150 @@ export class BakeStep extends Step<BakeParams> {
       this.dish.setPosition(p.worldX + this.grab.dx, p.worldY + this.grab.dy);
       this.poke();
     });
-    this.onUp(() => {
+    this.onUp((_p, cancelled) => {
       if (!this.dragging) return;
       this.dragging = false;
-      // Forgiving: anywhere in the upper part of the screen or near the oven counts.
-      if (this.dish.y < this.dishRest.y - u * 0.2 || this.nearOven(this.dish.x, this.dish.y, 1.1)) this.intoOven();
+      // Forgiving: lifted well up toward the oven, or dropped near it, counts.
+      const lifted = this.dish.y < this.rest.y - 220 * this.k || this.nearOven(this.dish.x, this.dish.y);
+      if (!cancelled && lifted) this.intoOven();
       else {
         sfx(this.scene, 'whoosh', { volume: 0.4 });
-        this.scene.tweens.add({ targets: this.dish, ...this.dishRest, duration: 400, ease: 'Back.easeOut' });
+        this.scene.tweens.add({ targets: this.dish, x: this.rest.x, y: this.rest.y, scale: 1, duration: 420, ease: 'Sine.easeOut' });
       }
     });
 
     this.setIdle(true);
   }
 
-  private nearOven(x: number, y: number, k: number) {
-    return Phaser.Math.Distance.Between(x, y, this.oven.x, this.oven.y) < this.oven.displayWidth * 0.5 * k + this.layout.u * 0.05;
+  private nearOven(x: number, y: number) {
+    return Phaser.Math.Distance.Between(x, y, this.open.x, this.open.y) < 460 * this.k;
+  }
+
+  /** Oven-frame point (700x800 viewBox) -> game point. */
+  private ovenPoint(x: number, y: number) {
+    const [w, h] = IMAGES['oven-closed'].size;
+    return { x: this.open.x + (x - w / 2) * this.k, y: this.open.y + (y - h / 2) * this.k };
   }
 
   private intoOven() {
     this.phase = 'baking';
     this.setIdle(false);
     sfx(this.scene, 'whoosh');
+    const spot = this.ovenPoint(ART.ovenPizza.x, ART.ovenPizza.y);
+    const scale = ((ART.ovenPizza.diameter / 2) * this.k) / this.dish.R;
     this.scene.tweens.add({
       targets: this.dish,
-      x: this.oven.x,
-      y: this.oven.y + this.oven.displayHeight * 0.08,
-      scale: (this.oven.displayWidth * 0.3) / (this.dish.R * 2),
-      duration: 450,
+      x: spot.x,
+      y: spot.y,
+      scale,
+      duration: 480,
       ease: 'Quad.easeIn',
       onComplete: () => {
-        this.dish.setVisible(false);
-        this.oven.setTexture(this.params.closed);
-        fit(this.oven, this.layout.u * 0.62);
-        this.ovenScale = this.oven.scale;
-        boing(this.scene, this.oven, 0.08);
+        // Door closes: pizza now sits between the oven cavity and the glass.
+        this.open.setVisible(false);
+        this.inside.setVisible(true);
+        this.closed.setVisible(true);
+        this.dish.setDepth(6);
+        boing(this.scene, this.closed, 0.06);
+        sfx(this.scene, 'pop', { volume: 0.5 });
         this.bake();
       },
     });
   }
 
-  /** Glow + wobble + steam while the tint of the dish changes inside. */
+  /** The pizza visibly turns golden through the window; the cavity glows; steam rises. */
   private bake() {
-    const glow = { t: 0 };
-    const from = Phaser.Display.Color.ValueToColor(0xffffff);
-    const to = Phaser.Display.Color.ValueToColor(0xffa860);
-    this.bakeTweens.push(
-      this.scene.tweens.add({
-        targets: glow,
-        t: 1,
-        duration: this.params.bakeMs / 2,
+    const raw = Phaser.Display.Color.ValueToColor(0xffffff);
+    const baked = Phaser.Display.Color.ValueToColor(this.params.bakedTint);
+    const glowFrom = Phaser.Display.Color.ValueToColor(0xffffff);
+    const glowTo = Phaser.Display.Color.ValueToColor(0xffb070);
+    const mix = (a: Phaser.Display.Color, b: Phaser.Display.Color, t: number) => {
+      const c = Phaser.Display.Color.Interpolate.ColorWithColor(a, b, 100, t * 100);
+      return Phaser.Display.Color.GetColor(c.r, c.g, c.b);
+    };
+    this.loops.push(
+      this.scene.tweens.addCounter({
+        from: 0,
+        to: 1,
+        duration: this.params.bakeMs,
+        onUpdate: (tw) => this.dish.tintAll(mix(raw, baked, tw.getValue() ?? 0)),
+      }),
+      this.scene.tweens.addCounter({
+        from: 0,
+        to: 1,
+        duration: 500,
         yoyo: true,
+        repeat: -1,
         ease: 'Sine.easeInOut',
-        onUpdate: () => {
-          const c = Phaser.Display.Color.Interpolate.ColorWithColor(from, to, 100, glow.t * 100);
-          this.oven.setTint(Phaser.Display.Color.GetColor(c.r, c.g, c.b));
+        onUpdate: (tw) => this.inside.setTint(mix(glowFrom, glowTo, tw.getValue() ?? 0)),
+      }),
+      this.scene.tweens.add({ targets: this.closed, angle: { from: -1, to: 1 }, duration: 140, yoyo: true, repeat: -1 }),
+      this.scene.time.addEvent({
+        delay: 300,
+        loop: true,
+        callback: () => {
+          const top = this.ovenPoint(350 + Phaser.Math.Between(-120, 120), 60);
+          puff(this.scene, top.x, top.y, 0xffffff, 2, 90 * this.k);
         },
       }),
-      this.scene.tweens.add({ targets: this.oven, angle: { from: -1.5, to: 1.5 }, duration: 120, yoyo: true, repeat: -1 }),
     );
-    const steam = this.scene.time.addEvent({
-      delay: 280,
-      loop: true,
-      callback: () => puff(this.scene, this.oven.x + Phaser.Math.Between(-60, 60), this.oven.y - this.oven.displayHeight * 0.45, 0xffffff, 2, this.layout.u * 0.08),
-    });
     this.scene.time.delayedCall(this.params.bakeMs, () => {
-      steam.remove();
-      this.bakeTweens.forEach((t) => t.destroy());
-      this.oven.setAngle(0).clearTint();
-      this.dish.tintAll(this.params.bakedTint, 0xfff0dc);
+      this.stopLoops();
+      this.closed.setAngle(0);
+      this.inside.clearTint();
+      this.dish.tintAll(this.params.bakedTint);
       sfx(this.scene, 'oven-ding', { vary: false });
-      boing(this.scene, this.oven, 0.15);
-      stars(this.scene, this.oven.x, this.oven.y - this.oven.displayHeight * 0.4, 6, this.layout.u * 0.05);
+      boing(this.scene, this.closed, 0.12);
+      stars(this.scene, this.closed.x, this.closed.y - 380 * this.k, 6, 60 * this.k);
       this.phase = 'ready';
-      this.bakeTweens.push(
-        this.scene.tweens.add({ targets: this.oven, scale: this.ovenScale * 1.05, duration: 500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' }),
+      // Gentle "tap me" hop of the whole oven (pizza included, so it stays behind the window).
+      this.loops.push(
+        this.scene.tweens.add({ targets: [this.closed, this.inside, this.dish], y: `-=${14 * this.k}`, duration: 380, yoyo: true, repeat: -1, repeatDelay: 250, ease: 'Sine.easeOut' }),
       );
       this.setIdle(true);
     });
+  }
+
+  private stopLoops() {
+    this.loops.forEach((l) => (l instanceof Phaser.Time.TimerEvent ? l.remove() : l.destroy()));
+    this.loops = [];
   }
 
   private openOven() {
     if (this.phase !== 'ready') return;
     this.phase = 'out';
     this.setIdle(false);
-    this.bakeTweens.forEach((t) => t.destroy());
-    this.oven.setTexture(this.params.open);
-    fit(this.oven, this.layout.u * 0.62);
+    this.stopLoops();
+    this.inside.setVisible(false);
+    this.closed.setVisible(false);
+    this.open.setVisible(true).setScale(this.k);
     sfx(this.scene, 'whoosh');
-    puff(this.scene, this.oven.x, this.oven.y, 0xffffff, 10, this.layout.u * 0.12);
-    this.dish.setVisible(true);
+    puff(this.scene, this.open.x, this.open.y, 0xffffff, 10, 140 * this.k);
+    this.dish.setDepth(10);
     this.scene.tweens.add({
       targets: this.dish,
-      x: this.ctx.dishHome.x,
-      y: this.ctx.dishHome.y,
+      x: this.rest.x,
+      y: this.rest.y,
       scale: 1,
       duration: 700,
       ease: 'Back.easeOut',
       onComplete: () => {
-        this.dish.setDepth(0);
         sfx(this.scene, 'pop');
-        stars(this.scene, this.dish.x, this.dish.y, 12, this.layout.u * 0.06);
+        stars(this.scene, this.dish.x, this.dish.y, 12, 70 * this.k);
         this.scene.time.delayedCall(500, () => this.complete());
       },
     });
   }
 
   protected showHint() {
-    if (this.phase === 'toOven') this.hand.drag({ x: this.dish.x, y: this.dish.y }, { x: this.oven.x, y: this.oven.y });
-    else if (this.phase === 'ready') this.hand.tap({ x: this.oven.x, y: this.oven.y });
+    if (this.phase === 'toOven') this.hand.drag({ x: this.dish.x, y: this.dish.y }, { x: this.open.x, y: this.open.y });
+    else if (this.phase === 'ready') this.hand.tap({ x: this.closed.x, y: this.closed.y });
   }
 
   protected autoFinish() {
     if (this.phase === 'toOven') {
       this.dragging = false;
-      // The oven finishes on its own; after it dings the child gets a fresh chance to tap.
+      // The oven bakes on its own; after the ding the child gets a fresh chance to tap.
       this.resumeAfterAuto();
       this.intoOven();
     } else if (this.phase === 'ready') {
