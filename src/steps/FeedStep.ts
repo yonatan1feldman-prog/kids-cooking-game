@@ -74,8 +74,13 @@ export class FeedStep extends Step<FeedParams> {
       const { s } = this.held;
       this.held = undefined;
       // Either the finger or the slice's tip near the mouth counts.
-      if (!cancelled && (this.nearMouth(p.worldX, p.worldY) || this.nearMouth(s.img.x, s.img.y))) this.eat(s);
-      else this.sendHome(s);
+      if (!cancelled && (this.nearMouth(p.worldX, p.worldY) || this.nearMouth(s.img.x, s.img.y))) {
+        this.hit();
+        this.eat(s);
+      } else {
+        if (!cancelled) this.miss();
+        this.sendHome(s);
+      }
     });
 
     this.setIdle(true);

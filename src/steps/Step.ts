@@ -99,6 +99,27 @@ export abstract class Step<P> {
     }
   }
 
+  private misses = 0;
+
+  /**
+   * A try that didn't land (e.g. dropped away from the target). After 3 misses in a row
+   * the hand shows the solution right away, without waiting for the idle clock.
+   */
+  protected miss() {
+    this.misses++;
+    if (this.misses >= 3 && !this.hinting && !this.isAuto) {
+      this.misses = 0;
+      this.hinting = true;
+      this.idleMs = this.hintAfterMs;
+      this.showHint();
+    }
+  }
+
+  /** A try that landed: the miss streak starts over. */
+  protected hit() {
+    this.misses = 0;
+  }
+
   /** For multi-phase steps: after an automatic phase, hand control back to the child. */
   protected resumeAfterAuto() {
     this.auto = false;

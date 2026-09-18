@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { ART, IMAGES } from './assets';
+import { ART, FX_SOFT, IMAGES } from './assets';
 import { art, type Layout } from './layout';
 
 type P = { x: number; y: number };
@@ -10,6 +10,8 @@ type P = { x: number; y: number };
  */
 export class HandHint {
   private img: Phaser.GameObjects.Image;
+  /** Soft glow under the object the hint is about. */
+  private glow: Phaser.GameObjects.Image;
   private tweens: (Phaser.Tweens.Tween | Phaser.Tweens.TweenChain)[] = [];
   private restScale: number;
 
@@ -18,6 +20,8 @@ export class HandHint {
     this.img = scene.add.image(0, 0, 'hand-hint').setOrigin(ART.handTip.x / w, ART.handTip.y / h).setDepth(1000).setVisible(false);
     art(this.img, layout);
     this.restScale = this.img.scale;
+    this.glow = scene.add.image(0, 0, FX_SOFT).setDepth(999).setVisible(false).setTint(0xffe066).setBlendMode(Phaser.BlendModes.ADD);
+    this.glow.setScale((360 * layout.k) / this.glow.frame.realWidth);
   }
 
   get active() {
@@ -28,11 +32,15 @@ export class HandHint {
     this.tweens.forEach((t) => t.destroy());
     this.tweens = [];
     this.img.setVisible(false);
+    this.glow.setVisible(false);
   }
 
   private begin(at: P) {
     this.stop();
     this.img.setPosition(at.x, at.y).setScale(this.restScale).setAlpha(0).setVisible(true);
+    // Glow on the thing to touch first.
+    this.glow.setPosition(at.x, at.y).setAlpha(0).setVisible(true);
+    this.tweens.push(this.scene.tweens.add({ targets: this.glow, alpha: { from: 0.15, to: 0.7 }, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' }));
   }
 
   /** Repeated taps on a point. */
@@ -112,5 +120,6 @@ export class HandHint {
   destroy() {
     this.stop();
     this.img.destroy();
+    this.glow.destroy();
   }
 }

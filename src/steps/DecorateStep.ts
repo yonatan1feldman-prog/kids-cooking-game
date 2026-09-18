@@ -23,9 +23,9 @@ const DECORATE_AUTO_AFTER_HINT_MS = 15000;
 const LIFT = 1.3;
 const LIFT_UP = 90;
 /** Layout (design coordinates): bin rows start below the home button; the pizza moves down a bit. */
-const BINS_TOP = 380;
+const BINS_TOP = 400;
 const DISH_AT = { x: 540, y: 1175 };
-const DONE_AT = { x: 900, y: 1620 };
+const DONE_AT = { x: 860, y: 1610 };
 
 /**
  * Free decorating: drag items from bins onto the dish. No limit, no right or wrong.
@@ -101,7 +101,7 @@ export class DecorateStep extends Step<DecorateParams> {
     this.setIdle(true);
   }
 
-  /** Forgiving hit test: nearest bin within ~1.5 bin half-widths. */
+  /** Forgiving hit test: the nearest bin wins, reaching 120 design px beyond its edge. */
   private binAt(x: number, y: number) {
     let best: Bin | undefined;
     let bestD = Infinity;
@@ -112,7 +112,7 @@ export class DecorateStep extends Step<DecorateParams> {
         best = b;
       }
     }
-    return best && bestD < 180 * this.k ? best : undefined;
+    return best && bestD < 240 * this.k ? best : undefined;
   }
 
   /** A topping already on the dish, under the finger. */

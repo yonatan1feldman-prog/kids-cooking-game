@@ -65,8 +65,11 @@ export class BakeStep extends Step<BakeParams> {
       this.dragging = false;
       // Forgiving: lifted well up toward the oven, or dropped near it, counts.
       const lifted = this.dish.y < this.rest.y - 220 * this.k || this.nearOven(this.dish.x, this.dish.y);
-      if (!cancelled && lifted) this.intoOven();
-      else {
+      if (!cancelled && lifted) {
+        this.hit();
+        this.intoOven();
+      } else {
+        if (!cancelled) this.miss();
         sfx(this.scene, 'whoosh', { volume: 0.4 });
         this.scene.tweens.add({ targets: this.dish, x: this.rest.x, y: this.rest.y, scale: 1, duration: 420, ease: 'Sine.easeOut' });
       }

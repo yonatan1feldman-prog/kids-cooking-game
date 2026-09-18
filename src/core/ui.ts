@@ -8,8 +8,8 @@ export function otherPointerDown(scene: Phaser.Scene, p: Phaser.Input.Pointer) {
 }
 
 /**
- * Big icon button shown at the uniform art scale. Touch area: a circle 25% larger
- * than the art, minus the palm zone. It reacts instantly on touch (squash + tap sound).
+ * Big icon button shown at the uniform art scale. Touch area: a circle reaching `hitPad`
+ * design px beyond the art (default 60, about 0.4 cm), minus the palm zone. It reacts instantly on touch (squash + tap sound).
  * It fires on press by default (fastest feedback). `fireOn: 'up'` fires on release instead,
  * which the browser requires for fullscreen / audio unlock / wake lock; a release
  * anywhere counts, because small fingers slide.
@@ -22,13 +22,13 @@ export function iconButton(
   x: number,
   y: number,
   onTap: () => void,
-  opts: { pulse?: boolean; fireOn?: 'down' | 'up' } = {},
+  opts: { pulse?: boolean; fireOn?: 'down' | 'up'; hitPad?: number } = {},
 ) {
   const img = art(scene.add.image(x, y, key), layout);
   const rest = img.scale;
   const fw = img.frame.realWidth;
   const fh = img.frame.realHeight;
-  img.setInteractive(new Phaser.Geom.Circle(fw / 2, fh / 2, (Math.max(fw, fh) / 2) * 1.25), Phaser.Geom.Circle.Contains);
+  img.setInteractive(new Phaser.Geom.Circle(fw / 2, fh / 2, Math.max(fw, fh) / 2 + (opts.hitPad ?? 60)), Phaser.Geom.Circle.Contains);
 
   const fireOn = opts.fireOn ?? 'down';
   let pressed: Phaser.Input.Pointer | null = null;

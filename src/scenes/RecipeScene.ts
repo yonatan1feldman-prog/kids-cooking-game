@@ -36,7 +36,7 @@ export class RecipeScene extends Phaser.Scene {
     keepLayoutOnResize(this, L);
     addBackground(this, L);
 
-    const home = L.P(130, 130);
+    const home = L.P(160, 160);
     iconButton(this, L, 'btn-home', home.x, home.y, () => this.goHome()).setDepth(900);
 
     const dishHome = L.P(DISH_HOME.x, DISH_HOME.y);

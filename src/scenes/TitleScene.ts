@@ -21,7 +21,7 @@ export class TitleScene extends Phaser.Scene {
     addBackground(this, L);
 
     const at = L.P(540, 960);
-    const btn = iconButton(this, L, 'btn-play', at.x, at.y, () => this.go(btn.x, btn.y), { pulse: true, fireOn: 'up' });
+    const btn = iconButton(this, L, 'btn-play', at.x, at.y, () => this.go(btn.x, btn.y), { pulse: true, fireOn: 'up', hitPad: 130 });
     this.tweens.add({ targets: btn, alpha: { from: 0, to: 1 }, duration: 400 });
   }
 
