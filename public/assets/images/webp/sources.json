@@ -4,6 +4,26 @@
   "w": 1000,
   "h": 700
  },
+ "banana-coin": {
+  "sha1": "aa3eb1a1c1e1820dddf582e0662a1fd3fc849577",
+  "w": 140,
+  "h": 140
+ },
+ "batter-puddle-1": {
+  "sha1": "1a41ffd159c65d8a8e6593cfea7c4e6dd1c6d40a",
+  "w": 680,
+  "h": 680
+ },
+ "batter-puddle-2": {
+  "sha1": "cd5ecda3884549f544f09b288690000bc2bedad5",
+  "w": 680,
+  "h": 680
+ },
+ "batter-puddle-3": {
+  "sha1": "20a797593115efd0408110c2b3f98e000a6271dd",
+  "w": 680,
+  "h": 680
+ },
  "batter-stage-0": {
   "sha1": "2090c3a2c59d613943ab6a4926306e51bf06202c",
   "w": 640,
@@ -23,6 +43,11 @@
   "sha1": "7aac3915b0fbba02cc2481c0da6995a6bb117c4e",
   "w": 640,
   "h": 520
+ },
+ "berry": {
+  "sha1": "e683bcf8e41b4f8190ae50c7e4b45432f5b5db69",
+  "w": 140,
+  "h": 140
  },
  "bg-kitchen-landscape": {
   "sha1": "60802d2c14bbdf03b808841055c3c0a5c8c22e2e",
@@ -109,6 +134,11 @@
   "w": 300,
   "h": 260
  },
+ "butter-pat": {
+  "sha1": "5ca057173ff767c952d16fef5a27dea0be46ee9c",
+  "w": 140,
+  "h": 140
+ },
  "can-corn-closed": {
   "sha1": "c92c1153e5023b9f636b326125abf9e9d676eea0",
   "w": 340,
@@ -131,6 +161,11 @@
  },
  "card-cookies": {
   "sha1": "624a63f5260ee3d96126d005b9839ceca57cd6fd",
+  "w": 400,
+  "h": 520
+ },
+ "card-pancakes": {
+  "sha1": "b1c5b32312f0379fd41f384363a4f247ba37972c",
   "w": 400,
   "h": 520
  },
@@ -349,6 +384,11 @@
   "w": 320,
   "h": 400
  },
+ "flame": {
+  "sha1": "0187f685bf0276260555d50d92230e2ca58324c3",
+  "w": 1000,
+  "h": 1000
+ },
  "flour-bag": {
   "sha1": "65195daf2cfca3f56d5d0b223082867e1f035195",
   "w": 400,
@@ -497,6 +537,11 @@
  "knife": {
   "sha1": "96d9fc421ed6674057c3b78b2c8f942ef51e570c",
   "w": 240,
+  "h": 640
+ },
+ "ladle": {
+  "sha1": "f2a61995b86ccd456077a35ad482a3a63a5b7f94",
+  "w": 400,
   "h": 640
  },
  "lemon-half-1": {
@@ -709,6 +754,41 @@
   "w": 320,
   "h": 320
  },
+ "pan": {
+  "sha1": "a0a759b2b196e3d6bea6a78ce9c936102f2b1c4a",
+  "w": 1240,
+  "h": 800
+ },
+ "pancake-batter-0": {
+  "sha1": "3afe63a6927cc5f63b7fa404ec6576cf6fceb8b4",
+  "w": 640,
+  "h": 520
+ },
+ "pancake-batter-1": {
+  "sha1": "71fe247a5342135e31e578fe5f73fa53f08aa0c3",
+  "w": 640,
+  "h": 520
+ },
+ "pancake-batter-2": {
+  "sha1": "d4ce0d3f552046a79ce52cbbf10ae4e7ac861df0",
+  "w": 640,
+  "h": 520
+ },
+ "pancake-batter-3": {
+  "sha1": "f466cd436dc519df860f204b90ede9d7b35dd8ed",
+  "w": 640,
+  "h": 520
+ },
+ "pancake-bubbles": {
+  "sha1": "b27a66dd35cbbd0725934cb9fdd214bc9b324d09",
+  "w": 680,
+  "h": 680
+ },
+ "pancake-golden": {
+  "sha1": "0dcd999b1ddd2a57e9a8b7ee2daac61c8afe2aa1",
+  "w": 680,
+  "h": 680
+ },
  "photo-frame": {
   "sha1": "11ba1d46116b80ce86ac9452fb99f67b0b29e1df",
   "w": 700,
@@ -716,6 +796,11 @@
  },
  "photo-frame-cookies": {
   "sha1": "9b80f295810b0251c49e6eb00e10ae447e429528",
+  "w": 700,
+  "h": 780
+ },
+ "photo-frame-pancakes": {
+  "sha1": "bafab9fdb5c75d84b8ada1b06af7828440013516",
   "w": 700,
   "h": 780
  },
@@ -753,6 +838,11 @@
   "sha1": "32f6c1a3e94e22092b331edbcbefd235948aec9e",
   "w": 300,
   "h": 300
+ },
+ "plate-big": {
+  "sha1": "c9ad9f695059770b51fc8bd145ca6af75dab0054",
+  "w": 720,
+  "h": 720
  },
  "prep-bowl-back": {
   "sha1": "750caf9eebba69e2a7b6fb6fa26d1bb661064b97",
@@ -874,10 +964,35 @@
   "w": 200,
   "h": 200
  },
+ "stove-knob-off": {
+  "sha1": "48910da378b5868c2e943c76942149fb591d7e03",
+  "w": 280,
+  "h": 280
+ },
+ "stove-knob-on": {
+  "sha1": "5d23983da61b85090e54ddb6d7c8b725c25e2661",
+  "w": 280,
+  "h": 280
+ },
+ "stove-top": {
+  "sha1": "4d39f06c9f30bd7d276e304bf95e285a7c8a6f9f",
+  "w": 1200,
+  "h": 920
+ },
  "sugar-jar": {
   "sha1": "5ecc6acfb3d148ebb0052f77c673854a4b0d5f8e",
   "w": 340,
   "h": 480
+ },
+ "syrup-blob": {
+  "sha1": "8ae9399f7a3984552feca3ad5356201610796e34",
+  "w": 140,
+  "h": 140
+ },
+ "syrup-bottle": {
+  "sha1": "b58ee63cc72659706b24530ffdd4538806024d26",
+  "w": 260,
+  "h": 520
  },
  "temp-glow": {
   "sha1": "a2f3b3e65a11ba081e13c28dd8211007cfea0724",

@@ -95,6 +95,12 @@ thick drink poured was found); lid-click is a plastic container lid.
 | sfx/slurp.ogg | milkshake.wav | 180007 | https://freesound.org/people/180007/sounds/445523/ | CC0 1.0 | cut 0.60-1.45 s (one slurp), faded, -18 LUFS |
 | sfx/glass-pour.ogg | Pouring water into a glass | ahamirikia | https://freesound.org/people/ahamirikia/sounds/710550/ | CC0 1.0 | cut 0.35-2.45 s, soft limiter, faded, about -19 LUFS |
 
+### New in round 8 (the pancakes)
+
+| File | Title | Author | Source page | License | Processing |
+|---|---|---|---|---|---|
+| sfx/sizzle.ogg | pan fry1.wav | Vital_Sounds | https://freesound.org/people/Vital_Sounds/sounds/534484/ | CC0 1.0 (read live on the sound's page, 2026-09-19) | 40.0-44.6 s, a seamless 4.0 s loop, low-pass 6 kHz, -20 LUFS; played as a loop at 0.35 (frying food, not batter: the CC0 pancake recordings had handling noise) |
+
 ## Sounds: music (`sounds/music/`)
 
 | File | Title | Author | Source page | License | Processing |
@@ -197,6 +203,17 @@ cut, vo-into-blender an end cut, three lines the same gentle limiter; see the so
 | vo-share-smoothie · vo-glass-mom · vo-smoothie-yum · vo-glass-pipa | Let's share the smoothie! · A glass for me? Thank you! · Mmm, so fruity and cold! · A glass for Pipa! |
 | vo-photo-smoothie · vo-finale-smoothie | Let's take a picture of your smoothie! · We made a smoothie together! |
 
+Added in round 8, the pancakes (same engine, voice, speed and processing; three lines got a tight end cut, five the gentle
+limiter; see the sound agent's `final/LICENSES.md`). vo-flour, vo-egg (the cookies') and vo-milk (the smoothie's) are reused:
+
+| File | Text |
+|---|---|
+| vo-pick-pancakes · vo-stir-batter · vo-stove | Let's make pancakes! · Stir the batter nice and smooth! · Let's turn on the stove! |
+| vo-ladle · vo-bubbles · vo-flip · vo-flip-done · vo-more-pancake | Pour the batter into the pan! · Wait for the bubbles! · Now flip it! Swipe up! · Whee! Golden brown! · One more! |
+| vo-decorate-pancakes · vo-share-pancakes | Put on anything you like! · Let's share the pancakes! |
+| vo-pancake-mom · vo-pancake-yum · vo-pancake-pipa | Some for me? Thank you! · Mmm, warm and fluffy! · Some for Pipa! |
+| vo-photo-pancakes · vo-finale-pancakes | Let's take a picture of your pancakes! · We made pancakes together! |
+
 ## Graphics (`images/`)
 
 All SVG files in `images/` were drawn for this project by the art agent (style B, paper cut-out; generators in
@@ -210,6 +227,8 @@ tray, cutters, cookies, icing, sprinkles, candy, the cookie card and photo frame
 `cooking-game-assets/images-b-cookies` (same kit, generators in its `tools/`). The 31 smoothie files of round 8 (the
 fruit, the fruit colander, the blender jar, heaps, blend stages, base, button and lid, the milk carton and drop, the
 glasses, the smoothie card and photo frame) come from `cooking-game-assets/images-b-smoothie` (same kit, generators in its
-`tools/`); the pouring stream is drawn in code. The egg's yolk in the bowl and the flour
+`tools/`); the pouring stream is drawn in code. The 23 pancake files of round 8 (the batter stages, the stove top, knob
+and flame, the pan, the ladle, the puddles, bubbles and golden pancake, the big plate, the syrup and toppings, the pancake
+card and photo frame) come from `cooking-game-assets/images-b-pancakes` (same kit, generators in its `tools/`). The egg's yolk in the bowl and the flour
 and sugar specks are drawn in code. No third-party art, fonts or images.
 `images/webp/` holds WebP renderings of those same SVGs, made by `scripts/bake-webp.js`.

@@ -255,6 +255,36 @@ export const IMAGES = {
   'glass-empty': { size: [320, 440] },
   'glass-full': { size: [320, 440] },
   'photo-frame-smoothie': { size: [700, 780] },
+  // ---- The pancakes (round 8, ../cooking-game-assets/images-b-pancakes, README-pancakes.md). Anchors: ART.pancakes.
+  'card-pancakes': { size: [400, 520] },
+  /** The batter in the prep bowl, lumpy to smooth (the prep-bowl frame, as sauce-stage-*). */
+  'pancake-batter-0': { size: [640, 520] },
+  'pancake-batter-1': { size: [640, 520] },
+  'pancake-batter-2': { size: [640, 520] },
+  'pancake-batter-3': { size: [640, 520] },
+  /** The stove top (the pan on its burner, the knob on its front), the knob off and on, the flame ring under the pan. */
+  'stove-top': { size: [1200, 920] },
+  'stove-knob-off': { size: [280, 280] },
+  'stove-knob-on': { size: [280, 280] },
+  flame: { size: [1000, 1000] },
+  /** The pan from the top (its disc's centre on the burner, at the stove's scale) and the ladle. */
+  pan: { size: [1240, 800] },
+  ladle: { size: [400, 640] },
+  /** One frame for the pancake in the pan: the puddle growing, the bubbles, golden (centred on the pan's disc). */
+  'batter-puddle-1': { size: [680, 680] },
+  'batter-puddle-2': { size: [680, 680] },
+  'batter-puddle-3': { size: [680, 680] },
+  'pancake-bubbles': { size: [680, 680] },
+  'pancake-golden': { size: [680, 680] },
+  /** The big plate with the stack (the dough-flat frame: the top pancake a disc of radius 290 around the centre). */
+  'plate-big': { size: [720, 720] },
+  /** Decorating: the syrup bottle (in its box) puts a blob of syrup; berries, banana coins, butter (topping frame). */
+  'syrup-bottle': { size: [260, 520] },
+  'syrup-blob': { size: [140, 140] },
+  berry: { size: [140, 140] },
+  'banana-coin': { size: [140, 140] },
+  'butter-pat': { size: [140, 140] },
+  'photo-frame-pancakes': { size: [700, 780] },
 } as const satisfies Record<string, { size: readonly [number, number]; raster?: number }>;
 
 /** Texture size of an image: its native size, times its `raster` factor if it is shown bigger than native. */
@@ -289,7 +319,7 @@ export const LOADED_KEYS = IMAGE_KEYS.filter((k) => !NOT_LOADED.has(k));
  */
 export const CORE_IMAGES: readonly ImageKey[] = [
   'bg-kitchen-landscape', 'logo-cooking-with-mom', 'star', 'btn-play', 'btn-home', 'btn-done', 'hand-hint',
-  'card-pizza', 'card-salad', 'card-cookies', 'card-smoothie',
+  'card-pizza', 'card-salad', 'card-cookies', 'card-smoothie', 'card-pancakes',
   'character-body', 'character-eyes-open', 'character-eyes-blink', 'character-eyes-surprised', 'character-eyes-happy',
   'character-mouth-closed', 'character-mouth-open', 'character-mouth-chew',
   'mom-arm-right', 'mom-body', 'mom-head', 'mom-hair', 'mom-eyes-open', 'mom-eyes-blink', 'mom-eyes-happy',
@@ -368,6 +398,21 @@ RECIPE_ASSETS.smoothie = {
     'vo-wash-fruit', 'vo-wash-veg-done', 'vo-choose-fruit', 'vo-into-blender', 'vo-milk', 'vo-lid', 'vo-blend', 'vo-blend-done',
     'vo-pour-glass', 'vo-share-smoothie', 'vo-glass-mom', 'vo-glass-pipa', 'vo-smoothie-yum', 'vo-photo-smoothie',
     'vo-finale-smoothie',
+  ],
+};
+
+RECIPE_ASSETS.pancakes = {
+  images: [
+    ...WASH, ...PREP_BOWL, 'topping-bin', 'flour-bag', 'batter-stage-0', 'milk-carton', 'milk-drop', 'egg-1', 'egg-2', 'egg-3',
+    'pancake-batter-0', 'pancake-batter-1', 'pancake-batter-2', 'pancake-batter-3', 'stove-top', 'stove-knob-off',
+    'stove-knob-on', 'flame', 'pan', 'ladle', 'batter-puddle-1', 'batter-puddle-2', 'batter-puddle-3', 'pancake-bubbles',
+    'pancake-golden', 'plate-big', 'syrup-bottle', 'syrup-blob', 'berry', 'banana-coin', 'butter-pat',
+    'photo-frame-pancakes',
+  ],
+  sounds: [
+    'sizzle', 'egg-crack', 'flour-poof', 'glass-pour', 'vo-flour', 'vo-milk', 'vo-egg', 'vo-stir-batter', 'vo-stove',
+    'vo-ladle', 'vo-bubbles', 'vo-flip', 'vo-flip-done', 'vo-more-pancake', 'vo-decorate-pancakes', 'vo-share-pancakes',
+    'vo-pancake-mom', 'vo-pancake-pipa', 'vo-pancake-yum', 'vo-photo-pancakes', 'vo-finale-pancakes',
   ],
 };
 
@@ -511,6 +556,22 @@ export const ART = {
     fillBottom: 370,
     /** The smoothie's colour (drops, the pouring stream). */
     tint: 0xf6a186,
+  },
+  /** The pancakes' art geometry (README-pancakes.md, scenes-pancakes.js `PANC`). */
+  pancakes: {
+    /** stove-top (1200x920): the burner (the pan's disc centre goes on it, at the stove's scale) and the knob's centre. */
+    burner: { x: 480, y: 450 },
+    knob: { x: 1040, y: 752 },
+    /** pan (1240x800): its disc's centre and the inside radius (the puddle family and the flame centre on it). */
+    panCentre: { x: 400, y: 400 },
+    panR: 336,
+    /** ladle (400x640): where the batter leaves it. */
+    ladlePour: { x: 40, y: 458 },
+    /** batter-puddle-* / pancake-* (680x680): the pancake's radius (golden: 240); plate-big's top pancake: 290. */
+    cakeR: 240,
+    plateTop: 290,
+    /** syrup-bottle (260x520): its nozzle. */
+    syrupTip: { x: 130, y: 506 },
   },
 } as const;
 

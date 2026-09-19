@@ -129,7 +129,7 @@ export class ShareStep extends Step<ShareParams> {
     const n = this.params.slices;
     const center = { x: this.dish.x, y: this.dish.y };
     const img = this.dish.madeImage;
-    const defs = img ? cutSlices(this.scene, img, n, 4 * this.k) : stockSlices(n, this.k);
+    const defs = img ? cutSlices(this.scene, img, n, 4 * this.k, this.params.cutRadius) : stockSlices(n, this.k);
     this.sliceScale = img ? 1 : this.k;
     // Carry over the baked color (the capture was taken before baking).
     const tint = this.dish.base?.tintTopLeft ?? 0xffffff;

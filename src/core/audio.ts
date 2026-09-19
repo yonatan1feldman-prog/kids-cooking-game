@@ -37,6 +37,10 @@ export type VoiceKey =
   | 'vo-pick-smoothie' | 'vo-wash-fruit' | 'vo-choose-fruit' | 'vo-into-blender' | 'vo-milk' | 'vo-lid' | 'vo-blend'
   | 'vo-blend-done' | 'vo-pour-glass' | 'vo-share-smoothie' | 'vo-glass-mom' | 'vo-glass-pipa' | 'vo-smoothie-yum'
   | 'vo-photo-smoothie' | 'vo-finale-smoothie'
+  // the pancakes (round 8)
+  | 'vo-pick-pancakes' | 'vo-stir-batter' | 'vo-stove' | 'vo-ladle' | 'vo-bubbles' | 'vo-flip' | 'vo-flip-done'
+  | 'vo-more-pancake' | 'vo-decorate-pancakes' | 'vo-share-pancakes' | 'vo-pancake-mom' | 'vo-pancake-pipa'
+  | 'vo-pancake-yum' | 'vo-photo-pancakes' | 'vo-finale-pancakes'
   | CountKey | TempKey | NameKey;
 
 /** Mom counting (count-1..10) and saying the oven temperature (temp-50..250). */

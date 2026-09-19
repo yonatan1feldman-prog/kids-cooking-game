@@ -19,12 +19,13 @@ export interface SliceDef {
 
 /**
  * Cuts the child's pizza image into n wedges on a 2D canvas (no GPU readback, no masks).
- * Each cut edge gets the same ink outline as the art.
+ * Each cut edge gets the same ink outline as the art. `radius` < 1 cuts a smaller disc than the capture.
  */
-export function cutSlices(scene: Phaser.Scene, img: HTMLImageElement, n: number, outline: number): SliceDef[] {
+export function cutSlices(scene: Phaser.Scene, img: HTMLImageElement, n: number, outline: number, radius = 1): SliceDef[] {
   const size = img.width;
   const c = size / 2;
-  const r = c;
+  // (`radius`: the part of the capture that is food, e.g. the pancake inside its 350 frame)
+  const r = c * radius;
   const out: SliceDef[] = [];
   for (let i = 0; i < n; i++) {
     const mid = -90 + (i * 360) / n;

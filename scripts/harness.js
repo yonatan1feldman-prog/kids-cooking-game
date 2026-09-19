@@ -163,6 +163,12 @@
         if (window.__blendTaps) { __tap(b.x, b.y); await __run(250); }
         else { __touch('start', 1, b.x, b.y); await __run(1500); __touch('end', 1, b.x, b.y); await __run(200); }
       }
+    } else if (name === 'FlipStep') {
+      // Round 8: the knob, then per pancake: the ladle held over the pan, the wait for the bubbles, a swipe up.
+      if (st.phase === 'knob') { __tap(st.knob.x, st.knob.y); await __run(700); }
+      else if (st.phase === 'ladle') { const hp = st.holdPoint(); await __drag([[st.ladle.x, st.ladle.y], [hp.x, hp.y]], { hold: true }); await __run(st.params.pourMs + 300); __touch('end', 1, hp.x, hp.y); await __run(300); }
+      else if (st.phase === 'flip') { const a = st.at; await __drag([[a.x, a.y + 60], [a.x + 10, a.y - 120]]); await __run(1800); }
+      else await __run(300);
     } else if (name === 'PhotoStep') {
       await __run(500);
     } else if (name === 'FeedStep') {
@@ -1128,4 +1134,9 @@ window.__robust8 = async (recipe, moments, how = 'rotate', w = 900, h = 405) => 
 window.__smoothieMoments = () => [
   ['blend (button held, motor running)', 'blend', async (st) => { __tap(st.lid.x, st.lid.y); await __run(900); __touch('start', 1, st.button.x, st.button.y); await __run(700); }, (st) => st.phase + ':' + Math.round(st.ran / 100), (st) => st.pressing],
   ['share (a glass held mid-drag)', 'share', async (st) => { const s = st.slices.find((x) => !x.eaten), c = st.sliceCenter(s); await __drag([[c.x, c.y], [c.x + 150, c.y - 80]], { hold: true }); }, (st) => st.slices.filter((x) => x.eaten).length, (st) => !!st.held],
+];
+/** The pancakes' moments for __robust8: the ladle held over the pan (pouring), and a wedge held mid-drag. */
+window.__pancakeMoments = () => [
+  ['flip (the ladle held over the pan, pouring)', 'flip', async (st) => { if (st.phase === 'knob') { __tap(st.knob.x, st.knob.y); await __run(800); } const hp = st.holdPoint(); await __drag([[st.ladle.x, st.ladle.y], [hp.x, hp.y]], { hold: true }); await __run(700); }, (st) => st.phase + ':' + st.made + ':' + Math.round(st.poured / 100), (st) => st.held],
+  ['share (a wedge held mid-drag)', 'share', async (st) => { const s = st.slices.find((x) => !x.eaten), c = st.sliceCenter(s); await __drag([[c.x, c.y], [c.x + 150, c.y - 80]], { hold: true }); }, (st) => st.slices.filter((x) => x.eaten).length, (st) => !!st.held],
 ];

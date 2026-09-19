@@ -342,6 +342,37 @@ export interface BlendParams {
   tint: number;
 }
 
+/**
+ * Pour and flip (FlipStep): `stove` first (tap the knob: lit, the flame under the pan), then `count` times: drag the
+ * `ladle` over the `pan` and hold it (`pourMs` in all: the puddle grows through `puddles`, the sizzle loop), the
+ * `bubbles` after `cookMs`, a swipe up of `minSwipe` flips it (`golden`), onto the stack, Mom counts, `moreLine`.
+ * At the end the big `plate` is the recipe's board and the dish's base is `golden` at `baseSize` (x k) on it.
+ * Geometry: ART.pancakes.
+ */
+export interface FlipParams {
+  stove?: { top: ImageKey; knobOff: ImageKey; knobOn: ImageKey; flame: ImageKey; line: VoiceKey; sound: SoundKey };
+  pan: ImageKey;
+  ladle: ImageKey;
+  puddles: ImageKey[];
+  bubbles: ImageKey;
+  golden: ImageKey;
+  plate: ImageKey;
+  baseSize: number;
+  batterTint: number;
+  count: number;
+  pourMs: number;
+  cookMs: number;
+  minSwipe: number;
+  flipSound: SoundKey;
+  /** The first time only: the ladle, the bubbles, "Now flip it!" and, after it lands, "Whee! Golden brown!". */
+  ladleLine: VoiceKey;
+  bubblesLine: VoiceKey;
+  flipLine: VoiceKey;
+  flipDoneLine: VoiceKey;
+  /** Between pancakes. */
+  moreLine: VoiceKey;
+}
+
 export interface DecorateParams {
   items: ImageKey[];
   doneButton: ImageKey;
@@ -435,6 +466,8 @@ export interface ShareParams {
    * icing) is lifted off the tray and carried upright to a mouth.
    */
   pieces?: boolean;
+  /** The slices are cut from this part of the dish's radius (the pancake, smaller than a pizza: 290 / 350). Default 1. */
+  cutRadius?: number;
 }
 
 /**
@@ -485,7 +518,8 @@ export type StepDef =
   | { type: 'share'; params: ShareParams }
   | { type: 'photo'; params: PhotoParams }
   | { type: 'cutters'; params: CutterParams }
-  | { type: 'blend'; params: BlendParams };
+  | { type: 'blend'; params: BlendParams }
+  | { type: 'flip'; params: FlipParams };
 
 export type StepType = StepDef['type'];
 

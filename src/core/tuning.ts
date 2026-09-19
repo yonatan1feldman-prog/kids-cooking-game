@@ -112,6 +112,19 @@ export const TUNING = {
     blend: { runMs: 6000, tapMs: 450 },
     glass: { ms: 2400 },
   },
+  /**
+   * The pancakes (round 8; aim: 4-5 minutes from the card to home). Into the bowl: ms of pouring the flour and the milk.
+   * Egg: taps per stage. Stir: finger travel through the four batter stages. Pour and flip: pancakes, ms of holding the
+   * ladle over the pan for one, ms before the bubbles, the swipe up that flips it (world units, short). Share: wedges.
+   */
+  pancakes: {
+    flour: { ms: 2500 },
+    milk: { ms: 2500 },
+    egg: { pressesPerStage: 3 },
+    stir: { distance: 4200 },
+    flip: { count: 3, pourMs: 3500, cookMs: 3000, minSwipe: 60 },
+    share: { slices: 4 },
+  },
   /** Mom's help (after the idle hint): the pace of her own presses, rubs and strokes. */
   help: { pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150, chopEveryMs: 950, openMs: 1500, tempEveryMs: 1100 },
 } as const;

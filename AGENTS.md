@@ -3,8 +3,8 @@
 ## Quick start (read this, then only the sections your task needs)
 - **What:** a text-free, English-speaking cooking game for a 5-year-old (Android phone, landscape): she cooks with
   Mom, Pipa the hedgehog watches and eats. Phaser 4 + Vite + TypeScript PWA, deployed to GitHub Pages from `master`.
-  Four recipes: pizza (`src/recipes/pizza.ts`), salad (`src/recipes/salad.ts`), cookies (`src/recipes/cookies.ts`) and
-  smoothie (`src/recipes/smoothie.ts`), cards in a grid on the home screen.
+  Five recipes: pizza, salad, cookies, smoothie and pancakes (`src/recipes/<name>.ts`), cards in a grid on the home
+  screen (3 + 2).
 - **Where things are:** `src/recipes/` recipes as pure data (`types.ts` = every step type's params); `src/steps/` one
   reusable class per step type (`registry.ts` maps names to classes); `src/core/tuning.ts` every count and threshold;
   `src/core/stage.ts` every position; `src/core/assets.ts` the asset contract (image keys, sizes, art anchors `ART`);
@@ -213,7 +213,7 @@ src/scenes/
 ## Recipes are data
 A recipe is `{ id, card, board, character, steps: StepDef[] }`. Each step names a reusable type and its params.
 Step types: `wash`, `knead`, `crush`, `stir`, `grate`, `roll`, `spread`, `sprinkle`, `choose`, `chop`, `open-pour`,
-`decorate`, `bake`, `share`, `photo`, `cutters`, `blend` (and `feed`, the older single-eater ending with its own finale, no longer used).
+`decorate`, `bake`, `share`, `photo`, `cutters`, `blend`, `flip` (and `feed`, the older single-eater ending with its own finale, no longer used).
 The salad (`salad.ts`) is the second worked example: see Handoff notes 0000.
 The pizza: wash, knead, roll, crush, stir, spread, grate, sprinkle, choose, then the prep step of each of the three
 chosen toppings in the order she picked them (chop, or open-pour), decorate, bake (with the panel and the mitts),
@@ -316,6 +316,16 @@ Reusable step type of round 8 (the smoothie; params in `recipes/types.ts`):
   runs it at least `tapMs`, so taps add up too. The running time goes through `stages` up to `runMs`, then `doneLine`,
   the lid lifts off, the jar is kept. Demo and help: `mom-hand-point` tapping the lid, then pressing and holding the button.
   A milkshake, a soup, a mixer: the same type with other pictures.
+- `flip` (`FlipStep`, `FlipParams`, pour and flip): the stove top with the pan on the left of the prep area, the ladle
+  resting on its right. `stove` first: a tap on the knob lights it (the flame ring under the pan, `click`, "Let's turn on
+  the stove!"). Then `count` times: drag the ladle over the pan and hold (it tips, a batter stream, the puddle grows
+  through `puddles` in `pourMs`, `sizzleLoop`); "Wait for the bubbles!" (first time), after `cookMs` the bubbles and
+  "Now flip it! Swipe up!" (first time); a swipe up from anywhere on the pan (`minSwipe`) flips it in the air and it
+  lands golden ("Whee! Golden brown!" the first time), slides onto the stack in the left column (off to the left on
+  4:3), Mom counts, "One more!". Nothing burns, nothing is timed but the bubbles. At the end the `plate` becomes the
+  recipe's board and a `golden` pancake the dish's base, so `decorate`, `share` (cut like the pizza, `cutRadius` for the
+  smaller disc) and the default `photo` work as for the pizza. Demo: the grab hand carries a see-through ladle; the
+  pointing hand taps the knob and swipes up. Crepes, fritters, an egg in a pan: the same type with other pictures.
 - Round 8 also generalised, each optional: `open-pour` `glasses` (the kept jar itself is poured into `count` glasses on
   its left: it becomes one picture, `jar-made`; each glass fills from the bottom up, `full` cropped over `empty`; the full
   glasses become `run.pieces` for `share` with `pieces`, and MADE_KEY for `photo` with `made`); a tall kept bowl's pour
@@ -568,7 +578,18 @@ button, glass fill rows).
   harness's rub path started above a colander's touch area (the salad's too: its runs needed Mom's help).
 - **Needs a real finger:** holding vs tapping the blender button (does she hold it?), dragging the heavy-looking jar over
   a glass and keeping it there, carrying a glass to Pipa.
-- Precache: 15.5 MB (381 files); the service worker still precaches every recipe (only memory is per recipe).
+- Precache: 17.2 MB (420 files) after the pancakes; the service worker still precaches every recipe (only memory is per recipe).
+
+- **The pancakes are data** (`src/recipes/pancakes.ts`, tag `v0.9-pancakes`, `rollback-pre-pancakes` before): wash · flour
+  (the cookies' flour layer) and milk (`pancake-batter-0`) into the prep bowl · the egg (the cookies' egg) · stir through
+  pancake-batter-0..3 · flip (the stove, then three pancakes) · decorate the top pancake (syrup bottle puts syrup-blob,
+  `sizes` 1.7; berry, banana-coin, butter-pat) · share in 4 wedges (`cutRadius` 290/350) · photo (plate + her pancake).
+  Counts: `TUNING.pancakes`. Harness: `__pancakeMoments()`, `__recipe = 'pancakes'`. Reference shots:
+  `../cooking-game-assets/images-b-pancakes/shots/`. Checked: 142 s at child pace with demos (the model; a real child is
+  slower), voice in order, audits clean at 20:9 and 4:3, rotate/background mid-pour and mid-drag fine, cookies regression
+  fine. Found and fixed: "Now flip it!" was dropped (said now when the bubbles show), the pan's handle reached Mom's
+  hand, the wedges were cut at the pizza's radius, the syrup was too small to see. Needs a real finger: holding the ladle
+  over the pan, the swipe up (is a short one enough? `minSwipe`), placing syrup.
 
 ### 00000. Round 7 (the cookies, the third recipe)
 State: `rollback-pre-cookies` = master before the cookies; branch `round-7-cookies` merged and tagged `v0.6-cookies`.
