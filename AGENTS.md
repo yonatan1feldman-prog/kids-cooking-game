@@ -126,7 +126,7 @@ scripts/make-icons.mjs     regenerates the temporary PWA icons (public/icons)
 scripts/harness.js         test harness for the automated Chrome (see "Testing notes")
 scripts/bake-webp.js       pre-renders the SVGs to WebP, run inside the game page (see "Pre-rendered art")
 public/assets/images/      SVG art (the source, from the art agent) + webp/ (pre-rendered, committed)
-public/assets/sounds/      voice/ (Mom, 23 lines), music/ (1 loop), sfx/ (12 effects incl. the bake loop)
+public/assets/sounds/      voice/ (Mom, 63 lines), music/ (1 loop), sfx/ (22 effects incl. the bake and water loops)
 src/main.ts                Phaser config (3 touch pointers), gesture blocking, lifecycle, orientation guard, SW registration
 src/core/
   assets.ts                THE ASSET CONTRACT: image keys + native sizes, sound keys, ART geometry (Mom pivots, hand anchors)
@@ -185,23 +185,40 @@ fallback if the capture fails.
 ## Asset contract (another agent produces the art and sounds)
 - Images: `public/assets/images/<key>.svg` (the source) and, pre-rendered, `public/assets/images/webp/<key>.webp`.
   Sounds: `public/assets/sounds/{voice,music,sfx}/<key>.ogg` (and/or `.mp3`; the key is the file name).
-- Image keys (52), all delivered (style B, from `../cooking-game-assets/images-b`; see its README-mom.md, CRITIQUE.md
-  and the scene composer `scenes.js`, the reference for positions and scales):
+- Image keys (109), all delivered (style B, from `../cooking-game-assets/images-b` and, since round 5,
+  `../cooking-game-assets/images-b-prep`; see their README-mom.md / README-prep.md, CRITIQUE.md and the scene
+  composers `scenes.js` / `scenes-prep.js`, the reference for positions and scales):
   bg-kitchen-landscape, dough-ball, dough-flat, rolling-pin, sauce-bowl, sauce-blob, cheese-shaker, cheese-shred,
   topping-tomato, topping-olive, topping-mushroom, topping-corn, topping-pepper, topping-onion, topping-bin,
   tray, pizza-board, oven-inside, oven-closed, oven-open, pizza-slice,
   character-body, character-eyes-open / -blink / -surprised / -happy, character-mouth-closed / -open / -chew (Pipa),
   **mom (12 layers, 800x800):** mom-arm-right, mom-body, mom-head, mom-hair, mom-eyes-open / -blink / -happy /
   -surprised, mom-mouth-smile / -talk / -open, mom-arm-left,
-  **mom-hand (5, 400x400):** mom-hand-point, mom-hand-roll, mom-hand-spread, mom-hand-sprinkle, mom-hand-grab,
+  **mom-hand (6, 400x400):** mom-hand-point, mom-hand-roll, mom-hand-spread, mom-hand-sprinkle, mom-hand-grab,
+  mom-hand-press,
   **pizza-board** (the board under the dish; `tray` is an identical older copy),
-  hand-hint (the old single hand, still in the contract, not shown), star, btn-play, btn-home, btn-done, card-pizza.
-- Sound keys: effects (12, `sfx/`): tap, pop, squish, sprinkle, whoosh, oven-ding, munch, cheer, cheer-jingle,
-  star, complete (not used yet), bake (the loop). Voice (23, `voice/`, English): vo-welcome, vo-pick-pizza,
-  vo-watch-me, vo-your-turn, vo-roll, vo-sauce, vo-cheese, vo-toppings, vo-done-hint, vo-oven, vo-baking, vo-ready,
-  vo-feed, vo-help, vo-praise-1..7, vo-finale, vo-bye. Music (`music/`): music-main (a gapless 256-beat loop).
+  hand-hint (the old single hand, still in the contract, not shown), star, btn-play, btn-home, btn-done, card-pizza,
+  **title:** logo-cooking-with-mom (900x400; its lettering is the only writing in the game, part of the art),
+  **prep steps (round 5, part A):** sink-basin, faucet, water-stream, kid-hands, bubble (wash);
+  dough-knead-1/2/3, press-dent (knead); prep-bowl-back, prep-bowl-front, sauce-stage-0..3, spoon-wood (crush, stir);
+  grater, cheese-block, cheese-pile-1/2/3, cheese-handful (grate, sprinkle),
+  **part B, delivered but not loaded yet (`NOT_LOADED` in assets.ts):** btn-temp-up/down, can-corn-closed/open,
+  can-lid, jar-lid, jar-olives-closed/open, cutting-board, knife, mom-hand-knife, mom-hand-mitt, mom-mouth-chew,
+  mitt-single, oven-mitts, oven-panel, oven-needle, oven-start-off/on, temp-glow, photo-frame,
+  veg-tomato/mushroom/pepper/onion-whole / -slice / -inside. They are baked to WebP and precached, but the game
+  doesn't load them (no memory, no load time) until a step uses them: then remove the key from `NOT_LOADED`.
+- Sound keys: effects (`sfx/`, 22): tap, pop, squish, sprinkle, whoosh, oven-ding, munch, cheer, cheer-jingle,
+  star, complete (not used yet), bake (loop), water (loop), bubbles, grate, and for part B chop, can-open, jar-open,
+  pour, camera, click, beep. Voice (63, `voice/`, English): vo-welcome (no longer used: the title says vo-hello),
+  vo-hello, vo-what-make, vo-pick-pizza, vo-watch-me, vo-your-turn, vo-wash, vo-wash-rub, vo-wash-done, vo-knead,
+  vo-roll, vo-crush, vo-stir, vo-sauce, vo-grate, vo-cheese, vo-toppings, vo-done-hint, vo-oven, vo-baking, vo-ready,
+  vo-feed, vo-help, vo-praise-1..7, vo-finale, vo-bye; for part B vo-choose, vo-cut, vo-cut-careful, vo-open-can,
+  vo-open-jar, vo-pour, vo-temp, vo-temp-more, vo-temp-hot, vo-temp-done, vo-mitts, vo-share, vo-slice-mom,
+  vo-mom-yum, vo-slice-pipa, vo-photo, count-1..10, temp-50/100/150/200/250. A voice line is any file in `voice/`
+  (count-* and temp-* too). Music (`music/`): music-main (a gapless 256-beat loop).
 - Levels (core/audio.ts `LEVEL`, from the sound agent's MIXING.md with the owner's numbers): voice 1.0; effects 0.65
-  (munch 1.0, star 0.6, complete 0.7); bake loop 0.4 (300 ms fades); music 0.22, ducked to 0.11 while Mom speaks,
+  (munch 1.0, star 0.6, complete 0.7, jar-open 0.8, camera and beep 0.6, click 0.5); bake loop 0.4 and water loop
+  0.35 (300 ms fades, `bakeLoop` / `waterLoop`); music 0.22, ducked to 0.11 while Mom speaks,
   back over 0.5 s. Music and the bake loop are AudioBufferSourceNode loops. No mute button.
 - Art conventions the code assumes:
   - viewBox = native size in world units (the world is 1080 high).

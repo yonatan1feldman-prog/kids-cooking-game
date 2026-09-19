@@ -76,6 +76,71 @@ export const IMAGES = {
   'logo-cooking-with-mom': { size: [900, 400] },
   /** One topping bin in the decorating step (the topping is drawn on top of it). */
   'topping-bin': { size: [240, 240] },
+
+  // ---- Prep steps (round 5, ../cooking-game-assets/images-b-prep, README-prep.md). Anchors: ART.prep.
+  /** Wash: the sink (centre), the tap on its back rim, the stream (stretched down to the hands), the child's hands, a bubble. */
+  'sink-basin': { size: [900, 560] },
+  faucet: { size: [320, 400] },
+  'water-stream': { size: [240, 420] },
+  'kid-hands': { size: [600, 420] },
+  bubble: { size: [240, 240] },
+  /** Knead: the dough from shaggy to smooth, same frame as dough-ball (base y 266). The dent under a press. */
+  'dough-knead-1': { size: [360, 300] },
+  'dough-knead-2': { size: [360, 300] },
+  'dough-knead-3': { size: [360, 300] },
+  'press-dent': { size: [260, 140] },
+  /** Crush + stir: the bowl in two layers (back, contents, front: all at one position), the sauce stages, the spoon. */
+  'prep-bowl-back': { size: [640, 520] },
+  'prep-bowl-front': { size: [640, 520] },
+  'sauce-stage-0': { size: [640, 520] },
+  'sauce-stage-1': { size: [640, 520] },
+  'sauce-stage-2': { size: [640, 520] },
+  'sauce-stage-3': { size: [640, 520] },
+  'spoon-wood': { size: [240, 620] },
+  /** Grate: the grater, the block that follows the finger, the growing pile, the handful for sprinkling. */
+  grater: { size: [506, 736] },
+  'cheese-block': { size: [380, 300] },
+  'cheese-pile-1': { size: [400, 260] },
+  'cheese-pile-2': { size: [400, 260] },
+  'cheese-pile-3': { size: [400, 260] },
+  'cheese-handful': { size: [300, 260] },
+  /** Mom's flat pressing hand (kneading, crushing). */
+  'mom-hand-press': { size: [400, 400] },
+
+  // ---- Delivered for part B of the prep round (not used yet: never loaded, see NOT_LOADED).
+  'btn-temp-down': { size: [240, 240] },
+  'btn-temp-up': { size: [240, 240] },
+  'can-corn-closed': { size: [340, 460] },
+  'can-corn-open': { size: [340, 460] },
+  'can-lid': { size: [300, 260] },
+  'jar-lid': { size: [300, 240] },
+  'jar-olives-closed': { size: [340, 480] },
+  'jar-olives-open': { size: [340, 480] },
+  'cutting-board': { size: [1000, 600] },
+  knife: { size: [240, 640] },
+  'mom-hand-knife': { size: [400, 400] },
+  'mom-hand-mitt': { size: [400, 400] },
+  'mom-mouth-chew': { size: [800, 800] },
+  'mitt-single': { size: [320, 400] },
+  'oven-mitts': { size: [480, 400] },
+  'oven-panel': { size: [1200, 720] },
+  'oven-needle': { size: [1200, 720] },
+  'oven-start-off': { size: [320, 320] },
+  'oven-start-on': { size: [320, 320] },
+  'temp-glow': { size: [400, 280] },
+  'photo-frame': { size: [700, 780] },
+  'veg-tomato-whole': { size: [672, 504] },
+  'veg-tomato-slice': { size: [240, 240] },
+  'veg-tomato-inside': { size: [60, 378] },
+  'veg-mushroom-whole': { size: [672, 504] },
+  'veg-mushroom-slice': { size: [240, 240] },
+  'veg-mushroom-inside': { size: [60, 406] },
+  'veg-pepper-whole': { size: [672, 504] },
+  'veg-pepper-slice': { size: [240, 240] },
+  'veg-pepper-inside': { size: [60, 378] },
+  'veg-onion-whole': { size: [672, 504] },
+  'veg-onion-slice': { size: [240, 240] },
+  'veg-onion-inside': { size: [60, 327] },
 } as const satisfies Record<string, { size: readonly [number, number]; raster?: number }>;
 
 /** Texture size of an image: its native size, times its `raster` factor if it is shown bigger than native. */
@@ -88,8 +153,28 @@ export function textureSize(key: ImageKey): [number, number] {
 export type ImageKey = keyof typeof IMAGES;
 export const IMAGE_KEYS = Object.keys(IMAGES) as ImageKey[];
 
+/**
+ * Delivered but not used by any recipe yet (part B of the prep round): not loaded, no placeholder drawn, so
+ * they cost the phone no memory or load time. They are still baked to WebP and precached. Remove a key from
+ * this list when a step starts to use it.
+ */
+export const NOT_LOADED: ReadonlySet<ImageKey> = new Set<ImageKey>([
+  'btn-temp-down', 'btn-temp-up', 'can-corn-closed', 'can-corn-open', 'can-lid', 'jar-lid', 'jar-olives-closed',
+  'jar-olives-open', 'cutting-board', 'knife', 'mom-hand-knife', 'mom-hand-mitt', 'mom-mouth-chew', 'mitt-single',
+  'oven-mitts', 'oven-panel', 'oven-needle', 'oven-start-off', 'oven-start-on', 'temp-glow', 'photo-frame',
+  'veg-tomato-whole', 'veg-tomato-slice', 'veg-tomato-inside', 'veg-mushroom-whole', 'veg-mushroom-slice',
+  'veg-mushroom-inside', 'veg-pepper-whole', 'veg-pepper-slice', 'veg-pepper-inside', 'veg-onion-whole',
+  'veg-onion-slice', 'veg-onion-inside',
+]);
+/** The images the game loads (everything in the contract except NOT_LOADED). */
+export const LOADED_KEYS = IMAGE_KEYS.filter((k) => !NOT_LOADED.has(k));
+
 /** Short effects played through Phaser (sfx.ts). Voice lines, music and the bake loop are in audio.ts. */
-export const SOUND_KEYS = ['tap', 'pop', 'squish', 'sprinkle', 'whoosh', 'oven-ding', 'munch', 'cheer', 'cheer-jingle', 'star', 'complete'] as const;
+export const SOUND_KEYS = [
+  'tap', 'pop', 'squish', 'sprinkle', 'whoosh', 'oven-ding', 'munch', 'cheer', 'cheer-jingle', 'star', 'complete',
+  // prep steps (round 5); water is a loop (audio.ts `waterLoop`), not an effect
+  'bubbles', 'grate', 'chop', 'can-open', 'jar-open', 'pour', 'camera', 'click', 'beep',
+] as const;
 export type SoundKey = (typeof SOUND_KEYS)[number];
 
 /** Art geometry the code relies on, in each image's own viewBox coordinates. */
@@ -110,6 +195,34 @@ export const ART = {
     spread: { x: 110, y: 250 },
     sprinkle: { x: 125, y: 115 },
     grab: { x: 110, y: 150 },
+    press: { x: 140, y: 150 },
+  },
+  /** Prep-step art geometry (README-prep.md, scenes-prep.js). */
+  prep: {
+    /** faucet: the water outlet; its base bottom is at y 372. */
+    faucetOut: { x: 262, y: 176 },
+    faucetBase: 372,
+    /** water-stream: top centre of the stream (it may be stretched down to the hands). */
+    streamTop: { x: 120, y: 0 },
+    /** kid-hands: palms, the point between them, fingertips at about y 110; the bottom edge is the screen bottom. */
+    kidPalmL: { x: 192, y: 232 },
+    kidPalmR: { x: 408, y: 232 },
+    kidMid: { x: 300, y: 214 },
+    kidTips: 110,
+    /** spoon-wood: the bowl of the spoon. */
+    spoonBowl: { x: 120, y: 500 },
+    /** prep bowl (640x520, every layer): rim ellipse and opening. */
+    bowlOpening: { x: 320, y: 176, rx: 262, ry: 74 },
+    /** dough-knead-* (same frame as dough-ball): base line and width. */
+    doughBase: 266,
+    /** cheese-handful: the clump that follows the finger. */
+    handfulClump: { x: 150, y: 116 },
+    /** press-dent: the centre of the hollow. */
+    dentCentre: { x: 130, y: 66 },
+    /** Part B: knife blade tip, Mom's knife tip and mitt palm (for when they are used). */
+    knifeTip: { x: 118, y: 618 },
+    momKnifeTip: { x: 149, y: 364 },
+    momMittPalm: { x: 150, y: 150 },
   },
 } as const;
 

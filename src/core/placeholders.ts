@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { CREAM, FX_DOT, FX_SOFT, IMAGES, INK, SAUCE_BRUSH, SAUCE_RED, textureSize, type ImageKey } from './assets';
+import { CREAM, FX_DOT, FX_SOFT, INK, LOADED_KEYS, SAUCE_BRUSH, SAUCE_RED, textureSize, type ImageKey } from './assets';
 
 /**
  * Temporary art drawn in code for every image that is missing on disk (all 52 are delivered now).
@@ -271,7 +271,7 @@ function bake(game: Phaser.Game, key: string, w: number, h: number, draw: Draw) 
 }
 
 /** Draws a placeholder for every contract image (or every one of `keys`) that has no texture yet. Returns the keys it drew. */
-export function ensurePlaceholders(game: Phaser.Game, keys = Object.keys(IMAGES) as ImageKey[]): string[] {
+export function ensurePlaceholders(game: Phaser.Game, keys: readonly ImageKey[] = LOADED_KEYS): string[] {
   const drawn: string[] = [];
   for (const key of keys) {
     if (game.textures.exists(key)) continue;

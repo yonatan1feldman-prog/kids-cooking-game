@@ -14,7 +14,7 @@ import manifest from 'virtual:asset-manifest';
  * - Music and the bake sizzle are gapless AudioBufferSourceNode loops (not <audio loop>).
  */
 
-export const LEVEL = { voice: 1, sfx: 0.65, loop: 0.4, music: 0.22, musicDucked: 0.11 } as const;
+export const LEVEL = { voice: 1, sfx: 0.65, loop: 0.4, water: 0.35, music: 0.22, musicDucked: 0.11 } as const;
 
 /** Voice-line keys (public/assets/sounds/voice). */
 export type VoiceKey =
@@ -42,8 +42,10 @@ export function loadSounds(g: Phaser.Game, url: (path: string) => string) {
   const c = ctx();
   if (!c) return;
   const missing: string[] = [];
-  // Voice first (the welcome line comes right after the play tap), then effects, then the long music file.
-  const order = (k: string) => (k.startsWith('vo-') ? 0 : k === 'music-main' ? 2 : 1);
+  // Voice first (the hello line comes right after the play tap), then effects, then the long music file.
+  // A voice line is any file in voice/ (vo-*, and count-* / temp-* for part B).
+  const isVoice = (k: string) => manifest.sounds[k].some((p) => p.includes('/voice/'));
+  const order = (k: string) => (isVoice(k) ? 0 : k === 'music-main' ? 2 : 1);
   const keys = Object.keys(manifest.sounds).sort((a, b) => order(a) - order(b));
   (async () => {
     for (const key of keys) {
@@ -51,7 +53,7 @@ export function loadSounds(g: Phaser.Game, url: (path: string) => string) {
         const res = await fetch(url(manifest.sounds[key][0]));
         const buf = await c.decodeAudioData(await res.arrayBuffer());
         buffers.set(key, buf);
-        if (!key.startsWith('vo-') && key !== 'music-main' && key !== 'bake') g.cache.audio.add(key, buf);
+        if (!isVoice(key) && !LOOPS.includes(key)) g.cache.audio.add(key, buf);
         if (key === 'music-main') music.onLoaded();
       } catch {
         missing.push(key);
@@ -61,6 +63,9 @@ export function loadSounds(g: Phaser.Game, url: (path: string) => string) {
     soundsLoaded = true;
   })();
 }
+
+/** Played as gapless loops here (not through Phaser). */
+const LOOPS = ['music-main', 'bake', 'water'];
 
 let soundsLoaded = false;
 export const allSoundsLoaded = () => soundsLoaded;
@@ -136,33 +141,48 @@ export const music = {
   },
 };
 
-/** The oven sizzle while the pizza bakes: fades in and out over 300 ms. */
-export const bakeLoop = {
-  gain: null as GainNode | null,
-  src: null as AudioBufferSourceNode | null,
-  start() {
-    const c = ctx();
-    if (!c || this.src) return;
-    this.gain = c.createGain();
-    this.gain.gain.value = 0;
-    this.gain.connect(c.destination);
-    this.src = startLoop('bake', this.gain);
-    ramp(this.gain, LEVEL.loop, 0.3);
-  },
-  stop() {
-    const c = ctx();
-    const { src, gain } = this;
-    this.src = null;
-    this.gain = null;
-    if (!c || !src || !gain) return;
-    ramp(gain, 0, 0.3);
-    try {
-      src.stop(c.currentTime + 0.32);
-    } catch {
-      /* already stopped */
-    }
-  },
-};
+/** A gapless effect loop that fades in and out over 300 ms (the oven sizzle, the running tap). */
+function effectLoop(key: string, level: number) {
+  return {
+    gain: null as GainNode | null,
+    src: null as AudioBufferSourceNode | null,
+    get on() {
+      return !!this.src;
+    },
+    start() {
+      const c = ctx();
+      if (!c || this.src) return;
+      this.gain = c.createGain();
+      this.gain.gain.value = 0;
+      this.gain.connect(c.destination);
+      this.src = startLoop(key, this.gain);
+      if (!this.src) {
+        this.gain.disconnect();
+        this.gain = null;
+        return;
+      }
+      ramp(this.gain, level, 0.3);
+    },
+    stop() {
+      const c = ctx();
+      const { src, gain } = this;
+      this.src = null;
+      this.gain = null;
+      if (!c || !src || !gain) return;
+      ramp(gain, 0, 0.3);
+      try {
+        src.stop(c.currentTime + 0.32);
+      } catch {
+        /* already stopped */
+      }
+    },
+  };
+}
+
+/** The oven sizzle while the pizza bakes (0.4). */
+export const bakeLoop = effectLoop('bake', LEVEL.loop);
+/** The running tap while washing hands (0.35, MIXING.md). */
+export const waterLoop = effectLoop('water', LEVEL.water);
 
 // ---------------------------------------------------------------- voice
 

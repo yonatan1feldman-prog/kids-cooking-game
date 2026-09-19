@@ -19,6 +19,36 @@
   "w": 336,
   "h": 336
  },
+ "btn-temp-down": {
+  "sha1": "71edd7e29870756d70ac95cda39ba20e6b782c58",
+  "w": 240,
+  "h": 240
+ },
+ "btn-temp-up": {
+  "sha1": "ffacc0eb21eb8132ee80b9c42963d3c4b7ccacad",
+  "w": 240,
+  "h": 240
+ },
+ "bubble": {
+  "sha1": "f8c6a48eab7e46109c099d5e28fb5825a688b790",
+  "w": 240,
+  "h": 240
+ },
+ "can-corn-closed": {
+  "sha1": "c92c1153e5023b9f636b326125abf9e9d676eea0",
+  "w": 340,
+  "h": 460
+ },
+ "can-corn-open": {
+  "sha1": "e153b87ca9be90685bae016d09b3f41d3231768f",
+  "w": 340,
+  "h": 460
+ },
+ "can-lid": {
+  "sha1": "9ccfb051af966f85470b431d41c89699a705fd59",
+  "w": 300,
+  "h": 260
+ },
  "card-pizza": {
   "sha1": "e6eacea0df0ad9d8fb50934638b04397d0ae7eb8",
   "w": 400,
@@ -64,6 +94,31 @@
   "w": 600,
   "h": 700
  },
+ "cheese-block": {
+  "sha1": "07ca4b7d1069cb3ef23be6d24e5624294b2c5349",
+  "w": 380,
+  "h": 300
+ },
+ "cheese-handful": {
+  "sha1": "39b0831cb662ff5204138921992122830b2beb1a",
+  "w": 300,
+  "h": 260
+ },
+ "cheese-pile-1": {
+  "sha1": "e8e9c5d46ba390c90aa59f3d02e399c3248acb90",
+  "w": 400,
+  "h": 260
+ },
+ "cheese-pile-2": {
+  "sha1": "971305a5d3c0ff4b133e2b5f6ed131da9370f2a5",
+  "w": 400,
+  "h": 260
+ },
+ "cheese-pile-3": {
+  "sha1": "30f4208e00d496008d87d6593089a9dd722162eb",
+  "w": 400,
+  "h": 260
+ },
  "cheese-shaker": {
   "sha1": "b61cc07749439a07dfcba9fb3d94a39b3a750b3b",
   "w": 260,
@@ -73,6 +128,11 @@
   "sha1": "06ed665d8bc1584ad58ee410521831095570efb1",
   "w": 80,
   "h": 44
+ },
+ "cutting-board": {
+  "sha1": "2949f9614ea953f33d187aba3e0e8c890f84c5ba",
+  "w": 1000,
+  "h": 600
  },
  "dough-ball": {
   "sha1": "42282b854d76724b0efe3b1bec911f7ff23060b8",
@@ -84,10 +144,70 @@
   "w": 720,
   "h": 720
  },
+ "dough-knead-1": {
+  "sha1": "c3b0830e4caeffe7b6dde3043622f0a24ddc5f87",
+  "w": 360,
+  "h": 300
+ },
+ "dough-knead-2": {
+  "sha1": "46b3b80c9cacc5a48969e5d6d1b6d5e7e95646d5",
+  "w": 360,
+  "h": 300
+ },
+ "dough-knead-3": {
+  "sha1": "204a346fbddc0f917a5d9130c476f499967e3786",
+  "w": 360,
+  "h": 300
+ },
+ "faucet": {
+  "sha1": "61f616bdc7d7085177015a53839eb5b6aa299274",
+  "w": 320,
+  "h": 400
+ },
+ "grater": {
+  "sha1": "d48b1748d37b82e98e68b74a1c8343bd2816701f",
+  "w": 506,
+  "h": 736
+ },
  "hand-hint": {
   "sha1": "6b68a244d4079f2bf1f08f923612e6e87c72919c",
   "w": 220,
   "h": 280
+ },
+ "jar-lid": {
+  "sha1": "e4b008e2617aef0310948bd7060576b0f5c7b933",
+  "w": 300,
+  "h": 240
+ },
+ "jar-olives-closed": {
+  "sha1": "1ab917a0361b952c1eda07c32d559dec6bb4f70f",
+  "w": 340,
+  "h": 480
+ },
+ "jar-olives-open": {
+  "sha1": "ddfd7ee9f562f95be7eb7709bc9c8633136e40c9",
+  "w": 340,
+  "h": 480
+ },
+ "kid-hands": {
+  "sha1": "256253f20086dea287670feb4e6fc579ba2fe670",
+  "w": 600,
+  "h": 420
+ },
+ "knife": {
+  "sha1": "96d9fc421ed6674057c3b78b2c8f942ef51e570c",
+  "w": 240,
+  "h": 640
+ },
+ "logo-cooking-with-mom": {
+  "sha1": "535bb225921486031340c7fa58e5701e97d74f9a",
+  "w": 900,
+  "h": 400
+ },
+ "mitt-single": {
+  "sha1": "5f7d8040db5981c2b09867985d7f40a1f3b1ac94",
+  "w": 320,
+  "h": 400
  },
  "mom-arm-left": {
   "sha1": "1096c98fa5ef1e5b1e1d14288c52b0f9ca7ac5a7",
@@ -134,8 +254,23 @@
   "w": 400,
   "h": 400
  },
+ "mom-hand-knife": {
+  "sha1": "6a342952cd85d7905c39298e7aef4a5735791e1d",
+  "w": 400,
+  "h": 400
+ },
+ "mom-hand-mitt": {
+  "sha1": "c3cbfb62c30098dc2efa22323f569e084b010d4f",
+  "w": 400,
+  "h": 400
+ },
  "mom-hand-point": {
   "sha1": "208c892048645663083269441288b6b922ed181f",
+  "w": 400,
+  "h": 400
+ },
+ "mom-hand-press": {
+  "sha1": "6e9985955401fc286b4d7459ed87a53901959f82",
   "w": 400,
   "h": 400
  },
@@ -156,6 +291,11 @@
  },
  "mom-head": {
   "sha1": "da5dd4fd432f016a338994e8908b91eb8f0472a1",
+  "w": 800,
+  "h": 800
+ },
+ "mom-mouth-chew": {
+  "sha1": "c16c7f860614a2730ba037e889504b4b7ab2ce88",
   "w": 800,
   "h": 800
  },
@@ -184,10 +324,40 @@
   "w": 700,
   "h": 800
  },
+ "oven-mitts": {
+  "sha1": "b53e31041a36420ff5c7beb998b45a88ee84a064",
+  "w": 480,
+  "h": 400
+ },
+ "oven-needle": {
+  "sha1": "b1c9b526fea65bfbd2f4525a4205404d9985f415",
+  "w": 1200,
+  "h": 720
+ },
  "oven-open": {
   "sha1": "d3ff0b38453b35369222be7dfd03ec4c815ddc10",
   "w": 700,
   "h": 800
+ },
+ "oven-panel": {
+  "sha1": "79244edf8c7fe8f47df674b605f509520795e532",
+  "w": 1200,
+  "h": 720
+ },
+ "oven-start-off": {
+  "sha1": "3239874d58b3b27f6a8108be9677b288675447af",
+  "w": 320,
+  "h": 320
+ },
+ "oven-start-on": {
+  "sha1": "0dbcc2216ec1c7cd9b9fa1de9cecd2159623bb50",
+  "w": 320,
+  "h": 320
+ },
+ "photo-frame": {
+  "sha1": "11ba1d46116b80ce86ac9452fb99f67b0b29e1df",
+  "w": 700,
+  "h": 780
  },
  "pizza-board": {
   "sha1": "c08421194607fb7f6063afb679cc7dcb24b1a1da",
@@ -198,6 +368,21 @@
   "sha1": "32f6c1a3e94e22092b331edbcbefd235948aec9e",
   "w": 300,
   "h": 300
+ },
+ "prep-bowl-back": {
+  "sha1": "750caf9eebba69e2a7b6fb6fa26d1bb661064b97",
+  "w": 640,
+  "h": 520
+ },
+ "prep-bowl-front": {
+  "sha1": "d16c5e892905bddba9a71b1d556b71b482f7c8d6",
+  "w": 640,
+  "h": 520
+ },
+ "press-dent": {
+  "sha1": "15075e024ee77ed7e696811d2b817d08c8de17f2",
+  "w": 260,
+  "h": 140
  },
  "rolling-pin": {
   "sha1": "56483e16c440d61675c0b7418c7baf6489e7c15f",
@@ -214,10 +399,45 @@
   "w": 340,
   "h": 300
  },
+ "sauce-stage-0": {
+  "sha1": "d1bbfba2399b7b8e61ea9fa38805dbc20e838991",
+  "w": 640,
+  "h": 520
+ },
+ "sauce-stage-1": {
+  "sha1": "3388e0e21e94d18afb1779632fd4a179e1136f2e",
+  "w": 640,
+  "h": 520
+ },
+ "sauce-stage-2": {
+  "sha1": "c2fcc3d59a18c82639c50612acae869df94901c0",
+  "w": 640,
+  "h": 520
+ },
+ "sauce-stage-3": {
+  "sha1": "ed449899ea240918e3b0ed457bf6f5b290bb53ce",
+  "w": 640,
+  "h": 520
+ },
+ "sink-basin": {
+  "sha1": "c6e01019a91381128867862947834864620d79f1",
+  "w": 900,
+  "h": 560
+ },
+ "spoon-wood": {
+  "sha1": "86aa806f27f44ac50c83a14319dcd58330526b32",
+  "w": 240,
+  "h": 620
+ },
  "star": {
   "sha1": "bc47a69307f49b63e072aceb13ce8e8a2f2b6a66",
   "w": 200,
   "h": 200
+ },
+ "temp-glow": {
+  "sha1": "a2f3b3e65a11ba081e13c28dd8211007cfea0724",
+  "w": 400,
+  "h": 280
  },
  "topping-bin": {
   "sha1": "0a96df93db413a641f89d656efb9b5fd0a5472e8",
@@ -258,5 +478,70 @@
   "sha1": "c08421194607fb7f6063afb679cc7dcb24b1a1da",
   "w": 820,
   "h": 830
+ },
+ "veg-mushroom-inside": {
+  "sha1": "db7fc86b348c4bd17088bb6d9adb9a84733d3a50",
+  "w": 60,
+  "h": 406
+ },
+ "veg-mushroom-slice": {
+  "sha1": "19ab134dfb5bdee39a733fd9cdb9bbc538c7f4c6",
+  "w": 240,
+  "h": 240
+ },
+ "veg-mushroom-whole": {
+  "sha1": "c69651e6b4efbdbffec796c354005c1921cb3054",
+  "w": 672,
+  "h": 504
+ },
+ "veg-onion-inside": {
+  "sha1": "46c592670f0d6615fea0529dd79ab37039cf716c",
+  "w": 60,
+  "h": 327
+ },
+ "veg-onion-slice": {
+  "sha1": "f06a5f8dc18d861aed71f403b9af42df728d1eae",
+  "w": 240,
+  "h": 240
+ },
+ "veg-onion-whole": {
+  "sha1": "9a0c9bcec58ce63b87f541eb29ea49f2a93824ac",
+  "w": 672,
+  "h": 504
+ },
+ "veg-pepper-inside": {
+  "sha1": "f9b7d2d01d8d2e491147aafdaf07fd925d7c03e5",
+  "w": 60,
+  "h": 378
+ },
+ "veg-pepper-slice": {
+  "sha1": "8654452c36d422de6b30d40bae82ff452291bc1e",
+  "w": 240,
+  "h": 240
+ },
+ "veg-pepper-whole": {
+  "sha1": "e8b05211a12f47fc331607c28151452a73b47b5c",
+  "w": 672,
+  "h": 504
+ },
+ "veg-tomato-inside": {
+  "sha1": "7c5d6515462074a2a2301ab9820dea0c538ececf",
+  "w": 60,
+  "h": 378
+ },
+ "veg-tomato-slice": {
+  "sha1": "51d7dfc3bc1f11099f949e651c3d42d2941e5934",
+  "w": 240,
+  "h": 240
+ },
+ "veg-tomato-whole": {
+  "sha1": "83755b8f590ebc3114c3a865440acbf0a07b0374",
+  "w": 672,
+  "h": 504
+ },
+ "water-stream": {
+  "sha1": "8a593f28e2ff486507f00b0c1693f3747a6a7c44",
+  "w": 240,
+  "h": 420
  }
 }

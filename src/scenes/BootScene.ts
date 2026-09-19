@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import manifest from 'virtual:asset-manifest';
-import { IMAGE_KEYS, textureSize, type ImageKey } from '../core/assets';
+import { LOADED_KEYS, textureSize, type ImageKey } from '../core/assets';
 import { loadSounds } from '../core/audio';
 import { ensurePlaceholders, makeFxTextures, makeUiTextures } from '../core/placeholders';
 import { loadSvgTexture, loadWebpTexture } from '../core/svgRaster';
@@ -13,7 +13,7 @@ const EARLY: ImageKey[] = ['bg-kitchen-landscape', 'btn-play', 'star', 'card-piz
 /** Loaded right after: the title's logo, Mom, Pipa and Mom's pointing hand. They fade in on the title when ready. */
 const TITLE_ART: ImageKey[] = [
   'logo-cooking-with-mom',
-  ...IMAGE_KEYS.filter((k) => (k.startsWith('mom-') && !k.startsWith('mom-hand-')) || k.startsWith('character-')),
+  ...LOADED_KEYS.filter((k) => (k.startsWith('mom-') && !k.startsWith('mom-hand-')) || k.startsWith('character-')),
   'mom-hand-point',
 ];
 
@@ -65,7 +65,7 @@ export class BootScene extends Phaser.Scene {
         ensurePlaceholders(this.game, TITLE_ART.filter((k) => k !== 'logo-cooking-with-mom'));
         titleArtIn = true;
       });
-    const rest = titleArt.then(() => Promise.all(IMAGE_KEYS.filter((k) => exists(k) && !EARLY.includes(k) && !TITLE_ART.includes(k)).map(load)));
+    const rest = titleArt.then(() => Promise.all(LOADED_KEYS.filter((k) => exists(k) && !EARLY.includes(k) && !TITLE_ART.includes(k)).map(load)));
     everything = rest
       .catch((err) => console.warn('[assets] image loading error', err))
       .then(() => {

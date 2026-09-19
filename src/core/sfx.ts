@@ -3,7 +3,15 @@ import type { SoundKey } from './assets';
 import { LEVEL } from './audio';
 
 /** Per-effect gain on top of LEVEL.sfx (MIXING.md: munch is 5 dB quieter in the file, so it plays at 1.0). */
-const KEY_GAIN: Partial<Record<SoundKey, number>> = { munch: 1 / LEVEL.sfx, star: 0.6 / LEVEL.sfx, complete: 0.7 / LEVEL.sfx };
+const KEY_GAIN: Partial<Record<SoundKey, number>> = {
+  munch: 1 / LEVEL.sfx,
+  star: 0.6 / LEVEL.sfx,
+  complete: 0.7 / LEVEL.sfx,
+  'jar-open': 0.8 / LEVEL.sfx,
+  camera: 0.6 / LEVEL.sfx,
+  beep: 0.6 / LEVEL.sfx,
+  click: 0.5 / LEVEL.sfx,
+};
 const gainOf = (key: SoundKey, rel = 1) => Math.min(1, rel * LEVEL.sfx * (KEY_GAIN[key] ?? 1));
 
 const lastPlayed = new Map<string, number>();
