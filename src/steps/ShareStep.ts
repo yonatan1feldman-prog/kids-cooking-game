@@ -67,6 +67,11 @@ export class ShareStep extends Step<ShareParams> {
     return this.params.portions;
   }
 
+  /** Carried upright (a portion on its spoon, a whole cookie), not tip first like a slice. */
+  private get upright() {
+    return !!this.portions || !!this.params.pieces;
+  }
+
   start() {
     this.stepLine = this.params.line;
     this.k = this.layout.k;
@@ -76,6 +81,7 @@ export class ShareStep extends Step<ShareParams> {
     this.ctx.mom.armTo(-18);
     this.ctx.mom.stepAside(this.ctx.stage.feedMomShift);
     if (this.portions) this.buildPortions();
+    else if (this.params.pieces) this.buildPieces();
     else this.buildSlices();
 
     this.onDown((p) => {
@@ -137,6 +143,26 @@ export class ShareStep extends Step<ShareParams> {
     }
     this.dish.setVisible(false);
     sfx(this.scene, 'whoosh', { volume: 0.6 });
+  }
+
+  /** Her cookies (each with its own icing, captured when decorating) lift off the tray, which stays. */
+  private buildPieces() {
+    const home0 = this.ctx.stage.dishHome;
+    const list =
+      this.ctx.run.pieces ??
+      (this.dish.cookies.list as Phaser.GameObjects.Image[])
+        .filter((c) => !c.getData('cut'))
+        .map((c) => ({ key: c.texture.key, x: c.x, y: c.y, scale: c.scaleX, tint: c.tintTopLeft }));
+    this.dish.cookies.setVisible(false);
+    this.dish.toppings.setVisible(false);
+    this.sliceScale = list[0]?.scale ?? this.k;
+    list.forEach((pc, i) => {
+      const home = { x: home0.x + pc.x, y: home0.y + pc.y };
+      const img = this.own(this.scene.add.image(home.x, home.y, pc.key).setScale(this.sliceScale).setTint(pc.tint).setDepth(20));
+      this.scene.tweens.add({ targets: img, y: home.y - 14 * this.k, duration: 200, delay: 450 + i * 60, yoyo: true, ease: 'Quad.easeOut' });
+      const def: SliceDef = { key: pc.key, originX: 0.5, originY: 0.5, restAngle: 0, midAngle: 0, centerDist: 0 };
+      this.slices.push({ img, def, home, eaten: false });
+    });
   }
 
   /**
@@ -245,7 +271,7 @@ export class ShareStep extends Step<ShareParams> {
   /** The middle of the slice under the finger, its tip ahead of it, pointing at the nearer mouth. */
   private carryPose(s: Slice, fx: number, fy: number, to?: Who) {
     // A portion is carried upright by its spoon, just above the finger.
-    if (this.portions) return { x: fx, y: fy - 30 * this.k, angle: 0 };
+    if (this.upright) return { x: fx, y: fy - 30 * this.k, angle: 0 };
     const m = this.mouthOf(to ?? this.nearest(fx, fy));
     const dir = Phaser.Math.Angle.Between(fx, fy, m.x, m.y);
     const reach = s.def.centerDist * LIFT;
@@ -254,7 +280,7 @@ export class ShareStep extends Step<ShareParams> {
   }
 
   private sliceCenter(s: Slice) {
-    if (this.portions) return { x: s.home.x, y: s.home.y };
+    if (this.upright) return { x: s.home.x, y: s.home.y };
     const a = Phaser.Math.DegToRad(s.def.midAngle);
     return { x: s.home.x + Math.cos(a) * s.def.centerDist, y: s.home.y + Math.sin(a) * s.def.centerDist };
   }
@@ -365,6 +391,8 @@ export class ShareStep extends Step<ShareParams> {
     this.hand.stop();
     this.ctx.mom.happy();
     this.ctx.character.setMood('happy');
+    // (the emptied tray goes: the photo shows the tray as it was decorated)
+    if (this.params.pieces) this.scene.tweens.add({ targets: [this.dish, this.ctx.board], alpha: 0, duration: 400 });
     this.scene.time.delayedCall(500, () => this.complete());
   }
 
@@ -381,7 +409,7 @@ export class ShareStep extends Step<ShareParams> {
     const c = this.sliceCenter(s);
     const pose = this.carryPose(s, c.x, c.y, who);
     const m = this.targetOf(who);
-    const back = this.portions ? 0 : s.def.centerDist * LIFT + 40 * this.k;
+    const back = this.upright ? 0 : s.def.centerDist * LIFT + 40 * this.k;
     const dir = Phaser.Math.Angle.Between(c.x, c.y, m.x, m.y);
     const to = { x: m.x - Math.cos(dir) * back, y: m.y - Math.sin(dir) * back };
     return {

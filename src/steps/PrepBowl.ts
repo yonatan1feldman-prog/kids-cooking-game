@@ -1,8 +1,21 @@
 import Phaser from 'phaser';
 import { ART, IMAGES, type ImageKey } from '../core/assets';
+import type { BowlExtra } from '../recipes/types';
 import type { StepContext } from './Step';
 
 const KEY = 'prep-bowl';
+/** The egg's yolk on the flour, drawn in code (white around a round yolk). */
+const YOLK = 'fx-yolk';
+function ensureYolk(scene: Phaser.Scene) {
+  if (scene.textures.exists(YOLK)) return;
+  const g = scene.make.graphics({}, false);
+  g.fillStyle(0xfffaf0, 0.95).fillEllipse(64, 40, 116, 60);
+  g.fillStyle(0xffb22e).fillCircle(60, 36, 24);
+  g.fillStyle(0xffe08a).fillCircle(52, 28, 8);
+  g.lineStyle(4, 0x5b3a29, 0.5).strokeCircle(60, 36, 24);
+  g.generateTexture(YOLK, 128, 80);
+  g.destroy();
+}
 /** Depths: back wall, contents (and dents), the spoon, front wall (the spoon's bowl hides behind it). */
 export const BOWL_DEPTH = { back: 1.5, contents: 1.6, tool: 1.75, front: 1.9 };
 
@@ -25,6 +38,8 @@ export class PrepBowl {
   readonly back: Phaser.GameObjects.Image;
   readonly front: Phaser.GameObjects.Image;
   contents: Phaser.GameObjects.Image;
+  /** What lies on the contents until it is stirred in (the butter cube, the egg's yolk). */
+  readonly extras: Phaser.GameObjects.Image[] = [];
   readonly contentsDepth = BOWL_DEPTH.contents;
   private scene: Phaser.Scene;
   private s: number;
@@ -38,9 +53,10 @@ export class PrepBowl {
   }
 
   /** Empty (no contents yet) until the first `crossfade`. */
-  constructor(private ctx: StepContext, layers: { back: ImageKey; front: ImageKey }, contents: ImageKey | null) {
+  /** `at`: another stage spot than its own (the cookies' bowl stands where the pour steps' bowl does, `pourBowl`). */
+  constructor(private ctx: StepContext, layers: { back: ImageKey; front: ImageKey }, contents: ImageKey | null, at?: 'pourBowl') {
     this.scene = ctx.scene;
-    const spot = ctx.stage[bowlOf(layers.back).spot];
+    const spot = ctx.stage[at ?? bowlOf(layers.back).spot];
     this.s = spot.scale;
     this.at = { x: spot.x, y: spot.y };
     const img = (key: string, depth: number) => this.scene.add.image(spot.x, spot.y, key).setScale(this.s).setDepth(depth);
@@ -56,7 +72,30 @@ export class PrepBowl {
   }
 
   get parts() {
-    return [this.back, this.contents, this.front];
+    return [this.back, this.contents, ...this.extras, this.front];
+  }
+
+  /** Where a point of the bowl's frame is on screen. */
+  point(x: number, y: number) {
+    const [w, h] = IMAGES[this.back.texture.key as ImageKey].size;
+    return { x: this.back.x + (x - w / 2) * this.s, y: this.back.y + (y - h / 2) * this.s };
+  }
+
+  /** Puts something on the contents (it lands with a little bounce); `img` = an object already on screen to use. */
+  addExtra(e: BowlExtra, img?: Phaser.GameObjects.Image) {
+    const at = this.point(e.at.x, e.at.y);
+    if (e.key === 'yolk') ensureYolk(this.scene);
+    const key = e.key === 'yolk' ? YOLK : e.key;
+    const o = (img ?? this.scene.add.image(at.x, at.y - 80 * this.ctx.layout.k, key)).setDepth(BOWL_DEPTH.contents + 0.03).setAngle(0);
+    if (e.base) {
+      const [w, h] = IMAGES[e.key as ImageKey].size;
+      o.setOrigin(e.base.x / w, e.base.y / h);
+    }
+    const scale = e.scale * this.s;
+    this.extras.push(o);
+    this.scene.tweens.killTweensOf(o);
+    this.scene.tweens.add({ targets: o, x: at.x, y: at.y, scale, duration: 320, ease: 'Bounce.easeOut' });
+    return o;
   }
 
   get scale() {

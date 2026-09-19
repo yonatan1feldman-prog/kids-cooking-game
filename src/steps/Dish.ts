@@ -26,6 +26,8 @@ export class Dish extends Phaser.GameObjects.Container {
   readonly R: number;
   base?: Phaser.GameObjects.Image;
   sauce?: Phaser.GameObjects.RenderTexture;
+  /** Whole pieces lying on the base (the cookies on their sheet, then on the tray). */
+  readonly cookies: Phaser.GameObjects.Container;
   readonly sprinkles: Phaser.GameObjects.Container;
   readonly toppings: Phaser.GameObjects.Container;
   /** The captured pizza image (HTMLImageElement), if capture succeeded. */
@@ -39,7 +41,8 @@ export class Dish extends Phaser.GameObjects.Container {
     this.R = ART.doughRadius * layout.k;
     this.sprinkles = new Phaser.GameObjects.Container(scene, 0, 0);
     this.toppings = new Phaser.GameObjects.Container(scene, 0, 0);
-    this.add([this.sprinkles, this.toppings]);
+    this.cookies = new Phaser.GameObjects.Container(scene, 0, 0);
+    this.add([this.cookies, this.sprinkles, this.toppings]);
     scene.add.existing(this);
 
     // Render textures lose their pixels if the GPU context is lost (app switching): repaint the sauce.
@@ -48,9 +51,10 @@ export class Dish extends Phaser.GameObjects.Container {
     this.once(Phaser.GameObjects.Events.DESTROY, () => scene.renderer.off(Phaser.Renderer.Events.RESTORE_WEBGL, onRestore));
   }
 
-  setBase(key: string) {
+  /** The base layer (the flat dough, the cookie sheet, the tray), at `size` x k. */
+  setBase(key: string, size = 1) {
     this.base?.destroy();
-    this.base = new Phaser.GameObjects.Image(this.scene, 0, 0, key).setScale(this.k);
+    this.base = new Phaser.GameObjects.Image(this.scene, 0, 0, key).setScale(this.k * size);
     this.addAt(this.base, 0);
     return this.base;
   }
@@ -122,8 +126,15 @@ export class Dish extends Phaser.GameObjects.Container {
     return Phaser.Math.Distance.Between(wx, wy, this.x, this.y) / (this.R * this.scaleX);
   }
 
-  /** Multiplies a color onto every layer (e.g. golden when baked). */
-  tintAll(color: number) {
+  /** Half the base's width on screen at dish scale 1 (the pizza's radius; half the tray). */
+  get halfWidth() {
+    return Math.max(this.R, ((this.base?.displayWidth ?? 0) / 2));
+  }
+
+  /** Multiplies a color onto every layer (e.g. golden when baked); `foodOnly`: only the pieces on it, not the tray. */
+  tintAll(color: number, foodOnly = false) {
+    this.cookies.each((c: Phaser.GameObjects.Image) => c.setTint(color));
+    if (foodOnly) return;
     this.base?.setTint(color);
     this.sauce?.setTint(color);
     this.sprinkles.each((c: Phaser.GameObjects.Image) => c.setTint(color));
@@ -135,9 +146,10 @@ export class Dish extends Phaser.GameObjects.Container {
    * one texture, MADE_KEY, and replaces the layers with a single image of it.
    * Resolves false (dish left untouched) if the capture fails for any reason.
    */
-  capture(): Promise<boolean> {
+  capture(replace = true): Promise<boolean> {
     return new Promise((resolve) => {
-      const size = Math.ceil(this.R * 2 + 24 * this.k);
+      // (the pizza: its disc; a tray of cookies: the whole tray)
+      const size = Math.ceil((this.cookies.length ? this.halfWidth : this.R) * 2 + 24 * this.k);
       const keep = { x: this.x, y: this.y, sx: this.scaleX, sy: this.scaleY, alpha: this.alpha, visible: this.visible };
       let settled = false;
       const done = (ok: boolean) => {
@@ -160,6 +172,7 @@ export class Dish extends Phaser.GameObjects.Container {
               if (this.scene.textures.exists(MADE_KEY)) this.scene.textures.remove(MADE_KEY);
               this.scene.textures.addImage(MADE_KEY, img);
               this.madeImage = img;
+              if (!replace) return done(true);
               this.base?.destroy();
               this.sauce?.destroy();
               this.sauce = undefined;
@@ -189,6 +202,52 @@ export class Dish extends Phaser.GameObjects.Container {
       }
     });
   }
+}
+
+/**
+ * Draws `objects` (positioned around 0, 0) into a new texture `key`, size x size, via a snapshot (an image survives a
+ * lost GPU context; a render texture would not). Resolves false if it fails. The objects are destroyed afterwards.
+ */
+export function snapshotTexture(scene: Phaser.Scene, key: string, size: number, objects: Phaser.GameObjects.GameObject[]): Promise<boolean> {
+  return new Promise((resolve) => {
+    let settled = false;
+    const done = (ok: boolean) => {
+      if (settled) return;
+      settled = true;
+      objects.forEach((o) => o.destroy());
+      resolve(ok);
+    };
+    try {
+      const tmp = scene.textures.addDynamicTexture(key + '-tmp-' + Date.now(), size, size);
+      if (!tmp) return done(false);
+      const box = new Phaser.GameObjects.Container(scene, 0, 0, objects);
+      tmp.draw(box, size / 2, size / 2);
+      tmp.render();
+      box.removeAll(false);
+      box.destroy();
+      tmp.snapshot((snap) => {
+        const img = snap as HTMLImageElement;
+        const finish = () => {
+          try {
+            if (!img || !img.width) return done(false);
+            if (scene.textures.exists(key)) scene.textures.remove(key);
+            scene.textures.addImage(key, img);
+            done(true);
+          } catch {
+            done(false);
+          } finally {
+            scene.textures.remove(tmp);
+          }
+        };
+        if (img && 'complete' in img && !img.complete) img.onload = finish;
+        else finish();
+      });
+      scene.time.delayedCall(2000, () => done(false));
+    } catch (err) {
+      console.warn('[dish] snapshot failed', err);
+      done(false);
+    }
+  });
 }
 
 /** Clamps a local point to lie within radius r of the center. */

@@ -122,7 +122,17 @@ export class StirStep extends Step<StirParams> {
 
   /** The smooth sauce shows through more and more; the contents sway a little with the spoon. */
   private render() {
-    this.done.setAlpha(this.progress);
+    const via = this.params.via;
+    if (via?.length) {
+      // Through the stages one after another: each fades into the next; what lies on it mixes in during the first.
+      const stages = [this.params.from, ...via, this.params.to];
+      const t = this.progress * (stages.length - 1);
+      const i = Math.min(stages.length - 2, Math.floor(t));
+      this.bowl.setContents(stages[i]);
+      if (this.done.texture.key !== stages[i + 1]) this.done.setTexture(stages[i + 1]);
+      this.done.setAlpha(t - i);
+      for (const e of this.bowl.extras) e.setAlpha(Math.max(0, 1 - t * 1.5));
+    } else this.done.setAlpha(this.progress);
     const sway = Math.sin(this.progress * 40) * 1.5;
     this.bowl.contents.setAngle(sway);
     this.done.setAngle(sway);

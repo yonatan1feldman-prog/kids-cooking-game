@@ -147,6 +147,14 @@
         const c = st.sliceCenter(s), m = st.targetOf(who);
         await __drag([[c.x, c.y], [(c.x + m.x) / 2, (c.y + m.y) / 2 - 40], [m.x, m.y]]); await __run(1250);
       }
+    } else if (name === 'CuttersStep') {
+      // A different cutter for each cookie (as a child might), then a tap on the dough near the next free slot.
+      const n = st.filled.filter(Boolean).length;
+      if (n < st.filled.length && !st.finishing) {
+        const c = st.cutters[n % st.cutters.length];
+        if (st.picked !== c) { __tap(c.x, c.y); await __run(300); }
+        const s = st.slotAt(st.filled.indexOf(false)); __tap(s.x + 20, s.y + 10); await __run(700);
+      }
     } else if (name === 'PhotoStep') {
       await __run(500);
     } else if (name === 'FeedStep') {
@@ -913,6 +921,95 @@ window.__robust6 = async (how = 'rotate', w = 900, h = 405) => {
       (st) => st.sources.map((x) => x.done).join(), (st) => st.held || st.over);
     await __to('share', 1300);
     await moment('serve (a portion held mid-drag)', async () => { const st = __R().step, s = st.slices.find((x) => !x.eaten), c = st.sliceCenter(s); await __drag([[c.x, c.y], [c.x + 150, c.y - 80]], { hold: true }); },
+      (st) => st.slices.filter((x) => x.eaten).length, (st) => !!st.held);
+    for (let k = 0; k < 400 && game.scene.isActive('Recipe'); k++) { if (__R().step.finished || __type() === 'photo') await __run(200); else await __gesture(); }
+    return { how, home: game.scene.isActive('Home'), rows };
+  } finally { window.__recipe = 'pizza'; }
+};
+
+// Round 7: the cookies. `window.__recipe = 'cookies'` switches __start, __demos and __fullRun5 to it.
+/**
+ * Cookie screenshot tour (about 12 shots, docs/screenshots-round7/<tag>-NN-<what>.png): home, the child mid-gesture in
+ * each cookie step, the photo. Start without awaiting; read window.__tourRes.
+ */
+window.__tour7 = async (w, h, tag) => {
+  for (let i = 0; i < 60 && !__voice.allLoaded; i++) await new Promise((r) => setTimeout(r, 250));
+  const out = [];
+  let i = 1;
+  const shot = async (n) => out.push(await __saveShot(`${tag}-${String(i++).padStart(2, '0')}-${n}`, 'screenshots-round7'));
+  const until = async (fn, ms = 8000) => { for (let t = 0; t < ms && !fn(); t += 50) await __run(50); };
+  window.__recipe = 'cookies'; __demos(false); await __setup(w, h); __voSim(true); window.__shareTo = 'alt';
+  const b = game.scene.getScene('Title').children.list.find((o) => o.texture?.key === 'btn-play');
+  __tap(b.x, b.y); await __run(1600); await shot('home');
+  const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-cookies');
+  __tap(c.x, c.y); await until(() => game.scene.isActive('Recipe') && __R().step);
+  try {
+    for (let guard = 0; guard < 60 && game.scene.isActive('Recipe'); guard++) {
+      await until(() => !__R().step?.finished, 15000);
+      const st = __R().step, type = __type();
+      await __run(900);
+      if (type === 'photo') { await until(() => st.frame, 8000); await __run(1400); await shot('photo'); break; }
+      if (type === 'open-pour') {
+        const pp = st.pourPoint(); await __drag([[st.box.x, st.box.y], [pp.x, pp.y]], { hold: true }); await __run(st.params.dropIn ? 30 : 700);
+        await shot('pour-' + st.params.closed); await __run(st.params.pourMs + 200); __touch('end', 1, pp.x, pp.y);
+      } else if (type === 'crush') { for (let k = 0; k < 3; k++) { __tap(st.at.x, st.at.y); await __run(250); } await shot('egg'); }
+      else if (type === 'stir') { const o = st.bowl.opening(); await __drag([[o.x - 100, o.y], [o.x, o.y + 40], [o.x + 100, o.y], [o.x, o.y - 30], [o.x - 100, o.y]], { hold: true }); await __run(80); await shot('stir'); __touch('end', 1, 5, 5); }
+      else if (type === 'knead') { for (let k = 0; k < 4; k++) { __tap(st.at.x + 30, st.at.y); await __run(250); } await shot('knead'); }
+      else if (type === 'roll') { const d = __R().ctx.dish; await __drag([[d.x - 200, d.y], [d.x + 200, d.y + 30], [d.x - 200, d.y + 60]], { hold: true }); await __run(80); await shot('roll'); __touch('end', 1, 5, 5); }
+      else if (type === 'cutters') { for (let k = 0; k < 3; k++) await __gesture(); const cc = st.cutters[3]; __tap(cc.x, cc.y); await __run(200); const s = st.slotAt(st.filled.indexOf(false)); __tap(s.x, s.y); await __run(330); await shot('cutters'); await __run(600); }
+      else if (type === 'bake') { await __gesture(); await __run(400); await shot('oven-panel'); for (let k = 0; k < 3 && st.phase === 'temp'; k++) await __gesture(); await __run(800); await shot('baking'); }
+      else if (type === 'decorate') { for (let k = 0; k < 7; k++) { const bn = st.bins[k % st.bins.length], ck = st.cookieList[k % 6], w0 = st.dish.toWorld(ck.x, ck.y); await __drag([[bn.x, bn.y], [w0.x + 10, w0.y + 90]]); await __run(300); } await shot('decorate'); }
+      else if (type === 'share') {
+        const s = st.slices[0], cc = st.sliceCenter(s), m = st.targetOf('mom');
+        await __drag([[cc.x, cc.y], [m.x - 140, m.y + 40]], { hold: true }); await __run(150); await shot('share-to-mom');
+        __touch('end', 1, m.x - 140, m.y + 40); await __run(1300);
+      }
+      for (let g2 = 0; g2 < 400 && __R().step === st; g2++) { if (st.finished) await __run(100); else await __gesture(); }
+    }
+  } finally { window.__recipe = 'pizza'; }
+  return out;
+};
+
+/** Cookie layout audit (as __auditRun5): every step, and again after every gesture. Start without awaiting. */
+window.__auditRun7 = async (w, h) => {
+  window.__recipe = 'cookies';
+  try { return await __auditRun5(w, h, []); } finally { window.__recipe = 'pizza'; }
+};
+
+/** Cookie robustness (as __robust6): mid-press in the cutters step, and a cookie held mid-drag in sharing. */
+window.__robust7 = async (how = 'rotate', w = 900, h = 405) => {
+  for (let i = 0; i < 60 && !__voice.allLoaded; i++) await new Promise((r) => setTimeout(r, 250));
+  window.__recipe = 'cookies'; __demos(false); await __setup(w, h); __voSim(true); window.__shareTo = 'alt';
+  const g = document.getElementById('game');
+  const setHidden = (on) => { Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => (on ? 'hidden' : 'visible') }); document.dispatchEvent(new Event('visibilitychange')); };
+  const away = async () => {
+    if (how === 'rotate') { g.style.width = h + 'px'; g.style.height = w + 'px'; window.dispatchEvent(new Event('resize')); await __yield(); __tick(16); __touch('end', 1, 10, 10); }
+    else { __touch('cancel', 1, 10, 10); setHidden(true); }
+  };
+  const back = async () => {
+    if (how === 'rotate') { g.style.width = w + 'px'; g.style.height = h + 'px'; window.dispatchEvent(new Event('resize')); await __yield(); __tick(16); }
+    else setHidden(false);
+  };
+  const rows = [];
+  const moment = async (name, setup, progress, held) => {
+    await setup();
+    const st = __R().step, p0 = progress(st), idle0 = st.idleMs;
+    await away();
+    if (how === 'rotate') await __run(4000);
+    const row = { name, paused: __R().scene.isPaused(), held: held(st), progressKept: JSON.stringify(progress(st)) === JSON.stringify(p0), idleFrozen: st.idleMs === idle0 };
+    await back(); await __run(600);
+    row.resumed = !__R().scene.isPaused();
+    for (let k = 0; k < 400 && __R().step === st && game.scene.isActive('Recipe'); k++) { if (st.finished) await __run(200); else await __gesture(); }
+    row.finished = __R().step !== st;
+    rows.push(row);
+  };
+  try {
+    await __start();
+    await __to('cutters', 1300);
+    await moment('cutters (two cookies cut, a cutter pressing)', async () => { await __gesture(); await __gesture(); const st = __R().step; __tap(st.cutters[2].x, st.cutters[2].y); await __run(200); const s = st.slotAt(st.filled.indexOf(false)); __tap(s.x, s.y); await __run(150); },
+      (st) => st.filled.join(), () => false);
+    await __to('share', 1300);
+    await moment('share (a cookie held mid-drag)', async () => { const st = __R().step, s = st.slices.find((x) => !x.eaten), c = st.sliceCenter(s); await __drag([[c.x, c.y], [c.x + 150, c.y - 80]], { hold: true }); },
       (st) => st.slices.filter((x) => x.eaten).length, (st) => !!st.held);
     for (let k = 0; k < 400 && game.scene.isActive('Recipe'); k++) { if (__R().step.finished || __type() === 'photo') await __run(200); else await __gesture(); }
     return { how, home: game.scene.isActive('Home'), rows };

@@ -56,9 +56,9 @@ export class PressStep extends Step<PressParams> {
       this.bowl = PrepBowl.take(this.ctx) ?? new PrepBowl(this.ctx, this.params.bowl!, null);
       this.over = true;
       const o = this.bowl.opening();
-      this.scale = OVER_SIZE * this.k;
+      this.scale = (this.params.overSize ?? OVER_SIZE) * this.k;
       this.at = { x: o.x - 60 * this.k, y: o.y - 230 * this.k };
-      this.food = this.own(this.scene.add.image(this.at.x, this.at.y, first).setScale(0).setAngle(OVER_ANGLE).setDepth(BOWL_DEPTH.front + 0.5));
+      this.food = this.own(this.scene.add.image(this.at.x, this.at.y, first).setScale(0).setAngle(this.params.overAngle ?? OVER_ANGLE).setDepth(BOWL_DEPTH.front + 0.5));
       this.squashTween = this.scene.tweens.add({ targets: this.food, scale: this.scale, duration: 450, ease: 'Back.easeOut' });
     } else if (this.params.place === 'bowl') {
       this.workspace('aside');
@@ -117,10 +117,10 @@ export class PressStep extends Step<PressParams> {
 
   /** Over the bowl: the food's lower rim, where the drops fall from (turned with it). */
   private dripPoint() {
-    const f = ART.salad.lemonFace;
+    const f = this.params.dropFrom ?? { x: ART.salad.lemonFace.x, y: ART.salad.lemonFace.y + 120 };
     const w = this.food.frame.realWidth;
     const h = this.food.frame.realHeight;
-    const v = new Phaser.Math.Vector2((f.x - w / 2) * this.scale, (f.y + 120 - h / 2) * this.scale).rotate(Phaser.Math.DegToRad(this.food.angle));
+    const v = new Phaser.Math.Vector2((f.x - w / 2) * this.scale, (f.y - h / 2) * this.scale).rotate(Phaser.Math.DegToRad(this.food.angle));
     return { x: this.food.x + v.x, y: this.food.y + v.y };
   }
 
@@ -227,7 +227,14 @@ export class PressStep extends Step<PressParams> {
     this.hand.stop();
     this.scene.time.delayedCall(420, () => {
       if (this.over) {
-        // The squeezed-out food goes; the bowl stays for the next step.
+        // The squeezed-out food goes (what it leaves lies on the contents: the yolk); the bowl stays for the next step.
+        if (this.params.lands) {
+          const d = this.dripPoint();
+          const img = this.params.lands.key === 'yolk' ? undefined : this.scene.add.image(d.x, d.y, this.params.lands.key);
+          const o = this.bowl!.addExtra(this.params.lands, img);
+          if (!img) o.setPosition(d.x, d.y).setScale(0.2 * this.k);
+          this.scene.tweens.add({ targets: this.food, alpha: 0, duration: 250 });
+        }
         this.bowl!.keep();
         return this.complete();
       }

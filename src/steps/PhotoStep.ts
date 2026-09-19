@@ -109,6 +109,18 @@ export class PhotoStep extends Step<PhotoParams> {
         temp.forEach((o) => o.destroy());
         return PHOTO_KEY;
       }
+      if (this.params.made) {
+        // Her whole dish as decorated (the cookies on their tray), 92% of the square, a little low.
+        if (tex.exists(MADE_KEY)) {
+          const made = new Phaser.GameObjects.Image(this.scene, 0, 0, MADE_KEY);
+          made.setScale((size * 0.92) / made.frame.realWidth);
+          dt.draw(made, size / 2, size / 2 + 50 * (size / 540));
+          temp.push(made);
+        }
+        dt.render();
+        temp.forEach((o) => o.destroy());
+        return PHOTO_KEY;
+      }
       // The board and the pizza fill about 86% of the square, standing a little low (on the counter).
       const boardKey = this.ctx.board.texture.key;
       const board = new Phaser.GameObjects.Image(this.scene, 0, 0, boardKey);

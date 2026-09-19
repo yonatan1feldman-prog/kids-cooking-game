@@ -82,6 +82,23 @@ export const TUNING = {
     mix: { distance: 3000 },
     serve: { portions: 4 },
   },
+  /**
+   * The cookies (round 7; aim: 4-5 minutes from the card to home). Into the bowl: ms of pouring the flour and the sugar
+   * (the butter drops in at once). Egg: taps per stage (whole -> cracked -> open: 2 changes). Stir: finger travel through
+   * the four batter stages. Knead: presses per stage (knead-1 -> 2 -> 3 -> ball: 3 changes). Roll: rubbing in dough
+   * widths. Cut: the six slots of the sheet are the count; `pressMs` is one press of a cutter. Oven: the target is 150
+   * (vo-temp-150 says "one hundred fifty"). Share: the six cookies.
+   */
+  cookies: {
+    flour: { ms: 2000 },
+    sugar: { ms: 1500 },
+    egg: { pressesPerStage: 2 },
+    stir: { distance: 3600 },
+    knead: { pressesPerStage: 3 },
+    roll: { rubWidths: 4 },
+    cut: { pressMs: 520 },
+    oven: { target: 150 },
+  },
   /** Mom's help (after the idle hint): the pace of her own presses, rubs and strokes. */
   help: { pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150, chopEveryMs: 950, openMs: 1500, tempEveryMs: 1100 },
 } as const;

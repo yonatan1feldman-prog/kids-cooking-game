@@ -3,6 +3,7 @@ import { puff } from '../core/fx';
 import type { HandMotion } from '../core/hand';
 import { art } from '../core/layout';
 import { sfx } from '../core/sfx';
+import type { VoiceKey } from '../core/audio';
 import type { RollParams } from '../recipes/types';
 import { Step } from './Step';
 
@@ -15,7 +16,7 @@ import { Step } from './Step';
 const PALM = { x: 110, y: -10 };
 
 export class RollStep extends Step<RollParams> {
-  protected stepLine = 'vo-roll' as const;
+  protected stepLine: VoiceKey | null = 'vo-roll';
   private ball!: Phaser.GameObjects.Image;
   private flat!: Phaser.GameObjects.Image;
   private pin!: Phaser.GameObjects.Image;
@@ -31,6 +32,7 @@ export class RollStep extends Step<RollParams> {
   start() {
     const L = this.layout;
     this.k = L.k;
+    if (this.params.line) this.stepLine = this.params.line;
     const { x, y } = this.ctx.dishHome;
     this.dish.setPosition(x, y).setScale(1).setAlpha(1);
 
@@ -111,12 +113,12 @@ export class RollStep extends Step<RollParams> {
     this.ball.setScale(this.k * (1 + p * 0.9), this.k * (1 - p * 0.6));
     this.ball.setAlpha(1 - Phaser.Math.Clamp((p - 0.35) / 0.55, 0, 1));
     this.flat.setAlpha(Phaser.Math.Clamp(p / 0.4, 0, 1));
-    this.flat.setScale(this.k * (0.45 + 0.55 * p));
+    this.flat.setScale(this.k * (this.params.size ?? 1) * (0.45 + 0.55 * p));
   }
 
   private finish() {
     this.rubbing = false;
-    this.dish.setBase(this.params.flat);
+    this.dish.setBase(this.params.flat, this.params.size);
     this.flat.setVisible(false);
     this.ball.setVisible(false);
     this.restPin(300);

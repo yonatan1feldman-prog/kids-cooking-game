@@ -73,6 +73,26 @@ export interface PressParams {
   line: VoiceKey;
   /** The result is left for the next step under this key (`run.handoff`), e.g. 'dough-ball' for rolling. */
   handoff?: string;
+  /**
+   * 'over-bowl' only: how the food is held (its tilt in degrees, default the lemon's; its size x k) and the point in its
+   * own frame the drops fall from (default the lemon's lower rim). An egg is held upright and cracked over the bowl.
+   */
+  overAngle?: number;
+  overSize?: number;
+  dropFrom?: { x: number; y: number };
+  /** 'over-bowl' only: what is left lying on the bowl's contents at the end (the egg's yolk), drawn in code. */
+  lands?: BowlExtra;
+}
+
+/**
+ * Something that lies on the contents of the big bowl across steps (the butter cube, the egg's yolk) until stirring
+ * mixes it in: an image, or `yolk` (drawn in code), at `at` in the bowl's frame, its `base` there, `scale` x the bowl's.
+ */
+export interface BowlExtra {
+  key: ImageKey | 'yolk';
+  at: { x: number; y: number };
+  base?: { x: number; y: number };
+  scale: number;
 }
 
 /**
@@ -96,6 +116,8 @@ export interface StirParams {
   sound?: SoundKey;
   /** The bowl stays in place for the next step (with `to` in it), instead of moving aside. */
   keep?: boolean;
+  /** Stages between `from` and `to` (the cookie batter: dry, streaky, crumbly, smooth); what lies on it mixes in first. */
+  via?: ImageKey[];
 }
 
 /**
@@ -123,6 +145,35 @@ export interface RollParams {
   tool: ImageKey;
   /** How much rubbing is needed, in widths of the dough traveled by the finger. */
   rubWidths: number;
+  /** Mom's line (default vo-roll), and the flat dough's size x k (default 1; the cookie sheet is smaller than its frame). */
+  line?: VoiceKey;
+  size?: number;
+}
+
+/**
+ * Cutters (round 7): the rolled sheet in the middle, big cutters on the left. A tap on a cutter picks it (it lifts,
+ * glows, Mom says its name); a tap anywhere on the dough presses it into the free slot nearest the finger: the cutter
+ * comes down and presses (stamp, Mom counts) and a cookie of its shape stays on the sheet. She can change the cutter
+ * between presses; a tap on the dough before picking one uses the next one. When every slot has a cookie they hop onto
+ * the baking tray (the same slots), which becomes the dish. Cookies, biscuits, sandwiches, anything stamped: the same
+ * type, other pictures. Counts: the slots.
+ */
+export interface CutterParams {
+  cutters: { cutter: ImageKey; cookie: ImageKey; name: VoiceKey }[];
+  /** The sheet (the dish's base, left by rolling) and the tray that replaces it; one frame, the same `slots`. */
+  sheet: ImageKey;
+  tray: ImageKey;
+  slots: readonly (readonly [number, number])[];
+  /** The sheet's size x k (as rolled), and the cutter's press point in its frame (on the slot centre at the sheet's scale). */
+  size: number;
+  press: { x: number; y: number };
+  line: VoiceKey;
+  /** Said with Mom's demo ("Press it into the dough!"), and when the cookies go onto the tray. */
+  stampLine: VoiceKey;
+  trayLine: VoiceKey;
+  sound: SoundKey;
+  /** Ms of the press (the cutter comes down, presses, goes back up). */
+  pressMs: number;
 }
 
 export interface SpreadParams {
@@ -229,8 +280,8 @@ export interface OpenPourParams {
   openLine?: VoiceKey;
   pourLine: VoiceKey;
   bowl: { back: ImageKey; front: ImageKey };
-  /** What pours out (one piece of the topping). */
-  piece: ImageKey;
+  /** What pours out (one piece of the topping), or `fx-dot` (a dot drawn in code, see `pieceTint`). */
+  piece: ImageKey | 'fx-dot';
   bin?: ImageKey;
   topping?: ImageKey;
   taps: number;
@@ -242,12 +293,17 @@ export interface OpenPourParams {
   tilt?: number;
   /** The pouring sound (default pour). */
   pourSound?: SoundKey;
+  /** The piece's tint and size (x the default), e.g. `fx-dot` tinted as flour (drawn in code, no art). */
+  pieceTint?: number;
+  pieceSize?: number;
+  /** Nothing pours: held over the bowl, the thing itself drops in and stays on the contents (a butter cube). */
+  dropIn?: BowlExtra;
   /**
    * The big bowl stays across steps (the salad bowl: taken from the step before, left for the next), and its contents
    * rise through `fills` as the things are poured in; the pieces melt into them instead of piling up. Without it the
    * step brings its own bowl and puts the contents into the topping's bin.
    */
-  keep?: { fills?: ImageKey[] };
+  keep?: { fills?: ImageKey[]; spot?: 'pourBowl' };
   /**
    * Pour several things in, one after another, in any order (the salad into its bowl): what the steps before left
    * waiting (`run.handoff` keys; `'chosen'` = the bins of what she chose, their `topping` as the piece). Each is dragged
@@ -259,6 +315,17 @@ export interface OpenPourParams {
 export interface DecorateParams {
   items: ImageKey[];
   doneButton: ImageKey;
+  /** Mom's line (default vo-toppings). */
+  line?: VoiceKey;
+  /** What an item puts down when it is not itself (the icing tube puts a blob of icing); its size on the dish. */
+  places?: Partial<Record<ImageKey, ImageKey>>;
+  sizes?: Partial<Record<ImageKey, number>>;
+  /**
+   * 'cookies': decorating the baked cookies on the tray. Each thing lands on the cookie nearest to where it is let go
+   * (inside it). At the end each cookie with what is on it becomes its own picture (for sharing, `run.pieces`), and the
+   * whole tray the photo's (MADE_KEY).
+   */
+  onto?: 'dish' | 'cookies';
 }
 
 export interface BakeParams {
@@ -275,6 +342,11 @@ export interface BakeParams {
    * at `target` the number glows and the start button lights up; its press starts the baking. Nothing ever burns.
    */
   panel?: TempPanel;
+  /**
+   * A tray instead of a pizza: where it sits in the oven (oven frame) and its size there x the oven's scale; only the food
+   * on it (`dish.cookies`) turns golden, not the tray. Without it the pizza fills `ART.ovenPizza`.
+   */
+  tray?: { x: number; y: number; scale: number };
   /** Put on the oven mitts before taking it out (optional): after the ding the mitts lie on the counter; a tap puts them on. */
   mitts?: { pair: ImageKey; single: ImageKey; line: VoiceKey };
 }
@@ -328,6 +400,11 @@ export interface ShareParams {
    * in it (`fill` shows in the bowl) and that one eats.
    */
   portions?: { image: ImageKey; anchor: { x: number; y: number }; count: number; bowl: ImageKey; fill: ImageKey };
+  /**
+   * Whole pieces instead of slices (the cookies): each piece decorating left (`run.pieces`, her own cookie with its
+   * icing) is lifted off the tray and carried upright to a mouth.
+   */
+  pieces?: boolean;
 }
 
 /**
@@ -344,6 +421,8 @@ export interface PhotoParams {
   bye: VoiceKey;
   /** The photo shows this bowl (back, contents, front: the salad) instead of her pizza on its board. */
   bowl?: { back: ImageKey; fill: ImageKey; front: ImageKey };
+  /** The photo shows her whole dish as decorated (MADE_KEY: the cookies on their tray), no board. */
+  made?: boolean;
 }
 
 /** Character layers sharing one frame, stacked body -> eyes -> mouth. She stays for the whole recipe. */
@@ -374,7 +453,8 @@ export type StepDef =
   | { type: 'chop'; params: ChopParams }
   | { type: 'open-pour'; params: OpenPourParams }
   | { type: 'share'; params: ShareParams }
-  | { type: 'photo'; params: PhotoParams };
+  | { type: 'photo'; params: PhotoParams }
+  | { type: 'cutters'; params: CutterParams };
 
 export type StepType = StepDef['type'];
 

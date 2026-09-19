@@ -45,6 +45,8 @@ export interface StepContext {
     insert: StepDef[];
     /** Lines said once per recipe run ("Be careful with the knife!"). */
     once: Set<string>;
+    /** Her decorated pieces (the cookies), each its own picture, where it lies on the dish (local); for sharing. */
+    pieces?: { key: string; x: number; y: number; scale: number; tint: number }[];
   };
 }
 

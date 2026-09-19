@@ -3,7 +3,8 @@
 ## Quick start (read this, then only the sections your task needs)
 - **What:** a text-free, English-speaking cooking game for a 5-year-old (Android phone, landscape): she cooks with
   Mom, Pipa the hedgehog watches and eats. Phaser 4 + Vite + TypeScript PWA, deployed to GitHub Pages from `master`.
-  Two recipes: pizza (`src/recipes/pizza.ts`) and salad (`src/recipes/salad.ts`), cards side by side on the home screen.
+  Three recipes: pizza (`src/recipes/pizza.ts`), salad (`src/recipes/salad.ts`) and cookies (`src/recipes/cookies.ts`),
+  cards side by side on the home screen.
 - **Where things are:** `src/recipes/` recipes as pure data (`types.ts` = every step type's params); `src/steps/` one
   reusable class per step type (`registry.ts` maps names to classes); `src/core/tuning.ts` every count and threshold;
   `src/core/stage.ts` every position; `src/core/assets.ts` the asset contract (image keys, sizes, art anchors `ART`);
@@ -16,7 +17,7 @@
   worked example (round 6 handoff note).
 - **Which sections for which task:**
   - any change: "Child wellbeing rules", "UX rules", "Working rules".
-  - new recipe or step type: "Recipes are data", "Asset contract", Handoff notes 0000 (salad) and 000 (part B).
+  - new recipe or step type: "Recipes are data", "Asset contract", Handoff notes 00000 (cookies), 0000 (salad) and 000 (part B).
   - layout / positions: "Landscape layout", Handoff notes 2; tuning after watching her play: `core/tuning.ts` only.
   - voice or sound: "Asset contract" (levels), "Recipes are data" (voice lines per event, the queue rules).
   - testing: "Testing notes for agents", Handoff notes 1 (harness) and 5 (Phaser pitfalls).
@@ -212,7 +213,7 @@ src/scenes/
 ## Recipes are data
 A recipe is `{ id, card, board, character, steps: StepDef[] }`. Each step names a reusable type and its params.
 Step types: `wash`, `knead`, `crush`, `stir`, `grate`, `roll`, `spread`, `sprinkle`, `choose`, `chop`, `open-pour`,
-`decorate`, `bake`, `share`, `photo` (and `feed`, the older single-eater ending with its own finale, no longer used).
+`decorate`, `bake`, `share`, `photo`, `cutters` (and `feed`, the older single-eater ending with its own finale, no longer used).
 The salad (`salad.ts`) is the second worked example: see Handoff notes 0000.
 The pizza: wash, knead, roll, crush, stir, spread, grate, sprinkle, choose, then the prep step of each of the three
 chosen toppings in the order she picked them (chop, or open-pour), decorate, bake (with the panel and the mitts),
@@ -286,6 +287,26 @@ feedback on every touch, Mom's demo, the 5 s hint from her hand, her help after 
   camera + white flash, the photo frame (`stage.photo`) with her dish in its window (a DynamicTexture `photo-made`: a
   square of the kitchen, the board, her captured pizza with its baked tint), "We made a pizza together!", the cheer,
   stars off every face and the photo, "That was fun! Bye bye!", home. No hint, no help (nothing to do).
+
+Reusable step type of round 7 (the cookies; params in `recipes/types.ts`):
+- `cutters` (`CuttersStep`, `CutterParams`): the rolled sheet is the dish's base (left by `roll` with `size`), the big
+  cutters stand where the bins go (`stage.bin(i, n)`). A tap on a cutter picks it (it lifts, soft glow, pop, Mom says its
+  `name`, group 'name'); a tap anywhere on the sheet presses the picked one into the free slot nearest the finger
+  (`slots` in the sheet's frame; the cutter's `press` point lands on the slot centre at the sheet's scale): it comes down,
+  squashes, `sound`, Mom counts (`count-N`), and the `cookie` of its shape stays on the sheet with a darker cut outline
+  under it (`dish.cookies`). A tap on the sheet before any pick uses the next cutter. After the last slot: `trayLine`,
+  the cookies hop, the sheet fades and the `tray` (the same frame and slots) becomes the base. Demo (`mom-hand-press`):
+  tap a cutter, press the dough, `stampLine` with it. Help: a different cutter for each cookie. Biscuits, sandwiches,
+  anything stamped out: the same type with other pictures.
+- Round 7 also generalised, each optional (defaults = the pizza and salad as before): `open-pour` `keep.spot:
+  'pourBowl'` (the kept bowl on the pour spot), `piece: 'fx-dot'` + `pieceTint` / `pieceSize` (flour, sugar drawn in
+  code), `dropIn` (the thing itself drops in and stays on the contents: butter); `crush` over the bowl `overAngle` /
+  `overSize` / `dropFrom` / `lands` (the egg, its yolk left on the flour; `PrepBowl.extras`); `stir` `via` (stages in
+  between; what lies on the contents mixes in); `roll` `line` / `size`; `bake` `tray` (where a tray sits in the oven;
+  only `dish.cookies` turn golden); `decorate` `line` / `places` (the icing tube puts a blob) / `sizes` / `onto:
+  'cookies'` (each thing lands inside the nearest cookie; at the end every cookie with its icing is captured on its own,
+  `run.pieces`, and the whole tray into MADE_KEY without flattening the dish); `share` `pieces` (her cookies carried
+  upright; the empty tray fades at the end); `photo` `made` (the photo shows MADE_KEY, no board).
 
 **What every future recipe must provide** (data only, unless it needs a new step type):
 1. `src/recipes/<name>.ts` with `id`, `card`, `board`, `character` and its `steps`, added to `RECIPES`.
@@ -500,7 +521,27 @@ fallback if the capture fails.
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; round 6 on top, rounds 2-5 below still hold)
+## Handoff notes (written for the next agent; round 7 on top, rounds 2-6 below still hold)
+### 00000. Round 7 (the cookies, the third recipe)
+State: `rollback-pre-cookies` = master before the cookies; branch `round-7-cookies` merged and tagged `v0.6-cookies`.
+Screenshots (git-ignored): `docs/screenshots-round7/` (`__tour7(w, h, tag)`), to compare with
+`../cooking-game-assets/images-b-cookies/shots/` (README-cookies.md has the slots, press point, oven fit).
+- **The cookies are data** (`src/recipes/cookies.ts`) on the old types plus `cutters` (see "Recipes are data"): wash ·
+  open-pour flour / sugar (code specks) / butter (`dropIn`) into the prep bowl on the pour spot · crush the egg over it
+  (the yolk lands) · stir through batter-stage-0..3 · knead · roll (the sheet at 0.82) · cutters (six, onto the tray) ·
+  bake at 150 (`vo-temp-150`, the tray in the oven, only the cookies turn golden) · decorate the cookies (four boxes) ·
+  share the six cookies · photo of the decorated tray. Counts: `TUNING.cookies`. Harness: `__tour7`, `__auditRun7`,
+  `__robust7`; `window.__recipe = 'cookies'` for `__fullRun5`.
+- **Checked (virtual clock, simulated voice):** full run with demos at the child model's pace: 178 s from the card to
+  home, voice in order, no overlap, no forbidden cut. Pizza and salad fast regression runs: home, no voice problems.
+  Layout audit at 20:9 and 4:3: clean except Mom's known finale sway. Rotate and background mid-press in cutters and
+  mid-drag in sharing: dropped, kept, finished (background behaves as the salad's).
+- **Found and fixed:** the emptied tray stayed behind the photo frame; the egg was too small over the bowl; the flour
+  specks were too small to see.
+- **Needs a real finger:** picking a cutter and tapping the dough (is "the nearest free slot" what she expects?),
+  dragging the butter over the bowl, the egg taps, dropping icing on a small cookie, carrying a cookie to Pipa.
+- Precache: 13.5 MB (327 files). At 15 MB switch to caching per recipe (round 6's open task).
+
 
 ### 0000. Round 6 (the salad, the second recipe)
 State: `v0.4-pizza-full` = the full pizza on master; `rollback-pre-salad` = master before the salad; branch

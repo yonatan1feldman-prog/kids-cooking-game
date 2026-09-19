@@ -142,8 +142,7 @@ export class BakeStep extends Step<BakeParams> {
     this.phase = this.params.panel ? 'temp' : 'baking';
     this.setIdle(false);
     sfx(this.scene, 'whoosh');
-    const spot = this.ovenPoint(ART.ovenPizza.x, ART.ovenPizza.y);
-    const scale = ((ART.ovenPizza.diameter / 2) * this.os) / this.dish.R;
+    const { spot, scale } = this.inOven();
     this.scene.tweens.add({
       targets: this.dish,
       x: spot.x,
@@ -165,6 +164,13 @@ export class BakeStep extends Step<BakeParams> {
         else this.bake();
       },
     });
+  }
+
+  /** Where the dish sits in the oven and its scale there: the pizza fills ART.ovenPizza; a tray its own spot. */
+  private inOven() {
+    const t = this.params.tray;
+    if (t) return { spot: this.ovenPoint(t.x, t.y), scale: (t.scale * this.os) / (this.dish.base?.scaleX ?? this.k) };
+    return { spot: this.ovenPoint(ART.ovenPizza.x, ART.ovenPizza.y), scale: ((ART.ovenPizza.diameter / 2) * this.os) / this.dish.R };
   }
 
   // ------------------------------------------------------------------ the temperature
@@ -310,7 +316,7 @@ export class BakeStep extends Step<BakeParams> {
         from: 0,
         to: 1,
         duration: this.params.bakeMs,
-        onUpdate: (tw) => this.dish.tintAll(mix(0xffffff, this.params.bakedTint, tw.getValue() ?? 0)),
+        onUpdate: (tw) => this.dish.tintAll(mix(0xffffff, this.params.bakedTint, tw.getValue() ?? 0), !!this.params.tray),
       }),
       this.scene.tweens.addCounter({
         from: 0,
@@ -337,7 +343,7 @@ export class BakeStep extends Step<BakeParams> {
       this.closed.setAngle(0).clearTint();
       this.inside.clearTint();
       if (this.heat) this.scene.tweens.add({ targets: this.heat, alpha: 0, duration: 400 });
-      this.dish.tintAll(this.params.bakedTint);
+      this.dish.tintAll(this.params.bakedTint, !!this.params.tray);
       sfx(this.scene, 'oven-ding', { vary: false });
       boing(this.scene, this.closed, 0.12);
       stars(this.scene, this.closed.x, this.closed.y - 380 * this.os, 6, 60 * this.k);
@@ -416,7 +422,7 @@ export class BakeStep extends Step<BakeParams> {
     if (this.params.mitts && this.wearing) {
       mitt = this.own(this.scene.add.image(0, 0, this.params.mitts.single).setScale(0.66 * this.k).setAngle(90).setDepth(11));
     }
-    const place = () => mitt?.setPosition(this.dish.x - this.dish.R * this.dish.scaleX * 0.95, this.dish.y + 20 * this.k);
+    const place = () => mitt?.setPosition(this.dish.x - this.dish.halfWidth * this.dish.scaleX * 0.95, this.dish.y + 20 * this.k);
     place();
     this.scene.tweens.add({
       targets: this.dish,
@@ -439,7 +445,7 @@ export class BakeStep extends Step<BakeParams> {
   private ovenTap(): HandMotion {
     const w = this.ovenPoint(460, 430);
     if (this.params.mitts) {
-      const to = { x: this.rest.x - this.dish.R * 0.9, y: this.rest.y };
+      const to = { x: this.rest.x - this.dish.halfWidth * 0.9, y: this.rest.y };
       return {
         kind: 'mitt',
         keys: [
@@ -469,12 +475,13 @@ export class BakeStep extends Step<BakeParams> {
     }
     if (this.phase !== 'toOven') return null;
     const d = { x: this.dish.x, y: this.dish.y };
-    const to = this.ovenPoint(ART.ovenPizza.x, ART.ovenPizza.y);
+    const { spot: to, scale: small } = this.inOven();
     const grip = { x: this.dish.R * 0.55, y: -this.dish.R * 0.35 };
-    const small = ((ART.ovenPizza.diameter / 2) * this.os) / this.dish.R;
-    // Her own pizza as a ghost (the capture is in game pixels; the stock dough needs the content scale).
-    const made = this.scene.textures.exists(MADE_KEY);
-    const key = made ? MADE_KEY : 'dough-flat';
+    // Her own pizza as a ghost (the capture is in game pixels; the stock dough needs the content scale). A tray: the tray.
+    const tray = this.params.tray && this.dish.base;
+    const made = !tray && this.scene.textures.exists(MADE_KEY);
+    const key = tray ? tray.texture.key : made ? MADE_KEY : 'dough-flat';
+    const f = tray ? tray.scaleX / this.k : 1;
     return {
       kind: 'grab',
       keys: [
@@ -483,7 +490,7 @@ export class BakeStep extends Step<BakeParams> {
         { x: to.x + grip.x * small, y: to.y + grip.y * small, t: 1800 },
         { x: to.x + grip.x * small, y: to.y + grip.y * small, t: 2350 },
       ],
-      props: [{ key, scale: made ? 1 : this.k, endScale: small * (made ? 1 : this.k), alpha: 0.55, dx: -grip.x, dy: -grip.y, fadeFrom: 1700 }],
+      props: [{ key, scale: made ? 1 : this.k * f, endScale: small * (made ? 1 : this.k * f), alpha: 0.55, dx: -grip.x, dy: -grip.y, fadeFrom: 1700 }],
       glow: d,
     };
   }

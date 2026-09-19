@@ -2,6 +2,7 @@ import type { StepDef, StepType } from '../recipes/types';
 import { BakeStep } from './BakeStep';
 import { ChooseStep } from './ChooseStep';
 import { ChopStep } from './ChopStep';
+import { CuttersStep } from './CuttersStep';
 import { DecorateStep } from './DecorateStep';
 import { FeedStep } from './FeedStep';
 import { GrateStep } from './GrateStep';
@@ -37,6 +38,7 @@ const STEP_TYPES: Record<StepType, Factory> = {
   'open-pour': (c, p, d) => new OpenPourStep(c, p, d),
   share: (c, p, d) => new ShareStep(c, p, d),
   photo: (c, p, d) => new PhotoStep(c, p, d),
+  cutters: (c, p, d) => new CuttersStep(c, p, d),
 };
 
 export function createStep(def: StepDef, ctx: StepContext, onDone: () => void): Step<unknown> {

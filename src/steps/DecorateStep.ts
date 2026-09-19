@@ -6,7 +6,9 @@ import { art } from '../core/layout';
 import { sfx } from '../core/sfx';
 import { iconButton } from '../core/ui';
 import type { DecorateParams } from '../recipes/types';
-import { clampToRadius } from './Dish';
+import { IMAGES, type ImageKey } from '../core/assets';
+import type { VoiceKey } from '../core/audio';
+import { clampToRadius, MADE_KEY, snapshotTexture } from './Dish';
 import { Step } from './Step';
 import { binIcon, binKey, moveBin, setBinVisible } from './ToppingBin';
 
@@ -19,6 +21,8 @@ interface Bin {
   /** Half the bin's drawn size: the touch area reaches BIN_REACH beyond it. */
   half: number;
 }
+
+const IMAGES_SIZE = (key: string) => (IMAGES[key as ImageKey]?.size ?? [140, 140]) as readonly number[];
 
 /** How far (world units at k = 1) a bin's touch area reaches beyond its drawing (stage.ts keeps that margin free). */
 const BIN_REACH = 30;
@@ -39,7 +43,7 @@ const LIFT_UP = 90;
  * The done button ends the step; the finished pizza is then captured as one image.
  */
 export class DecorateStep extends Step<DecorateParams> {
-  protected stepLine = 'vo-toppings' as const;
+  protected stepLine: VoiceKey | null = 'vo-toppings';
   private bins: Bin[] = [];
   private held?: { img: Phaser.GameObjects.Image; key: string };
   private placed = 0;
@@ -53,6 +57,7 @@ export class DecorateStep extends Step<DecorateParams> {
   start() {
     const L = this.layout;
     this.k = L.k;
+    if (this.params.line) this.stepLine = this.params.line;
     this.hintAfterMs = DECORATE_HINT_MS;
     this.autoAfterHintMs = DECORATE_AUTO_AFTER_HINT_MS;
 
@@ -77,9 +82,12 @@ export class DecorateStep extends Step<DecorateParams> {
       }
       const bin = this.own(this.scene.add.image(x, y, 'topping-bin'));
       const icon = this.own(this.scene.add.image(x, y - 8 * binScale, key));
+      // (a tall thing in its box, the icing tube, at a topping's size, leaning)
+      const fit = Math.min(1, 190 / Math.max(...IMAGES_SIZE(key)));
+      if (fit < 1) icon.setAngle(i % 2 ? 20 : -20);
       const half = (Math.max(bin.frame.realWidth, bin.frame.realHeight) * binScale) / 2;
       this.bins.push({ key, x, y, bin, icon, half });
-      for (const [o, s] of [[bin, binScale], [icon, binScale * ICON]] as const) {
+      for (const [o, s] of [[bin, binScale], [icon, binScale * ICON * fit]] as const) {
         o.setScale(0);
         this.scene.tweens.add({ targets: o, scale: s, duration: 400, delay: i * 70, ease: 'Back.easeOut' });
       }
@@ -99,9 +107,10 @@ export class DecorateStep extends Step<DecorateParams> {
       this.poke();
       sfx(this.scene, 'tap');
       boing(this.scene, b.bin, 0.15);
-      const img = art(this.scene.add.image(p.worldX, p.worldY - LIFT_UP * this.k, b.key), L, 0.8).setDepth(40);
+      const key = this.puts(b.key);
+      const img = art(this.scene.add.image(p.worldX, p.worldY - LIFT_UP * this.k, key), L, 0.8).setDepth(40);
       this.scene.tweens.add({ targets: img, scale: L.k * LIFT, duration: 160, ease: 'Back.easeOut' });
-      this.held = { img, key: b.key };
+      this.held = { img, key };
     });
     this.onMove((p) => {
       if (!this.held) return;
@@ -162,21 +171,53 @@ export class DecorateStep extends Step<DecorateParams> {
     this.held = { img, key };
   }
 
+  /** What an item from a box puts down (the icing tube: a blob of icing). */
+  private puts(key: string) {
+    return (this.params.places?.[key as ImageKey] ?? key) as string;
+  }
+
+  /** The cookies on the tray (not the cut outlines). */
+  private get cookieList() {
+    return (this.dish.cookies.list as Phaser.GameObjects.Image[]).filter((c) => !c.getData('cut'));
+  }
+
+  /** Where a thing let go at a local point lands: on the pizza (inside its rim), or inside the nearest cookie. */
+  private landing(local: { x: number; y: number }) {
+    const cookies = this.params.onto === 'cookies' ? this.cookieList : [];
+    if (!cookies.length) return { spot: clampToRadius(local, this.dish.R * 0.78), on: -1 };
+    let on = 0;
+    let bestD = Infinity;
+    cookies.forEach((c, i) => {
+      const d = Phaser.Math.Distance.Between(local.x, local.y, c.x, c.y);
+      if (d < bestD) {
+        bestD = d;
+        on = i;
+      }
+    });
+    const c = cookies[on];
+    const r = c.displayWidth * 0.28;
+    const d = clampToRadius({ x: local.x - c.x, y: local.y - c.y }, r);
+    return { spot: { x: c.x + d.x, y: c.y + d.y }, on };
+  }
+
   private place(img: Phaser.GameObjects.Image, key: string) {
-    const spot = clampToRadius(this.dish.toLocal(img.x, img.y), this.dish.R * 0.78);
+    const { spot, on } = this.landing(this.dish.toLocal(img.x, img.y));
     const w = this.dish.toWorld(spot.x, spot.y);
+    const size = this.params.sizes?.[key as ImageKey] ?? 1;
+    const iced = Object.values(this.params.places ?? {}).includes(key as ImageKey);
     this.scene.tweens.add({
       targets: img,
       x: w.x,
       y: w.y,
-      scale: this.k * this.dish.scaleX,
+      scale: this.k * size * this.dish.scaleX,
       duration: 150,
       ease: 'Quad.easeOut',
       onComplete: () => {
         img.destroy();
         const t = this.dish.addTopping(key, spot.x, spot.y);
+        t.setScale(this.k * size).setData('on', on);
         boing(this.scene, t, 0.35);
-        sfx(this.scene, 'pop');
+        sfx(this.scene, iced ? 'icing' : 'pop');
         burst(this.scene, w.x, w.y, { count: 8, size: 18 * this.k, tint: [0xffffff, 0xffcb47], speed: 350 * this.k, gravityY: 400 });
         this.placed++;
         // After her third topping the done button grows twice, once (an answer to what she did, not a lure).
@@ -190,7 +231,7 @@ export class DecorateStep extends Step<DecorateParams> {
 
   /** Gently back to its bin (also when the touch was lost mid-drag). */
   private sendBack(img: Phaser.GameObjects.Image, key: string) {
-    const b = this.bins.find((x) => x.key === key) ?? this.bins[0];
+    const b = this.bins.find((x) => x.key === key || this.puts(x.key) === key) ?? this.bins[0];
     sfx(this.scene, 'whoosh', { volume: 0.4 });
     this.scene.tweens.add({
       targets: img,
@@ -217,11 +258,38 @@ export class DecorateStep extends Step<DecorateParams> {
     stars(this.scene, this.dish.x, this.dish.y, 12, 70 * this.k);
     // Let the last pops land before the snapshot.
     this.scene.time.delayedCall(450, () => {
+      if (this.params.onto === 'cookies') {
+        this.capturePieces().then(() => this.complete());
+        return;
+      }
       this.dish.capture().then((ok) => {
         if (!ok) console.warn('[decorate] capture failed: slices will use the stock art');
         this.complete();
       });
     });
+  }
+
+  /**
+   * Each cookie with what is on it becomes its own picture (`cookie-made-N`, for sharing: `run.pieces`), and the whole
+   * tray the photo's (MADE_KEY; the layers stay). A cookie whose picture fails is shared as the plain baked cookie.
+   */
+  private async capturePieces() {
+    const cookies = this.cookieList;
+    const tops = this.dish.toppings.list as Phaser.GameObjects.Image[];
+    const pieces: NonNullable<typeof this.ctx.run.pieces> = [];
+    for (const [i, c] of cookies.entries()) {
+      const key = `cookie-made-${i}`;
+      const copy = (o: Phaser.GameObjects.Image, dx: number, dy: number) =>
+        new Phaser.GameObjects.Image(this.scene, dx, dy, o.texture.key).setScale(o.scaleX, o.scaleY).setAngle(o.angle).setTint(o.tintTopLeft);
+      const objs = [copy(c, 0, 0), ...tops.filter((t) => t.getData('on') === i).map((t) => copy(t, t.x - c.x, t.y - c.y))];
+      const size = Math.ceil(c.displayWidth * 1.15);
+      const ok = await snapshotTexture(this.scene, key, size, objs);
+      pieces.push(ok ? { key, x: c.x, y: c.y, scale: 1, tint: 0xffffff } : { key: c.texture.key, x: c.x, y: c.y, scale: c.scaleX, tint: c.tintTopLeft });
+    }
+    this.ctx.run.pieces = pieces;
+    if (this.scene.textures.exists(MADE_KEY)) this.scene.textures.remove(MADE_KEY);
+    const ok = await this.dish.capture(false);
+    if (!ok) console.warn('[decorate] capture failed: the photo shows the kitchen only');
   }
 
   /** Mom carries a topping from a bin to the pizza; it melts away there (the pizza stays hers to fill). */
@@ -238,7 +306,7 @@ export class DecorateStep extends Step<DecorateParams> {
         { x: to.x, y: to.y, t: 1950, press: true },
         { x: to.x + 40 * k, y: to.y + 30 * k, t: 2350 },
       ],
-      props: [{ key: b.key, scale: k * LIFT, fadeFrom: 1750 }],
+      props: [{ key: this.puts(b.key), scale: k * LIFT, fadeFrom: 1750 }],
       glow: { x: b.x, y: b.y },
     };
   }
@@ -276,7 +344,7 @@ export class DecorateStep extends Step<DecorateParams> {
     const each = 650;
     picks.forEach((b, i) => {
       this.scene.time.delayedCall(i * each, () => {
-        const img = art(this.scene.add.image(b.x, b.y, b.key), this.layout, LIFT).setDepth(40);
+        const img = art(this.scene.add.image(b.x, b.y, this.puts(b.key)), this.layout, LIFT).setDepth(40);
         this.helpCarry = img;
         const a = Phaser.Math.FloatBetween(0, Math.PI * 2);
         const r = this.dish.R * this.dish.scaleX * Phaser.Math.FloatBetween(0.2, 0.7);
@@ -286,7 +354,7 @@ export class DecorateStep extends Step<DecorateParams> {
           y: this.dish.y + Math.sin(a) * r,
           duration: 480,
           ease: 'Sine.easeInOut',
-          onComplete: () => this.place(img, b.key),
+          onComplete: () => this.place(img, this.puts(b.key)),
         });
       });
     });

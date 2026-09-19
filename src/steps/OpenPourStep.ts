@@ -25,7 +25,7 @@ const BIN_MOUTH = { x: 120, y: 70 };
 /** One thing to pour: the can or jar, the oil bottle, a filled bin, the torn lettuce. */
 interface Source {
   img: Phaser.GameObjects.Image;
-  piece: ImageKey;
+  piece: ImageKey | 'fx-dot';
   /** Its mouth in its own frame, and how far it tips over the bowl. */
   mouth: { x: number; y: number };
   tilt: number;
@@ -82,7 +82,7 @@ export class OpenPourStep extends Step<OpenPourParams> {
     if (p.keep) {
       // The big bowl the step before left (or a new, empty one).
       this.workspace('none');
-      this.bowl = PrepBowl.take(this.ctx) ?? new PrepBowl(this.ctx, p.bowl, null);
+      this.bowl = PrepBowl.take(this.ctx) ?? new PrepBowl(this.ctx, p.bowl, null, p.keep.spot);
       this.back = this.bowl.back;
       this.front = this.bowl.front;
     } else {
@@ -154,8 +154,10 @@ export class OpenPourStep extends Step<OpenPourParams> {
       const r = S.pourRest;
       const kindTop = p.kind === 'jar' ? ART.prep.jarTop : ART.prep.canTop;
       const spot = this.restSpots(1)[0];
-      const at = p.keep ? spot : r;
-      const scale = p.keep ? this.fitScale(p.closed, spot.w, spot.h) : r.scale;
+      // (a kept bowl on the pour spot: the thing waits where a can does)
+      const inRoom = p.keep && !p.keep.spot;
+      const at = inRoom ? spot : r;
+      const scale = inRoom ? this.fitScale(p.closed, spot.w, spot.h) : r.scale;
       const img = this.own(this.scene.add.image(at.x, at.y, p.closed).setScale(scale).setDepth(6));
       this.sources.push({ img, piece: p.piece, mouth: p.mouth ?? kindTop, tilt: p.tilt ?? TILT, rest: { x: at.x, y: at.y }, poured: 0, done: false });
       return;
@@ -209,6 +211,7 @@ export class OpenPourStep extends Step<OpenPourParams> {
     for (const s of this.sources) this.syncIcon(s.img);
     if (this.phase !== 'pour' || !this.over) return;
     const s = this.cur;
+    if (this.params.dropIn) return this.dropIn(s);
     s.poured += delta;
     this.sinceDrop += delta;
     while (this.sinceDrop > 85) {
@@ -357,20 +360,50 @@ export class OpenPourStep extends Step<OpenPourParams> {
     const to = { x: o.x + Math.cos(a) * o.rx * rr, y: o.y + 12 * k + Math.sin(a) * o.ry * rr };
     // (in the kept bowl every piece melts into the contents, which rise instead)
     const keep = !this.bowl && this.inBowl.length < MAX_IN_BOWL;
-    const piece = this.scene.add.image(m.x, m.y, this.cur.piece).setScale(FALLING * k).setAngle(Phaser.Math.Between(0, 359)).setDepth(keep ? BOWL_DEPTH.contents : BOWL_DEPTH.contents + 0.01);
+    const f = this.params.pieceSize ?? 1;
+    const piece = this.scene.add.image(m.x, m.y, this.cur.piece).setScale(FALLING * k * f).setAngle(Phaser.Math.Between(0, 359)).setDepth(keep ? BOWL_DEPTH.contents : BOWL_DEPTH.contents + 0.01);
+    if (this.params.pieceTint !== undefined) piece.setTint(this.params.pieceTint);
     if (keep) this.inBowl.push(this.own(piece));
     sfx(this.scene, this.params.pourSound ?? 'pour', { minGapMs: 1700, volume: 0.8, vary: false });
     this.scene.tweens.add({
       targets: piece,
       x: to.x,
       y: to.y,
-      scale: (keep ? PIECE : FALLING) * k,
+      scale: (keep ? PIECE : FALLING) * k * f,
       angle: piece.angle + Phaser.Math.Between(-120, 120),
       duration: Phaser.Math.Between(300, 420),
       ease: 'Quad.easeIn',
       onComplete: () => {
         if (!keep) this.scene.tweens.add({ targets: piece, alpha: 0, duration: 150, onComplete: () => piece.destroy() });
       },
+    });
+  }
+
+  /** The thing itself drops into the bowl and stays on the contents (the butter cube): the step is done. */
+  private dropIn(s: Source) {
+    if (s.done || !this.bowl) return;
+    s.done = true;
+    this.held = false;
+    this.over = false;
+    this.helping = false;
+    this.phase = 'done';
+    this.setIdle(false);
+    this.hand.stop();
+    this.poke();
+    this.hit();
+    this.scene.tweens.killTweensOf(s.img);
+    this.handOff('dropped-in', s.img);
+    this.ctx.run.handoff.delete('dropped-in');
+    this.bowl.addExtra(this.params.dropIn!, s.img);
+    sfx(this.scene, this.params.pourSound ?? 'pop');
+    this.scene.time.delayedCall(330, () => {
+      const o = this.opening();
+      burst(this.scene, o.x, o.y, { count: 8, size: 16 * this.k, tint: [0xfff6e6, 0xffe07a], speed: 300 * this.k, gravityY: 600 });
+      boing(this.scene, this.bowl!.front, 0.05);
+    });
+    this.scene.time.delayedCall(700, () => {
+      this.bowl!.keep();
+      this.complete();
     });
   }
 
