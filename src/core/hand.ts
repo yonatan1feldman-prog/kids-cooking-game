@@ -21,6 +21,9 @@ export interface HandProp {
   /** Scale at the end of the motion (it shrinks or grows along the way; its offset scales with it). */
   endScale?: number;
   angle?: number;
+  /** Angle at the end of the motion (it turns along the way, from `turnFrom` ms on: a can tipping over a bowl). */
+  endAngle?: number;
+  turnFrom?: number;
   alpha?: number;
   /** Origin of the prop (default centre). */
   originX?: number;
@@ -179,6 +182,10 @@ export class MomHandView {
       const sc = p.endScale === undefined ? p.scale : Phaser.Math.Linear(p.scale, p.endScale, Phaser.Math.Clamp(t / total, 0, 1));
       const f = sc / p.scale;
       img.setScale(sc).setPosition(x + (p.dx ?? 0) * f, y + (p.dy ?? 0) * f).setAlpha(a);
+      if (p.endAngle !== undefined) {
+        const from = p.turnFrom ?? 0;
+        img.setAngle(Phaser.Math.Linear(p.angle ?? 0, p.endAngle, Phaser.Math.Clamp((t - from) / Math.max(1, total - from), 0, 1)));
+      }
     }
   }
 

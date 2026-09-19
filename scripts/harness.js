@@ -121,6 +121,15 @@
         await __drag([[x, z.y0 + 60], [x, z.y1 - 40], [x, z.y0 + 60]]);
         await __run(250);
       }
+    } else if (name === 'OpenPourStep') {
+      const b = st.box;
+      if (st.phase === 'open') {
+        if (st.params.kind === 'can') await __drag([[b.x, b.y - 60], [b.x, b.y - 200]]);
+        else { const pts = [[b.x, b.y - b.displayHeight * 0.4]]; for (let i = 0; i < 8; i++) pts.push([b.x + (i % 2 ? 90 : -90), b.y - b.displayHeight * 0.4]); await __drag(pts); }
+        await __run(500);
+      } else if (st.phase === 'pour') {
+        const pp = st.pourPoint(); await __drag([[b.x, b.y], [pp.x, pp.y]], { hold: true }); await __run(st.params.pourMs + 400); __touch('end', 1, pp.x, pp.y); await __run(300);
+      }
     } else if (name === 'FeedStep') {
       const s = st.slices.find((x) => !x.eaten);
       if (s) { const c = st.sliceCenter(s); await __drag([[c.x, c.y], [st.mouthAt.x, st.mouthAt.y]]); await __run(1250); }
@@ -234,6 +243,12 @@
       const z = st.cutZone(); hits.push(['veg', z]);
       sc.children.list.filter((o) => o.texture?.key === 'topping-bin' && o.visible && o.alpha > 0.5).forEach((o, i) => vis.push(['bin' + i, box(o)]));
     }
+    if (name === 'OpenPourStep') {
+      vis.push(['box', box(st.box)]);
+      const bw = [st.back, st.front].map(box); vis.push(['bowl', { x0: Math.min(bw[0].x0, bw[1].x0), y0: Math.min(bw[0].y0, bw[1].y0), x1: Math.max(bw[0].x1, bw[1].x1), y1: Math.max(bw[0].y1, bw[1].y1) }]);
+      if (st.lid) vis.push(['lid', box(st.lid)]);
+      const b = st.box.getBounds(), p = 45 * L.k; hits.push(['box', { x0: b.x - p, y0: b.y - p, x1: b.right + p, y1: b.bottom + p }]);
+    }
     if (name === 'FeedStep') st.slices.filter((s) => !s.eaten).forEach((s, i) => { const c = st.sliceCenter(s); hits.push(['slice' + i, circ(c.x, c.y, 60 * L.k)]); });
     const out = [];
     const r = (v) => Math.round(v);
@@ -245,7 +260,7 @@
     }
     const ov = (a, b) => Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0) > 2 && Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0) > 2;
     // Drawn together on purpose (the art agent's scenes): the tap stands on the sink's rim.
-    const together = new Set(['sink/faucet', 'board/dough', 'grater/block', 'cutboard/knife']);
+    const together = new Set(['sink/faucet', 'board/dough', 'grater/block', 'cutboard/knife', 'box/bowl']);
     for (let i = 0; i < vis.length; i++) for (let j = i + 1; j < vis.length; j++) if (ov(vis[i][1], vis[j][1]) && !together.has(`${vis[i][0]}/${vis[j][0]}`)) out.push(`overlap: ${vis[i][0]} / ${vis[j][0]}`);
     const pet = sc.ctx.character;
     const hs = hits.filter(([n]) => n !== 'dish' && !n.startsWith('slice'));

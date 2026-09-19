@@ -5,6 +5,7 @@ import { ChopStep } from './ChopStep';
 import { DecorateStep } from './DecorateStep';
 import { FeedStep } from './FeedStep';
 import { GrateStep } from './GrateStep';
+import { OpenPourStep } from './OpenPourStep';
 import { PressStep } from './PressStep';
 import { RollStep } from './RollStep';
 import { SprinkleStep } from './SprinkleStep';
@@ -31,6 +32,7 @@ const STEP_TYPES: Record<StepType, Factory> = {
   feed: (c, p, d) => new FeedStep(c, p, d),
   choose: (c, p, d) => new ChooseStep(c, p, d),
   chop: (c, p, d) => new ChopStep(c, p, d),
+  'open-pour': (c, p, d) => new OpenPourStep(c, p, d),
 };
 
 export function createStep(def: StepDef, ctx: StepContext, onDone: () => void): Step<unknown> {

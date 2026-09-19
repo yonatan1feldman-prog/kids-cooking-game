@@ -159,8 +159,7 @@ export const IMAGE_KEYS = Object.keys(IMAGES) as ImageKey[];
  * this list when a step starts to use it.
  */
 export const NOT_LOADED: ReadonlySet<ImageKey> = new Set<ImageKey>([
-  'btn-temp-down', 'btn-temp-up', 'can-corn-open', 'can-lid', 'jar-lid',
-  'jar-olives-open', 'mom-hand-mitt', 'mom-mouth-chew', 'mitt-single',
+  'btn-temp-down', 'btn-temp-up', 'mom-hand-mitt', 'mom-mouth-chew', 'mitt-single',
   'oven-mitts', 'oven-panel', 'oven-needle', 'oven-start-off', 'oven-start-on', 'temp-glow', 'photo-frame',
 ]);
 /** The images the game loads (everything in the contract except NOT_LOADED). */
@@ -219,6 +218,9 @@ export const ART = {
     handfulClump: { x: 150, y: 116 },
     /** press-dent: the centre of the hollow. */
     dentCentre: { x: 130, y: 66 },
+    /** Part B: the tops of the can and the jar (where the lid sits, in their 340x460 / 340x480 frames). */
+    canTop: { x: 170, y: 70 },
+    jarTop: { x: 170, y: 55 },
     /** Part B: the knife's blade tip (it follows the finger). Mom's knife and mitt hands: ART.momHands. The veg: core/vegArt.ts. */
     knifeTip: { x: 118, y: 618 },
   },

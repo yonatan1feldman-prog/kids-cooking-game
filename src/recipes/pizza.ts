@@ -1,4 +1,5 @@
 import { TUNING } from '../core/tuning';
+import type { ImageKey } from '../core/assets';
 import type { VegName } from '../core/vegArt';
 import type { Recipe, StepDef } from './types';
 
@@ -22,6 +23,26 @@ const chop = (veg: VegName, juice: number): StepDef => ({
     topping: `topping-${veg}`,
     line: 'vo-cut',
     careful: 'vo-cut-careful',
+  },
+});
+
+/** Opening a can or a jar and pouring it into the bowl (the open-pour step type). */
+const openPour = (kind: 'can' | 'jar', closed: ImageKey, open: ImageKey, topping: 'corn' | 'olive'): StepDef => ({
+  type: 'open-pour',
+  params: {
+    kind,
+    closed,
+    open,
+    lid: kind === 'can' ? 'can-lid' : 'jar-lid',
+    sound: kind === 'can' ? 'can-open' : 'jar-open',
+    openLine: kind === 'can' ? 'vo-open-can' : 'vo-open-jar',
+    pourLine: 'vo-pour',
+    bowl: { back: 'prep-bowl-back', front: 'prep-bowl-front' },
+    piece: `topping-${topping}`,
+    bin: 'topping-bin',
+    topping: `topping-${topping}`,
+    ...TUNING.open,
+    pourMs: TUNING.pour.ms,
   },
 });
 
@@ -121,8 +142,8 @@ export const pizza: Recipe = {
           { id: 'mushroom', image: 'veg-mushroom-whole', topping: 'topping-mushroom', prep: chop('mushroom', 0xeadcc4) },
           { id: 'pepper', image: 'veg-pepper-whole', topping: 'topping-pepper', prep: chop('pepper', 0x7cc25a) },
           { id: 'onion', image: 'veg-onion-whole', topping: 'topping-onion', prep: chop('onion', 0xe9bde0) },
-          { id: 'corn', image: 'can-corn-closed', topping: 'topping-corn' },
-          { id: 'olive', image: 'jar-olives-closed', topping: 'topping-olive' },
+          { id: 'corn', image: 'can-corn-closed', topping: 'topping-corn', prep: openPour('can', 'can-corn-closed', 'can-corn-open', 'corn') },
+          { id: 'olive', image: 'jar-olives-closed', topping: 'topping-olive', prep: openPour('jar', 'jar-olives-closed', 'jar-olives-open', 'olive') },
         ],
         pick: TUNING.choose.pick,
         pauseMs: TUNING.choose.pauseMs,

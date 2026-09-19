@@ -175,6 +175,32 @@ export interface ChopParams {
   careful?: VoiceKey;
 }
 
+/**
+ * Open and pour: a closed can or jar stands on the counter. Can: an upward swipe on the lid, or `taps` taps, opens it
+ * (the lid flies aside). Jar: rubbing sideways on the lid turns it until it opens (the lid comes off and goes down).
+ * Then she drags the open can or jar over the bowl: it tips over by itself and the pieces pour into the bowl (between
+ * its back and front layers) for as long as she holds it there, until `pourMs` of pouring is done. The contents go
+ * into the topping's bin (left for decorating). Counts: TUNING.open, TUNING.pour.
+ */
+export interface OpenPourParams {
+  kind: 'can' | 'jar';
+  closed: ImageKey;
+  open: ImageKey;
+  lid: ImageKey;
+  sound: SoundKey;
+  openLine: VoiceKey;
+  pourLine: VoiceKey;
+  bowl: { back: ImageKey; front: ImageKey };
+  /** What pours out (one piece of the topping). */
+  piece: ImageKey;
+  bin: ImageKey;
+  topping: ImageKey;
+  taps: number;
+  swipe: number;
+  twist: number;
+  pourMs: number;
+}
+
 export interface DecorateParams {
   items: ImageKey[];
   doneButton: ImageKey;
@@ -221,7 +247,8 @@ export type StepDef =
   | { type: 'bake'; params: BakeParams }
   | { type: 'feed'; params: FeedParams }
   | { type: 'choose'; params: ChooseParams }
-  | { type: 'chop'; params: ChopParams };
+  | { type: 'chop'; params: ChopParams }
+  | { type: 'open-pour'; params: OpenPourParams };
 
 export type StepType = StepDef['type'];
 

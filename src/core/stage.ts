@@ -108,6 +108,11 @@ export interface Stage {
   cutBoard: Spot;
   /** A filled topping bin waiting in the left column (index 0, 1: side by side under the pizza), or null. */
   binWait: (i: number) => Spot | null;
+  /** Open-pour: the bowl (prep-bowl layers) on the right of the prep area, and where the can or jar stands, left of it. */
+  pourBowl: Spot;
+  pourRest: Spot;
+  /** Where a lid lands on the counter (between the can or jar and the bowl). */
+  lidRest: Pt;
 }
 
 /** Native sizes the layout reasons about (opaque extents of the art, in world units at k = 1). */
@@ -279,6 +284,12 @@ export function getStage(L: Layout): Stage {
   const CUT_BOARD_W = 1000;
   const cutBoard = { x: (prepArea.x0 + prepArea.x1) / 2, y: Y(700), scale: Math.min(1.05 * k, (prepArea.x1 - prepArea.x0) / CUT_BOARD_W) };
 
+  // Open-pour (the art agent's can scene): the bowl at 1.0 where it fits, on the right; the can or jar left of it.
+  const pourScale = Math.min(1.0 * k, ((prepArea.x1 - prepArea.x0) * 0.6) / PREP_BOWL_W);
+  const pourBowl = { x: prepArea.x1 - (PREP_BOWL_W / 2) * pourScale - 10 * k, y: Y(700), scale: pourScale };
+  const bowlLeft = pourBowl.x - (PREP_BOWL_W / 2) * pourScale;
+  const pourRest = { x: (prepArea.x0 + bowlLeft) / 2 - 20 * k, y: Y(690), scale: 0.8 * k };
+
   // Title: logo and play button in one column: left of centre on wide screens, centred in the space left
   // of Mom's face on narrow ones (the art agent's title scene).
   const titleX = W >= PET_MIN_W ? dishHome.x - 80 * k : (m + momLeft + MOM_FACE.x0 * s) / 2;
@@ -331,6 +342,9 @@ export function getStage(L: Layout): Stage {
     prepWide,
     prepArea,
     cutBoard,
+    pourBowl,
+    pourRest,
+    lidRest: { x: (pourRest.x + bowlLeft) / 2 + 40 * k, y: Y(930) },
     binWait: (i) => (prepWide ? { x: sideX + (i % 2 ? 1 : -1) * 115 * k, y: Y(895), scale: 0.45 * k } : null),
   };
 }

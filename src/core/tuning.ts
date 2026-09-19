@@ -51,6 +51,13 @@ export const TUNING = {
    * move down over the vegetable for one cut: short and forgiving, wherever it is sideways.
    */
   chop: { cuts: 5, minSwipe: 50 },
+  /**
+   * Open a can or a jar, then pour it into the bowl. Can: `taps` taps on the lid, or one move up of `swipe` units.
+   * Jar: sideways rubbing on the lid adds up to `twist` units (a tap counts a quarter of it). Pour: ms of holding the
+   * open can or jar over the bowl (the pouring stops when it is moved away and goes on when it comes back).
+   */
+  open: { taps: 3, swipe: 80, twist: 900 },
+  pour: { ms: 2500 },
   /** Mom's help (after the idle hint): the pace of her own presses, rubs and strokes. */
-  help: { pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150, chopEveryMs: 700 },
+  help: { pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150, chopEveryMs: 700, openMs: 1500 },
 } as const;
