@@ -135,6 +135,17 @@
       } else if (st.phase === 'pour') {
         const pp = st.pourPoint(); await __drag([[b.x, b.y], [pp.x, pp.y]], { hold: true }); await __run(st.params.pourMs + 400); __touch('end', 1, pp.x, pp.y); await __run(300);
       }
+    } else if (name === 'ShareStep') {
+      // Alternates Mom and Pipa (window.__shareTo: 'mom' | 'pet' | 'alt').
+      const s = st.slices.find((x) => !x.eaten);
+      if (s) {
+        const mode = window.__shareTo || 'alt', n = st.slices.filter((x) => x.eaten).length;
+        const who = mode === 'alt' ? (n % 2 ? 'pet' : 'mom') : mode;
+        const c = st.sliceCenter(s), m = st.mouthOf(who);
+        await __drag([[c.x, c.y], [(c.x + m.x) / 2, (c.y + m.y) / 2 - 40], [m.x, m.y]]); await __run(1250);
+      }
+    } else if (name === 'PhotoStep') {
+      await __run(500);
     } else if (name === 'FeedStep') {
       const s = st.slices.find((x) => !x.eaten);
       if (s) { const c = st.sliceCenter(s); await __drag([[c.x, c.y], [st.mouthAt.x, st.mouthAt.y]]); await __run(1250); }
@@ -202,6 +213,7 @@
     if (boardOn) vis.push([aside ? 'pizza-aside' : 'board', box(sc.ctx.board)]);
     // The dish is a touch target only in the middle (aside it waits; hidden it doesn't exist yet).
     const dishSteps = ['RollStep', 'SpreadStep', 'SprinkleStep', 'DecorateStep', 'BakeStep', 'FeedStep'];
+    // (ShareStep: its slices are the targets, checked below; the photo has no touch at all)
     if (boardOn && !aside && dishSteps.includes(name) && !(name === 'BakeStep' && st.phase !== 'toOven')) hits.push(['dish', circ(d.x, d.y, d.R * d.scaleX)]);
     const clipPalm = (b) => ({ ...b, y1: Math.min(b.y1, forbid.y1) });
     const pad = (b, p) => ({ x0: b.x0 - p, y0: b.y0 - p, x1: b.x1 + p, y1: b.y1 + p });
@@ -264,6 +276,8 @@
       if (st.lid) vis.push(['lid', box(st.lid)]);
       const b = st.box.getBounds(), p = 45 * L.k; hits.push(['box', { x0: b.x - p, y0: b.y - p, x1: b.right + p, y1: b.bottom + p }]);
     }
+    if (name === 'ShareStep') st.slices.filter((s) => !s.eaten).forEach((s, i) => { const c = st.sliceCenter(s); hits.push(['slice' + i, circ(c.x, c.y, 60 * L.k)]); });
+    if (name === 'PhotoStep' && st.frame) vis.push(['photo', box(st.frame)]);
     if (name === 'FeedStep') st.slices.filter((s) => !s.eaten).forEach((s, i) => { const c = st.sliceCenter(s); hits.push(['slice' + i, circ(c.x, c.y, 60 * L.k)]); });
     const out = [];
     const r = (v) => Math.round(v);
@@ -287,14 +301,14 @@
       const pb = charBox(pet.box);
       const S = sc.ctx.stage;
       if (pb.x0 < forbid.x0 - 1 || pb.x1 > forbid.x1 + 1 || pb.y1 > forbid.y1 + 1) out.push(`pet in a no-touch strip [${r(pb.x0)},${r(pb.y0)},${r(pb.x1)},${r(pb.y1)}]`);
-      const sh = name === 'FeedStep' ? S.feedMomShift : 0;
+      const sh = name === 'FeedStep' || name === 'ShareStep' || (name === 'PhotoStep' && !S.pet) ? S.feedMomShift : 0;
       if (ov(pb, { ...S.momFace, x0: S.momFace.x0 + sh, x1: S.momFace.x1 + sh })) out.push('pet covers mom face');
-      if (name !== 'FeedStep' && boardOn && !aside) {
+      if (!['FeedStep', 'ShareStep', 'PhotoStep'].includes(name) && boardOn && !aside) {
         // The pizza disc: the nearest point of Pipa's box to its centre must be outside the dough radius.
         const R = d.R * d.scaleX * 0.95, nx = Math.max(pb.x0, Math.min(d.x, pb.x1)), ny = Math.max(pb.y0, Math.min(d.y, pb.y1));
         if (Math.hypot(nx - d.x, ny - d.y) < R) out.push(`pet over pizza by ${r(R - Math.hypot(nx - d.x, ny - d.y))}`);
       }
-      if (name !== 'FeedStep') {
+      if (name !== 'FeedStep' && name !== 'ShareStep') {
         for (const [n, b] of vis) if (n !== 'board' && n !== 'mom' && n !== 'sink' && ov(pb, b)) out.push(`overlap: pet / ${n}`);
       }
       vis.push(['pet', pb]);

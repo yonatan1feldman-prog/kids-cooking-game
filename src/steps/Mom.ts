@@ -4,7 +4,7 @@ import { voice } from '../core/audio';
 import type { Spot } from '../core/stage';
 
 type Eyes = 'open' | 'blink' | 'happy' | 'surprised';
-type Mouth = 'smile' | 'talk' | 'open';
+type Mouth = 'smile' | 'talk' | 'open' | 'chew';
 
 /** How far her eyes shift toward what she watches, in frame units (800 frame). */
 const LOOK_MAX = 10;
@@ -31,6 +31,9 @@ export class Mom {
   private mood: Eyes | null = null;
   private look = { x: 0, y: 0 };
   private mouthHold = 0;
+  /** A mouth held by what she is doing (open for a slice coming, chewing), over the voice's lip movement. */
+  private mouthHeld: Mouth | null = null;
+  private chewing?: Phaser.Time.TimerEvent;
   private breath?: Phaser.Tweens.Tween;
   readonly s: number;
 
@@ -53,6 +56,12 @@ export class Mom {
     this.breath = scene.tweens.add({ targets: this.box, scaleY: 1.012, duration: 1900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     scene.events.on(Phaser.Scenes.Events.UPDATE, this.update, this);
     this.box.once(Phaser.GameObjects.Events.DESTROY, () => scene.events.off(Phaser.Scenes.Events.UPDATE, this.update, this));
+  }
+
+  /** Her mouth in world coordinates (where a shared slice goes). */
+  get mouthAt() {
+    const { h, cx, mouth } = ART.mom;
+    return { x: this.box.x + (mouth.x - cx) * this.s, y: this.box.y + (mouth.y - h) * this.s };
   }
 
   /** Her frame in world coordinates (for keeping things clear of her). */
@@ -85,6 +94,7 @@ export class Mom {
 
   /** Mouth follows the voice line's loudness, each shape held at least 90 ms so it reads as speech. */
   private update(_t: number, delta: number) {
+    if (this.mouthHeld) return this.setMouth(this.mouthHeld);
     this.mouthHold -= delta;
     if (this.mouthHold > 0) return;
     if (!voice.speaking) return this.setMouth('smile');
@@ -160,6 +170,43 @@ export class Mom {
   rest() {
     this.mood = null;
     this.setEyes('open');
+  }
+
+  /** Sharing the pizza: a slice comes her way (surprised, mouth open), or goes elsewhere (back to her smile). */
+  expectFood(on: boolean) {
+    if (this.chewing) return;
+    if (on) {
+      this.surprised();
+      this.mouthHeld = 'open';
+    } else if (this.mouthHeld) {
+      this.mouthHeld = null;
+      this.rest();
+    }
+  }
+
+  get expecting() {
+    return this.mouthHeld === 'open';
+  }
+
+  /** She got a slice: happy eyes, chewing (mom-mouth-chew and her smile in turn) for `ms`. */
+  chew(ms = 1000) {
+    this.chewing?.remove();
+    this.happy();
+    let n = 0;
+    this.mouthHeld = 'chew';
+    this.chewing = this.scene.time.addEvent({
+      delay: 160,
+      repeat: Math.max(1, Math.round(ms / 160)) - 1,
+      callback: () => {
+        n++;
+        this.mouthHeld = n % 2 ? 'smile' : 'chew';
+        if (this.chewing && this.chewing.getRepeatCount() === 0) {
+          this.chewing = undefined;
+          this.mouthHeld = null;
+          this.rest();
+        }
+      },
+    });
   }
 
   /**

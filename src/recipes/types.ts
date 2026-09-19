@@ -250,6 +250,37 @@ export interface FeedParams {
   slices: number;
 }
 
+/**
+ * Share: her pizza is cut into slices on the board and she shares them between Mom and Pipa: she drags each slice to
+ * either one's mouth. The one a slice comes near is surprised and opens wide; she chews, happy. Every way of sharing is
+ * fine (all to one of them too); the one who gets nothing just keeps smiling. The idle hint carries a slice to the one
+ * who has had fewer. The first slice for each gets its line.
+ */
+export interface ShareParams {
+  /** Fallback slice art, used only if capturing the child's own pizza failed. */
+  slice: ImageKey;
+  slices: number;
+  line: VoiceKey;
+  /** "A slice for Mommy!" then Mom's "Mmm, yummy!"; "A slice for Pipa!". */
+  forMom: VoiceKey;
+  momYum: VoiceKey;
+  forPet: VoiceKey;
+}
+
+/**
+ * The finale with a photo (the last step of a recipe): "Let's take a picture!", the camera and a short white flash,
+ * then the photo frame in the middle with her own finished dish in its window (as it came out of the oven, before it
+ * was cut), then "We made it together!", the cheer and the stars (never over a face or the photo), "Bye bye!", home.
+ */
+export interface PhotoParams {
+  frame: ImageKey;
+  /** The kitchen square behind the dish in the photo (a crop of the background). */
+  backdrop: ImageKey;
+  line: VoiceKey;
+  finale: VoiceKey;
+  bye: VoiceKey;
+}
+
 /** Character layers sharing one frame, stacked body -> eyes -> mouth. She stays for the whole recipe. */
 export interface CharacterDef {
   body: ImageKey;
@@ -276,7 +307,8 @@ export type StepDef =
   | { type: 'feed'; params: FeedParams }
   | { type: 'choose'; params: ChooseParams }
   | { type: 'chop'; params: ChopParams }
-  | { type: 'open-pour'; params: OpenPourParams };
+  | { type: 'open-pour'; params: OpenPourParams }
+  | { type: 'share'; params: ShareParams };
 
 export type StepType = StepDef['type'];
 

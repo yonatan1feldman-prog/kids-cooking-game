@@ -125,6 +125,11 @@ export interface Stage {
   tempBtnScale: number;
   /** Bake: the oven mitts on the counter (on the empty board) after the ding. */
   mitts: Spot;
+  /**
+   * The finale's photo frame (700x780, its window x 80-620, y 80-620) where the dish was, at most the art agent's 0.95,
+   * clear of Pipa (small beside Mom on wide screens; still big on the board's rim where she has no small spot).
+   */
+  photo: Spot;
 }
 
 /** Native sizes the layout reasons about (opaque extents of the art, in world units at k = 1). */
@@ -259,6 +264,7 @@ export function getStage(L: Layout): Stage {
   const px = Math.min(wantX, momFace.x0 + feedMomShift - 10 * k - PET_OPAQUE_X1 * bs);
   const feedTop = Y(984) - PET_FOOT * bs;
   const feedPet = { x: px + bw / 2, y: feedTop + (PET_H / 2) * bs, scale: bs };
+  const feedPetX0 = px + PET_OPAQUE_X0 * bs;
 
   // Prep steps (scenes-prep.js): the sink, the dough and the bowl sit where the pizza sits; the pizza waits
   // small in the left column meanwhile.
@@ -320,6 +326,15 @@ export function getStage(L: Layout): Stage {
   const btnY = panelSpot.y + (PANEL_H / 2) * ps + 30 * k + 120 * tempBtnScale;
   const btnDx = (120 + 30 + 120) * tempBtnScale;
 
+  // The finale's photo frame: centred on the dish's spot, clear of Pipa and of the thumb strip.
+  const PHOTO_W = 700;
+  const PHOTO_H = 780;
+  const photoX = dishHome.x;
+  const petX0 = pet ? petLeft : feedPetX0;
+  const photoHalf = Math.min(photoX - m - 20 * k, petX0 - 12 * k - photoX);
+  const photoScale = Math.min(0.95 * k, (2 * photoHalf) / PHOTO_W, (Y(990) - Y(120)) / PHOTO_H);
+  const photo = { x: photoX, y: Y(120) + (PHOTO_H / 2) * photoScale + 10 * k, scale: photoScale };
+
   // Title: logo and play button in one column: left of centre on wide screens, centred in the space left
   // of Mom's face on narrow ones (the art agent's title scene).
   const titleX = W >= PET_MIN_W ? dishHome.x - 80 * k : (m + momLeft + MOM_FACE.x0 * s) / 2;
@@ -379,6 +394,7 @@ export function getStage(L: Layout): Stage {
     tempStart: { x: panelSpot.x, y: btnY },
     tempUp: { x: panelSpot.x + btnDx, y: btnY },
     tempBtnScale,
+    photo,
     mitts: { x: dishHome.x, y: dishHome.y + 120 * k, scale: 0.55 * k },
     lidRest: { x: (pourRest.x + bowlLeft) / 2 + 40 * k, y: Y(930) },
     binWait: (i) => (prepWide ? { x: sideX + (i % 2 ? 1 : -1) * 115 * k, y: Y(895), scale: 0.45 * k } : null),

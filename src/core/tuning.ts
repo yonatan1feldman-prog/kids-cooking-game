@@ -63,6 +63,8 @@ export const TUNING = {
    * baking starts at `target` (the art's panel prints 50-250). Baking: ms in the oven after the start.
    */
   oven: { from: 50, step: 50, min: 50, max: 250, target: 200, bakeMs: 5000 },
+  /** Share: slices the pizza is cut into (shared between Mom and Pipa, any way she likes). */
+  share: { slices: 6 },
   /** Mom's help (after the idle hint): the pace of her own presses, rubs and strokes. */
   help: { pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150, chopEveryMs: 700, openMs: 1500, tempEveryMs: 1100 },
 } as const;

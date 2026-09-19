@@ -187,6 +187,9 @@ export const pizza: Recipe = {
         mitts: { pair: 'oven-mitts', single: 'mitt-single', line: 'vo-mitts' },
       },
     },
-    { type: 'feed', params: { slice: 'pizza-slice', slices: 6 } },
+    {
+      type: 'share',
+      params: { slice: 'pizza-slice', slices: TUNING.share.slices, line: 'vo-share', forMom: 'vo-slice-mom', momYum: 'vo-mom-yum', forPet: 'vo-slice-pipa' },
+    },
   ],
 };

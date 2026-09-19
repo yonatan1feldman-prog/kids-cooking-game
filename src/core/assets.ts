@@ -158,9 +158,7 @@ export const IMAGE_KEYS = Object.keys(IMAGES) as ImageKey[];
  * they cost the phone no memory or load time. They are still baked to WebP and precached. Remove a key from
  * this list when a step starts to use it.
  */
-export const NOT_LOADED: ReadonlySet<ImageKey> = new Set<ImageKey>([
-  'mom-mouth-chew', 'photo-frame',
-]);
+export const NOT_LOADED: ReadonlySet<ImageKey> = new Set<ImageKey>([]);
 /** The images the game loads (everything in the contract except NOT_LOADED). */
 export const LOADED_KEYS = IMAGE_KEYS.filter((k) => !NOT_LOADED.has(k));
 
@@ -182,7 +180,7 @@ export const ART = {
   /** Radius of the dough disc drawn inside dough-flat. */
   doughRadius: 350,
   /** Mom's frame: body centre line, shoulder pivots of the arms, and the drawn pointing fingertip. */
-  mom: { w: 800, h: 800, cx: 500, pivotL: { x: 350, y: 505 }, pivotR: { x: 650, y: 505 }, fingertipL: { x: 37, y: 378 } },
+  mom: { w: 800, h: 800, cx: 500, pivotL: { x: 350, y: 505 }, pivotR: { x: 650, y: 505 }, fingertipL: { x: 37, y: 378 }, mouth: { x: 500, y: 350 } },
   /** Demo-hand anchors in their 400x400 frames (README-mom.md). */
   momHands: {
     point: { x: 100, y: 100 },
@@ -221,6 +219,8 @@ export const ART = {
     panelPivot: { x: 600, y: 540 },
     panelAngle: { 50: -80, 100: -40, 150: 0, 200: 40, 250: 80 } as Record<number, number>,
     panelDigit: { 50: [214, 472], 100: [329, 218], 150: [600, 163], 200: [875, 212], 250: [1020, 466] } as Record<number, readonly [number, number]>,
+    /** Part B: the photo frame's see-through window (700x780 frame). */
+    photoWindow: { x: 80, y: 80, w: 540, h: 540 },
     /** Part B: the tops of the can and the jar (where the lid sits, in their 340x460 / 340x480 frames). */
     canTop: { x: 170, y: 70 },
     jarTop: { x: 170, y: 55 },
