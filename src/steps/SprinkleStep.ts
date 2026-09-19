@@ -11,6 +11,9 @@ import { Step } from './Step';
  * finger (floating just above it, tipped over, so it stays visible) and showers
  * pieces down. Pieces land where the finger is.
  */
+/** Touch radius around the resting shaker (it stands 400 tall: this reaches past its drawing). */
+export const TOOL_REACH = 225;
+
 export class SprinkleStep extends Step<SprinkleParams> {
   private tool!: Phaser.GameObjects.Image;
   private toolRest = { x: 0, y: 0 };
@@ -32,7 +35,7 @@ export class SprinkleStep extends Step<SprinkleParams> {
 
     this.onDown((p) => {
       const nearDish = this.dish.reach(p.worldX, p.worldY) < 1.5;
-      const nearTool = Phaser.Math.Distance.Between(p.worldX, p.worldY, this.tool.x, this.tool.y) < 260 * this.k;
+      const nearTool = Phaser.Math.Distance.Between(p.worldX, p.worldY, this.tool.x, this.tool.y) < TOOL_REACH * this.k;
       if (!nearDish && !nearTool) return;
       this.active = true;
       this.travel = 0;

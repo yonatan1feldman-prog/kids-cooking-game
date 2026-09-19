@@ -1,5 +1,4 @@
 import Phaser from 'phaser';
-import { UI_BIN } from '../core/assets';
 import { boing, burst, stars } from '../core/fx';
 import { art } from '../core/layout';
 import { sfx } from '../core/sfx';
@@ -14,7 +13,12 @@ interface Bin {
   y: number;
   bin: Phaser.GameObjects.Image;
   icon: Phaser.GameObjects.Image;
+  /** Half the bin's drawn size: the touch area reaches BIN_REACH beyond it. */
+  half: number;
 }
+
+/** How far (world units at k = 1) a bin's touch area reaches beyond its drawing (stage.ts keeps that margin free). */
+const BIN_REACH = 30;
 
 /** Idle timings for free play: the hand only comes after 15 s, and it ends itself after 30 s. */
 const DECORATE_HINT_MS = 15000;
@@ -45,14 +49,16 @@ export class DecorateStep extends Step<DecorateParams> {
     this.autoAfterHintMs = DECORATE_AUTO_AFTER_HINT_MS;
 
     const items = this.params.items;
+    const binScale = this.ctx.stage.binScale(items.length);
     items.forEach((key, i) => {
       const { x, y } = this.ctx.stage.bin(i, items.length);
-      const bin = this.own(art(this.scene.add.image(x, y, UI_BIN), L));
-      const icon = this.own(art(this.scene.add.image(x, y - 8 * L.k, key), L));
-      this.bins.push({ key, x, y, bin, icon });
-      for (const o of [bin, icon]) {
+      const bin = this.own(this.scene.add.image(x, y, 'topping-bin'));
+      const icon = this.own(art(this.scene.add.image(x, y - 8 * binScale, key), L));
+      const half = (Math.max(bin.frame.realWidth, bin.frame.realHeight) * binScale) / 2;
+      this.bins.push({ key, x, y, bin, icon, half });
+      for (const [o, s] of [[bin, binScale], [icon, L.k]] as const) {
         o.setScale(0);
-        this.scene.tweens.add({ targets: o, scale: L.k, duration: 400, delay: i * 70, ease: 'Back.easeOut' });
+        this.scene.tweens.add({ targets: o, scale: s, duration: 400, delay: i * 70, ease: 'Back.easeOut' });
       }
       // Gentle idle wiggle: these are the things you can grab.
       this.scene.tweens.add({ targets: icon, angle: { from: -6, to: 6 }, duration: 900 + i * 60, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
@@ -93,18 +99,20 @@ export class DecorateStep extends Step<DecorateParams> {
     this.setIdle(true);
   }
 
-  /** Forgiving hit test: the nearest bin wins, reaching 120 design px beyond its edge. */
+  /** Forgiving hit test: the nearest bin whose square reaches the finger (BIN_REACH beyond its drawing). */
   private binAt(x: number, y: number) {
     let best: Bin | undefined;
     let bestD = Infinity;
     for (const b of this.bins) {
+      const r = b.half + BIN_REACH * this.k;
+      if (Math.abs(x - b.x) > r || Math.abs(y - b.y) > r) continue;
       const d = Phaser.Math.Distance.Between(x, y, b.x, b.y);
       if (d < bestD) {
         bestD = d;
         best = b;
       }
     }
-    return best && bestD < 240 * this.k ? best : undefined;
+    return best;
   }
 
   /** A topping already on the dish, under the finger. */

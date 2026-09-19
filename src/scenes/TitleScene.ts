@@ -8,7 +8,7 @@ import { iconButton } from '../core/ui';
 
 /**
  * Opening screen: one big play button. Its tap is the user gesture the browser needs:
- * it resumes the audio context, asks for fullscreen + portrait, and keeps the screen on.
+ * it resumes the audio context, asks for fullscreen + landscape, and keeps the screen on.
  * (It fires on release: browsers only grant these from a completed tap.)
  */
 export class TitleScene extends Phaser.Scene {
@@ -18,7 +18,7 @@ export class TitleScene extends Phaser.Scene {
 
   create() {
     const L = getLayout(this);
-    keepLayoutOnResize(this, L);
+    keepLayoutOnResize(this, L, { relayout: true });
     addBackground(this, L);
 
     const at = getStage(L).play;
@@ -37,19 +37,19 @@ export class TitleScene extends Phaser.Scene {
   }
 }
 
-/** Best effort: fullscreen + portrait lock. Silently ignored where unsupported. */
+/** Best effort: fullscreen + landscape lock. Silently ignored where unsupported (the rotate screen covers the rest). */
 export function enterFullscreen() {
-  const lockPortrait = () => {
+  const lockLandscape = () => {
     const orientation = screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> };
-    orientation?.lock?.('portrait').catch(() => {});
+    orientation?.lock?.('landscape').catch(() => {});
   };
   try {
     const standalone = window.matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches;
     const el = document.documentElement;
     if (!standalone && !document.fullscreenElement && el.requestFullscreen) {
       // The scale manager (EXPAND) picks up the new size through the resize event.
-      el.requestFullscreen({ navigationUI: 'hide' }).then(lockPortrait, () => {});
-    } else lockPortrait();
+      el.requestFullscreen({ navigationUI: 'hide' }).then(lockLandscape, () => {});
+    } else lockLandscape();
   } catch {
     /* not supported: fine */
   }

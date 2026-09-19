@@ -28,6 +28,11 @@ export class HandHint {
     return this.img.visible;
   }
 
+  /** Where the fingertip is while a demo runs (null when hidden). */
+  get position(): P | null {
+    return this.img.visible ? { x: this.img.x, y: this.img.y } : null;
+  }
+
   stop() {
     this.tweens.forEach((t) => t.destroy());
     this.tweens = [];

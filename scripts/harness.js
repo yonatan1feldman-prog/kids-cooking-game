@@ -112,3 +112,75 @@
   /** The canvas region in viewport px, for the screenshot zoom tool. */
   window.__region = () => { const r = game.canvas.getBoundingClientRect(); return [r.left, r.top, r.right, r.bottom].map(Math.round); };
 })();
+
+// Layout audit for the current Recipe step: nothing cut off, nothing interactive in the
+// no-touch zones (bottom 8%, 4% each side), no two items overlapping. Returns a list of problems.
+(() => {
+  // Opaque extents of a texture (fractions of its frame), so frames' empty margins don't count as overlap.
+  const opq = {};
+  const opaque = (key) => {
+    if (opq[key]) return opq[key];
+    const src = game.textures.get(key).getSourceImage(); const c = document.createElement('canvas'); c.width = src.width; c.height = src.height;
+    const x = c.getContext('2d'); x.drawImage(src, 0, 0); const d = x.getImageData(0, 0, c.width, c.height).data;
+    let x0 = 1e9, y0 = 1e9, x1 = -1, y1 = -1;
+    for (let y = 0; y < c.height; y += 2) for (let X = 0; X < c.width; X += 2) if (d[(y * c.width + X) * 4 + 3] > 40) { x0 = Math.min(x0, X); x1 = Math.max(x1, X); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+    return (opq[key] = { x0: x0 / c.width, y0: y0 / c.height, x1: x1 / c.width, y1: y1 / c.height });
+  };
+  const box = (o) => {
+    const b = o.getBounds();
+    if (!o.texture || o.angle % 180 !== 0) return { x0: b.x, y0: b.y, x1: b.x + b.width, y1: b.y + b.height };
+    const f = opaque(o.texture.key);
+    return { x0: b.x + f.x0 * b.width, y0: b.y + f.y0 * b.height, x1: b.x + f.x1 * b.width, y1: b.y + f.y1 * b.height };
+  };
+  const charBox = (c) => box(c.list[0]); // a child's bounds already include the container
+  const circ = (x, y, r) => ({ x0: x - r, y0: y - r, x1: x + r, y1: y + r });
+  const hitOf = (img) => { const s = img.input?.hitArea; return s ? circ(img.x, img.y, s.radius * img.scaleX) : box(img); };
+  window.__audit = () => {
+    const sc = __R(), st = sc.step, name = __step(), W = game.scale.width, H = game.scale.height;
+    const L = sc.ctx.layout, forbid = { x0: W * 0.04, x1: W * 0.96, y1: H * 0.92 };
+    const vis = [], hits = [];
+    const home = sc.children.list.find((o) => o.texture?.key === 'btn-home');
+    vis.push(['home', box(home)]); hits.push(['home', hitOf(home)]);
+    vis.push(['character', charBox(sc.ctx.character.box)]);
+    vis.push(['board', box(sc.ctx.board)]);
+    const d = sc.ctx.dish; hits.push(['dish', circ(d.x, d.y, d.R * d.scaleX)]);
+    if (name === 'RollStep') { vis.push(['pin', box(st.pin)]); hits.push(['pin', box(st.pin)]); }
+    if (name === 'SpreadStep') { const b = sc.children.list.find((o) => o.texture?.key === 'sauce-bowl'); vis.push(['bowl', box(b)]); }
+    if (name === 'SprinkleStep') { vis.push(['shaker', box(st.tool)]); hits.push(['shaker', circ(st.tool.x, st.tool.y, 225 * L.k)]); }
+    if (name === 'DecorateStep') {
+      st.bins.forEach((b, i) => { vis.push(['bin' + i, box(b.bin)]); const r = b.half + 30 * L.k; hits.push(['bin' + i, { x0: b.x - r, y0: b.y - r, x1: b.x + r, y1: b.y + r }]); });
+      vis.push(['done', box(st.done)]); hits.push(['done', hitOf(st.done)]);
+    }
+    if (name === 'BakeStep') { const o = st.phase === 'toOven' || st.phase === 'out' ? st.open : st.closed; vis.push(['oven', box(o)]); hits.push(['oven', box(o)]); }
+    if (name === 'FeedStep') st.slices.filter((s) => !s.eaten).forEach((s, i) => { const c = st.sliceCenter(s); hits.push(['slice' + i, circ(c.x, c.y, 60 * L.k)]); });
+    const out = [];
+    const r = (v) => Math.round(v);
+    for (const [n, b] of vis) if (b.x0 < -1 || b.y0 < -1 || b.x1 > W + 1 || b.y1 > H + 1) out.push(`cut: ${n} [${r(b.x0)},${r(b.y0)},${r(b.x1)},${r(b.y1)}]`);
+    for (const [n, b] of hits) {
+      if (b.x0 < forbid.x0 - 1) out.push(`left zone: ${n} x0=${r(b.x0)} < ${r(forbid.x0)}`);
+      if (b.x1 > forbid.x1 + 1) out.push(`right zone: ${n} x1=${r(b.x1)} > ${r(forbid.x1)}`);
+      if (b.y1 > forbid.y1 + 1) out.push(`palm zone: ${n} y1=${r(b.y1)} > ${r(forbid.y1)}`);
+    }
+    const ov = (a, b) => Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0) > 2 && Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0) > 2;
+    for (let i = 0; i < vis.length; i++) for (let j = i + 1; j < vis.length; j++) if (ov(vis[i][1], vis[j][1])) out.push(`overlap: ${vis[i][0]} / ${vis[j][0]}`);
+    const hs = hits.filter(([n]) => n !== 'dish' && !n.startsWith('slice'));
+    for (let i = 0; i < hs.length; i++) for (let j = i + 1; j < hs.length; j++) if (ov(hs[i][1], hs[j][1]) && !(hs[i][0].startsWith('bin') && hs[j][0].startsWith('bin'))) out.push(`hit overlap: ${hs[i][0]} / ${hs[j][0]}`);
+    const dishHit = hits.find(([n]) => n === 'dish')[1];
+    for (const [n, b] of hs) if (n !== 'home' && ov(b, dishHit) && !n.startsWith('pin')) out.push(`hit overlaps dish: ${n}`);
+    return { step: name, W, H, k: +L.k.toFixed(3), charScale: +sc.ctx.stage.charScale.toFixed(3), problems: out };
+  };
+})();
+
+/** Plays a full recipe at container size w x h, auditing every step. */
+window.__auditRun = async (w, h) => {
+  await __setup(w, h);
+  await __start();
+  const res = {};
+  for (const n of ['RollStep', 'SpreadStep', 'SprinkleStep', 'DecorateStep', 'BakeStep', 'FeedStep']) {
+    await __to(n, 1200);
+    const a = __audit();
+    res[n] = a.problems;
+    res.info = [a.W, a.k, a.charScale];
+  }
+  return res;
+};

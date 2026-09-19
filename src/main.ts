@@ -12,7 +12,8 @@ const game = new Phaser.Game({
   backgroundColor: '#ffe4b5',
   disableContextMenu: true,
   scale: {
-    // EXPAND: fills any portrait screen edge to edge without distortion; scenes lay out from scale.width/height.
+    // EXPAND on a 1440x1080 base: the world is 1080 high and as wide as the screen (1440 at 4:3,
+    // 2400 at 20:9), edge to edge, without distortion. Scenes lay out from scale.width/height.
     mode: Phaser.Scale.EXPAND,
     autoCenter: Phaser.Scale.CENTER_BOTH,
     width: BASE_W,

@@ -13,7 +13,7 @@ export class HomeScene extends Phaser.Scene {
 
   create() {
     const L = getLayout(this);
-    keepLayoutOnResize(this, L);
+    keepLayoutOnResize(this, L, { relayout: true });
     addBackground(this, L);
 
     const S = getStage(L);

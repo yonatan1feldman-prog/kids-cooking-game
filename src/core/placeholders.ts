@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { CREAM, FX_DOT, FX_SOFT, IMAGES, INK, SAUCE_BRUSH, SAUCE_RED, UI_BIN, type ImageKey } from './assets';
+import { CREAM, FX_DOT, FX_SOFT, IMAGES, INK, SAUCE_BRUSH, SAUCE_RED, type ImageKey } from './assets';
 
 /**
  * Temporary art drawn in code for every image that is missing on disk.
@@ -39,7 +39,7 @@ function topping(base: number, detail: (g: G, cx: number, cy: number, r: number)
 }
 
 const DRAW: Record<ImageKey, Draw> = {
-  'bg-kitchen': (g, w, h) => {
+  'bg-kitchen-landscape': (g, w, h) => {
     g.fillStyle(0xffe9c7).fillRect(0, 0, w, h);
     const tile = w / 8;
     g.fillStyle(0xfff6e6);
@@ -251,6 +251,12 @@ const DRAW: Record<ImageKey, Draw> = {
     }
     g.fillStyle(0x2e9e3e).fillCircle(cx, cy, r * 0.1);
   },
+  // Drawn in the art style (cream, 8px ink outline, 20% ink shadow) until the real asset arrives.
+  'topping-bin': (g, w, h) => {
+    g.fillStyle(INK, 0.2).fillRoundedRect(8, 20, w - 16, h - 24, 48);
+    g.fillStyle(CREAM).fillRoundedRect(8, 8, w - 16, h - 24, 48);
+    g.lineStyle(8, INK).strokeRoundedRect(8, 8, w - 16, h - 24, 48);
+  },
 };
 
 function bake(scene: Phaser.Scene, key: string, w: number, h: number, draw: Draw) {
@@ -281,14 +287,8 @@ export function makeFxTextures(scene: Phaser.Scene) {
     });
 }
 
-/** Style-matched UI textures made in code: topping bin and the solid sauce brush. */
+/** Style-matched UI textures made in code: the solid sauce brush. */
 export function makeUiTextures(scene: Phaser.Scene) {
-  if (!scene.textures.exists(UI_BIN))
-    bake(scene, UI_BIN, 240, 240, (g, w, h) => {
-      g.fillStyle(INK, 0.2).fillRoundedRect(8, 20, w - 16, h - 24, 48);
-      g.fillStyle(CREAM).fillRoundedRect(8, 8, w - 16, h - 24, 48);
-      g.lineStyle(8, INK).strokeRoundedRect(8, 8, w - 16, h - 24, 48);
-    });
   if (scene.textures.exists(SAUCE_BRUSH)) scene.textures.remove(SAUCE_BRUSH);
   // Silhouette of sauce-blob filled with sauce red: paint without outlines.
   const src = scene.textures.get('sauce-blob').getSourceImage() as CanvasImageSource & { width: number; height: number };

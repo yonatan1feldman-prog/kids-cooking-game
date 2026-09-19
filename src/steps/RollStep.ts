@@ -7,13 +7,15 @@ import { Step } from './Step';
 
 /**
  * Rolling: rub one finger back and forth over the dough ball until it is flat.
- * Any rubbing near the dough counts; the rolling pin follows the finger.
+ * Any rubbing near the dough counts; the rolling pin follows the finger (lying across it).
+ * At rest the pin stands upright in the left column; touching it starts rolling too.
  */
 export class RollStep extends Step<RollParams> {
   private ball!: Phaser.GameObjects.Image;
   private flat!: Phaser.GameObjects.Image;
   private pin!: Phaser.GameObjects.Image;
   private pinRest = { x: 0, y: 0 };
+  private pinAngle = 0;
   private progress = 0;
   private rubbing = false;
   private last = { x: 0, y: 0 };
@@ -33,12 +35,14 @@ export class RollStep extends Step<RollParams> {
     this.scene.tweens.add({ targets: this.ball, scale: this.k, duration: 500, ease: 'Back.easeOut' });
 
     this.pinRest = this.ctx.stage.pinRest;
-    this.pin = this.own(art(this.scene.add.image(this.pinRest.x, this.pinRest.y, this.params.tool), L).setDepth(20));
+    this.pinAngle = this.ctx.stage.pinRestAngle;
+    this.pin = this.own(art(this.scene.add.image(this.pinRest.x, this.pinRest.y, this.params.tool), L).setDepth(20).setAngle(this.pinAngle));
 
     this.render();
 
     this.onDown((p) => {
-      if (this.dish.reach(p.worldX, p.worldY) > 1.7) return;
+      const onPin = this.pin.getBounds().contains(p.worldX, p.worldY);
+      if (this.dish.reach(p.worldX, p.worldY) > 1.7 && !onPin) return;
       this.rubbing = true;
       this.last = { x: p.worldX, y: p.worldY };
       this.movePin(p.worldX, p.worldY);
@@ -56,7 +60,7 @@ export class RollStep extends Step<RollParams> {
     this.onUp(() => {
       if (!this.rubbing) return;
       this.rubbing = false;
-      this.scene.tweens.add({ targets: this.pin, x: this.pinRest.x, y: this.pinRest.y, duration: 350, ease: 'Back.easeOut' });
+      this.restPin(350);
     });
 
     this.setIdle(true);
@@ -64,7 +68,11 @@ export class RollStep extends Step<RollParams> {
 
   private movePin(x: number, y: number) {
     this.scene.tweens.killTweensOf(this.pin);
-    this.pin.setPosition(x, y);
+    this.pin.setPosition(x, y).setAngle(0);
+  }
+
+  private restPin(duration: number) {
+    this.scene.tweens.add({ targets: this.pin, x: this.pinRest.x, y: this.pinRest.y, angle: this.pinAngle, duration, ease: 'Back.easeOut' });
   }
 
   private addRub(dist: number, x: number, y: number) {
@@ -100,7 +108,7 @@ export class RollStep extends Step<RollParams> {
     this.dish.setBase(this.params.flat);
     this.flat.setVisible(false);
     this.ball.setVisible(false);
-    this.scene.tweens.add({ targets: this.pin, x: this.pinRest.x, y: this.pinRest.y, duration: 300 });
+    this.restPin(300);
     puff(this.scene, this.dish.x, this.dish.y, 0xfff6e6, 10, 150 * this.k);
     this.complete();
   }
@@ -117,7 +125,7 @@ export class RollStep extends Step<RollParams> {
       onUpdate: (tw) => {
         this.progress = tw.getValue() ?? 1;
         const x = this.dish.x + Math.sin(this.progress * 20) * this.dish.R * 0.6;
-        this.pin.setPosition(x, this.dish.y);
+        this.pin.setPosition(x, this.dish.y).setAngle(0);
         this.render();
         sfx(this.scene, 'squish', { minGapMs: 220, volume: 0.6 });
       },

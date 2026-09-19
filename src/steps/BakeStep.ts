@@ -1,7 +1,6 @@
 import Phaser from 'phaser';
 import { ART, IMAGES } from '../core/assets';
 import { boing, puff, stars } from '../core/fx';
-import { art } from '../core/layout';
 import { sfx } from '../core/sfx';
 import type { BakeParams } from '../recipes/types';
 import { Step } from './Step';
@@ -9,7 +8,7 @@ import { Step } from './Step';
 type Phase = 'toOven' | 'baking' | 'ready' | 'out';
 
 /**
- * Baking: drag the dish up into the open oven. The door closes and the pizza is seen
+ * Baking: the oven stands left of the dish, side by side. Drag the dish into the open oven. The door closes and the pizza is seen
  * through the oven window (layers: oven-inside, pizza, oven-closed), slowly turning
  * golden while the oven glows. A ding, then a tap opens it and the pizza comes out.
  */
@@ -23,18 +22,21 @@ export class BakeStep extends Step<BakeParams> {
   private rest = { x: 0, y: 0 };
   private loops: (Phaser.Tweens.Tween | Phaser.Time.TimerEvent)[] = [];
   private k = 1;
+  /** The oven's own scale (it fills the room left of the board). */
+  private os = 1;
 
   start() {
     const L = this.layout;
     this.k = L.k;
+    this.os = this.ctx.stage.ovenScale;
     const o = this.ctx.stage.oven;
-    this.open = this.own(art(this.scene.add.image(o.x, o.y, this.params.open), L).setDepth(5));
-    this.inside = this.own(art(this.scene.add.image(o.x, o.y, this.params.inside), L).setDepth(5).setVisible(false));
-    this.closed = this.own(art(this.scene.add.image(o.x, o.y, this.params.closed), L).setDepth(7).setVisible(false));
+    this.open = this.own(this.scene.add.image(o.x, o.y, this.params.open).setScale(this.os).setDepth(5));
+    this.inside = this.own(this.scene.add.image(o.x, o.y, this.params.inside).setScale(this.os).setDepth(5).setVisible(false));
+    this.closed = this.own(this.scene.add.image(o.x, o.y, this.params.closed).setScale(this.os).setDepth(7).setVisible(false));
     this.open.setScale(0);
-    this.scene.tweens.add({ targets: this.open, scale: this.k, duration: 450, ease: 'Back.easeOut' });
+    this.scene.tweens.add({ targets: this.open, scale: this.os, duration: 450, ease: 'Back.easeOut' });
 
-    // Board and pizza slide down to make room under the oven.
+    // The board and pizza wait next to the oven (they only move if the stage says so).
     this.rest = this.ctx.stage.dishWait;
     this.dish.setDepth(10);
     this.scene.tweens.add({ targets: [this.dish, this.ctx.board], x: this.rest.x, y: this.rest.y, duration: 500, ease: 'Sine.easeInOut' });
@@ -59,8 +61,10 @@ export class BakeStep extends Step<BakeParams> {
     this.onUp((_p, cancelled) => {
       if (!this.dragging) return;
       this.dragging = false;
-      // Forgiving: lifted well up toward the oven, or dropped near it, counts.
-      const lifted = this.dish.y < this.rest.y - 220 * this.k || this.nearOven(this.dish.x, this.dish.y);
+      // Forgiving: carried well toward the oven, or dropped near it, counts.
+      const dist = (x: number, y: number) => Phaser.Math.Distance.Between(x, y, this.open.x, this.open.y);
+      const toward = dist(this.rest.x, this.rest.y) - dist(this.dish.x, this.dish.y);
+      const lifted = toward > 220 * this.k || this.nearOven(this.dish.x, this.dish.y);
       if (!cancelled && lifted) {
         this.hit();
         this.intoOven();
@@ -75,13 +79,13 @@ export class BakeStep extends Step<BakeParams> {
   }
 
   private nearOven(x: number, y: number) {
-    return Phaser.Math.Distance.Between(x, y, this.open.x, this.open.y) < 460 * this.k;
+    return Phaser.Math.Distance.Between(x, y, this.open.x, this.open.y) < 460 * this.os;
   }
 
   /** Oven-frame point (700x800 viewBox) -> game point. */
   private ovenPoint(x: number, y: number) {
     const [w, h] = IMAGES['oven-closed'].size;
-    return { x: this.open.x + (x - w / 2) * this.k, y: this.open.y + (y - h / 2) * this.k };
+    return { x: this.open.x + (x - w / 2) * this.os, y: this.open.y + (y - h / 2) * this.os };
   }
 
   private intoOven() {
@@ -89,7 +93,7 @@ export class BakeStep extends Step<BakeParams> {
     this.setIdle(false);
     sfx(this.scene, 'whoosh');
     const spot = this.ovenPoint(ART.ovenPizza.x, ART.ovenPizza.y);
-    const scale = ((ART.ovenPizza.diameter / 2) * this.k) / this.dish.R;
+    const scale = ((ART.ovenPizza.diameter / 2) * this.os) / this.dish.R;
     this.scene.tweens.add({
       targets: this.dish,
       x: spot.x,
@@ -142,7 +146,7 @@ export class BakeStep extends Step<BakeParams> {
         loop: true,
         callback: () => {
           const top = this.ovenPoint(350 + Phaser.Math.Between(-120, 120), 60);
-          puff(this.scene, top.x, top.y, 0xffffff, 2, 90 * this.k);
+          puff(this.scene, top.x, top.y, 0xffffff, 2, 90 * this.os);
         },
       }),
     );
@@ -153,7 +157,7 @@ export class BakeStep extends Step<BakeParams> {
       this.dish.tintAll(this.params.bakedTint);
       sfx(this.scene, 'oven-ding', { vary: false });
       boing(this.scene, this.closed, 0.12);
-      stars(this.scene, this.closed.x, this.closed.y - 380 * this.k, 6, 60 * this.k);
+      stars(this.scene, this.closed.x, this.closed.y - 380 * this.os, 6, 60 * this.k);
       this.phase = 'ready';
       // Gentle "tap me" hop of the whole oven (pizza included, so it stays behind the window).
       this.loops.push(
@@ -175,9 +179,9 @@ export class BakeStep extends Step<BakeParams> {
     this.stopLoops();
     this.inside.setVisible(false);
     this.closed.setVisible(false);
-    this.open.setVisible(true).setScale(this.k);
+    this.open.setVisible(true).setScale(this.os);
     sfx(this.scene, 'whoosh');
-    puff(this.scene, this.open.x, this.open.y, 0xffffff, 10, 140 * this.k);
+    puff(this.scene, this.open.x, this.open.y, 0xffffff, 10, 140 * this.os);
     this.dish.setDepth(10);
     this.scene.tweens.add({
       targets: this.dish,

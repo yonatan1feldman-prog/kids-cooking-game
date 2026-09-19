@@ -51,7 +51,10 @@ export interface FeedParams {
   /** Fallback slice art, used only if capturing the child's own pizza failed. */
   slice: ImageKey;
   slices: number;
-  /** Character layers sharing one frame, stacked body -> eyes -> mouth. */
+}
+
+/** Character layers sharing one frame, stacked body -> eyes -> mouth. She stays for the whole recipe. */
+export interface CharacterDef {
   body: ImageKey;
   eyesOpen: ImageKey;
   eyesBlink: ImageKey;
@@ -78,5 +81,7 @@ export interface Recipe {
   card: ImageKey;
   /** Board the dish sits on for the whole recipe. */
   board: ImageKey;
+  /** Who stands on the right, watches, cheers each step and eats the result. */
+  character: CharacterDef;
   steps: StepDef[];
 }

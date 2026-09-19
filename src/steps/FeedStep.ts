@@ -1,9 +1,8 @@
 import Phaser from 'phaser';
-import { IMAGES } from '../core/assets';
 import { boing, burst, stars } from '../core/fx';
-import { opaqueBounds } from '../core/placeholders';
 import { sfx, sfxThen } from '../core/sfx';
 import type { FeedParams } from '../recipes/types';
+import type { Mood } from './Character';
 import { cutSlices, stockSlices, type SliceDef } from './slices';
 import { Step } from './Step';
 
@@ -14,26 +13,20 @@ interface Slice {
   eaten: boolean;
 }
 
-type Mood = 'rest' | 'expect' | 'chew' | 'party';
-
+/** A carried slice is shown a little bigger. */
+const LIFT = 1.08;
 /** Slices spread apart a little so the cuts show. */
 const EXPLODE = 12;
 
 /**
  * Feeding: the child's own pizza is cut into slices on the board; drag each slice to
- * the character's mouth. At rest the character blinks now and then; when a slice comes
+ * the character's mouth (she stands on the right, core of RecipeScene). When a slice comes
  * near it looks surprised and opens wide; it chews for about a second, happy. It always
  * eats everything. After the last slice: jingle, cheer, a star party, then home.
  */
 export class FeedStep extends Step<FeedParams> {
   private slices: Slice[] = [];
-  private held?: { s: Slice; dx: number; dy: number };
-  private char!: Phaser.GameObjects.Container;
-  private eyes!: Phaser.GameObjects.Image;
-  private mouth!: Phaser.GameObjects.Image;
-  private charRest = { x: 0, y: 0 };
-  private mouthAt = { x: 0, y: 0 };
-  private mood: Mood = 'rest';
+  private held?: { s: Slice };
   private chewing = 0;
   private busy = 0;
   private partyStarted = false;
@@ -42,7 +35,6 @@ export class FeedStep extends Step<FeedParams> {
 
   start() {
     this.k = this.layout.k;
-    this.buildCharacter();
     this.buildSlices();
 
     this.onDown((p) => {
@@ -53,19 +45,24 @@ export class FeedStep extends Step<FeedParams> {
       sfx(this.scene, 'tap');
       this.scene.tweens.killTweensOf(s.img);
       s.img.setDepth(30);
-      // Lift, and turn the tip up toward the mouth.
-      const tipUp = s.def.restAngle + 90 - s.def.midAngle;
-      const target = s.img.angle + Phaser.Math.Angle.ShortestBetween(s.img.angle, tipUp);
-      this.scene.tweens.add({ targets: s.img, scale: this.sliceScale * 1.08, angle: target, duration: 200 });
-      this.held = { s, dx: s.img.x - p.worldX, dy: s.img.y - p.worldY };
+      // Lift it: the middle of the slice under the finger, the tip pointing at the mouth.
+      const pose = this.carryPose(s, p.worldX, p.worldY);
+      const angle = s.img.angle + Phaser.Math.Angle.ShortestBetween(s.img.angle, pose.angle);
+      this.scene.tweens.add({ targets: s.img, scale: this.sliceScale * LIFT, x: pose.x, y: pose.y, angle, duration: 160 });
+      this.held = { s };
     });
     this.onMove((p) => {
       if (!this.held) return;
-      this.held.s.img.setPosition(p.worldX + this.held.dx, p.worldY + this.held.dy);
+      const { img } = this.held.s;
+      this.scene.tweens.killTweensOf(img);
+      const pose = this.carryPose(this.held.s, p.worldX, p.worldY);
+      img.setScale(this.sliceScale * LIFT).setPosition(pose.x, pose.y);
+      // Turn smoothly toward the mouth as the finger moves around.
+      img.setAngle(img.angle + Phaser.Math.Angle.ShortestBetween(img.angle, pose.angle) * 0.35);
       this.poke();
       // Surprised, mouth wide open, when the slice comes her way.
       const near = Phaser.Math.Distance.Between(p.worldX, p.worldY, this.mouthAt.x, this.mouthAt.y) < 700 * this.k;
-      if (this.mood === 'rest' || this.mood === 'expect') this.setMood(near ? 'expect' : 'rest');
+      if (this.mood === 'rest' || this.mood === 'happy' || this.mood === 'expect') this.setMood(near ? 'expect' : 'rest');
     });
     this.onUp((p, cancelled) => {
       if (!this.held) return;
@@ -82,58 +79,6 @@ export class FeedStep extends Step<FeedParams> {
     });
 
     this.setIdle(true);
-  }
-
-  private buildCharacter() {
-    const p = this.params;
-    this.charRest = this.ctx.stage.character;
-    // All layers share the 600x700 frame: stacked at one position, same scale.
-    const body = new Phaser.GameObjects.Image(this.scene, 0, 0, p.body).setScale(this.k);
-    this.eyes = new Phaser.GameObjects.Image(this.scene, 0, 0, p.eyesOpen).setScale(this.k);
-    this.mouth = new Phaser.GameObjects.Image(this.scene, 0, 0, p.mouthClosed).setScale(this.k);
-    this.char = this.own(this.scene.add.container(this.charRest.x, -400 * this.k, [body, this.eyes, this.mouth]).setDepth(5));
-    this.scene.tweens.add({ targets: this.char, y: this.charRest.y, duration: 700, ease: 'Bounce.easeOut' });
-
-    // Where the mouth is, measured from the art itself.
-    const [fw, fh] = IMAGES['character-mouth-open'].size;
-    const b = opaqueBounds(this.scene, p.mouthOpen) ?? { cx: 300, cy: 400 };
-    this.mouthAt = { x: this.charRest.x + (b.cx - fw / 2) * this.k, y: this.charRest.y + (b.cy - fh / 2) * this.k };
-
-    this.scheduleBlink();
-  }
-
-  /** Random blink every few seconds while at rest. */
-  private scheduleBlink() {
-    this.scene.time.delayedCall(Phaser.Math.Between(2200, 5200), () => {
-      if (!this.char.active) return;
-      if (this.mood === 'rest') {
-        this.eyes.setTexture(this.params.eyesBlink);
-        this.scene.time.delayedCall(140, () => {
-          if (this.mood === 'rest' && this.eyes.active) this.eyes.setTexture(this.params.eyesOpen);
-        });
-      }
-      this.scheduleBlink();
-    });
-  }
-
-  private setMood(m: Mood) {
-    if (this.mood === m) return;
-    this.mood = m;
-    const p = this.params;
-    if (m === 'rest') {
-      this.eyes.setTexture(p.eyesOpen);
-      this.mouth.setTexture(p.mouthClosed);
-    } else if (m === 'expect') {
-      this.eyes.setTexture(p.eyesSurprised);
-      this.mouth.setTexture(p.mouthOpen);
-      boing(this.scene, this.char, 0.06);
-    } else if (m === 'chew') {
-      this.eyes.setTexture(p.eyesHappy);
-      this.mouth.setTexture(p.mouthChew);
-    } else {
-      this.eyes.setTexture(p.eyesHappy);
-      this.mouth.setTexture(p.mouthOpen);
-    }
   }
 
   /** Cuts the pizza she made; falls back to the stock slice art if the capture failed. */
@@ -157,6 +102,18 @@ export class FeedStep extends Step<FeedParams> {
     // The slices now are the pizza.
     this.dish.setVisible(false);
     sfx(this.scene, 'whoosh', { volume: 0.6 });
+  }
+
+  /**
+   * Where a carried slice goes for a finger at (fx, fy): its middle under the finger and its
+   * tip (the image origin) ahead of it, pointing at the mouth. Returns the origin and angle.
+   */
+  private carryPose(s: Slice, fx: number, fy: number) {
+    const dir = Phaser.Math.Angle.Between(fx, fy, this.mouthAt.x, this.mouthAt.y);
+    const reach = s.def.centerDist * LIFT;
+    // The body extends from the tip along midAngle when the image sits at restAngle.
+    const angle = Phaser.Math.Angle.WrapDegrees(s.def.restAngle + Phaser.Math.RadToDeg(dir) + 180 - s.def.midAngle);
+    return { x: fx + Math.cos(dir) * reach, y: fy + Math.sin(dir) * reach, angle };
   }
 
   /** Visual center of a slice (where a finger naturally grabs it). */
@@ -183,7 +140,27 @@ export class FeedStep extends Step<FeedParams> {
   /** Very forgiving: near the mouth, or anywhere over the character. */
   private nearMouth(x: number, y: number) {
     if (Phaser.Math.Distance.Between(x, y, this.mouthAt.x, this.mouthAt.y) < 380 * this.k) return true;
-    return y < this.charRest.y + 350 * this.k;
+    return x > this.ctx.stage.charLeft;
+  }
+
+  private get char() {
+    return this.ctx.character.box;
+  }
+
+  private get charRest() {
+    return this.ctx.character.rest;
+  }
+
+  private get mouthAt() {
+    return this.ctx.character.mouthAt;
+  }
+
+  private get mood() {
+    return this.ctx.character.mood;
+  }
+
+  private setMood(m: Mood) {
+    this.ctx.character.setMood(m);
   }
 
   /** Back to its place in the pizza, gently (also when the touch was lost mid-drag). */
@@ -239,7 +216,7 @@ export class FeedStep extends Step<FeedParams> {
       callback: () => {
         if (this.mood !== 'chew') return;
         closed = !closed;
-        this.mouth.setTexture(closed ? this.params.mouthClosed : this.params.mouthChew);
+        this.ctx.character.chewFrame(closed);
       },
     });
     this.scene.time.delayedCall(480, () => sfx(this.scene, 'munch', { minGapMs: 0, volume: 0.6 }));

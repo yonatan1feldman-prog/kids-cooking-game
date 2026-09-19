@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
 import type { HandHint } from '../core/hand';
-import { PALM_ZONE, type Layout } from '../core/layout';
+import { inNoTouchZone, type Layout } from '../core/layout';
 import type { Stage } from '../core/stage';
+import type { Character } from './Character';
 import type { Dish } from './Dish';
 
 /** Default: seconds of no progress before the guiding hand shows the gesture. */
@@ -17,6 +18,8 @@ export interface StepContext {
   dish: Dish;
   /** The round board the dish sits on. */
   board: Phaser.GameObjects.Image;
+  /** Stands on the right for the whole recipe. */
+  character: Character;
   hand: HandHint;
   /** Where the dish rests by default during a step (game coordinates). */
   dishHome: { x: number; y: number };
@@ -143,7 +146,7 @@ export abstract class Step<P> {
   /**
    * Scene-wide pointer listeners, removed automatically when the step ends.
    * A press only counts if no other finger owns the step, it doesn't start in the
-   * palm zone (a physical screen area, so screen y is tested) and it isn't on a button.
+   * no-touch zones (palm strip at the bottom, thumb strips at the sides) and it isn't on a button.
    */
   protected onDown(fn: PointerFn) {
     this.ensureOwnerRelease();
@@ -151,7 +154,7 @@ export abstract class Step<P> {
       if (this.isAuto) return;
       if (this.owner && this.owner !== p) return;
       if (over && over.length > 0) return;
-      if (p.y > this.scene.scale.height * (1 - PALM_ZONE)) return;
+      if (inNoTouchZone(this.scene, p.x, p.y)) return;
       this.owner = p;
       fn(p);
     });
@@ -166,6 +169,7 @@ export abstract class Step<P> {
 
   /** Release of the owning finger. Also fires (cancelled = true) if the touch is lost. */
   protected onUp(fn: UpFn) {
+    this.upFns.push(fn);
     const handler = (outside: boolean) => (p: Phaser.Input.Pointer) => {
       if (p !== this.owner) return;
       this.owner = null;
@@ -174,6 +178,20 @@ export abstract class Step<P> {
     };
     this.listen(Phaser.Input.Events.POINTER_UP, handler(false));
     this.listen(Phaser.Input.Events.POINTER_UP_OUTSIDE, handler(true));
+  }
+
+  private upFns: UpFn[] = [];
+
+  /**
+   * Ends the current gesture as if the touch was lost (e.g. the device turned to portrait
+   * mid-drag): whatever was held goes back gently, and that finger no longer owns the step.
+   */
+  cancelGesture() {
+    const p = this.owner;
+    if (!p || this.finished) return;
+    this.owner = null;
+    if (this.isAuto) return;
+    for (const fn of this.upFns) fn(p, true);
   }
 
   private releaseArmed = false;

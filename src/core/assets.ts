@@ -2,13 +2,15 @@
  * Asset contract. File names here are fixed; the asset agent delivers files with
  * exactly these names into public/assets/images (svg) and public/assets/sounds (ogg/mp3).
  *
- * All art is drawn in one 1080x1920 design space: an SVG's viewBox size IS its size on
- * screen at scale 1. `size` is that viewBox size. Every image is rasterized at its
- * native size and displayed at the same uniform scale (layout.k), so outline
- * thickness stays identical everywhere. Placeholders are drawn at the same size.
+ * `size` is the SVG's viewBox size. Every image is rasterized at that native size, and a
+ * viewBox unit is one world unit at scale 1 (the world is 1080 high, see layout.ts).
+ * Images are shown at their native size times layout.k, except where the stage table
+ * (stage.ts) gives an item its own scale: touch size comes before identical outlines.
+ * Placeholders are drawn at the same size.
  */
 export const IMAGES = {
-  'bg-kitchen': { size: [1080, 1920] },
+  /** Landscape kitchen, 1920x1080: anchored bottom-center, cropped only at the sides. */
+  'bg-kitchen-landscape': { size: [1920, 1080] },
   'dough-ball': { size: [360, 300] },
   'dough-flat': { size: [720, 720] },
   'rolling-pin': { size: [640, 200] },
@@ -45,6 +47,8 @@ export const IMAGES = {
   'btn-home': { size: [240, 240] },
   'btn-done': { size: [240, 240] },
   'card-pizza': { size: [400, 520] },
+  /** One topping bin in the decorating step (the topping is drawn on top of it). */
+  'topping-bin': { size: [240, 240] },
 } as const satisfies Record<string, { size: readonly [number, number] }>;
 
 export type ImageKey = keyof typeof IMAGES;
@@ -67,8 +71,6 @@ export const ART = {
 /** Internal textures always made in code (not part of the asset contract). */
 export const FX_DOT = 'fx-dot';
 export const FX_SOFT = 'fx-soft';
-/** A topping bin in the art style (cream, 8px ink outline). */
-export const UI_BIN = 'ui-bin';
 /** sauce-blob recolored to a solid paint brush (no outline). */
 export const SAUCE_BRUSH = 'sauce-brush';
 /** Palette from the art STYLE.md. */
