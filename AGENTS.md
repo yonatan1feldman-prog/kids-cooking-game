@@ -211,6 +211,15 @@ fallback if the capture fails.
 - After a deploy, check: the URL, `manifest.webmanifest` and `sw.js` return 200, every file in `public/assets`
   returns 200, the game loads with no console errors and no placeholders except known missing art, and the
   service worker registers. The installed app updates itself (autoUpdate) on its next start after a deploy.
+- The `github-pages` environment only lets `master` deploy (a branch policy; it was set to `main` at first and
+  the first run was rejected). Git pushes use gh as the credential helper for that one command:
+  `git -c credential.helper= -c 'credential.helper=!"C:/Program Files/GitHub CLI/gh.exe" auth git-credential' push origin master`.
+- Harness against the deployed build: `scripts/harness.js` is not deployed; load it from
+  `https://raw.githubusercontent.com/yonatan1feldman-prog/kids-cooking-game/master/scripts/harness.js`. The build
+  minifies class names, so first override `__step` to read the step type from the recipe
+  (`sc.recipe.steps.find(s => s.params === sc.step.params).type` -> 'RollStep' etc.). Start `__auditRun` without
+  awaiting it and read the result from a window variable in later short calls (45 s tool limit). A tab that stays
+  hidden for minutes gets its timers throttled until nothing moves: open a fresh tab.
 
 ## Testing notes for agents
 - Use `scripts/harness.js` (served by the dev server). Details and pitfalls: Handoff notes, section 1.
