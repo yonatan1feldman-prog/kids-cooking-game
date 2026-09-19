@@ -87,7 +87,9 @@ DynamicTexture needs `.render()`).
 ## Project layout
 ```
 index.html                 page shell (no scroll/zoom/pull-to-refresh/callout/selection) + #rotate screen
-vite.config.ts             dev server (--host), PWA (landscape manifest), asset-manifest plugin
+vite.config.ts             base path /kids-cooking-game/, dev server (--host), PWA (landscape manifest), asset-manifest plugin
+.github/workflows/deploy.yml  builds and publishes to GitHub Pages on every push to master
+README.md, ASSET-LICENSES.md  public description and the asset licenses (the repo is public)
 plugins/asset-manifest.ts  virtual:asset-manifest = the asset files that exist on disk
 scripts/make-icons.mjs     regenerates the temporary PWA icons (public/icons)
 scripts/harness.js         test harness for the automated Chrome (see "Testing notes")
@@ -169,8 +171,12 @@ fallback if the capture fails.
 - The browser console lists which placeholders and silent sounds are in use (`[assets]` lines).
 
 ## Working rules
-- Work on a branch. No remote exists. **Never push, and never merge to master,** without a separate,
-  explicit approval message from the owner.
+- Work on a branch. **The repo is public on GitHub** (remote `origin`, see "Deployment").
+  **Every push needs its own explicit approval message from the owner, every time.** An approval covers
+  only the round it was given in. Never push, and never merge to master, without it.
+- Nothing personal in the repo: no local IPs, no Windows paths with user names, no e-mail addresses,
+  phone numbers, people's names, secrets or keys, in files or in commit messages. Commits use the
+  GitHub noreply address set in the repo's local git config (never change the global config).
 - `git add` explicit paths only. Never `git add .` or `git add -A`. For assets, the folder paths
   `public/assets/images` and `public/assets/sounds` are allowed.
 - Commit messages in Hebrew, written to a file and committed with `git commit -F <file>`.
@@ -182,14 +188,29 @@ fallback if the capture fails.
   Its STYLE.md "Landscape layout" section is a starting point only; the owner's instructions won over it
   (no top bar, full-size pizza instead of 0.75x, background never cropped at the top).
 - Rollback points: tags `rollback-start` (first commit), `rollback-pre-assets` (before the real assets),
-  `rollback-pre-landscape` (end of round 1, portrait).
+  `rollback-pre-landscape` (end of round 1, portrait), `v0.2-landscape` (end of round 2, landscape).
 
 ## Running
-- `npm run dev`: dev server on the LAN (`--host`, port 5173). Open `http://<PC-IP>:5173` on the phone.
+- Everything is served under the sub-path `/kids-cooking-game/` (Vite `base`), in dev and preview too.
+  Code builds URLs from `import.meta.env.BASE_URL` (or page-relative paths), never from a leading `/`.
+- `npm run dev`: dev server on the LAN (`--host`, port 5173). Open `http://<computer's LAN address>:5173/kids-cooking-game/` on the phone.
 - Dev only: `?step=N` (0-based) jumps straight to step N of the recipe.
-- `npm run build`, `npm run preview`: production build. The service worker and the screen wake lock only
-  work on HTTPS or localhost, so over plain LAN http the screen may still dim. Installing the PWA needs
-  an HTTPS deployment (a future round).
+- `npm run build`, `npm run preview`: production build (preview: `http://localhost:4173/kids-cooking-game/`).
+  The service worker and the screen wake lock only work on HTTPS or localhost, so over plain LAN http the
+  screen may still dim. The HTTPS deployment (see "Deployment") is where the PWA is installed from.
+
+## Deployment
+- Public URL: **https://yonatan1feldman-prog.github.io/kids-cooking-game/** (GitHub Pages, public repo
+  `yonatan1feldman-prog/kids-cooking-game`, Pages source = GitHub Actions).
+- How: every push to `master` runs `.github/workflows/deploy.yml` (npm ci, npm run build, then the official
+  `actions/upload-pages-artifact` + `actions/deploy-pages`). Watch it with `gh run watch`. Nothing else to do.
+- **A push is a deployment to the child's phone. Every push needs a separate, explicit approval from the owner.**
+  Only `master` and tags are pushed; work branches stay local.
+- `gh` (GitHub CLI) is installed at `C:\Program Files\GitHub CLI\gh.exe` and logged in; in an old shell it may
+  not be on PATH, call it by its full path.
+- After a deploy, check: the URL, `manifest.webmanifest` and `sw.js` return 200, every file in `public/assets`
+  returns 200, the game loads with no console errors and no placeholders except known missing art, and the
+  service worker registers. The installed app updates itself (autoUpdate) on its next start after a deploy.
 
 ## Testing notes for agents
 - Use `scripts/harness.js` (served by the dev server). Details and pitfalls: Handoff notes, section 1.
@@ -204,15 +225,17 @@ fallback if the capture fails.
 ## Handoff notes (end of round 2, landscape; written for the next agent)
 
 State: branch `round-2-landscape` (from `round-1-pizza`), full pizza recipe in landscape, locked, with a rotate screen.
+Round 3 (deploy): merged to `master` (tag `v0.2-landscape`), served under `/kids-cooking-game/`, published to
+GitHub Pages (see "Deployment"). New work starts on a new branch from `master`.
 Rollback tags: `rollback-start`, `rollback-pre-assets`, `rollback-pre-landscape` (the portrait game).
 Screenshots of the last full run at 20:9, 16:9 and 4:3 (every step, plus the rotate screen) are in
 `docs/screenshots-round2/` (git-ignored, local only). `docs/screenshots-round1/` are the old portrait references.
 
 ### 1. Test harness (`scripts/harness.js`, automated Chrome, no real finger)
 The Chrome window used by the browser tools is hidden, so `requestAnimationFrame` never fires and the game only
-moves when the harness steps it. Right after navigating to `http://localhost:5173/`, run (JS tool):
+moves when the harness steps it. Right after navigating to `http://localhost:5173/kids-cooking-game/`, run (JS tool):
 ```js
-eval(await (await fetch('/scripts/harness.js')).text());
+eval(await (await fetch('scripts/harness.js')).text());
 await __setup(900, 405);   // container size in CSS px = the ratio to emulate: 900x405 = 20:9, 720x405 = 16:9, 640x480 = 4:3
 ```
 `__setup` shrinks `#game`, installs the virtual clock (once), waits (stepping frames) until Boot has loaded the art and
