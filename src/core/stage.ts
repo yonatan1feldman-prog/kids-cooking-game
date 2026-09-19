@@ -97,6 +97,17 @@ export interface Stage {
   choice: (i: number, n: number) => Pt;
   choiceScale: (n: number) => number;
   chooseHalf: (n: number) => number;
+  /**
+   * Prep with cutting boards and bowls (chop, open-pour): on wide screens (20:9) the left column stays (the pizza
+   * aside, the filled bins waiting); elsewhere the work needs that room, so the pizza and the bins wait off screen.
+   */
+  prepWide: boolean;
+  /** The room for that work: from the left column (or the thumb strip) to just left of Pipa (or of Mom's face). */
+  prepArea: Box;
+  /** Chop: the cutting board (1000x600 frame) in the prep area. */
+  cutBoard: Spot;
+  /** A filled topping bin waiting in the left column (index 0, 1: side by side under the pizza), or null. */
+  binWait: (i: number) => Spot | null;
 }
 
 /** Native sizes the layout reasons about (opaque extents of the art, in world units at k = 1). */
@@ -256,6 +267,18 @@ export function getStage(L: Layout): Stage {
     return { x: work.x0 + cw * ((i % chooseCols) + 0.5), y: top + c * (Math.floor(i / chooseCols) + 0.5) };
   };
 
+  // Part B prep area (chop, open-pour). The left column stays only where there is room for it (20:9).
+  const prepWide = W >= 2200;
+  const prepArea = {
+    x0: prepWide ? work.x0 : m + 20 * k,
+    y0: Y(260),
+    x1: pet ? petLeft - 12 * k : momFace.x0 - 20 * k,
+    y1: work.y1,
+  };
+  // The cutting board at 1.05 (the art agent's cut scene) where it fits, centred in the prep area.
+  const CUT_BOARD_W = 1000;
+  const cutBoard = { x: (prepArea.x0 + prepArea.x1) / 2, y: Y(700), scale: Math.min(1.05 * k, (prepArea.x1 - prepArea.x0) / CUT_BOARD_W) };
+
   // Title: logo and play button in one column: left of centre on wide screens, centred in the space left
   // of Mom's face on narrow ones (the art agent's title scene).
   const titleX = W >= PET_MIN_W ? dishHome.x - 80 * k : (m + momLeft + MOM_FACE.x0 * s) / 2;
@@ -305,5 +328,9 @@ export function getStage(L: Layout): Stage {
     choice,
     choiceScale: (n) => (chooseCell(n) - 24 * k) / BIN_TEX,
     chooseHalf: (n) => chooseCell(n) / 2 - 2 * k,
+    prepWide,
+    prepArea,
+    cutBoard,
+    binWait: (i) => (prepWide ? { x: sideX + (i % 2 ? 1 : -1) * 115 * k, y: Y(895), scale: 0.45 * k } : null),
   };
 }

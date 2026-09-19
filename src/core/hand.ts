@@ -48,7 +48,7 @@ export interface HandMotion {
 }
 
 /** Display scale of each demo hand (x k), from the art agent's checked scenes (images-b/scenes.js, CRITIQUE.md). */
-export const HAND_SCALE: Record<MomHand, number> = { point: 0.62, roll: 0.66, spread: 0.66, sprinkle: 1.1, grab: 0.66, press: 0.95 };
+export const HAND_SCALE: Record<MomHand, number> = { point: 0.62, roll: 0.66, spread: 0.66, sprinkle: 1.1, grab: 0.66, press: 0.95, knife: 1.3, mitt: 0.6 };
 
 const FADE = 200;
 

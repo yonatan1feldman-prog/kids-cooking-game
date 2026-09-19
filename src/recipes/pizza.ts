@@ -1,9 +1,29 @@
 import { TUNING } from '../core/tuning';
-import type { Recipe } from './types';
+import type { VegName } from '../core/vegArt';
+import type { Recipe, StepDef } from './types';
 
 /** Tomato red of the crushed tomatoes and the sauce (juice drops); flour white for the dough. */
 const TOMATO = 0xe4523b;
 const FLOUR = 0xfff6e6;
+
+/** Cutting one vegetable (the chop step type): its pictures, and the colour of its juice drops. */
+const chop = (veg: VegName, juice: number): StepDef => ({
+  type: 'chop',
+  params: {
+    veg,
+    whole: `veg-${veg}-whole`,
+    slice: `veg-${veg}-slice`,
+    inside: `veg-${veg}-inside`,
+    board: 'cutting-board',
+    knife: 'knife',
+    ...TUNING.chop,
+    juice,
+    bin: 'topping-bin',
+    topping: `topping-${veg}`,
+    line: 'vo-cut',
+    careful: 'vo-cut-careful',
+  },
+});
 
 export const pizza: Recipe = {
   id: 'pizza',
@@ -97,10 +117,10 @@ export const pizza: Recipe = {
       type: 'choose',
       params: {
         options: [
-          { id: 'tomato', image: 'veg-tomato-whole', topping: 'topping-tomato' },
-          { id: 'mushroom', image: 'veg-mushroom-whole', topping: 'topping-mushroom' },
-          { id: 'pepper', image: 'veg-pepper-whole', topping: 'topping-pepper' },
-          { id: 'onion', image: 'veg-onion-whole', topping: 'topping-onion' },
+          { id: 'tomato', image: 'veg-tomato-whole', topping: 'topping-tomato', prep: chop('tomato', TOMATO) },
+          { id: 'mushroom', image: 'veg-mushroom-whole', topping: 'topping-mushroom', prep: chop('mushroom', 0xeadcc4) },
+          { id: 'pepper', image: 'veg-pepper-whole', topping: 'topping-pepper', prep: chop('pepper', 0x7cc25a) },
+          { id: 'onion', image: 'veg-onion-whole', topping: 'topping-onion', prep: chop('onion', 0xe9bde0) },
           { id: 'corn', image: 'can-corn-closed', topping: 'topping-corn' },
           { id: 'olive', image: 'jar-olives-closed', topping: 'topping-olive' },
         ],

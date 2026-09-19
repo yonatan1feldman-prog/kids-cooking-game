@@ -1,5 +1,6 @@
 import type { ImageKey, SoundKey } from '../core/assets';
 import type { VoiceKey } from '../core/audio';
+import type { VegName } from '../core/vegArt';
 
 /**
  * A recipe is pure data: an ordered list of steps. Each step names a reusable step
@@ -147,6 +148,33 @@ export interface ChooseParams {
   pauseMs: number;
 }
 
+/**
+ * Chop: the whole vegetable lies on the cutting board; the knife follows the finger (by its blade tip). Every short
+ * move down over the vegetable cuts the next slice, wherever the finger is sideways: the code cuts from right to left
+ * at a fixed slice width inside the body, the cut face (`inside`, fitted to the body's measured profile) shows on the
+ * cut line, a slice drops onto a pile, chop, and Mom counts. After `cuts` cuts the end that is left becomes the last
+ * slice, and the slices go into the topping's bin (left for decorating). Counts: TUNING.chop.
+ */
+export interface ChopParams {
+  /** Which measured body profile (core/vegArt.ts) the whole image has. */
+  veg: VegName;
+  whole: ImageKey;
+  slice: ImageKey;
+  inside: ImageKey;
+  board: ImageKey;
+  knife: ImageKey;
+  cuts: number;
+  minSwipe: number;
+  /** Colour of the drops that fly on each cut. */
+  juice: number;
+  /** The bin the slices go into, and the topping shown on it (its bin in decorating). */
+  bin: ImageKey;
+  topping: ImageKey;
+  line: VoiceKey;
+  /** Said once per recipe run, before the first cut ("Be careful with the knife!"). */
+  careful?: VoiceKey;
+}
+
 export interface DecorateParams {
   items: ImageKey[];
   doneButton: ImageKey;
@@ -192,7 +220,8 @@ export type StepDef =
   | { type: 'decorate'; params: DecorateParams }
   | { type: 'bake'; params: BakeParams }
   | { type: 'feed'; params: FeedParams }
-  | { type: 'choose'; params: ChooseParams };
+  | { type: 'choose'; params: ChooseParams }
+  | { type: 'chop'; params: ChopParams };
 
 export type StepType = StepDef['type'];
 

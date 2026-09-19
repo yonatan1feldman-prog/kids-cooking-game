@@ -160,11 +160,8 @@ export const IMAGE_KEYS = Object.keys(IMAGES) as ImageKey[];
  */
 export const NOT_LOADED: ReadonlySet<ImageKey> = new Set<ImageKey>([
   'btn-temp-down', 'btn-temp-up', 'can-corn-open', 'can-lid', 'jar-lid',
-  'jar-olives-open', 'cutting-board', 'knife', 'mom-hand-knife', 'mom-hand-mitt', 'mom-mouth-chew', 'mitt-single',
+  'jar-olives-open', 'mom-hand-mitt', 'mom-mouth-chew', 'mitt-single',
   'oven-mitts', 'oven-panel', 'oven-needle', 'oven-start-off', 'oven-start-on', 'temp-glow', 'photo-frame',
-  'veg-tomato-slice', 'veg-tomato-inside', 'veg-mushroom-slice',
-  'veg-mushroom-inside', 'veg-pepper-slice', 'veg-pepper-inside',
-  'veg-onion-slice', 'veg-onion-inside',
 ]);
 /** The images the game loads (everything in the contract except NOT_LOADED). */
 export const LOADED_KEYS = IMAGE_KEYS.filter((k) => !NOT_LOADED.has(k));
@@ -196,6 +193,9 @@ export const ART = {
     sprinkle: { x: 125, y: 115 },
     grab: { x: 110, y: 150 },
     press: { x: 140, y: 150 },
+    /** The knife's blade tip in Mom's fist (the same knife at 0.5x), and the palm of her oven mitt. */
+    knife: { x: 149, y: 364 },
+    mitt: { x: 150, y: 150 },
   },
   /** Prep-step art geometry (README-prep.md, scenes-prep.js). */
   prep: {
@@ -219,10 +219,8 @@ export const ART = {
     handfulClump: { x: 150, y: 116 },
     /** press-dent: the centre of the hollow. */
     dentCentre: { x: 130, y: 66 },
-    /** Part B: knife blade tip, Mom's knife tip and mitt palm (for when they are used). */
+    /** Part B: the knife's blade tip (it follows the finger). Mom's knife and mitt hands: ART.momHands. The veg: core/vegArt.ts. */
     knifeTip: { x: 118, y: 618 },
-    momKnifeTip: { x: 149, y: 364 },
-    momMittPalm: { x: 150, y: 150 },
   },
 } as const;
 

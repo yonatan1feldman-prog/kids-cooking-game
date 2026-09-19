@@ -115,6 +115,12 @@
       const order = window.__pickOrder || [];
       const c = order.map((id) => st.choices.find((x) => x.opt.id === id && !x.picked)).find(Boolean) || st.choices.find((x) => !x.picked);
       if (c) { __tap(c.x, c.y); await __run(400); }
+    } else if (name === 'ChopStep') {
+      if (!st.finishing) {
+        const z = st.cutZone(), x = st.knife.x;
+        await __drag([[x, z.y0 + 60], [x, z.y1 - 40], [x, z.y0 + 60]]);
+        await __run(250);
+      }
     } else if (name === 'FeedStep') {
       const s = st.slices.find((x) => !x.eaten);
       if (s) { const c = st.sliceCenter(s); await __drag([[c.x, c.y], [st.mouthAt.x, st.mouthAt.y]]); await __run(1250); }
@@ -223,6 +229,11 @@
         hits.push(['choice' + i, { x0: c.x - h, y0: c.y - h, x1: c.x + h, y1: c.y + h }]);
       });
     }
+    if (name === 'ChopStep') {
+      vis.push(['cutboard', box(st.board)]); vis.push(['knife', box(st.knife)]);
+      const z = st.cutZone(); hits.push(['veg', z]);
+      sc.children.list.filter((o) => o.texture?.key === 'topping-bin' && o.visible && o.alpha > 0.5).forEach((o, i) => vis.push(['bin' + i, box(o)]));
+    }
     if (name === 'FeedStep') st.slices.filter((s) => !s.eaten).forEach((s, i) => { const c = st.sliceCenter(s); hits.push(['slice' + i, circ(c.x, c.y, 60 * L.k)]); });
     const out = [];
     const r = (v) => Math.round(v);
@@ -234,7 +245,7 @@
     }
     const ov = (a, b) => Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0) > 2 && Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0) > 2;
     // Drawn together on purpose (the art agent's scenes): the tap stands on the sink's rim.
-    const together = new Set(['sink/faucet', 'board/dough', 'grater/block']);
+    const together = new Set(['sink/faucet', 'board/dough', 'grater/block', 'cutboard/knife']);
     for (let i = 0; i < vis.length; i++) for (let j = i + 1; j < vis.length; j++) if (ov(vis[i][1], vis[j][1]) && !together.has(`${vis[i][0]}/${vis[j][0]}`)) out.push(`overlap: ${vis[i][0]} / ${vis[j][0]}`);
     const pet = sc.ctx.character;
     const hs = hits.filter(([n]) => n !== 'dish' && !n.startsWith('slice'));
