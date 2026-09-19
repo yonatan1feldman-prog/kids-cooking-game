@@ -108,8 +108,13 @@
       const a = (st.placed ?? 0) * 1.7;
       await __drag([[b.x, b.y], [d.x + Math.cos(a) * r * 0.45, d.y + Math.sin(a) * r * 0.45 + 90]]);
     } else if (name === 'BakeStep') {
-      if (st.phase === 'toOven') { await __drag([[d.x, d.y], [st.open.x, st.open.y]]); await __run(5700); }
+      if (st.phase === 'toOven') { await __drag([[d.x, d.y], [st.open.x, st.open.y]]); await __run(1500); }
+      else if (st.phase === 'temp') {
+        const P = st.params.panel, b = st.temp === P.target ? st.btnStart : st.temp > P.target ? st.btnDown : st.btnUp;
+        __tap(b.x, b.y); await __run(b === st.btnStart ? 5900 : 450);
+      } else if (st.phase === 'mitts') { __tap(st.mitts.x, st.mitts.y); await __run(700); }
       else if (st.phase === 'ready') { __tap(st.closed.x, st.closed.y); await __run(1400); }
+      else await __run(300);
     } else if (name === 'ChooseStep') {
       // Picks in the order of __pickOrder (option ids), else the first free ones.
       const order = window.__pickOrder || [];
@@ -193,11 +198,11 @@
     const home = sc.children.list.find((o) => o.texture?.key === 'btn-home');
     vis.push(['home', box(home)]); hits.push(['home', hitOf(home)]);
     vis.push(['mom', momBox(sc.ctx.mom)]);
-    const d = sc.ctx.dish, boardOn = sc.ctx.board.alpha > 0.05, aside = d.scaleX < 0.9;
+    const d = sc.ctx.dish, boardOn = sc.ctx.board.alpha > 0.05, aside = d.scaleX < 0.9 && name !== 'BakeStep';
     if (boardOn) vis.push([aside ? 'pizza-aside' : 'board', box(sc.ctx.board)]);
     // The dish is a touch target only in the middle (aside it waits; hidden it doesn't exist yet).
     const dishSteps = ['RollStep', 'SpreadStep', 'SprinkleStep', 'DecorateStep', 'BakeStep', 'FeedStep'];
-    if (boardOn && !aside && dishSteps.includes(name)) hits.push(['dish', circ(d.x, d.y, d.R * d.scaleX)]);
+    if (boardOn && !aside && dishSteps.includes(name) && !(name === 'BakeStep' && st.phase !== 'toOven')) hits.push(['dish', circ(d.x, d.y, d.R * d.scaleX)]);
     const clipPalm = (b) => ({ ...b, y1: Math.min(b.y1, forbid.y1) });
     const pad = (b, p) => ({ x0: b.x0 - p, y0: b.y0 - p, x1: b.x1 + p, y1: b.y1 + p });
     const rect = (r) => ({ x0: r.x, y0: r.y, x1: r.right, y1: r.bottom });
@@ -229,7 +234,17 @@
       st.bins.forEach((b, i) => { vis.push(['bin' + i, box(b.bin)]); const r = b.half + 30 * L.k; hits.push(['bin' + i, { x0: b.x - r, y0: b.y - r, x1: b.x + r, y1: b.y + r }]); });
       vis.push(['done', box(st.done)]); hits.push(['done', hitOf(st.done)]);
     }
-    if (name === 'BakeStep') { const o = st.phase === 'toOven' || st.phase === 'out' ? st.open : st.closed; vis.push(['oven', box(o)]); hits.push(['oven', box(o)]); }
+    if (name === 'BakeStep') {
+      const o = st.phase === 'toOven' || st.phase === 'out' ? st.open : st.closed; vis.push(['oven', box(o)]);
+      // (its touch area at rest: the ding makes it hop 14 units for a moment)
+      const ob = box(o), dy = sc.ctx.stage.oven.y - o.y;
+      if (st.phase !== 'temp' && st.phase !== 'baking') hits.push(['oven', { ...ob, y0: ob.y0 + dy, y1: ob.y1 + dy }]);
+      if (st.phase === 'temp' && st.panelImg?.active) {
+        vis.push(['panel', box(st.panelImg)]);
+        for (const [n, b] of [['down', st.btnDown], ['start', st.btnStart], ['up', st.btnUp]]) { vis.push([n, box(b)]); hits.push([n, hitOf(b)]); }
+      }
+      if (st.phase === 'mitts' && st.mitts) { vis.push(['mitts', box(st.mitts)]); const b = st.mitts.getBounds(), p = 50 * L.k; hits.push(['mitts', { x0: b.x - p, y0: b.y - p, x1: b.right + p, y1: b.bottom + p }]); }
+    }
     if (name === 'ChooseStep') {
       const h = sc.ctx.stage.chooseHalf(st.choices.length);
       st.choices.forEach((c, i) => {
@@ -260,7 +275,7 @@
     }
     const ov = (a, b) => Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0) > 2 && Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0) > 2;
     // Drawn together on purpose (the art agent's scenes): the tap stands on the sink's rim.
-    const together = new Set(['sink/faucet', 'board/dough', 'grater/block', 'cutboard/knife', 'box/bowl']);
+    const together = new Set(['sink/faucet', 'board/dough', 'grater/block', 'cutboard/knife', 'box/bowl', 'board/mitts']);
     for (let i = 0; i < vis.length; i++) for (let j = i + 1; j < vis.length; j++) if (ov(vis[i][1], vis[j][1]) && !together.has(`${vis[i][0]}/${vis[j][0]}`)) out.push(`overlap: ${vis[i][0]} / ${vis[j][0]}`);
     const pet = sc.ctx.character;
     const hs = hits.filter(([n]) => n !== 'dish' && !n.startsWith('slice'));

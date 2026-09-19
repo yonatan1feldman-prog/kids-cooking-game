@@ -214,6 +214,34 @@ export interface BakeParams {
   bakeMs: number;
   /** Tint multiplied onto the dish when it comes out, e.g. golden. */
   bakedTint: number;
+  /**
+   * Set the temperature first (optional): once the door is closed a big panel shows the needle on `from`; the down and
+   * up buttons move it by `step` between `min` and `max` (Mom says each value, the oven glows cooler or warmer), and
+   * at `target` the number glows and the start button lights up; its press starts the baking. Nothing ever burns.
+   */
+  panel?: TempPanel;
+  /** Put on the oven mitts before taking it out (optional): after the ding the mitts lie on the counter; a tap puts them on. */
+  mitts?: { pair: ImageKey; single: ImageKey; line: VoiceKey };
+}
+
+export interface TempPanel {
+  panel: ImageKey;
+  needle: ImageKey;
+  glow: ImageKey;
+  up: ImageKey;
+  down: ImageKey;
+  startOff: ImageKey;
+  startOn: ImageKey;
+  from: number;
+  step: number;
+  min: number;
+  max: number;
+  target: number;
+  /** "Let's set the oven", "A bit hotter!", "Oh, that's too hot!", "That's just right!". Values: temp-<value>. */
+  line: VoiceKey;
+  more: VoiceKey;
+  hot: VoiceKey;
+  done: VoiceKey;
 }
 
 export interface FeedParams {

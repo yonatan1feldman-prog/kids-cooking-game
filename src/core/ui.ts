@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { art, inNoTouchZone, type Layout } from './layout';
+import type { SoundKey } from './assets';
 import { sfx } from './sfx';
 
 /** True if some other finger is already on the screen (a second finger or a resting palm). */
@@ -28,7 +29,16 @@ export function iconButton(
   x: number,
   y: number,
   onTap: () => void,
-  opts: { fireOn?: 'down' | 'up'; hitPad?: number; confirm?: boolean; scale?: number } = {},
+  opts: {
+    fireOn?: 'down' | 'up';
+    hitPad?: number;
+    confirm?: boolean;
+    scale?: number;
+    /** After firing it ignores presses this long (default 400 ms; quick buttons like the oven's +/- use less). */
+    lockMs?: number;
+    /** Its press sound (default 'tap'; null = the caller plays its own). */
+    sound?: SoundKey | null;
+  } = {},
 ) {
   const img = art(scene.add.image(x, y, key), layout);
   if (opts.scale) img.setScale(opts.scale);
@@ -64,7 +74,7 @@ export function iconButton(
   const fire = () => {
     enabled = false;
     onTap();
-    scene.time.delayedCall(400, () => {
+    scene.time.delayedCall(opts.lockMs ?? 400, () => {
       enabled = true;
     });
   };
@@ -74,7 +84,7 @@ export function iconButton(
     // Presses that start where the palm or the thumbs rest, or while another finger is down, never count.
     if (inNoTouchZone(scene, p.x, p.y)) return;
     if (otherPointerDown(scene, p)) return;
-    sfx(scene, 'tap');
+    if (opts.sound !== null) sfx(scene, opts.sound ?? 'tap');
     if (opts.confirm) {
       if (!armed) return arm();
       armed.timer.remove();

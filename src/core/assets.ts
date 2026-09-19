@@ -159,8 +159,7 @@ export const IMAGE_KEYS = Object.keys(IMAGES) as ImageKey[];
  * this list when a step starts to use it.
  */
 export const NOT_LOADED: ReadonlySet<ImageKey> = new Set<ImageKey>([
-  'btn-temp-down', 'btn-temp-up', 'mom-hand-mitt', 'mom-mouth-chew', 'mitt-single',
-  'oven-mitts', 'oven-panel', 'oven-needle', 'oven-start-off', 'oven-start-on', 'temp-glow', 'photo-frame',
+  'mom-mouth-chew', 'photo-frame',
 ]);
 /** The images the game loads (everything in the contract except NOT_LOADED). */
 export const LOADED_KEYS = IMAGE_KEYS.filter((k) => !NOT_LOADED.has(k));
@@ -218,6 +217,10 @@ export const ART = {
     handfulClump: { x: 150, y: 116 },
     /** press-dent: the centre of the hollow. */
     dentCentre: { x: 130, y: 66 },
+    /** Part B: the oven panel (1200x720; the needle shares its box): the needle's pivot, its angle per value, the printed numbers. */
+    panelPivot: { x: 600, y: 540 },
+    panelAngle: { 50: -80, 100: -40, 150: 0, 200: 40, 250: 80 } as Record<number, number>,
+    panelDigit: { 50: [214, 472], 100: [329, 218], 150: [600, 163], 200: [875, 212], 250: [1020, 466] } as Record<number, readonly [number, number]>,
     /** Part B: the tops of the can and the jar (where the lid sits, in their 340x460 / 340x480 frames). */
     canTop: { x: 170, y: 70 },
     jarTop: { x: 170, y: 55 },

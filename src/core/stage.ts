@@ -113,6 +113,18 @@ export interface Stage {
   pourRest: Spot;
   /** Where a lid lands on the counter (between the can or jar and the bowl). */
   lidRest: Pt;
+  /**
+   * Bake, the temperature: the panel (1200x720 frame, needle and glow in the same box) between the oven and Pipa (or
+   * Mom's face), at most the art agent's 0.82; under it the down button, the start button and the up button.
+   */
+  panel: Spot;
+  tempDown: Pt;
+  tempStart: Pt;
+  tempUp: Pt;
+  /** The buttons' scale (240 frames; the start button's 320 frame is drawn at 0.75 of it: the same 240). */
+  tempBtnScale: number;
+  /** Bake: the oven mitts on the counter (on the empty board) after the ding. */
+  mitts: Spot;
 }
 
 /** Native sizes the layout reasons about (opaque extents of the art, in world units at k = 1). */
@@ -294,6 +306,20 @@ export function getStage(L: Layout): Stage {
   const bowlLeft = pourBowl.x - (PREP_BOWL_W / 2) * pourScale;
   const pourRest = { x: (prepArea.x0 + bowlLeft) / 2 - 20 * k, y: Y(690), scale: 0.8 * k };
 
+  // The oven's temperature panel: in the room right of the oven, then the three buttons in a row under it.
+  const PANEL_W = 1200;
+  const PANEL_H = 720;
+  const ovenRight = oven.x + (OVEN_W / 2) * ovenScale;
+  const panelX0 = ovenRight + gap;
+  const panelX1 = pet ? petLeft - 12 * k : momFace.x0 - 20 * k;
+  const ps = Math.min(0.82 * k, (panelX1 - panelX0) / PANEL_W);
+  const panelSpot = { x: (panelX0 + panelX1) / 2, y: Y(150) + (PANEL_H / 2) * ps, scale: ps };
+  // down (240) + start (320 x 0.75 = 240) + up (240) and two 30-unit gaps: 780 at scale 1. At 16:9 that keeps every
+  // button over 200 units; their touch areas (10 beyond the art) never touch.
+  const tempBtnScale = Math.min(k, (panelX1 - panelX0) / 780);
+  const btnY = panelSpot.y + (PANEL_H / 2) * ps + 30 * k + 120 * tempBtnScale;
+  const btnDx = (120 + 30 + 120) * tempBtnScale;
+
   // Title: logo and play button in one column: left of centre on wide screens, centred in the space left
   // of Mom's face on narrow ones (the art agent's title scene).
   const titleX = W >= PET_MIN_W ? dishHome.x - 80 * k : (m + momLeft + MOM_FACE.x0 * s) / 2;
@@ -348,6 +374,12 @@ export function getStage(L: Layout): Stage {
     cutBoard,
     pourBowl,
     pourRest,
+    panel: panelSpot,
+    tempDown: { x: panelSpot.x - btnDx, y: btnY },
+    tempStart: { x: panelSpot.x, y: btnY },
+    tempUp: { x: panelSpot.x + btnDx, y: btnY },
+    tempBtnScale,
+    mitts: { x: dishHome.x, y: dishHome.y + 120 * k, scale: 0.55 * k },
     lidRest: { x: (pourRest.x + bowlLeft) / 2 + 40 * k, y: Y(930) },
     binWait: (i) => (prepWide ? { x: sideX + (i % 2 ? 1 : -1) * 115 * k, y: Y(895), scale: 0.45 * k } : null),
   };

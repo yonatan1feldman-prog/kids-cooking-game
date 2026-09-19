@@ -58,6 +58,11 @@ export const TUNING = {
    */
   open: { taps: 3, swipe: 80, twist: 900 },
   pour: { ms: 2500 },
+  /**
+   * The oven's temperature: the needle starts at `from`, each press moves it by `step` between `min` and `max`, and
+   * baking starts at `target` (the art's panel prints 50-250). Baking: ms in the oven after the start.
+   */
+  oven: { from: 50, step: 50, min: 50, max: 250, target: 200, bakeMs: 5000 },
   /** Mom's help (after the idle hint): the pace of her own presses, rubs and strokes. */
-  help: { pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150, chopEveryMs: 700, openMs: 1500 },
+  help: { pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150, chopEveryMs: 700, openMs: 1500, tempEveryMs: 1100 },
 } as const;
