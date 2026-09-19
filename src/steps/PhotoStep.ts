@@ -101,16 +101,17 @@ export class PhotoStep extends Step<PhotoParams> {
       const bs = ((size / board.frame.realWidth) * 0.86);
       board.setScale(bs);
       dt.draw(board, size / 2, size / 2 + 40 * (size / 540));
+      const temp = [bg, board];
       if (tex.exists(MADE_KEY)) {
         const pizza = new Phaser.GameObjects.Image(this.scene, 0, 0, MADE_KEY);
         // The capture is in game pixels at the content scale k: it is shown at the board's scale / k.
         pizza.setScale(bs / this.k).setTint(this.dish.base?.tintTopLeft ?? 0xffffff);
         dt.draw(pizza, size / 2, size / 2 + 38 * (size / 540));
-        pizza.destroy();
+        temp.push(pizza);
       }
+      // (the drawing happens in render(): the images it draws must still exist then)
       dt.render();
-      bg.destroy();
-      board.destroy();
+      temp.forEach((o) => o.destroy());
       return PHOTO_KEY;
     } catch (err) {
       console.warn('[photo] could not make the photo', err);
