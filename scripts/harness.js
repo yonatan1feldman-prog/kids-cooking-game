@@ -70,7 +70,7 @@
   window.__R = () => game.scene.getScene('Recipe');
   window.__step = () => __R().step?.constructor.name;
   /** The current step's type in the recipe ('wash', 'knead', 'roll', ...): knead and crush share a class. */
-  window.__type = () => { const sc = __R(); return sc?.step ? sc.recipe.steps.find((s) => s.params === sc.step.params)?.type : undefined; };
+  window.__type = () => { const sc = __R(); return sc?.step ? sc.stepDef?.type : undefined; };
 })();
 
 // Auto-player: performs one round of the gesture the current step expects.
@@ -110,6 +110,11 @@
     } else if (name === 'BakeStep') {
       if (st.phase === 'toOven') { await __drag([[d.x, d.y], [st.open.x, st.open.y]]); await __run(5700); }
       else if (st.phase === 'ready') { __tap(st.closed.x, st.closed.y); await __run(1400); }
+    } else if (name === 'ChooseStep') {
+      // Picks in the order of __pickOrder (option ids), else the first free ones.
+      const order = window.__pickOrder || [];
+      const c = order.map((id) => st.choices.find((x) => x.opt.id === id && !x.picked)).find(Boolean) || st.choices.find((x) => !x.picked);
+      if (c) { __tap(c.x, c.y); await __run(400); }
     } else if (name === 'FeedStep') {
       const s = st.slices.find((x) => !x.eaten);
       if (s) { const c = st.sliceCenter(s); await __drag([[c.x, c.y], [st.mouthAt.x, st.mouthAt.y]]); await __run(1250); }
@@ -210,6 +215,14 @@
       vis.push(['done', box(st.done)]); hits.push(['done', hitOf(st.done)]);
     }
     if (name === 'BakeStep') { const o = st.phase === 'toOven' || st.phase === 'out' ? st.open : st.closed; vis.push(['oven', box(o)]); hits.push(['oven', box(o)]); }
+    if (name === 'ChooseStep') {
+      const h = sc.ctx.stage.chooseHalf(st.choices.length);
+      st.choices.forEach((c, i) => {
+        const a = box(c.bin), b = box(c.item);
+        vis.push(['choice' + i, { x0: Math.min(a.x0, b.x0), y0: Math.min(a.y0, b.y0), x1: Math.max(a.x1, b.x1), y1: Math.max(a.y1, b.y1) }]);
+        hits.push(['choice' + i, { x0: c.x - h, y0: c.y - h, x1: c.x + h, y1: c.y + h }]);
+      });
+    }
     if (name === 'FeedStep') st.slices.filter((s) => !s.eaten).forEach((s, i) => { const c = st.sliceCenter(s); hits.push(['slice' + i, circ(c.x, c.y, 60 * L.k)]); });
     const out = [];
     const r = (v) => Math.round(v);

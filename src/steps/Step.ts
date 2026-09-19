@@ -3,6 +3,7 @@ import { voice, type VoiceKey } from '../core/audio';
 import type { HandMotion, MomHandView } from '../core/hand';
 import { inNoTouchZone, type Layout } from '../core/layout';
 import type { Stage } from '../core/stage';
+import type { ChooseOption, StepDef } from '../recipes/types';
 import type { Character } from './Character';
 import type { Dish } from './Dish';
 import type { Mom } from './Mom';
@@ -38,6 +39,12 @@ export interface StepContext {
      * the object (`adopt`) instead of popping in a new one, so the food visibly carries on.
      */
     handoff: Map<string, Phaser.GameObjects.Image>;
+    /** What she chose (the choose step), in the order she picked it. */
+    chosen: ChooseOption[];
+    /** Steps to run right after the current one (the chosen toppings' prep steps); RecipeScene takes them. */
+    insert: StepDef[];
+    /** Lines said once per recipe run ("Be careful with the knife!"). */
+    once: Set<string>;
   };
 }
 
@@ -94,6 +101,13 @@ export abstract class Step<P> {
   protected abstract autoFinish(): void;
   /** What Mom says as the step begins ("Let's roll the dough!"), if anything. */
   protected stepLine: VoiceKey | null = null;
+  /** Lines right after the step line (e.g. "Be careful with the knife!" before the first cut of a run). */
+  protected moreLines: VoiceKey[] = [];
+
+  private sayStepLine(valid: () => boolean, ttlMs?: number) {
+    if (this.stepLine) voice.say(this.stepLine, { valid, ttlMs });
+    for (const l of this.moreLines) voice.say(l, { valid, ttlMs: 6000 });
+  }
 
   /** The idle hint: Mom's hand shows the gesture again, looping until there is progress. */
   protected showHint() {
@@ -122,25 +136,19 @@ export abstract class Step<P> {
   intro(withDemo: boolean) {
     const m = withDemo ? this.demo() : null;
     const stillHere = () => !this.finished;
-    if (!m) {
-      if (this.stepLine) voice.say(this.stepLine, { valid: stillHere });
-      return;
-    }
+    if (!m) return this.sayStepLine(stillHere);
     this.demoing = true;
     const onTouch = () => this.endDemo(true);
     this.scene.input.on(Phaser.Input.Events.POINTER_DOWN, onTouch);
     this.demoOff = () => this.scene.input.off(Phaser.Input.Events.POINTER_DOWN, onTouch);
     const begin = () => {
       // She started by herself while Mom was still talking: no demo, just the step's line.
-      if (!this.demoing) {
-        if (this.stepLine) voice.say(this.stepLine, { valid: stillHere });
-        return;
-      }
+      if (!this.demoing) return this.sayStepLine(stillHere);
       // Only the run's first demo is introduced ("Watch me first!") and followed by "Now you try!".
       this.demoTalk = !this.ctx.run.demoTalkDone;
       this.ctx.run.demoTalkDone = true;
       if (this.demoTalk) voice.say('vo-watch-me', { valid: () => this.demoing });
-      if (this.stepLine) voice.say(this.stepLine, { valid: stillHere, ttlMs: 3500 });
+      this.sayStepLine(stillHere, 3500);
       const mm = this.demo() ?? m;
       const keys = mm.keys;
       if (keys[keys.length - 1].t > DEMO_MAX_MS) console.warn('[step] demo longer than 2.5 s');

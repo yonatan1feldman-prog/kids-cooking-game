@@ -86,6 +86,17 @@ export interface Stage {
   grater: Spot;
   graterBlock: Spot;
   graterPile: Spot;
+
+  // ---- Part B (round 5)
+  /**
+   * The middle work area when the pizza waits aside: from the left column to the board's right edge, and never
+   * reaching Pipa (x1 stops 12 units left of her opaque left edge). Top at Y(260), bottom above the palm strip.
+   */
+  work: Box;
+  /** Choose: option i of n on its bin (3 per row, 2 rows), and the bins' scale. `chooseHalf` = half a cell (its touch area). */
+  choice: (i: number, n: number) => Pt;
+  choiceScale: (n: number) => number;
+  chooseHalf: (n: number) => number;
 }
 
 /** Native sizes the layout reasons about (opaque extents of the art, in world units at k = 1). */
@@ -229,6 +240,22 @@ export function getStage(L: Layout): Stage {
   let bowlScale = 1.25 * k;
   if (pet) bowlScale = Math.min(bowlScale, ((pet.x - (PET_W / 2 - PET_OPAQUE_X0) * pet.scale - 12 * k - dishHome.x) * 2) / PREP_BOWL_W);
 
+  // Part B work area: between the left column and the board's right edge, clear of Pipa.
+  const petLeft = pet ? pet.x - (PET_W / 2 - PET_OPAQUE_X0) * pet.scale : Infinity;
+  const work = { x0: m + leftW + gap, y0: Y(260), x1: Math.min(boardRight, petLeft - 12 * k), y1: Y(994) - 30 * k };
+  // Choose: 3 per row, square cells as big as the work area allows.
+  const chooseCols = 3;
+  const chooseRows = (n: number) => Math.max(1, Math.ceil(n / chooseCols));
+  const chooseCell = (n: number) => Math.min((work.x1 - work.x0) / chooseCols, (work.y1 - work.y0) / chooseRows(n));
+  const choice = (i: number, n: number) => {
+    const c = chooseCell(n);
+    const cw = (work.x1 - work.x0) / chooseCols;
+    const rowsH = c * chooseRows(n);
+    // Rows packed toward the counter (bottom), columns spread over the width.
+    const top = work.y1 - rowsH;
+    return { x: work.x0 + cw * ((i % chooseCols) + 0.5), y: top + c * (Math.floor(i / chooseCols) + 0.5) };
+  };
+
   // Title: logo and play button in one column: left of centre on wide screens, centred in the space left
   // of Mom's face on narrow ones (the art agent's title scene).
   const titleX = W >= PET_MIN_W ? dishHome.x - 80 * k : (m + momLeft + MOM_FACE.x0 * s) / 2;
@@ -274,5 +301,9 @@ export function getStage(L: Layout): Stage {
     grater: { ...graterAt, scale: (1.05 * k) / 1.15 },
     graterBlock: { x: graterAt.x - 20 * k, y: graterAt.y + 20 * k, scale: 0.8 * k },
     graterPile: { x: graterAt.x + 10 * k, y: graterAt.y + 260 * k, scale: 1.15 * k },
+    work,
+    choice,
+    choiceScale: (n) => (chooseCell(n) - 24 * k) / BIN_TEX,
+    chooseHalf: (n) => chooseCell(n) / 2 - 2 * k,
   };
 }

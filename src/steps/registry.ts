@@ -1,5 +1,6 @@
 import type { StepDef, StepType } from '../recipes/types';
 import { BakeStep } from './BakeStep';
+import { ChooseStep } from './ChooseStep';
 import { DecorateStep } from './DecorateStep';
 import { FeedStep } from './FeedStep';
 import { GrateStep } from './GrateStep';
@@ -27,6 +28,7 @@ const STEP_TYPES: Record<StepType, Factory> = {
   decorate: (c, p, d) => new DecorateStep(c, p, d),
   bake: (c, p, d) => new BakeStep(c, p, d),
   feed: (c, p, d) => new FeedStep(c, p, d),
+  choose: (c, p, d) => new ChooseStep(c, p, d),
 };
 
 export function createStep(def: StepDef, ctx: StepContext, onDone: () => void): Step<unknown> {

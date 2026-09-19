@@ -7,7 +7,7 @@ import { sfx } from '../core/sfx';
 import { getStage } from '../core/stage';
 import { iconButton } from '../core/ui';
 import { getRecipe } from '../recipes';
-import type { Recipe } from '../recipes/types';
+import type { ChooseParams, Recipe, StepDef } from '../recipes/types';
 import { Character } from '../steps/Character';
 import { Dish } from '../steps/Dish';
 import { Mom } from '../steps/Mom';
@@ -40,6 +40,13 @@ function countRun(id: string) {
  */
 export class RecipeScene extends Phaser.Scene {
   private recipe!: Recipe;
+  /**
+   * The steps of this run: the recipe's, plus what a choose step inserts right after itself (the chosen toppings'
+   * prep steps, in the order she picked them).
+   */
+  private steps: StepDef[] = [];
+  /** The step running now (its recipe entry), for the test harness. */
+  stepDef?: StepDef;
   private step?: Step<unknown>;
   private ctx!: StepContext;
   private withDemos = true;
@@ -50,7 +57,9 @@ export class RecipeScene extends Phaser.Scene {
 
   init(data: { id?: string }) {
     this.recipe = getRecipe(data.id ?? 'pizza');
+    this.steps = [...this.recipe.steps];
     this.step = undefined;
+    this.stepDef = undefined;
   }
 
   create() {
@@ -69,7 +78,7 @@ export class RecipeScene extends Phaser.Scene {
     const mom = new Mom(this, S.mom);
     const character = new Character(this, this.recipe.character, S.pet, S.feedPet);
     if (S.pet) character.enter(300);
-    this.ctx = { scene: this, layout: L, stage: S, dish, board, mom, character, hand: new MomHandView(this, L), dishHome, run: { demoTalkDone: false, handoff: new Map() } };
+    this.ctx = { scene: this, layout: L, stage: S, dish, board, mom, character, hand: new MomHandView(this, L), dishHome, run: { demoTalkDone: false, handoff: new Map(), chosen: [], insert: [], once: new Set() } };
 
     // The device turned to portrait: drop whatever the finger was holding, gently.
     const onPause = () => this.step?.cancelGesture();
@@ -78,18 +87,41 @@ export class RecipeScene extends Phaser.Scene {
       this.game.events.off(ORIENTATION_PAUSE, onPause);
       this.step?.abort();
     });
-    this.runStep(devStartStep(this.recipe.steps.length));
+    this.runStep(this.devStart());
+  }
+
+  /**
+   * Dev only: `?step=N` (0-based) jumps straight to step N; past a choose step, `?pick=tomato,corn,olive` says what
+   * was chosen (default: its first options), so any combination of toppings can be tested. 0 in production builds.
+   */
+  private devStart() {
+    if (!import.meta.env.DEV) return 0;
+    const q = new URLSearchParams(location.search);
+    const n = Number(q.get('step'));
+    if (!Number.isInteger(n) || n <= 0) return 0;
+    const ci = this.steps.findIndex((s) => s.type === 'choose');
+    if (ci >= 0 && n > ci) {
+      const cp = this.steps[ci].params as ChooseParams;
+      const ids = q.get('pick')?.split(',') ?? cp.options.slice(0, cp.pick).map((o) => o.id);
+      this.ctx.run.chosen = ids.map((id) => cp.options.find((o) => o.id === id)).filter((o) => !!o);
+      this.steps.splice(ci + 1, 0, ...this.ctx.run.chosen.flatMap((o) => (o.prep ? [o.prep] : [])));
+    }
+    return n < this.steps.length ? n : 0;
   }
 
   private runStep(i: number) {
-    this.step = createStep(this.recipe.steps[i], this.ctx, () => this.stepDone(i));
+    this.stepDef = this.steps[i];
+    this.step = createStep(this.steps[i], this.ctx, () => this.stepDone(i));
     this.step.start();
     this.step.intro(this.withDemos);
   }
 
   /** Each finished step: Mom praises the effort and is happy, Pipa hops; the last step has its own finale. */
   private stepDone(i: number) {
-    const last = i >= this.recipe.steps.length - 1;
+    // A choose step's picks: their prep steps come right after it.
+    const ins = this.ctx.run.insert.splice(0);
+    if (ins.length) this.steps.splice(i + 1, 0, ...ins);
+    const last = i >= this.steps.length - 1;
     if (last) {
       this.scene.start('Home', { from: 'finale' });
       return;
@@ -118,11 +150,4 @@ export class RecipeScene extends Phaser.Scene {
     this.ctx.mom.lookAt(t.x, t.y);
     this.ctx.character.lookAt(t.x, t.y);
   }
-}
-
-/** Dev only: `?step=N` (0-based) jumps straight to step N for testing. Always 0 in production builds. */
-function devStartStep(count: number) {
-  if (!import.meta.env.DEV) return 0;
-  const n = Number(new URLSearchParams(location.search).get('step'));
-  return Number.isInteger(n) && n > 0 && n < count ? n : 0;
 }

@@ -94,6 +94,23 @@ export const pizza: Recipe = {
       params: { tool: 'cheese-handful', toolKind: 'handful', source: 'cheese-pile-3', piece: 'cheese-shred', count: TUNING.sprinkle.count },
     },
     {
+      type: 'choose',
+      params: {
+        options: [
+          { id: 'tomato', image: 'veg-tomato-whole', topping: 'topping-tomato' },
+          { id: 'mushroom', image: 'veg-mushroom-whole', topping: 'topping-mushroom' },
+          { id: 'pepper', image: 'veg-pepper-whole', topping: 'topping-pepper' },
+          { id: 'onion', image: 'veg-onion-whole', topping: 'topping-onion' },
+          { id: 'corn', image: 'can-corn-closed', topping: 'topping-corn' },
+          { id: 'olive', image: 'jar-olives-closed', topping: 'topping-olive' },
+        ],
+        pick: TUNING.choose.pick,
+        pauseMs: TUNING.choose.pauseMs,
+        bin: 'topping-bin',
+        line: 'vo-choose',
+      },
+    },
+    {
       type: 'decorate',
       params: {
         items: ['topping-tomato', 'topping-olive', 'topping-mushroom', 'topping-corn', 'topping-pepper', 'topping-onion'],

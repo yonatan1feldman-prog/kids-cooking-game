@@ -120,6 +120,33 @@ export interface SprinkleParams {
   count: number;
 }
 
+/**
+ * Choose: several things stand on the counter, each on its bin (the whole vegetables, a closed can, a closed jar).
+ * A tap picks one (it hops, pop, Mom counts "One!", "Two!"...), another tap puts it back. When `pick` are chosen
+ * the step goes on by itself after a short pause. Each chosen option's `prep` step (cut it, open and pour it) is
+ * then run, in the order she picked them, and decorating offers exactly the chosen toppings. Counts: TUNING.choose.
+ */
+export interface ChooseOption {
+  /** A short name (the dev URL `?pick=tomato,corn,olive` and the tests use it). */
+  id: string;
+  /** What stands on the counter: the whole vegetable, the closed can or jar. */
+  image: ImageKey;
+  /** The topping it becomes: its bin in decorating (and on the bin its prep step fills). */
+  topping: ImageKey;
+  /** How it is prepared once chosen (a `chop` or `open-pour` step). */
+  prep?: StepDef;
+}
+
+export interface ChooseParams {
+  options: ChooseOption[];
+  pick: number;
+  /** The bin each option stands on. */
+  bin: ImageKey;
+  line: VoiceKey;
+  /** Pause after the last pick before the step goes on (so she sees her three). */
+  pauseMs: number;
+}
+
 export interface DecorateParams {
   items: ImageKey[];
   doneButton: ImageKey;
@@ -164,7 +191,8 @@ export type StepDef =
   | { type: 'sprinkle'; params: SprinkleParams }
   | { type: 'decorate'; params: DecorateParams }
   | { type: 'bake'; params: BakeParams }
-  | { type: 'feed'; params: FeedParams };
+  | { type: 'feed'; params: FeedParams }
+  | { type: 'choose'; params: ChooseParams };
 
 export type StepType = StepDef['type'];
 

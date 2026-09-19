@@ -159,11 +159,11 @@ export const IMAGE_KEYS = Object.keys(IMAGES) as ImageKey[];
  * this list when a step starts to use it.
  */
 export const NOT_LOADED: ReadonlySet<ImageKey> = new Set<ImageKey>([
-  'btn-temp-down', 'btn-temp-up', 'can-corn-closed', 'can-corn-open', 'can-lid', 'jar-lid', 'jar-olives-closed',
+  'btn-temp-down', 'btn-temp-up', 'can-corn-open', 'can-lid', 'jar-lid',
   'jar-olives-open', 'cutting-board', 'knife', 'mom-hand-knife', 'mom-hand-mitt', 'mom-mouth-chew', 'mitt-single',
   'oven-mitts', 'oven-panel', 'oven-needle', 'oven-start-off', 'oven-start-on', 'temp-glow', 'photo-frame',
-  'veg-tomato-whole', 'veg-tomato-slice', 'veg-tomato-inside', 'veg-mushroom-whole', 'veg-mushroom-slice',
-  'veg-mushroom-inside', 'veg-pepper-whole', 'veg-pepper-slice', 'veg-pepper-inside', 'veg-onion-whole',
+  'veg-tomato-slice', 'veg-tomato-inside', 'veg-mushroom-slice',
+  'veg-mushroom-inside', 'veg-pepper-slice', 'veg-pepper-inside',
   'veg-onion-slice', 'veg-onion-inside',
 ]);
 /** The images the game loads (everything in the contract except NOT_LOADED). */

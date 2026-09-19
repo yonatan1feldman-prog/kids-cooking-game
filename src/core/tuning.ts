@@ -44,6 +44,8 @@ export const TUNING = {
   spread: { coverage: 0.7 },
   /** Sprinkle: cheese pieces that land before the step is done. */
   sprinkle: { count: 45 },
+  /** Choose the toppings: how many she picks, and the pause after the last pick (she sees her three). */
+  choose: { pick: 3, pauseMs: 900 },
   /** Mom's help (after the idle hint): the pace of her own presses, rubs and strokes. */
-  help: { pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600 },
+  help: { pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150 },
 } as const;
