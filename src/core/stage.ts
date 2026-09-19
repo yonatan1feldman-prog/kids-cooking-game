@@ -96,10 +96,12 @@ export function getStage(L: Layout): Stage {
   const rowsOf = (n: number) => Math.max(1, Math.ceil(n / 2));
   const cellW = (leftW - reach) / 2;
   const cellH = (n: number) => (binsBottom - binsTop) / rowsOf(n);
-  const binScale = (n: number) => (Math.min(cellW, cellH(n)) - 10 * k) / BIN_TEX;
+  // Square cells; when there is height to spare (narrow screens) the grid sits on the counter, packed from the bottom.
+  const cell = (n: number) => Math.min(cellW, cellH(n));
+  const binScale = (n: number) => (cell(n) - 10 * k) / BIN_TEX;
   const bin = (i: number, n: number) => ({
     x: binsLeft + cellW * ((i % 2) + 0.5),
-    y: binsTop + cellH(n) * (Math.floor(i / 2) + 0.5),
+    y: binsBottom - cell(n) * (rowsOf(n) - Math.floor(i / 2) - 0.5),
   });
 
   // Oven: side by side with the dish, filling the space left of the board.

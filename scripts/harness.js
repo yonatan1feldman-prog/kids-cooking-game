@@ -17,6 +17,12 @@
       Date.now = () => Math.floor(__T + __off);
     }
     await __run(1500);
+    // Keep stepping until Boot has loaded the art: never restart scenes mid-load.
+    // (Boot starts Title once everything is loaded; while loading, Boot doesn't count as active.)
+    for (let i = 0; i < 100 && !['Title', 'Home', 'Recipe'].some((k) => game.scene.isActive(k)); i++) {
+      await __run(100);
+      await new Promise((r) => setTimeout(r, 50));
+    }
     window.__S = g.getBoundingClientRect().width / game.scale.width;
     game.scene.getScenes(true).forEach((s) => s.scene.stop());
     await __run(50);
@@ -28,8 +34,9 @@
   // setTimeout is throttled in a hidden tab; a MessageChannel hop is not.
   const ch = new MessageChannel();
   const q = [];
-  ch.port1.onmessage = () => q.shift()?.();
-  window.__yield = () => new Promise((r) => { q.push(r); ch.port2.postMessage(0); });
+  // Every message releases every waiter, and a timer backs it up, so a lost message can't stall a loop.
+  ch.port1.onmessage = () => q.splice(0).forEach((r) => r());
+  window.__yield = () => new Promise((r) => { q.push(r); ch.port2.postMessage(0); setTimeout(r, 1000); });
   window.__tick = (ms = 16) => {
     __T += ms;
     game.loop.step(__T);
@@ -183,4 +190,45 @@ window.__auditRun = async (w, h) => {
     res.info = [a.W, a.k, a.charScale];
   }
   return res;
+};
+
+/**
+ * Screenshot tour: call in order 'title', 'home', 'roll', 'spread', 'sprinkle', 'decorate', 'bake', 'feed'
+ * (take a screenshot after each). Mid-gesture states hold the finger down so the drag is visible.
+ */
+window.__shotAt = async (w, h, what) => {
+  const D = () => __R().ctx.dish;
+  if (what === 'title') return __setup(w, h);
+  if (what === 'home') {
+    const b = game.scene.getScene('Title').children.list.find((o) => o.texture?.key === 'btn-play');
+    __tap(b.x, b.y); return __run(1300);
+  }
+  if (what === 'roll') {
+    const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-pizza');
+    __tap(c.x, c.y); await __run(1600);
+    const d = D(); return __drag([[d.x - 150, d.y - 60], [d.x + 150, d.y - 20], [d.x - 150, d.y + 20]], { hold: true });
+  }
+  if (what === 'spread') {
+    const d = D(); __touch('end', 1, d.x, d.y); await __to('SpreadStep', 1200);
+    return __drag([[d.x - 150, d.y - 100], [d.x + 150, d.y - 60], [d.x - 150, d.y], [d.x + 100, d.y + 40]], { hold: true });
+  }
+  if (what === 'sprinkle') {
+    const d = D(); __touch('end', 1, d.x, d.y); await __to('SprinkleStep', 1200);
+    for (let i = 0; i < 4; i++) { __tap(d.x - 120 + i * 80, d.y + 40); await __run(150); }
+    __touch('start', 1, d.x + 60, d.y - 80); return __run(250);
+  }
+  if (what === 'decorate') {
+    const d = D(); __touch('end', 1, d.x + 60, d.y - 80); await __to('DecorateStep', 1200);
+    for (let i = 0; i < 3; i++) await __gesture();
+    const b = __R().step.bins[4]; await __drag([[b.x, b.y], [d.x - 120, d.y - 40]], { hold: true }); return __run(100);
+  }
+  if (what === 'bake') {
+    const d = D(); __touch('end', 1, d.x - 120, d.y - 40); await __run(500); await __to('BakeStep', 1200);
+    const st = __R().step; await __drag([[d.x, d.y], [st.open.x, st.open.y]]); return __run(2000);
+  }
+  if (what === 'feed') {
+    await __run(2500); await __gesture(); await __to('FeedStep', 1200); await __gesture();
+    const st = __R().step, s = st.slices.find((x) => !x.eaten), c = st.sliceCenter(s);
+    await __drag([[c.x, c.y], [(c.x + st.mouthAt.x) / 2, st.mouthAt.y - 60]], { hold: true }); return __run(200);
+  }
 };
