@@ -196,7 +196,7 @@ export class ChopStep extends Step<ChopParams> {
     // The cut-off piece becomes a slice that drops onto the pile.
     this.dropSlice(this.X(x + this.sliceW / 2), this.Yf((col.top + col.bottom) / 2));
     sfx(this.scene, 'chop', { minGapMs: 0 });
-    voice.say(countKey(i), { group: 'count', ttlMs: 1500 });
+    voice.say(countKey(i), { group: 'count', sequence: true, ttlMs: 5000 });
     burst(this.scene, this.X(x), this.Yf((col.top + col.bottom) / 2), { count: 7, size: 16 * this.u, tint: this.params.juice, speed: 300 * this.u, gravityY: 700 });
     this.scene.tweens.add({ targets: this.veg, y: this.vegTop + 6 * this.u, duration: 70, yoyo: true });
     if (i >= this.params.cuts) this.finish();

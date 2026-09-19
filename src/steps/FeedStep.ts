@@ -266,10 +266,10 @@ export class FeedStep extends Step<FeedParams> {
     // "We made a pizza together!", then the cheer, then "That was fun! Bye bye!", then home (quietly).
     const bye = () =>
       voice.say('vo-bye', {
-        queue: false,
+        ttlMs: 4000,
         done: () => this.scene.time.delayedCall(Math.max(300, PARTY_MIN_MS - (this.scene.time.now - t0)), () => this.complete()),
       });
-    voice.say('vo-finale', { queue: false, done: () => sfxThen(this.scene, 'cheer', bye) });
+    voice.say('vo-finale', { ttlMs: 5000, done: () => sfxThen(this.scene, 'cheer', bye) });
     this.showerStars();
     const hop = 110 * k * (this.ctx.character.scale / (0.62 * k));
     this.scene.tweens.add({ targets: this.char, y: this.charRest.y - hop, duration: 260, yoyo: true, repeat: 5, ease: 'Quad.easeOut' });

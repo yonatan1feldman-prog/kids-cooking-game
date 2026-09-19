@@ -160,7 +160,7 @@ export class BakeStep extends Step<BakeParams> {
         boing(this.scene, this.closed, 0.06);
         sfx(this.scene, 'pop', { volume: 0.5 });
         this.hand.stop();
-        voice.say('vo-oven', { queue: false });
+        voice.say('vo-oven', { ttlMs: 3000 });
         if (this.params.panel) this.showPanel();
         else this.bake();
       },
@@ -347,7 +347,7 @@ export class BakeStep extends Step<BakeParams> {
       );
       if (this.params.mitts) this.showMitts();
       else {
-        voice.say('vo-ready', { queue: false });
+        voice.say('vo-ready', { ttlMs: 3000 });
         this.phase = 'ready';
         this.setIdle(true);
       }

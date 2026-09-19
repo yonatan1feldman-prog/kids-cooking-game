@@ -186,7 +186,7 @@ export abstract class Step<P> {
 
   /** Mom helps: she says so, and the step's own help animation (with her hand) finishes it. */
   private help() {
-    voice.say('vo-help', { queue: false });
+    voice.say('vo-help', { ttlMs: 3000 });
     this.autoFinish();
   }
 

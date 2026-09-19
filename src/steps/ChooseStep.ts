@@ -112,7 +112,7 @@ export class ChooseStep extends Step<ChooseParams> {
     });
     this.scene.tweens.add({ targets: c.glow, alpha: 0.75, duration: 200 });
     boing(this.scene, c.bin, 0.12);
-    voice.say(countKey(this.picks.length), { group: 'count', ttlMs: 1500 });
+    voice.say(countKey(this.picks.length), { group: 'count', sequence: true, ttlMs: 5000 });
     if (this.picks.length >= this.params.pick) this.finish();
   }
 

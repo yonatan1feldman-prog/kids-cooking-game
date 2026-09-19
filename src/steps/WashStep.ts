@@ -206,7 +206,7 @@ export class WashStep extends Step<WashParams> {
       this.scene.time.delayedCall(350, () => this.complete());
     };
     // The water runs a moment longer, then Mom says it is clean and the tap closes (then the praise).
-    this.scene.time.delayedCall(ms, () => voice.say(this.params.doneLine, { queue: false, done: close }));
+    this.scene.time.delayedCall(ms, () => voice.say(this.params.doneLine, { ttlMs: 3000, done: close }));
     this.scene.time.delayedCall(ms + 3500, close);
   }
 

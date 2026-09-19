@@ -130,7 +130,7 @@ export class RecipeScene extends Phaser.Scene {
     sfx(this, 'pop');
     stars(this, dish.x, dish.y, 18, 80 * layout.k);
     boing(this, this.ctx.board, 0.06);
-    voice.praise({ queue: false });
+    voice.praise({ ttlMs: 3000 });
     mom.cheer();
     character.cheer();
     this.time.delayedCall(800, () => this.runStep(i + 1));

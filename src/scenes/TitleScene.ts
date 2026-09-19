@@ -79,7 +79,7 @@ export class TitleScene extends Phaser.Scene {
     sfx(this, 'pop');
     // The music starts with her tap and then runs on, softly, through every screen. Mom waves hello.
     music.start();
-    voice.say('vo-hello', { queue: false });
+    voice.say('vo-hello', { ttlMs: 3000 });
     this.mom?.wave();
     this.time.delayedCall(900, () => this.scene.start('Home', { from: 'title' }));
   }

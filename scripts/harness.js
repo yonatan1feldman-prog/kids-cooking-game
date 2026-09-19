@@ -598,3 +598,73 @@ window.__yourTurnTest = async (w = 900, h = 405, ms = 12000) => {
   __tap(c.x, c.y); await __run(ms);
   return __voLog.map((e) => [e.key, Math.round(e.start - t0), e.end === undefined ? null : Math.round(e.end - t0), e.cut ? 'cut:' + e.cutBy : '']);
 };
+
+/**
+ * Voice-log problems: overlaps, and any cut except the allowed one (a count-* or temp-* line cut by the next line of
+ * its own group). Cuts by 'stop' (rotate screen, background, home) are listed separately, as they are expected there.
+ */
+window.__voCheck = (log) => {
+  const problems = [], stops = [];
+  for (let i = 1; i < log.length; i++) if (log[i - 1].end === undefined || log[i].start < log[i - 1].end - 1) problems.push(`overlap: ${log[i - 1].key} / ${log[i].key}`);
+  for (const e of log) {
+    if (!e.cut) continue;
+    if (e.cutBy === 'stop') stops.push(e.key);
+    else if (!(e.group && e.cutBy.startsWith(e.group + '-'))) problems.push(`cut: ${e.key} by ${e.cutBy}`);
+  }
+  const praise = log.filter((e) => e.key.startsWith('vo-praise')).map((e) => e.key);
+  for (let i = 1; i < praise.length; i++) if (praise[i] === praise[i - 1]) problems.push(`praise twice in a row: ${praise[i]}`);
+  return { problems, stops };
+};
+
+/**
+ * Round 5b full run on the virtual clock with the simulated voice (every line lasts exactly its file's length), so the
+ * timing is what a real child at that pace would get, without waiting in real time.
+ * mode 'child': drags at 650 units/s, ~0.45 s between actions, ~1 s to look at each new step (after Mom's demo);
+ * 'fast': the harness's own pace; 'none': no touch at all after the card (Mom helps with everything).
+ * picks: option ids for the choose step, in order. Returns the steps with their start times (s from the card tap),
+ * the recipe's length, the voice log (key, start s, end s, cut) and its problems.
+ * Takes about 20-60 s of real time: start it without awaiting and read window.__fr5.
+ */
+window.__fullRun5 = async (demos, mode = 'child', picks = ['tomato', 'corn', 'olive'], w = 900, h = 405) => {
+  const drag0 = window.__drag0 || (window.__drag0 = __drag);
+  // (the virtual clock runs far ahead of real time: wait until every voice file is decoded, or early lines are skipped)
+  for (let i = 0; i < 60 && !__voice.allLoaded; i++) await new Promise((r) => setTimeout(r, 250));
+  __demos(demos); await __setup(w, h); __voSim(true);
+  window.__pickOrder = picks; window.__shareTo = 'alt';
+  if (mode === 'child') {
+    window.__drag = async (pts, opts = {}) => {
+      __touch('start', 1, ...pts[0]);
+      for (let i = 1; i < pts.length; i++) {
+        const [a, b] = pts[i - 1], [c, d] = pts[i], L = Math.hypot(c - a, d - b), n = Math.max(2, Math.ceil(L / 40));
+        for (let k = 1; k <= n; k++) { __touch('move', 1, a + ((c - a) * k) / n, b + ((d - b) * k) / n); await __run((L / 650) * 1000 / n); }
+      }
+      if (!opts.hold) __touch('end', 1, ...pts[pts.length - 1]);
+    };
+  }
+  const T = () => game.loop.time;
+  try {
+    const b = game.scene.getScene('Title').children.list.find((o) => o.texture?.key === 'btn-play');
+    __tap(b.x, b.y); await __run(mode === 'child' ? 2500 : 1600);
+    const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-pizza');
+    const n0 = __voLog.length; const t0 = T(); const steps = []; const at = {};
+    __tap(c.x, c.y); await __run(1800);
+    for (let g = 0; g < 4000 && game.scene.isActive('Recipe'); g++) {
+      const s = __type(); const st = __R().step;
+      if (st && st !== window.__lastStep) {
+        window.__lastStep = st; steps.push(s); at[steps.length - 1 + ':' + s] = +((T() - t0) / 1000).toFixed(1);
+        await __waitDemo(); await __run(mode === 'child' ? 1000 : 300);
+      }
+      if (!game.scene.isActive('Recipe')) break;
+      if (__R().step.finished || mode === 'none' || __type() === 'photo') { await __run(100); continue; }
+      await __gesture();
+      if (mode === 'child') await __run(450);
+    }
+    await __run(500);
+    const log = __voLog.slice(n0);
+    const rows = log.map((e) => [e.key, +((e.start - t0) / 1000).toFixed(2), e.end === undefined ? null : +((e.end - t0) / 1000).toFixed(2), e.cut ? 'cut:' + e.cutBy : '']);
+    const count = (k) => log.filter((e) => e.key === k).length;
+    return { mode, demos, picks, steps: at, recipeSeconds: +((T() - t0) / 1000).toFixed(1), home: game.scene.isActive('Home'),
+      watchMe: count('vo-watch-me'), yourTurn: count('vo-your-turn'), cutCareful: count('vo-cut-careful'), helps: count('vo-help'),
+      check: __voCheck(log), rows };
+  } finally { window.__drag = drag0; }
+};

@@ -61,7 +61,7 @@ export class HomeScene extends Phaser.Scene {
         going = true;
         hint.stop();
         stars(this, card.x, card.y, 14, 70 * L.k);
-        if (recipe.id === 'pizza') voice.say('vo-pick-pizza', { queue: false });
+        if (recipe.id === 'pizza') voice.say('vo-pick-pizza', { ttlMs: 3000 });
         // (If the art is still loading, the recipe starts the moment it is ready.)
         Promise.all([assetsReady(), new Promise((r) => this.time.delayedCall(350, r))]).then(
           () => this.scene.isActive() && this.scene.start('Recipe', { id: recipe.id }),

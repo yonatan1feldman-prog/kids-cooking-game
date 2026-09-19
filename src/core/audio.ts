@@ -210,6 +210,12 @@ export interface SayOpts {
    * temperature buttons follow her, instead of piling up. Other lines are never cut by it: it waits behind them.
    */
   group?: string;
+  /**
+   * With `group`: counting. Every number waits its turn behind other lines (none is skipped, "one" before "two");
+   * only while a number of the group is playing does a newer one cut it (and replace the ones still waiting).
+   * Without it (the temperatures) only the newest value matters: it replaces any of its group still waiting.
+   */
+  sequence?: boolean;
 }
 
 interface Pending extends SayOpts {
@@ -277,6 +283,11 @@ class Voice {
     return this.sim;
   }
 
+  /** Every sound file decoded (the test harness waits for it: a line whose file isn't decoded yet is skipped). */
+  get allLoaded() {
+    return soundsLoaded;
+  }
+
   /** The voice clock: real time, or the game's clock in test mode. */
   now() {
     return this.sim && game ? game.loop.time : performance.now();
@@ -290,9 +301,11 @@ class Voice {
       this.cut(key);
     }
     if (opts.group) {
-      // The newest count / temperature replaces an older one of its group, waiting or playing.
-      this.queue = this.queue.filter((q) => (q.group === opts.group ? (q.done?.(), false) : true));
-      if (this.cur?.entry.group === opts.group) this.cut(key);
+      // The newest count / temperature replaces an older one of its group that is playing (cut) or still waiting;
+      // a count behind another line just waits in order (`sequence`).
+      const playingSame = this.cur?.entry.group === opts.group;
+      if (playingSame || !opts.sequence) this.queue = this.queue.filter((q) => (q.group === opts.group ? (q.done?.(), false) : true));
+      if (playingSame) this.cut(key);
     }
     if (this.cur) {
       this.queue.push(p);
