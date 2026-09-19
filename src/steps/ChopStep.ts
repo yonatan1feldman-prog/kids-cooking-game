@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { ART } from '../core/assets';
-import { countKey, voice } from '../core/audio';
+import { countKey, lineMs, voice } from '../core/audio';
 import { boing, burst } from '../core/fx';
 import type { HandMotion } from '../core/hand';
 import { sfx } from '../core/sfx';
@@ -67,7 +67,11 @@ export class ChopStep extends Step<ChopParams> {
     this.vegLeft = vx - (VW / 2) * this.vs;
     this.vegTop = vy - (VH / 2) * this.vs;
     this.veg = this.own(this.scene.add.image(this.vegLeft, this.vegTop, p.whole).setOrigin(0, 0).setScale(this.vs).setDepth(3));
-    this.knife = this.own(this.scene.add.image(0, 0, p.knife).setOrigin(ART.prep.knifeTip.x / 240, ART.prep.knifeTip.y / 640).setScale(KNIFE * u).setDepth(6));
+    // The knife as in the scene, but never so tall that, resting above the vegetable, its handle leaves the screen.
+    let highest = Infinity;
+    for (let i = 1; i <= p.cuts; i++) highest = Math.min(highest, this.Yf(vegColumn(p.veg, this.cutX(i)).top) - 15 * u);
+    const ks = Math.min(KNIFE * u, (highest - 12 * this.layout.k) / ART.prep.knifeTip.y);
+    this.knife = this.own(this.scene.add.image(0, 0, p.knife).setOrigin(ART.prep.knifeTip.x / 240, ART.prep.knifeTip.y / 640).setScale(ks).setDepth(6));
     this.knife.setPosition(this.restPoint().x, this.restPoint().y);
     for (const o of [this.board, this.veg, this.knife]) o.setAlpha(0);
     this.scene.tweens.add({ targets: [this.board, this.veg], alpha: 1, duration: 400 });
@@ -181,7 +185,8 @@ export class ChopStep extends Step<ChopParams> {
     const over = x > this.X(s0) - 150 * this.u && x < this.X(s1) + 150 * this.u;
     const target = over ? this.X(this.cutX(Math.min(this.cutsDone + 1, this.params.cuts))) : x;
     const nx = jump ? target : this.knife.x + (target - this.knife.x) * 0.5;
-    this.knife.setPosition(nx, y);
+    // (held high up, it stays low enough for its handle to stay on the screen)
+    this.knife.setPosition(nx, Math.max(y, ART.prep.knifeTip.y * this.knife.scaleY + 8 * this.layout.k));
   }
 
   private cut() {
@@ -329,6 +334,7 @@ export class ChopStep extends Step<ChopParams> {
       });
       this.scene.time.delayedCall(every / 2, () => this.cut());
     };
-    stroke();
+    // Her first stroke comes after "Let me help you!", so she can count every cut.
+    this.scene.time.delayedCall(lineMs('vo-help'), stroke);
   }
 }

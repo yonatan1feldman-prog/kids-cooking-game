@@ -244,16 +244,9 @@ export class ShareStep extends Step<ShareParams> {
     this.scene.time.delayedCall(CHEW_MS, () => pet.mood === 'chew' && pet.setMood('rest'));
     const k = this.k * (pet.scale / 0.62);
     const box = pet.box;
-    switch (this.fed.pet % 3) {
-      case 1:
-        this.scene.tweens.add({ targets: box, y: pet.rest.y - 120 * k, duration: 220, yoyo: true, ease: 'Quad.easeOut' });
-        break;
-      case 2:
-        this.scene.tweens.add({ targets: box, angle: { from: -10, to: 10 }, duration: 90, yoyo: true, repeat: 3, onComplete: () => box.setAngle(0) });
-        break;
-      default:
-        boing(this.scene, box, 0.22);
-    }
+    // A little jump or a happy up-and-down squish, in turn (nothing sideways: beside Mom's face there is no room for it).
+    if (this.fed.pet % 2) this.scene.tweens.add({ targets: box, y: pet.rest.y - 120 * k, duration: 220, yoyo: true, ease: 'Quad.easeOut' });
+    else this.scene.tweens.add({ targets: box, scaleY: pet.scale * 0.84, duration: 120, yoyo: true, repeat: 1, ease: 'Sine.easeInOut', onComplete: () => box.setScale(pet.scale) });
     if (first) voice.say(this.params.forPet, { ttlMs: 4000 });
   }
 

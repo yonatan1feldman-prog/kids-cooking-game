@@ -390,8 +390,15 @@ export abstract class Step<P> {
     this.onDone();
   }
 
+  /**
+   * True once the scene has left mid-step (home button, a restart). Anything that continues from a voice line's `done`
+   * (which also runs when the voice is stopped on the way out) must check it before touching the scene.
+   */
+  protected aborted = false;
+
   /** Called if the scene leaves mid-step (e.g. home button). */
   abort() {
+    this.aborted = true;
     this.endDemo(true);
     this.finished = true;
     this.hand.stop();

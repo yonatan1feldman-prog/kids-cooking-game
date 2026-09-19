@@ -106,7 +106,7 @@ export interface Stage {
   prepArea: Box;
   /** Chop: the cutting board (1000x600 frame) in the prep area. */
   cutBoard: Spot;
-  /** A filled topping bin waiting in the left column (index 0, 1: side by side under the pizza), or null. */
+  /** A filled topping bin waiting in the left column (index 0-2: side by side under the pizza), or null. */
   binWait: (i: number) => Spot | null;
   /** Open-pour: the bowl (prep-bowl layers) on the right of the prep area, and where the can or jar stands, left of it. */
   pourBowl: Spot;
@@ -397,6 +397,7 @@ export function getStage(L: Layout): Stage {
     photo,
     mitts: { x: dishHome.x, y: dishHome.y + 120 * k, scale: 0.55 * k },
     lidRest: { x: (pourRest.x + bowlLeft) / 2 + 40 * k, y: Y(930) },
-    binWait: (i) => (prepWide ? { x: sideX + (i % 2 ? 1 : -1) * 115 * k, y: Y(895), scale: 0.45 * k } : null),
+    // (three spots side by side under the pizza, 140 apart: bins 108 wide)
+    binWait: (i) => (prepWide ? { x: sideX + ((i % 3) - 1) * 140 * k, y: Y(895), scale: 0.45 * k } : null),
   };
 }

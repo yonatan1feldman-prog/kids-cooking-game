@@ -57,7 +57,7 @@ export class PhotoStep extends Step<PhotoParams> {
 
   /** Click and flash, then the framed photo. */
   private snap() {
-    if (this.frame) return;
+    if (this.frame || this.aborted) return;
     const S = this.ctx.stage;
     const L = this.layout;
     sfx(this.scene, 'camera', { vary: false });
@@ -120,6 +120,7 @@ export class PhotoStep extends Step<PhotoParams> {
 
   /** "We made a pizza together!", the cheer, the stars, "Bye bye!", home. */
   private party() {
+    if (this.aborted) return;
     const t0 = this.scene.time.now;
     this.ctx.mom.celebrate();
     const pet = this.ctx.character;
@@ -130,11 +131,12 @@ export class PhotoStep extends Step<PhotoParams> {
     this.scene.tweens.add({ targets: pet.box, y: pet.rest.y - hop, duration: 260, yoyo: true, repeat: 5, ease: 'Quad.easeOut' });
     if (this.frame) boing(this.scene, this.frame, 0.06);
     const bye = () =>
+      !this.aborted &&
       voice.say(this.params.bye, {
         ttlMs: 4000,
-        done: () => this.scene.time.delayedCall(Math.max(300, PARTY_MIN_MS - (this.scene.time.now - t0)), () => this.complete()),
+        done: () => !this.aborted && this.scene.time.delayedCall(Math.max(300, PARTY_MIN_MS - (this.scene.time.now - t0)), () => this.complete()),
       });
-    voice.say(this.params.finale, { ttlMs: 5000, done: () => sfxThen(this.scene, 'cheer', bye) });
+    voice.say(this.params.finale, { ttlMs: 5000, done: () => !this.aborted && sfxThen(this.scene, 'cheer', bye) });
     this.showerStars();
   }
 

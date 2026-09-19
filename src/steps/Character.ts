@@ -69,6 +69,10 @@ export class Character {
   moveTo(spot: Spot, ms = 600) {
     this.rest = { x: spot.x, y: spot.y };
     this.scale = spot.scale;
+    // Her new size is her resting size from now on: an older tween (her entrance, a hop) must not undo the move,
+    // and a boing during it rests at the new size.
+    this.scene.tweens.killTweensOf(this.box);
+    this.box.setData({ restScaleX: spot.scale, restScaleY: spot.scale });
     if (!this.box.visible) {
       this.box.setPosition(spot.x, spot.y);
       return this.enter();

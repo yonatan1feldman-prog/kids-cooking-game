@@ -192,6 +192,7 @@
     return (opq[key] = { x0: x0 / c.width, y0: y0 / c.height, x1: x1 / c.width, y1: y1 / c.height });
   };
   const box = (o) => {
+    if (!o || !o.active) return { x0: 0, y0: 0, x1: 0, y1: 0 };
     const b = o.getBounds();
     if (!o.texture || o.angle % 180 !== 0) return { x0: b.x, y0: b.y, x1: b.x + b.width, y1: b.y + b.height };
     const f = opaque(o.texture.key);
@@ -201,7 +202,7 @@
   // Mom without her arms (the pointing arm reaches over the board by design): body, head, hair layers.
   const momBox = (m) => [1, 2, 3].map((i) => box(m.box.list[i])).reduce((a, b) => ({ x0: Math.min(a.x0, b.x0), y0: Math.min(a.y0, b.y0), x1: Math.max(a.x1, b.x1), y1: Math.max(a.y1, b.y1) }));
   const circ = (x, y, r) => ({ x0: x - r, y0: y - r, x1: x + r, y1: y + r });
-  const hitOf = (img) => { const s = img.input?.hitArea; return s ? circ(img.x, img.y, s.radius * img.scaleX) : box(img); };
+  const hitOf = (img) => { if (!img || !img.active) return { x0: 0, y0: 0, x1: 0, y1: 0 }; const s = img.input?.hitArea; return s ? circ(img.x, img.y, s.radius * img.scaleX) : box(img); };
   window.__audit = () => {
     const sc = __R(), st = sc.step, name = __step(), W = game.scale.width, H = game.scale.height;
     const L = sc.ctx.layout, forbid = { x0: W * 0.04, x1: W * 0.96, y1: H * 0.92 };
@@ -268,7 +269,8 @@
     if (name === 'ChopStep') {
       vis.push(['cutboard', box(st.board)]); vis.push(['knife', box(st.knife)]);
       const z = st.cutZone(); hits.push(['veg', z]);
-      sc.children.list.filter((o) => o.texture?.key === 'topping-bin' && o.visible && o.alpha > 0.5).forEach((o, i) => vis.push(['bin' + i, box(o)]));
+      // (the bins waiting in the left column; the one filling on the board and one sliding off to the left are by design)
+      sc.children.list.filter((o) => o.texture?.key === 'topping-bin' && o.visible && o.alpha > 0.5 && o.x > 0 && !st.finishing).forEach((o, i) => vis.push(['bin' + i, box(o)]));
     }
     if (name === 'OpenPourStep') {
       vis.push(['box', box(st.box)]);
@@ -667,4 +669,28 @@ window.__fullRun5 = async (demos, mode = 'child', picks = ['tomato', 'corn', 'ol
       watchMe: count('vo-watch-me'), yourTurn: count('vo-your-turn'), cutCareful: count('vo-cut-careful'), helps: count('vo-help'),
       check: __voCheck(log), rows };
   } finally { window.__drag = drag0; }
+};
+
+/**
+ * Round 5b layout audit: a whole recipe at container size w x h with the given picks, auditing every step when it has
+ * settled and again after every gesture (so the phases inside a step are covered: open / pour, the panel, the mitts...).
+ * Returns { steps: { 'N:type': [problems...] } } with each distinct problem once. Start without awaiting; read __ar5.
+ */
+window.__auditRun5 = async (w, h, picks) => {
+  for (let i = 0; i < 60 && !__voice.allLoaded; i++) await new Promise((r) => setTimeout(r, 250));
+  __demos(false); await __setup(w, h); __voSim(true);
+  window.__pickOrder = picks; window.__shareTo = 'alt';
+  await __start();
+  const res = {}; let last = null, n = -1;
+  const add = (key) => { if (!game.scene.isActive('Recipe') || (__R().step?.finished && __type() !== 'photo')) return; for (const p of __audit().problems) if (!res[key].includes(p)) res[key].push(p); };
+  for (let g = 0; g < 3000 && game.scene.isActive('Recipe'); g++) {
+    const st = __R().step;
+    if (st !== last) { last = st; n++; res[n + ':' + __type()] = []; await __run(1200); }
+    const key = n + ':' + __type();
+    if (!res[key]) res[key] = [];
+    add(key);
+    if (st.finished || __type() === 'photo') { await __run(300); if (__type() === 'photo') add(key); continue; }
+    await __gesture();
+  }
+  return { W: game.scale.width, picks, steps: res };
 };
