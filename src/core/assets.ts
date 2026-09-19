@@ -181,6 +181,42 @@ export const IMAGES = {
   'serving-bowl': { size: [480, 320] },
   'salad-portion': { size: [360, 280] },
   'photo-frame-salad': { size: [700, 780] },
+  /** The cookies (round 7, README-cookies.md): the card, what goes into the prep bowl, the egg, the batter stages. */
+  'card-cookies': { size: [400, 520] },
+  'flour-bag': { size: [400, 520] },
+  'sugar-jar': { size: [340, 480] },
+  'butter-cube': { size: [300, 260] },
+  'egg-1': { size: [400, 440] },
+  'egg-2': { size: [400, 440] },
+  'egg-3': { size: [400, 440] },
+  'batter-stage-0': { size: [640, 520] },
+  'batter-stage-1': { size: [640, 520] },
+  'batter-stage-2': { size: [640, 520] },
+  'batter-stage-3': { size: [640, 520] },
+  /** Kneading (the dough-ball frame), the rolled sheet and the baking tray (one 1000x700 frame, the same six slots). */
+  'cookie-dough-knead-1': { size: [360, 300] },
+  'cookie-dough-knead-2': { size: [360, 300] },
+  'cookie-dough-knead-3': { size: [360, 300] },
+  'cookie-dough-ball': { size: [360, 300] },
+  'cookie-dough-flat': { size: [1000, 700] },
+  'baking-tray': { size: [1000, 700] },
+  /** The cutters (one frame, press point ART.cookies.cutterPress) and the cookies they cut (one frame, centred). */
+  'cutter-star': { size: [320, 320] },
+  'cutter-heart': { size: [320, 320] },
+  'cutter-circle': { size: [320, 320] },
+  'cutter-flower': { size: [320, 320] },
+  'cookie-star': { size: [260, 260] },
+  'cookie-heart': { size: [260, 260] },
+  'cookie-circle': { size: [260, 260] },
+  'cookie-flower': { size: [260, 260] },
+  /** Decorating: the icing tubes (shown in their boxes) and what lands on a cookie (topping frame). */
+  'icing-tube-pink': { size: [260, 520] },
+  'icing-tube-choc': { size: [260, 520] },
+  'icing-blob-pink': { size: [140, 140] },
+  'icing-blob-choc': { size: [140, 140] },
+  'sprinkles-cluster': { size: [140, 140] },
+  'candy-dot': { size: [140, 140] },
+  'photo-frame-cookies': { size: [700, 780] },
 } as const satisfies Record<string, { size: readonly [number, number]; raster?: number }>;
 
 /** Texture size of an image: its native size, times its `raster` factor if it is shown bigger than native. */
@@ -209,6 +245,8 @@ export const SOUND_KEYS = [
   'bubbles', 'grate', 'chop', 'can-open', 'jar-open', 'pour', 'camera', 'click', 'beep',
   // the salad (round 6)
   'tear', 'squeeze', 'drizzle', 'salt', 'crunch',
+  // the cookies (round 7)
+  'egg-crack', 'flour-poof', 'stamp', 'icing', 'cookie-crunch',
 ] as const;
 export type SoundKey = (typeof SOUND_KEYS)[number];
 
@@ -287,6 +325,29 @@ export const ART = {
     lemonFace: { x: 260, y: 226 },
     /** A falling drop (juice, oil, water): its round bottom. */
     drop: { x: 60, y: 106 },
+  },
+  /** The cookies' art geometry (README-cookies.md). */
+  cookies: {
+    /** cookie-dough-flat and baking-tray (1000x700): the six slot centres (3 x 2); a cookie at the sheet's scale fills one. */
+    slots: [[220, 215], [500, 215], [780, 215], [220, 485], [500, 485], [780, 485]] as readonly (readonly [number, number])[],
+    /** cutter-* (320x320): the cutting edge's centre; on a slot centre at the sheet's scale it matches the cookie. */
+    cutterPress: { x: 160, y: 172 },
+    /** flour-bag and sugar-jar: their open mouths. */
+    flourMouth: { x: 200, y: 96 },
+    sugarMouth: { x: 170, y: 92 },
+    /** On batter-stage-0 (prep-bowl frame): where the butter's base and the yolk land; butter-cube's base, its scale x bowl. */
+    butterAt: { x: 262, y: 150 },
+    yolkAt: { x: 372, y: 150 },
+    butterBase: { x: 146, y: 196 },
+    butterScale: 0.42,
+    /** egg-*: the tap point (the shell's bottom) and egg-3's drop point. */
+    eggTap: { x: 200, y: 368 },
+    eggDrop: { x: 200, y: 414 },
+    /** The tray in the oven: its centre in the 700x800 oven frame and its scale x the oven's. */
+    ovenTray: { x: 350, y: 468, scale: 0.36 },
+    /** A decoration on a cookie drawn at scale c: blobs and sprinkles 0.85 c, a candy dot 0.4 c. */
+    stamp: 0.85,
+    candy: 0.4,
   },
 } as const;
 

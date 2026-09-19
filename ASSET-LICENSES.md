@@ -68,6 +68,20 @@ live on the sound's own page on 2026-09-19. Downloads are the public HQ previews
 | sfx/drizzle.ogg | Water pouring into glass bowl 01 | Rudmer_Rotteveel | https://freesound.org/people/Rudmer_Rotteveel/sounds/700352/ | CC0 1.0 | cut 0.50-2.55 s (a thin stream), 300 ms fade-out, about -20 LUFS |
 | sfx/salt.ogg | Shaking Salt 1 | OutbreakProtocol | https://freesound.org/people/OutbreakProtocol/sounds/720467/ | CC0 1.0 | cut 0.30-1.15 s (4 shakes), faded, -18 LUFS |
 
+### New in round 7 (the cookies)
+
+From the sound agent's `final/LICENSES.md` ("SFX batch 4"). All five are Freesound CC0; each license was read live on
+the sound's own page on 2026-09-19. Downloads are the public HQ previews. stamp and icing are stand-ins (no CC0
+recording of a cutter pressed into dough or of a piping bag was found).
+
+| File | Title | Author | Source page | License | Processing |
+|---|---|---|---|---|---|
+| sfx/egg-crack.ogg | egg - crack - with hit - wide.wav | Anthousai | https://freesound.org/people/Anthousai/sounds/336614/ | CC0 1.0 | cut 3.50-4.20 s (one crack), faded, about -20 LUFS |
+| sfx/flour-poof.ogg | Dry Puff.wav | valeofhearts | https://freesound.org/people/valeofhearts/sounds/532234/ | CC0 1.0 | whole file, faded, -18 LUFS |
+| sfx/stamp.ogg | 17_stamp, rubber, plastic.wav | 15FPanska_KristynaHaupt | https://freesound.org/people/15FPanska_KristynaHaupt/sounds/461888/ | CC0 1.0 | cut 0.10-0.60 s (one press), faded, about -20 LUFS |
+| sfx/icing.ogg | Squeezing Sound | wesleywestmusic | https://freesound.org/people/wesleywestmusic/sounds/680684/ | CC0 1.0 | cut 0.25-0.75 s (one squeeze), faded, -18 LUFS |
+| sfx/cookie-crunch.ogg | Eating A Biscuit or Cookie | black_trillium | https://freesound.org/people/black_trillium/sounds/752128/ | CC0 1.0 | cut 1.65-2.15 s (one bite), soft limiter, faded, about -23 LUFS |
+
 ## Sounds: music (`sounds/music/`)
 
 | File | Title | Author | Source page | License | Processing |
@@ -143,6 +157,21 @@ name-corn, vo-oil and vo-into-bowl got the sound agent's small fixes, see its `f
 
 name-lettuce and name-lemon are delivered but not said yet.
 
+Added in round 7, the cookies (same engine, voice, speed and processing; vo-egg, vo-flour and vo-butter got a tighter
+trim, five lines the same gentle limiter, name-heart was regenerated; see the sound agent's `final/LICENSES.md`):
+
+| File | Text |
+|---|---|
+| vo-pick-cookies | Let's bake cookies! |
+| vo-flour · vo-sugar · vo-butter | Pour in the flour! · Now the sugar! · Drop in the butter! |
+| vo-egg · vo-stir-dough | Crack the egg! Tap, tap, tap! · Stir it into dough! |
+| vo-knead-cookies · vo-roll-cookies | Let's squish the cookie dough! · Roll it nice and flat! |
+| vo-pick-cutter · vo-stamp · vo-tray | Pick a shape you like! · Press it into the dough! · Onto the baking tray! |
+| name-star · name-heart · name-circle · name-flower | A star! · A heart! · A circle! · A flower! |
+| vo-temp-150 · vo-decorate-cookies | Let's set the oven to one hundred fifty! · Decorate them any way you like! |
+| vo-share-cookies · vo-cookie-mom · vo-cookie-yum · vo-cookie-pipa | Let's share the cookies! · A cookie for me? Thank you! · Mmm, so sweet and crumbly! · A cookie for Pipa! |
+| vo-photo-cookies · vo-finale-cookies | Let's take a picture of your cookies! · We made cookies together! |
+
 ## Graphics (`images/`)
 
 All SVG files in `images/` were drawn for this project by the art agent (style B, paper cut-out; generators in
@@ -151,5 +180,8 @@ water, bubbles, kneading dough, bowl and sauce stages, spoon, grater, cheese, th
 part B items) come from `cooking-game-assets/images-b-prep` (same kit, generators in its `tools/`). The 33 salad files of
 round 6 (colander, lettuce, cucumber and carrot, the salad bowl and its heaps, lemon, oil, salt, servers, serving bowl,
 portion, the salad card and photo frame, drops) come from `cooking-game-assets/images-b-salad` (same kit, generators in
-its `tools/`). No third-party art, fonts or images.
+its `tools/`). The 32 cookie files of round 7 (flour bag, sugar jar, butter, egg, batter stages, cookie dough, sheet,
+tray, cutters, cookies, icing, sprinkles, candy, the cookie card and photo frame) come from
+`cooking-game-assets/images-b-cookies` (same kit, generators in its `tools/`). The egg's yolk in the bowl and the flour
+and sugar specks are drawn in code. No third-party art, fonts or images.
 `images/webp/` holds WebP renderings of those same SVGs, made by `scripts/bake-webp.js`.

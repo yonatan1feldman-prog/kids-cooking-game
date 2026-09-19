@@ -1,4 +1,29 @@
 {
+ "baking-tray": {
+  "sha1": "4e743365e4ca736fc9e52c1f1a7a7c151b16253c",
+  "w": 1000,
+  "h": 700
+ },
+ "batter-stage-0": {
+  "sha1": "2090c3a2c59d613943ab6a4926306e51bf06202c",
+  "w": 640,
+  "h": 520
+ },
+ "batter-stage-1": {
+  "sha1": "44057323f14ecb649b6f27ec808b5f24a036f0fd",
+  "w": 640,
+  "h": 520
+ },
+ "batter-stage-2": {
+  "sha1": "fe73137c80bbe53055c14623f563e21d44db197a",
+  "w": 640,
+  "h": 520
+ },
+ "batter-stage-3": {
+  "sha1": "7aac3915b0fbba02cc2481c0da6995a6bb117c4e",
+  "w": 640,
+  "h": 520
+ },
  "bg-kitchen-landscape": {
   "sha1": "60802d2c14bbdf03b808841055c3c0a5c8c22e2e",
   "w": 2400,
@@ -34,6 +59,11 @@
   "w": 240,
   "h": 240
  },
+ "butter-cube": {
+  "sha1": "1fa93a1785a848b1d1d60c4bc860022e0d5468e8",
+  "w": 300,
+  "h": 260
+ },
  "can-corn-closed": {
   "sha1": "c92c1153e5023b9f636b326125abf9e9d676eea0",
   "w": 340,
@@ -48,6 +78,16 @@
   "sha1": "9ccfb051af966f85470b431d41c89699a705fd59",
   "w": 300,
   "h": 260
+ },
+ "candy-dot": {
+  "sha1": "452967685355daf95382de8262af3772ddc5314d",
+  "w": 140,
+  "h": 140
+ },
+ "card-cookies": {
+  "sha1": "624a63f5260ee3d96126d005b9839ceca57cd6fd",
+  "w": 400,
+  "h": 520
  },
  "card-pizza": {
   "sha1": "e6eacea0df0ad9d8fb50934638b04397d0ae7eb8",
@@ -139,6 +179,71 @@
   "w": 820,
   "h": 560
  },
+ "cookie-circle": {
+  "sha1": "0d5aa1db98ab528c30c88315406f894d87e0ecf4",
+  "w": 260,
+  "h": 260
+ },
+ "cookie-dough-ball": {
+  "sha1": "4b089b5786948f31fcc4ed86d057f7afe5cefecf",
+  "w": 360,
+  "h": 300
+ },
+ "cookie-dough-flat": {
+  "sha1": "338cb33a49f7c133610b69195147f0df014e3b4f",
+  "w": 1000,
+  "h": 700
+ },
+ "cookie-dough-knead-1": {
+  "sha1": "13be1944a06fcb2ae3612e3c8ac1593f68361e81",
+  "w": 360,
+  "h": 300
+ },
+ "cookie-dough-knead-2": {
+  "sha1": "d02855ba9fc7c896201b656a8d6718f0646851e3",
+  "w": 360,
+  "h": 300
+ },
+ "cookie-dough-knead-3": {
+  "sha1": "8fd3d90a9681a6f3b8fce9bf9482a207c5cb75bf",
+  "w": 360,
+  "h": 300
+ },
+ "cookie-flower": {
+  "sha1": "9d2fe2841b751ceb3d55d24a2486c4be93568f08",
+  "w": 260,
+  "h": 260
+ },
+ "cookie-heart": {
+  "sha1": "0c72baad5d286017438f3991022deb811d2caa40",
+  "w": 260,
+  "h": 260
+ },
+ "cookie-star": {
+  "sha1": "a4c473c892105d6c9abf824ded437d80b7f6faac",
+  "w": 260,
+  "h": 260
+ },
+ "cutter-circle": {
+  "sha1": "17dc3f832d869cf678c017098ba12bfc7765bf90",
+  "w": 320,
+  "h": 320
+ },
+ "cutter-flower": {
+  "sha1": "5e096e2fe598cb4cec7009fceb0a0ef2359718f6",
+  "w": 320,
+  "h": 320
+ },
+ "cutter-heart": {
+  "sha1": "0d9abf504f1b69204415bb74f40cd607268bf462",
+  "w": 320,
+  "h": 320
+ },
+ "cutter-star": {
+  "sha1": "01bb860c00e54a080bb43763361baffa3d3cbd74",
+  "w": 320,
+  "h": 320
+ },
  "cutting-board": {
   "sha1": "2949f9614ea953f33d187aba3e0e8c890f84c5ba",
   "w": 1000,
@@ -169,10 +274,30 @@
   "w": 360,
   "h": 300
  },
+ "egg-1": {
+  "sha1": "09dbd05694b01b290e24ea8cb81a984999fc4976",
+  "w": 400,
+  "h": 440
+ },
+ "egg-2": {
+  "sha1": "0cb770f1437d9369afaeeab90db08763ccca5325",
+  "w": 400,
+  "h": 440
+ },
+ "egg-3": {
+  "sha1": "4f8646663a7c5957cb84092d56d03664cb28945f",
+  "w": 400,
+  "h": 440
+ },
  "faucet": {
   "sha1": "61f616bdc7d7085177015a53839eb5b6aa299274",
   "w": 320,
   "h": 400
+ },
+ "flour-bag": {
+  "sha1": "65195daf2cfca3f56d5d0b223082867e1f035195",
+  "w": 400,
+  "h": 520
  },
  "grater": {
   "sha1": "d48b1748d37b82e98e68b74a1c8343bd2816701f",
@@ -183,6 +308,26 @@
   "sha1": "6b68a244d4079f2bf1f08f923612e6e87c72919c",
   "w": 220,
   "h": 280
+ },
+ "icing-blob-choc": {
+  "sha1": "33918d929b33556df72ed894df9787dcf5b0ab76",
+  "w": 140,
+  "h": 140
+ },
+ "icing-blob-pink": {
+  "sha1": "9fedb1f0596c825f7c7d155e43c72d73ccf30b69",
+  "w": 140,
+  "h": 140
+ },
+ "icing-tube-choc": {
+  "sha1": "835a7f9ac5cbe09f6d36209202f1b6a1227e56fb",
+  "w": 260,
+  "h": 520
+ },
+ "icing-tube-pink": {
+  "sha1": "03f2c7330221c4b9da78cc2d7176c55fb0923b76",
+  "w": 260,
+  "h": 520
  },
  "jar-lid": {
   "sha1": "e4b008e2617aef0310948bd7060576b0f5c7b933",
@@ -419,6 +564,11 @@
   "w": 700,
   "h": 780
  },
+ "photo-frame-cookies": {
+  "sha1": "9b80f295810b0251c49e6eb00e10ae447e429528",
+  "w": 700,
+  "h": 780
+ },
  "photo-frame-salad": {
   "sha1": "7d60ad755f89f865fd1f7f3320ad3e81cf7bcce9",
   "w": 700,
@@ -559,10 +709,20 @@
   "w": 240,
   "h": 620
  },
+ "sprinkles-cluster": {
+  "sha1": "fb1239267e8b4e7b54088ace611b5c69fe445084",
+  "w": 140,
+  "h": 140
+ },
  "star": {
   "sha1": "bc47a69307f49b63e072aceb13ce8e8a2f2b6a66",
   "w": 200,
   "h": 200
+ },
+ "sugar-jar": {
+  "sha1": "5ecc6acfb3d148ebb0052f77c673854a4b0d5f8e",
+  "w": 340,
+  "h": 480
  },
  "temp-glow": {
   "sha1": "a2f3b3e65a11ba081e13c28dd8211007cfea0724",
