@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { blockBrowserGestures, installLifecycle } from './core/device';
+import { installOrientationGuard } from './core/orientation';
 import { BASE_H, BASE_W } from './core/layout';
 import { BootScene } from './scenes/BootScene';
 import { HomeScene } from './scenes/HomeScene';
@@ -27,6 +28,7 @@ const game = new Phaser.Game({
 
 blockBrowserGestures();
 installLifecycle(game);
+installOrientationGuard(game);
 
 // Handy for debugging from the browser console.
 (window as unknown as { game: Phaser.Game }).game = game;

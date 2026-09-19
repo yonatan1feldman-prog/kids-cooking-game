@@ -18,7 +18,7 @@ export default defineConfig({
         description: 'A private cooking game for a young child.',
         lang: 'he',
         display: 'fullscreen',
-        orientation: 'portrait',
+        orientation: 'landscape',
         background_color: '#ffe4b5',
         theme_color: '#ffb347',
         start_url: './',
