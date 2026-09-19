@@ -34,10 +34,16 @@ export class RollStep extends Step<RollParams> {
     const { x, y } = this.ctx.dishHome;
     this.dish.setPosition(x, y).setScale(1).setAlpha(1);
 
+    this.workspace('dish');
     this.flat = this.own(art(this.scene.add.image(x, y, this.params.flat), L).setAlpha(0));
-    this.ball = this.own(art(this.scene.add.image(x, y, this.params.ball), L));
-    this.ball.setScale(0);
-    this.scene.tweens.add({ targets: this.ball, scale: this.k, duration: 500, ease: 'Back.easeOut' });
+    // The dough she kneaded, if the step before left it; else a fresh ball pops in.
+    const kneaded = this.adopt(this.params.ball);
+    if (kneaded) this.ball = kneaded.setDepth(0.5);
+    else {
+      this.ball = this.own(art(this.scene.add.image(x, y, this.params.ball), L));
+      this.ball.setScale(0);
+      this.scene.tweens.add({ targets: this.ball, scale: this.k, duration: 500, ease: 'Back.easeOut' });
+    }
 
     this.pinRest = this.ctx.stage.pinRest;
     this.pinAngle = this.ctx.stage.pinRestAngle;

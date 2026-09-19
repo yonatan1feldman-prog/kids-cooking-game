@@ -1,6 +1,9 @@
 import { TUNING } from '../core/tuning';
 import type { Recipe } from './types';
 
+/** Flour white for the dough. */
+const FLOUR = 0xfff6e6;
+
 export const pizza: Recipe = {
   id: 'pizza',
   card: 'card-pizza',
@@ -29,6 +32,19 @@ export const pizza: Recipe = {
         line: 'vo-wash',
         rubLine: 'vo-wash-rub',
         doneLine: 'vo-wash-done',
+      },
+    },
+    {
+      type: 'knead',
+      params: {
+        stages: ['dough-knead-1', 'dough-knead-2', 'dough-knead-3', 'dough-ball'],
+        pressesPerStage: TUNING.knead.pressesPerStage,
+        place: 'board',
+        dent: 'press-dent',
+        splash: FLOUR,
+        sound: 'squish',
+        line: 'vo-knead',
+        handoff: 'dough-ball',
       },
     },
     { type: 'roll', params: { ball: 'dough-ball', flat: 'dough-flat', tool: 'rolling-pin', rubWidths: TUNING.roll.rubWidths } },

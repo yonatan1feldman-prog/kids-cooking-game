@@ -2,6 +2,7 @@ import type { StepDef, StepType } from '../recipes/types';
 import { BakeStep } from './BakeStep';
 import { DecorateStep } from './DecorateStep';
 import { FeedStep } from './FeedStep';
+import { PressStep } from './PressStep';
 import { RollStep } from './RollStep';
 import { SprinkleStep } from './SprinkleStep';
 import { SpreadStep } from './SpreadStep';
@@ -13,6 +14,8 @@ type Factory = (ctx: StepContext, params: never, onDone: () => void) => Step<unk
 /** Step type name (as used in recipe files) -> reusable implementation. */
 const STEP_TYPES: Record<StepType, Factory> = {
   wash: (c, p, d) => new WashStep(c, p, d),
+  // knead and crush are the same reusable press step (on the board / in the bowl)
+  knead: (c, p, d) => new PressStep(c, p, d),
   roll: (c, p, d) => new RollStep(c, p, d),
   spread: (c, p, d) => new SpreadStep(c, p, d),
   sprinkle: (c, p, d) => new SprinkleStep(c, p, d),
