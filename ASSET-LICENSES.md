@@ -101,6 +101,12 @@ thick drink poured was found); lid-click is a plastic container lid.
 |---|---|---|---|---|---|
 | sfx/sizzle.ogg | pan fry1.wav | Vital_Sounds | https://freesound.org/people/Vital_Sounds/sounds/534484/ | CC0 1.0 (read live on the sound's page, 2026-09-19) | 40.0-44.6 s, a seamless 4.0 s loop, low-pass 6 kHz, -20 LUFS; played as a loop at 0.35 (frying food, not batter: the CC0 pancake recordings had handling noise) |
 
+### New in round 9 (the vegetable soup)
+
+| File | Title | Author | Source page | License | Processing |
+|---|---|---|---|---|---|
+| sfx/peel.ogg | Peeling a Carrot | Erbsland-Music | https://freesound.org/people/Erbsland-Music/sounds/634142/ | CC0 1.0 (read live on the sound's page, 2026-09-20) | one Y-peeler stroke cut at 2.05-2.52 s, high-pass 80 Hz, 2 ms / 60 ms fades, -1.0 dBFS cap, -22.9 LUFS; played at gain 1.0 (the munch / tear convention) |
+
 ## Sounds: music (`sounds/music/`)
 
 | File | Title | Author | Source page | License | Processing |
@@ -213,6 +219,20 @@ limiter; see the sound agent's `final/LICENSES.md`). vo-flour, vo-egg (the cooki
 | vo-decorate-pancakes · vo-share-pancakes | Put on anything you like! · Let's share the pancakes! |
 | vo-pancake-mom · vo-pancake-yum · vo-pancake-pipa | Some for me? Thank you! · Mmm, warm and fluffy! · Some for Pipa! |
 | vo-photo-pancakes · vo-finale-pancakes | Let's take a picture of your pancakes! · We made pancakes together! |
+
+### New in round 9 (the memory book and the vegetable soup, 16 lines)
+
+Same engine, voice and processing as every line above (Kokoro-82M, af_heart, speed 0.85, trimmed, -18 LUFS, -1.5 dBFS
+peak cap, OGG q3). `name-potato` and `name-zucchini` join the `name-*` family Mom says when a vegetable is picked.
+
+| Key | Line |
+|---|---|
+| vo-album | Look at everything we made! |
+| vo-pick-soup · name-potato · name-zucchini | Let's make vegetable soup! · Potato! · Zucchini! |
+| vo-peel · vo-peel-done | Let's peel it! Swipe along! · All peeled! |
+| vo-into-pot · vo-water · vo-stir-soup · vo-soup-ready | Put it all in the pot! · Pour in the water! · Stir the soup while it cooks! · It smells so good! |
+| vo-serve-soup · vo-soup-mom · vo-soup-pipa · vo-soup-yum | Let's serve the soup! · A bowl for me? Thank you! · A bowl for Pipa! · Mmm, warm and cozy! |
+| vo-photo-soup · vo-finale-soup | Let's take a picture of your soup! · We made soup together! |
 
 ## Graphics (`images/`)
 

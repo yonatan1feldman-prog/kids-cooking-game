@@ -7,7 +7,7 @@ import { sfx } from '../core/sfx';
 import { getStage } from '../core/stage';
 import { iconButton } from '../core/ui';
 import { getRecipe } from '../recipes';
-import type { ChooseParams, Recipe, StepDef } from '../recipes/types';
+import { prepSteps, type ChooseParams, type Recipe, type StepDef } from '../recipes/types';
 import { Character } from '../steps/Character';
 import { Dish } from '../steps/Dish';
 import { Mom } from '../steps/Mom';
@@ -116,7 +116,7 @@ export class RecipeScene extends Phaser.Scene {
       const cp = this.steps[ci].params as ChooseParams;
       const ids = q.get('pick')?.split(',') ?? cp.options.slice(0, cp.pick).map((o) => o.id);
       this.ctx.run.chosen = ids.map((id) => cp.options.find((o) => o.id === id)).filter((o) => !!o);
-      this.steps.splice(ci + 1, 0, ...this.ctx.run.chosen.flatMap((o) => (o.prep ? [o.prep] : [])));
+      this.steps.splice(ci + 1, 0, ...this.ctx.run.chosen.flatMap(prepSteps));
     }
     return n < this.steps.length ? n : 0;
   }

@@ -5,16 +5,18 @@
  */
 /** The smoothie's fruit: cut the same way, drawn as fruit-*-whole / -slice / -inside. */
 export type FruitName = 'banana' | 'strawberry' | 'mango' | 'kiwi';
-export type VegName = 'tomato' | 'mushroom' | 'pepper' | 'onion' | 'cucumber' | 'carrot' | FruitName;
+/** The soup's own two (round 9): cut the same way, drawn as veg-*-whole / -slice / -inside. */
+export type SoupVeg = 'potato' | 'zucchini';
+export type VegName = 'tomato' | 'mushroom' | 'pepper' | 'onion' | 'cucumber' | 'carrot' | FruitName | SoupVeg;
 
 export const VEG = {
   /** The veg-*-whole frame. */
   size: [672, 504] as const,
   /** The body's x span: cutting goes from right to left inside it (the pepper's stem is not cut). */
-  span: { tomato: [125, 547], mushroom: [91, 581], pepper: [60, 588], onion: [31, 636], cucumber: [53, 619], carrot: [36, 577], banana: [48, 583], strawberry: [115, 535], mango: [67, 600], kiwi: [79, 593] } as Record<VegName, readonly [number, number]>,
+  span: { tomato: [125, 547], mushroom: [91, 581], pepper: [60, 588], onion: [31, 636], cucumber: [53, 619], carrot: [36, 577], banana: [48, 583], strawberry: [115, 535], mango: [67, 600], kiwi: [79, 593], potato: [91, 599], zucchini: [48, 624] } as Record<VegName, readonly [number, number]>,
   /** veg-*-inside strips: 60 wide, as tall as the body at its tallest. */
   stripW: 60,
-  stripH: { tomato: 378, mushroom: 406, pepper: 378, onion: 327, cucumber: 168, carrot: 159, banana: 136, strawberry: 303, mango: 324, kiwi: 322 } as Record<VegName, number>,
+  stripH: { tomato: 378, mushroom: 406, pepper: 378, onion: 327, cucumber: 168, carrot: 159, banana: 136, strawberry: 303, mango: 324, kiwi: 322, potato: 224, zucchini: 198 } as Record<VegName, number>,
   /** Mushroom: the cap part of its strip (rows 0..59.76%), used where the cut misses the stem. */
   mushCapFrac: 0.5976,
   /** Below this body bottom a mushroom cut misses the stem (outside x ~236..436). */
@@ -33,6 +35,9 @@ export const VEG = {
     strawberry: [[119,  283.2,  306.6],  [143,  259.7,  338.6],  [167,  243.7,  353.9],  [191,  230.3,  366.5],  [215,  218.9,  377.5],  [239,  209.0,  387.6],  [263,  200.4,  396.8],  [287,  192.8,  405.5],  [311,  185.7,  413.6],  [335,  178.4,  421.2],  [359,  170.7,  428.3],  [383,  162.5,  434.7],  [407,  154.5,  440.1],  [431,  147.6,  444.1],  [455,  143.4,  446.0],  [479,  144.0,  444.3],  [503,  152.7,  436.3],  [527,  174.4,  417.9]],
     mango: [[95,  273.3,  387.8],  [119,  245.3,  414.4],  [143,  225.8,  432.4],  [167,  210.1,  445.7],  [191,  196.7,  455.6],  [215,  184.7,  463.0],  [239,  173.9,  468.0],  [263,  164.5,  471.2],  [287,  156.8,  472.7],  [311,  151.2,  472.7],  [335,  148.1,  471.7],  [359,  147.5,  469.8],  [383,  149.3,  467.2],  [407,  153.6,  463.8],  [431,  160.1,  459.3],  [455,  168.7,  453.4],  [479,  179.3,  445.8],  [503,  191.9,  436.0],  [527,  207.2,  423.4],  [551,  226.1,  406.6],  [575,  251.9,  382.8]],
     kiwi: [[83,  271.1,  348.9],  [107,  232.2,  388.1],  [131,  209.5,  410.8],  [155,  193.1,  427.3],  [179,  180.6,  440.1],  [203,  171.0,  450.0],  [227,  163.8,  457.9],  [251,  158.7,  464.1],  [275,  155.3,  468.8],  [299,  153.5,  472.3],  [323,  153.1,  474.6],  [347,  154.1,  475.7],  [371,  156.3,  475.4],  [395,  159.6,  473.7],  [419,  164.2,  470.5],  [443,  170.3,  465.5],  [467,  178.1,  458.5],  [491,  187.8,  449.1],  [515,  200.3,  436.9],  [539,  216.4,  420.9],  [563,  238.4,  398.9],  [587,  274.9,  362.5]],
+    // the soup's (README-soup.md, measured by the art agent's generator --profiles)
+    potato: [[95, 298.6, 356.1], [119, 264.8, 386.8], [143, 249.5, 402.7], [167, 240.1, 414.2], [191, 234.0, 423.8], [215, 230.4, 432.0], [239, 228.3, 439.2], [263, 227.8, 445.1], [287, 228.3, 449.6], [311, 229.5, 452.5], [335, 231.3, 453.9], [359, 233.3, 453.5], [383, 235.7, 451.7], [407, 238.4, 448.1], [431, 242.0, 443.1], [455, 246.7, 436.9], [479, 253.1, 429.8], [503, 261.5, 422.0], [527, 272.6, 413.3], [551, 286.4, 402.7], [575, 304.5, 388.7]],
+    zucchini: [[52, 351.2, 392.5], [76, 307.6, 434.6], [100, 297.2, 443.4], [124, 289.0, 450.2], [148, 283.1, 454.7], [172, 278.7, 457.7], [196, 275.4, 459.9], [220, 273.0, 461.4], [244, 271.2, 462.3], [268, 269.9, 462.9], [292, 269.0, 463.4], [316, 268.3, 463.7], [340, 267.9, 464.1], [364, 267.6, 464.6], [388, 267.4, 465.1], [412, 267.6, 465.4], [436, 268.2, 465.6], [460, 269.3, 465.2], [484, 271.3, 464.4], [508, 274.3, 462.7], [532, 278.6, 459.6], [556, 284.9, 454.8], [580, 294.3, 446.8], [604, 311.1, 431.7]],
   } as Record<VegName, [number, number, number][]>,
 };
 

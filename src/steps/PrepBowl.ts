@@ -26,7 +26,7 @@ export const BOWL_DEPTH = { back: 1.5, contents: 1.6, tool: 1.75, front: 1.9 };
 const BOWLS: Record<
   string,
   {
-    spot: 'prepBowl' | 'saladBowl' | 'blenderJar';
+    spot: 'prepBowl' | 'saladBowl' | 'blenderJar' | 'soupPot';
     opening: { x: number; y: number; rx: number; ry: number };
     /** What it stands on, drawn under it and moving with it (the blender's base and its button), in the bowl's frame. */
     stand?: { key: ImageKey; at: { x: number; y: number } }[];
@@ -42,6 +42,12 @@ const BOWLS: Record<
       { key: 'blender-base', at: { x: ART.smoothie.jarSeat.x, y: ART.smoothie.jarSeat.y + 260 - ART.smoothie.baseSeat.y } },
       { key: 'blender-button-off', at: { x: ART.smoothie.jarSeat.x, y: ART.smoothie.jarSeat.y + ART.smoothie.button.y - ART.smoothie.baseSeat.y } },
     ],
+  },
+  // The soup pot (round 9) stands on the stove top that is drawn under it and moves with it.
+  'pot-back': {
+    spot: 'soupPot',
+    opening: ART.soup.potOpening,
+    stand: [{ key: 'stove-top', at: ART.soup.stoveAt }],
   },
 };
 const bowlOf = (back: string) => BOWLS[back] ?? BOWLS['prep-bowl-back'];

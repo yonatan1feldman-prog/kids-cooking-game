@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import { ART, IMAGES } from '../core/assets';
-import { boing, burst } from '../core/fx';
+import { bakeLoop, voice } from '../core/audio';
+import { boing, burst, puff } from '../core/fx';
+import { tapMotion } from '../core/hand';
 import type { HandMotion } from '../core/hand';
 import { sfx } from '../core/sfx';
 import { TUNING } from '../core/tuning';
@@ -29,9 +31,13 @@ export class StirStep extends Step<StirParams> {
   private sinceFx = 0;
   private finishing = false;
   private k = 1;
+  /** With a stove (the soup): 'knob' until she lights it, then 'stir'. Without one it is 'stir' from the start. */
+  private phase: 'knob' | 'stir' = 'stir';
+  private knob?: Phaser.GameObjects.Image;
+  private flame?: Phaser.GameObjects.Image;
 
   start() {
-    this.stepLine = this.params.line;
+    this.stepLine = this.params.stove ? this.params.stove.line : this.params.line;
     this.k = this.layout.k;
     this.workspace('aside');
     this.bowl = PrepBowl.take(this.ctx) ?? new PrepBowl(this.ctx, this.params.bowl, this.params.from);
@@ -55,8 +61,22 @@ export class StirStep extends Step<StirParams> {
     this.spoon.setOrigin(at.x / w, at.y / h).setScale(anchor ? s : 0.8 * this.k).setAngle(this.rest.angle).setAlpha(0);
     this.scene.tweens.add({ targets: this.spoon, alpha: 1, duration: 300 });
 
+    // The soup: the stove under the pot must be lit before there is anything to stir.
+    if (this.params.stove) {
+      this.phase = 'knob';
+      const st = this.params.stove;
+      const at = this.bowl.point(st.knobAt.x, st.knobAt.y);
+      this.knob = this.own(this.scene.add.image(at.x, at.y, st.knobOff).setScale(this.bowl.scale).setDepth(BOWL_DEPTH.back - 0.05));
+      this.spoon.setVisible(false);
+    }
+
     this.onDown((q) => {
       if (this.finishing) return;
+      if (this.phase === 'knob') {
+        if (this.onKnob(q.worldX, q.worldY)) this.lightStove();
+        else this.miss();
+        return;
+      }
       const onSpoon = this.spoon.getBounds().contains(q.worldX, q.worldY);
       if (this.bowl.reach(q.worldX, q.worldY) > 1.8 && !onSpoon) return;
       this.stirring = true;
@@ -67,7 +87,7 @@ export class StirStep extends Step<StirParams> {
       this.drops(at.x, at.y, 4);
     });
     this.onMove((q) => {
-      if (!this.stirring || this.finishing) return;
+      if (!this.stirring || this.finishing || this.phase === 'knob') return;
       const at = this.spoonAt(q.worldX, q.worldY);
       const d = Phaser.Math.Distance.Between(this.last.x, this.last.y, at.x, at.y);
       this.last = at;
@@ -81,6 +101,33 @@ export class StirStep extends Step<StirParams> {
       if (!this.finishing) this.restSpoon();
     });
     this.setIdle(true);
+  }
+
+  /** The knob's touch area: its drawing plus a generous margin (small fingers aim at the middle of a thing). */
+  private onKnob(x: number, y: number) {
+    if (!this.knob) return false;
+    const b = this.knob.getBounds();
+    const pad = 60 * this.k;
+    return x > b.x - pad && x < b.right + pad && y > b.y - pad && y < b.bottom + pad;
+  }
+
+  /** A tap on the knob: it turns, the flame comes up under the pot, the bake loop starts, and stirring begins. */
+  private lightStove() {
+    const st = this.params.stove;
+    if (!st || this.phase !== 'knob') return;
+    this.phase = 'stir';
+    this.poke();
+    this.hand.stop();
+    sfx(this.scene, 'click');
+    this.knob?.setTexture(st.knobOn);
+    if (this.knob) boing(this.scene, this.knob, 0.12);
+    const f = this.bowl.point(st.flameAt.x, st.flameAt.y);
+    this.flame = this.own(this.scene.add.image(f.x, f.y, st.flame).setScale(this.bowl.scale).setDepth(BOWL_DEPTH.back - 0.04).setAlpha(0));
+    this.scene.tweens.add({ targets: this.flame, alpha: 1, duration: 350 });
+    if (this.params.cook) bakeLoop.start();
+    this.spoon.setVisible(true).setAlpha(0);
+    this.scene.tweens.add({ targets: this.spoon, alpha: 1, duration: 300, delay: 200 });
+    voice.say(this.params.line, { ttlMs: 6000, valid: () => !this.aborted });
   }
 
   /** The spoon's bowl goes where the finger is, kept inside the opening. */
@@ -116,6 +163,11 @@ export class StirStep extends Step<StirParams> {
       this.sinceFx = 0;
       sfx(this.scene, this.sound, { minGapMs: 180, volume: 0.45 });
       this.drops(x, y, 2);
+      // The soup answers her stirring with a little steam (it never rises by itself).
+      if (this.params.cook) {
+        const o = this.bowl.opening();
+        puff(this.scene, o.x + (Math.random() - 0.5) * o.rx, o.y - o.ry * 0.4, 0xffffff, 3, 90 * this.k).setDepth(BOWL_DEPTH.front + 0.2);
+      }
     }
     if (this.progress >= 1) this.finish();
   }
@@ -145,6 +197,8 @@ export class StirStep extends Step<StirParams> {
     this.stirring = false;
     this.setIdle(false);
     this.hand.stop();
+    if (this.params.cook) bakeLoop.stop();
+    if (this.params.doneLine) voice.say(this.params.doneLine, { ttlMs: 5000, valid: () => !this.aborted });
     this.progress = 1;
     this.render();
     this.bowl.contents.setAngle(0);
@@ -182,8 +236,9 @@ export class StirStep extends Step<StirParams> {
     });
   }
 
-  /** Mom's spoon hand circles inside the bowl (the real spoon rests hidden meanwhile). */
+  /** Mom's spoon hand circles inside the bowl (the real spoon rests hidden meanwhile); at the knob, she taps it. */
   protected demo(): HandMotion {
+    if (this.phase === 'knob' && this.knob) return tapMotion({ x: this.knob.x, y: this.knob.y }, this.k);
     const o = this.bowl.opening();
     const keys = [];
     for (let i = 0; i <= 10; i++) {
@@ -196,20 +251,32 @@ export class StirStep extends Step<StirParams> {
   }
 
   protected onDemoStart() {
-    this.spoon.setVisible(false);
+    if (this.phase !== 'knob') this.spoon.setVisible(false);
   }
 
   protected showHint() {
-    this.spoon.setVisible(false);
+    if (this.phase !== 'knob') this.spoon.setVisible(false);
     super.showHint();
   }
 
   protected onDemoEnd() {
-    this.spoon.setVisible(true);
+    if (this.phase !== 'knob') this.spoon.setVisible(true);
   }
 
   /** Mom helps: her spoon hand stirs round and round until the sauce is smooth. */
   protected autoFinish() {
+    // At the knob, Mom's hand lights the stove for her, and then it is the child's turn again: the stirring
+    // help only comes if she goes idle once more (without this the step would stay in Mom's hands for good).
+    if (this.phase === 'knob' && this.knob) {
+      const at = { x: this.knob.x, y: this.knob.y };
+      this.hand.play(tapMotion(at, this.k), {
+        onDone: () => {
+          this.lightStove();
+          this.resumeAfterAuto();
+        },
+      });
+      return;
+    }
     this.spoon.setVisible(false);
     const o = this.bowl.opening();
     const t0 = this.scene.time.now;

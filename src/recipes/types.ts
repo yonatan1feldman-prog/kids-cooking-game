@@ -118,6 +118,22 @@ export interface StirParams {
   keep?: boolean;
   /** Stages between `from` and `to` (the cookie batter: dry, streaky, crumbly, smooth); what lies on it mixes in first. */
   via?: ImageKey[];
+  /**
+   * Round 9 (the soup): the pot cooks on a stove. First a tap on the knob lights it (`line`, the flame under the pot,
+   * the click), and only then does the stirring start. `knobAt` and `flameAt` are points of the bowl's own frame.
+   */
+  stove?: {
+    knobOff: ImageKey;
+    knobOn: ImageKey;
+    flame: ImageKey;
+    knobAt: { x: number; y: number };
+    flameAt: { x: number; y: number };
+    line: VoiceKey;
+  };
+  /** The bake loop plays while it cooks, and steam rises from the pot as she stirs. */
+  cook?: boolean;
+  /** Said when the stirring is done ("It smells so good!"), before the step ends. */
+  doneLine?: VoiceKey;
 }
 
 /**
@@ -219,8 +235,11 @@ export interface ChooseOption {
   image: ImageKey;
   /** The topping it becomes: its bin in decorating (and on the bin its prep step fills). */
   topping: ImageKey;
-  /** How it is prepared once chosen (a `chop` or `open-pour` step). */
-  prep?: StepDef;
+  /**
+   * How it is prepared once chosen: one step, or several in order (round 9: the soup peels a carrot before it
+   * chops it, so carrot and potato carry a `peel` step in front of their `chop`).
+   */
+  prep?: StepDef | StepDef[];
   /** Mom says its name when it is picked (a newer name may cut the one playing). Without it she counts. */
   name?: VoiceKey;
 }
@@ -242,6 +261,34 @@ export interface ChooseParams {
  * cut line, a slice drops onto a pile, chop, and Mom counts. After `cuts` cuts the end that is left becomes the last
  * slice, and the slices go into the topping's bin (left for decorating). Counts: TUNING.chop.
  */
+/**
+ * Peel (round 9, `PeelStep`): the vegetable lies on the cutting board covered by a layer of peel (`skin`, drawn in the
+ * whole vegetable's own viewBox so it sits on it exactly). The peeler follows the finger; every `minSwipe` of travel
+ * along the vegetable, in either direction, takes off one of `strips` bands: it disappears, a curl flies off, the
+ * sound plays. When they are all off Mom says `doneLine` and the step ends. She cannot fail. Counts: TUNING.<recipe>.peel.
+ */
+export interface PeelParams {
+  /** Which measured body profile (core/vegArt.ts) the whole image has. */
+  veg: VegName;
+  whole: ImageKey;
+  /** The peel over it: the same viewBox as `whole`, aligned to its body. */
+  skin: ImageKey;
+  board: ImageKey;
+  peeler: ImageKey;
+  /** One curl of peel, flying off on each stroke. */
+  strip: ImageKey;
+  /** How many strokes clean it. */
+  strips: number;
+  /** Finger travel along the vegetable for one strip (world units at k = 1; forgiving). */
+  minSwipe: number;
+  /** Colour of the bits that fly on each stroke (default: a warm carrot orange). */
+  splash?: number;
+  line: VoiceKey;
+  /** "All peeled!", at the end. */
+  doneLine: VoiceKey;
+  sound: SoundKey;
+}
+
 export interface ChopParams {
   /** Which measured body profile (core/vegArt.ts) the whole image has. */
   veg: VegName;
@@ -516,12 +563,16 @@ export type StepDef =
   | { type: 'chop'; params: ChopParams }
   | { type: 'open-pour'; params: OpenPourParams }
   | { type: 'share'; params: ShareParams }
+  | { type: 'peel'; params: PeelParams }
   | { type: 'photo'; params: PhotoParams }
   | { type: 'cutters'; params: CutterParams }
   | { type: 'blend'; params: BlendParams }
   | { type: 'flip'; params: FlipParams };
 
 export type StepType = StepDef['type'];
+
+/** A chosen option's prep steps, in order (one step, several, or none). */
+export const prepSteps = (o: ChooseOption): StepDef[] => (o.prep ? (Array.isArray(o.prep) ? o.prep : [o.prep]) : []);
 
 export interface Recipe {
   id: string;

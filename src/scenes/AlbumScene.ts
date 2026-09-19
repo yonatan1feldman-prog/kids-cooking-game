@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { listPhotos, type AlbumPhoto } from '../core/album';
 import { IMAGES, type ImageKey } from '../core/assets';
+import { voice } from '../core/audio';
 import { boing } from '../core/fx';
 import { addBackground, getLayout, keepLayoutOnResize } from '../core/layout';
 import { ALBUM_ARROW, makeAlbumTextures } from '../core/placeholders';
@@ -94,7 +95,8 @@ export class AlbumScene extends Phaser.Scene {
     await loadImages(this.game, frames);
     if (!this.scene.isActive()) return;
     this.mine.push(...frames);
-    // (round 9, stage 0: the book is quiet. Stage 1 says vo-album here, "Look at everything we made!")
+    // Mom says it once, as the book opens: "Look at everything we made!" Nothing else speaks here.
+    voice.say('vo-album', { ttlMs: 5000, valid: () => this.scene.isActive() });
     await this.showPage(L, S);
   }
 

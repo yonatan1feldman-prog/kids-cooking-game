@@ -236,10 +236,14 @@ export class MomHandView {
     });
   }
 
-  /** Mom helping: the hand shows and follows `at()` every frame (null = hide it for now) until stopped. */
-  follow(kind: MomHand, at: () => P | null, size = 1) {
+  /**
+   * Mom helping: the hand shows and follows `at()` every frame (null = hide it for now) until stopped.
+   * `props` are see-through things it carries along (the peeler), exactly as in `play`.
+   */
+  follow(kind: MomHand, at: () => P | null, size = 1, props?: HandProp[]) {
     this.stop();
     this.setKind(kind, size);
+    this.makeProps(props);
     this.followFn = at;
     this.img.setAlpha(0).setVisible(true);
     this.scene.tweens.add({ targets: this.img, alpha: 1, duration: FADE });

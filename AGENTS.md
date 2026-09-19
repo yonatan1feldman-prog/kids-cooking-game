@@ -3,8 +3,8 @@
 ## Quick start (read this, then only the sections your task needs)
 - **What:** a text-free, English-speaking cooking game for a 5-year-old (Android phone, landscape): she cooks with
   Mom, Pipa the hedgehog watches and eats. Phaser 4 + Vite + TypeScript PWA, deployed to GitHub Pages from `master`.
-  Five recipes: pizza, salad, cookies, smoothie and pancakes (`src/recipes/<name>.ts`), cards in a grid on the home
-  screen (3 + 2).
+  Six recipes: pizza, salad, cookies, smoothie, pancakes and vegetable soup (`src/recipes/<name>.ts`), cards in a grid
+  on the home screen, with the memory book's button in one more cell once there is a photo in it.
 - **Where things are:** `src/recipes/` recipes as pure data (`types.ts` = every step type's params); `src/steps/` one
   reusable class per step type (`registry.ts` maps names to classes); `src/core/tuning.ts` every count and threshold;
   `src/core/stage.ts` every position; `src/core/assets.ts` the asset contract (image keys, sizes, art anchors `ART`);
@@ -212,7 +212,7 @@ src/scenes/
 
 ## Recipes are data
 A recipe is `{ id, card, board, character, steps: StepDef[] }`. Each step names a reusable type and its params.
-Step types: `wash`, `knead`, `crush`, `stir`, `grate`, `roll`, `spread`, `sprinkle`, `choose`, `chop`, `open-pour`,
+Step types: `wash`, `knead`, `crush`, `stir`, `grate`, `roll`, `spread`, `sprinkle`, `choose`, `chop`, `peel`, `open-pour`,
 `decorate`, `bake`, `share`, `photo`, `cutters`, `blend`, `flip` (and `feed`, the older single-eater ending with its own finale, no longer used).
 The salad (`salad.ts`) is the second worked example: see Handoff notes 0000.
 The pizza: wash, knead, roll, crush, stir, spread, grate, sprinkle, choose, then the prep step of each of the three
@@ -406,6 +406,9 @@ fallback if the capture fails.
   mitt-single, oven-mitts, oven-panel, oven-needle, oven-start-off/on, temp-glow, photo-frame,
   veg-tomato/mushroom/pepper/onion-whole / -slice / -inside. (`NOT_LOADED` in assets.ts is the place for art that is
   delivered before a step uses it: baked and precached, but not loaded.)
+- Round 9 added the soup's art (`../cooking-game-assets/images-b-soup`, README-soup.md: the pot's contents window and
+  stove offset, the peeler's grip, the jug's mouth, the ladle's anchor, the two new vegetable profiles) and the memory
+  book's own two textures, drawn in code (`makeAlbumTextures`).
 - Sound keys: effects (`sfx/`, 27; the salad added tear, squeeze, drizzle, salt, crunch; levels tear 1.0, squeeze and
   drizzle 0.8, per MIXING.md): tap, pop, squish, sprinkle, whoosh, oven-ding, munch, cheer, cheer-jingle,
   star, complete (not used yet), bake (loop), water (loop), bubbles, grate, and for part B chop, can-open, jar-open,
@@ -580,6 +583,36 @@ State: `rollback-pre-album` = master before the round; branch `round-9-album` me
   and in the book; no console errors, no placeholders.
 - Found and fixed: with three columns every frame came out at scale 0.37 (the room left of Mom is only ~1150 units
   wide), so a page shows four bigger ones; a single photo was sized in a three-column cell instead of the free room.
+
+- **The vegetable soup is data** (`src/recipes/soup.ts`, tag `v0.11-soup`, `rollback-pre-soup` before): wash hands ·
+  wash the vegetables (the salad's colander) · choose 3 of 5 (carrot, potato, onion, zucchini, tomato) · peel the ones
+  with a skin (new type) · chop each · everything into the pot (open-pour `sources: ['chosen']`, pot-heap-1..3) · the
+  water (`water-jug`) · salt · light the stove and stir it cooking (stir's new `stove` phase, soup-stage-1..3) · a ladle
+  to each bowl (share `portions`, slurp) · photo. Counts: `TUNING.soup`. Reference shots:
+  `../cooking-game-assets/images-b-soup/shots/`.
+- **New step type `peel`** (`steps/PeelStep.ts`, `PeelParams`): the vegetable lies on the cutting board exactly where
+  `chop` puts it, under a layer of peel (`skin`: the whole vegetable's own viewBox, aligned to its body). The peeler
+  follows the finger; every `minSwipe` of travel along it, in either direction, takes off one of `strips` bands (that
+  band of the skin goes, a curl flies off, the `peel` sound). All off: `doneLine` and on. She cannot fail: no wrong
+  direction, place or speed. Demo and help: `mom-hand-grab` carrying a see-through peeler. Anything with a skin (a
+  potato, an apple, a cucumber) is the same type with other pictures.
+- **Round 9 also generalised, each optional:** a `choose` option's `prep` may be several steps in order
+  (`prepSteps` in recipes/types.ts), so the carrot and the potato are peeled before they are cut; `stir` gained
+  `stove` (a tap on the knob lights the flame under the pot first, `vo-stove`), `cook` (the bake loop while she stirs
+  and steam as an answer to it) and `doneLine`; `MomHandView.follow` can carry props, like `play`.
+- **Checked (virtual clock, simulated voice):** 182 s at child pace with demos (the smoothie is 173, the cookies 178),
+  voice in order with no overlap and no help needed; salad regression clean; layout audits clean on every step at 20:9
+  and 4:3 (only Mom's known finale sway); rotate and background while the peeler, the spoon and a ladle were held:
+  dropped, kept, finished; the soup's photo reaches the memory book in `photo-frame-soup`. No placeholders, no silent
+  sounds, no console errors.
+- **Found and fixed:** Mom's help at the stove knob lit it but never gave the step back to the child
+  (`resumeAfterAuto`), so the stirring could never start; the peeler was first sized off the board (a gadget, then
+  longer than the carrot) — it is now `BODY_SHARE` of the vegetable's own body; the knob's touch area was only its
+  drawing; the bins waiting to pour into the pot shrank to 93 units, so the cooktop takes the salad bowl's 0.62 share
+  of the work area, not 0.70; the potato and zucchini bins use the delivered `veg-*-slice` art (`fitOf` sizes a 240
+  frame down to the bin's 140) instead of two icons that were never drawn.
+- **Needs a real finger:** the peeling stroke (is any direction really enough? `TUNING.soup.peel.minSwipe`), picking
+  up a waiting bin (124 units wide) and carrying it over the pot, and the stove knob in the bottom-right corner.
 
 ### 000000. Round 8 (loading by recipe; the smoothie, the fourth recipe)
 State: `rollback-pre-round8` = master before the round; `v0.7-infra` = loading by recipe + the background fix (see

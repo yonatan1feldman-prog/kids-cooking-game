@@ -125,6 +125,21 @@ export const TUNING = {
     flip: { count: 3, pourMs: 3500, cookMs: 3000, minSwipe: 60 },
     share: { slices: 4 },
   },
+  /**
+   * The vegetable soup (round 9; aim: 4-5 minutes from the card to home). Wash the vegetables: drops of rubbing, as
+   * the salad's. Peel (carrot and potato only): strips per vegetable and the finger travel along it for one strip.
+   * Chop: cuts per vegetable. Into the pot: ms of pouring each bin. Water: ms of pouring. Stir: finger travel through
+   * the three soup stages. Serve: one ladle per bowl, two bowls.
+   */
+  soup: {
+    washVeg: { bubbles: 10, rubPerBubble: 300, rubLineAt: 99, rinseMs: 1200 },
+    peel: { strips: 5, minSwipe: 110 },
+    chop: { cuts: 4, minSwipe: 50 },
+    transfer: { ms: 1400 },
+    water: { ms: 2400 },
+    stir: { distance: 4200 },
+    serve: { bowls: 2 },
+  },
   /** Mom's help (after the idle hint): the pace of her own presses, rubs and strokes. */
-  help: { pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150, chopEveryMs: 950, openMs: 1500, tempEveryMs: 1100 },
+  help: { pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150, chopEveryMs: 950, openMs: 1500, tempEveryMs: 1100, peelEveryMs: 900 },
 } as const;

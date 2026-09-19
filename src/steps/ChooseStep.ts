@@ -6,7 +6,7 @@ import { tapMotion, type HandMotion } from '../core/hand';
 import { opaqueBounds } from '../core/placeholders';
 import { sfx } from '../core/sfx';
 import { TUNING } from '../core/tuning';
-import type { ChooseOption, ChooseParams } from '../recipes/types';
+import { prepSteps, type ChooseOption, type ChooseParams } from '../recipes/types';
 import { Step } from './Step';
 
 interface Choice {
@@ -126,7 +126,7 @@ export class ChooseStep extends Step<ChooseParams> {
     this.hand.stop();
     const run = this.ctx.run;
     run.chosen = this.picks.map((c) => c.opt);
-    run.insert = run.chosen.flatMap((o) => (o.prep ? [o.prep] : []));
+    run.insert = run.chosen.flatMap(prepSteps);
     this.scene.time.delayedCall(this.params.pauseMs, () => {
       this.picks.forEach((c) => boing(this.scene, c.item, 0.15));
       this.scene.time.delayedCall(300, () => this.complete());

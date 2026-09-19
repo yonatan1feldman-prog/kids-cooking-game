@@ -89,6 +89,8 @@
     } else if (name === 'PressStep') {
       __tap(st.at.x + (Math.random() - 0.5) * 80, st.at.y - 60 + (Math.random() - 0.5) * 60); await __run(250);
     } else if (name === 'StirStep') {
+      // Round 9 (the soup): the stove's knob first, then the stirring.
+      if (st.phase === 'knob') { __tap(st.knob.x, st.knob.y); await __run(900); await __run(300); return; }
       const o = st.bowl.opening(), pts = [];
       for (let i = 0; i <= 12; i++) { const a = (i / 12) * Math.PI * 2; pts.push([o.x + Math.cos(a) * o.rx * 0.6, o.y + Math.sin(a) * o.ry * 0.6]); }
       await __drag(pts);
@@ -129,6 +131,11 @@
         await __drag([[x, z.y0 + 60], [x, z.y1 - 40], [x, z.y0 + 60]]);
         await __run(250);
       }
+    } else if (name === 'PeelStep') {
+      // Round 9: strokes along the vegetable (any direction), each one takes a strip off.
+      const z = st.peelZone(), y = (z.y0 + z.y1) / 2, pts = [];
+      for (let i = 0; i <= 6; i++) pts.push([i % 2 ? z.x1 - 60 : z.x0 + 60, y + (i % 2 ? 20 : -20)]);
+      await __drag(pts); await __run(300);
     } else if (name === 'OpenPourStep') {
       const b = st.box;
       if (st.phase === 'open') {
@@ -1136,6 +1143,12 @@ window.__smoothieMoments = () => [
   ['share (a glass held mid-drag)', 'share', async (st) => { const s = st.slices.find((x) => !x.eaten), c = st.sliceCenter(s); await __drag([[c.x, c.y], [c.x + 150, c.y - 80]], { hold: true }); }, (st) => st.slices.filter((x) => x.eaten).length, (st) => !!st.held],
 ];
 /** The pancakes' moments for __robust8: the ladle held over the pan (pouring), and a wedge held mid-drag. */
+/** Round 9: the soup's moments for __robust8 (the peeler held mid-stroke, and a ladle of soup held mid-drag). */
+window.__soupMoments = () => [
+  ['peel (the peeler held mid-stroke)', 'peel', async (st) => { const z = st.peelZone(), y = (z.y0 + z.y1) / 2; await __drag([[z.x0 + 80, y], [z.x0 + 150, y]], { hold: true }); await __run(300); }, (st) => st.done + ':' + st.bands.filter((b) => b.active).length, (st) => st.held],
+  ['stir (the soup on the stove, spoon held)', 'stir', async (st) => { if (st.phase === 'knob') { __tap(st.knob.x, st.knob.y); await __run(900); } const o = st.bowl.opening(); await __drag([[o.x, o.y], [o.x + o.rx * 0.4, o.y]], { hold: true }); await __run(300); }, (st) => st.phase + ':' + Math.round(st.progress * 100), (st) => st.stirring],
+  ['share (a ladle held mid-drag)', 'share', async (st) => { const s = st.slices.find((x) => !x.eaten), c = st.sliceCenter(s); await __drag([[c.x, c.y], [c.x + 150, c.y - 80]], { hold: true }); }, (st) => st.slices.filter((x) => x.eaten).length, (st) => !!st.held],
+];
 window.__pancakeMoments = () => [
   ['flip (the ladle held over the pan, pouring)', 'flip', async (st) => { if (st.phase === 'knob') { __tap(st.knob.x, st.knob.y); await __run(800); } const hp = st.holdPoint(); await __drag([[st.ladle.x, st.ladle.y], [hp.x, hp.y]], { hold: true }); await __run(700); }, (st) => st.phase + ':' + st.made + ':' + Math.round(st.poured / 100), (st) => st.held],
   ['share (a wedge held mid-drag)', 'share', async (st) => { const s = st.slices.find((x) => !x.eaten), c = st.sliceCenter(s); await __drag([[c.x, c.y], [c.x + 150, c.y - 80]], { hold: true }); }, (st) => st.slices.filter((x) => x.eaten).length, (st) => !!st.held],

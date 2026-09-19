@@ -184,6 +184,11 @@
   "w": 400,
   "h": 520
  },
+ "card-soup": {
+  "sha1": "954989be41d633cc2268611053cadd8c6e848a8f",
+  "w": 400,
+  "h": 520
+ },
  "character-body": {
   "sha1": "c9653d3984497c5b8074e9af01539ebe3b934b43",
   "w": 600,
@@ -789,6 +794,26 @@
   "w": 680,
   "h": 680
  },
+ "peel-skin-carrot": {
+  "sha1": "a9520c8f471ceeeb1642fe9a623b147dae3a5409",
+  "w": 672,
+  "h": 504
+ },
+ "peel-skin-potato": {
+  "sha1": "389398a98f8f9a642e3bb87ed867e5bfaf206e61",
+  "w": 672,
+  "h": 504
+ },
+ "peel-strip": {
+  "sha1": "358d065a4417ba9ddfccb312bd6810f3b54d61bb",
+  "w": 280,
+  "h": 240
+ },
+ "peeler": {
+  "sha1": "bbb1efadb7c7c8aaf39e146772f4e69851f0df85",
+  "w": 420,
+  "h": 460
+ },
  "photo-frame": {
   "sha1": "11ba1d46116b80ce86ac9452fb99f67b0b29e1df",
   "w": 700,
@@ -811,6 +836,11 @@
  },
  "photo-frame-smoothie": {
   "sha1": "9f1fb704d8f90c7b72e3779c22b8eba53a8f5eee",
+  "w": 700,
+  "h": 780
+ },
+ "photo-frame-soup": {
+  "sha1": "1f0492384c156f57e3631ee680664c5d10cd82fa",
   "w": 700,
   "h": 780
  },
@@ -843,6 +873,31 @@
   "sha1": "c9ad9f695059770b51fc8bd145ca6af75dab0054",
   "w": 720,
   "h": 720
+ },
+ "pot-back": {
+  "sha1": "d6f40573ec16a0a4c80571a7c75f1adab4f94bb9",
+  "w": 1000,
+  "h": 760
+ },
+ "pot-front": {
+  "sha1": "4b4814def814175176090e2d5bc7b6a4177b1d14",
+  "w": 1000,
+  "h": 760
+ },
+ "pot-heap-1": {
+  "sha1": "f89f63f6f0757d109a0e6ba748a252a5b4d2b07b",
+  "w": 1000,
+  "h": 760
+ },
+ "pot-heap-2": {
+  "sha1": "cfbf60578aa1fb2e6e3395f082549456b984b936",
+  "w": 1000,
+  "h": 760
+ },
+ "pot-heap-3": {
+  "sha1": "17b2e05233cee90d1fa4334b790bef506a33e206",
+  "w": 1000,
+  "h": 760
  },
  "prep-bowl-back": {
   "sha1": "750caf9eebba69e2a7b6fb6fa26d1bb661064b97",
@@ -948,6 +1003,36 @@
   "sha1": "c6e01019a91381128867862947834864620d79f1",
   "w": 900,
   "h": 560
+ },
+ "soup-bowl-empty": {
+  "sha1": "d15b55944870187b39aedd92eb07ec675f7d9ecd",
+  "w": 560,
+  "h": 360
+ },
+ "soup-bowl-full": {
+  "sha1": "ef1c05b262a985024dd645fcf6d74ff0d40bd52d",
+  "w": 560,
+  "h": 360
+ },
+ "soup-portion": {
+  "sha1": "6c32cc80eb57dd4beaf8c50c63b36995ed32598b",
+  "w": 360,
+  "h": 420
+ },
+ "soup-stage-1": {
+  "sha1": "6195b5006ff5a94a3e830d0be6a778aee3920a17",
+  "w": 1000,
+  "h": 760
+ },
+ "soup-stage-2": {
+  "sha1": "e18ae5f1b34814e4b1508d3b30dbd7ee2dea158e",
+  "w": 1000,
+  "h": 760
+ },
+ "soup-stage-3": {
+  "sha1": "f4e82a87e51fbcfe7058c236a0ee0654621d3f98",
+  "w": 1000,
+  "h": 760
  },
  "spoon-wood": {
   "sha1": "86aa806f27f44ac50c83a14319dcd58330526b32",
@@ -1114,6 +1199,21 @@
   "w": 672,
   "h": 504
  },
+ "veg-potato-inside": {
+  "sha1": "21b83172823041a7059317499651fe7ca5669e45",
+  "w": 60,
+  "h": 224
+ },
+ "veg-potato-slice": {
+  "sha1": "c78d8c47a3b23af96e547de5f453779e4bf08c33",
+  "w": 240,
+  "h": 240
+ },
+ "veg-potato-whole": {
+  "sha1": "de8fbf785c4af06507c1c38eb5b17436a2c58076",
+  "w": 672,
+  "h": 504
+ },
  "veg-tomato-inside": {
   "sha1": "7c5d6515462074a2a2301ab9820dea0c538ececf",
   "w": 60,
@@ -1129,10 +1229,30 @@
   "w": 672,
   "h": 504
  },
+ "veg-zucchini-inside": {
+  "sha1": "6faa7fda0c6b3fec50650ffb8e8860b906637fef",
+  "w": 60,
+  "h": 198
+ },
+ "veg-zucchini-slice": {
+  "sha1": "5edb0673383b780e4fce2f033b4f7bbb584bc46e",
+  "w": 240,
+  "h": 240
+ },
+ "veg-zucchini-whole": {
+  "sha1": "0db0341dd234ba41a08073ea7f0bb139f3b603c6",
+  "w": 672,
+  "h": 504
+ },
  "water-drop": {
   "sha1": "07652ae1b75b3272a50da84f8803c47f423131aa",
   "w": 120,
   "h": 160
+ },
+ "water-jug": {
+  "sha1": "0a691d791013ce9f0cb7430eb2f1952996cf8800",
+  "w": 360,
+  "h": 520
  },
  "water-stream": {
   "sha1": "8a593f28e2ff486507f00b0c1693f3747a6a7c44",

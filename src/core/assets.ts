@@ -285,6 +285,32 @@ export const IMAGES = {
   'banana-coin': { size: [140, 140] },
   'butter-pat': { size: [140, 140] },
   'photo-frame-pancakes': { size: [700, 780] },
+
+  // ---- The vegetable soup (round 9; images-b-soup, README-soup.md)
+  'card-soup': { size: [400, 520] },
+  'veg-potato-whole': { size: [672, 504] },
+  'veg-potato-slice': { size: [240, 240] },
+  'veg-potato-inside': { size: [60, 224] },
+  'veg-zucchini-whole': { size: [672, 504] },
+  'veg-zucchini-slice': { size: [240, 240] },
+  'veg-zucchini-inside': { size: [60, 198] },
+  'peel-skin-carrot': { size: [672, 504] },
+  'peel-skin-potato': { size: [672, 504] },
+  peeler: { size: [420, 460] },
+  'peel-strip': { size: [280, 240] },
+  'pot-back': { size: [1000, 760] },
+  'pot-front': { size: [1000, 760] },
+  'pot-heap-1': { size: [1000, 760] },
+  'pot-heap-2': { size: [1000, 760] },
+  'pot-heap-3': { size: [1000, 760] },
+  'soup-stage-1': { size: [1000, 760] },
+  'soup-stage-2': { size: [1000, 760] },
+  'soup-stage-3': { size: [1000, 760] },
+  'water-jug': { size: [360, 520] },
+  'soup-bowl-empty': { size: [560, 360] },
+  'soup-bowl-full': { size: [560, 360] },
+  'soup-portion': { size: [360, 420] },
+  'photo-frame-soup': { size: [700, 780] },
 } as const satisfies Record<string, { size: readonly [number, number]; raster?: number }>;
 
 /** Texture size of an image: its native size, times its `raster` factor if it is shown bigger than native. */
@@ -319,7 +345,7 @@ export const LOADED_KEYS = IMAGE_KEYS.filter((k) => !NOT_LOADED.has(k));
  */
 export const CORE_IMAGES: readonly ImageKey[] = [
   'bg-kitchen-landscape', 'logo-cooking-with-mom', 'star', 'btn-play', 'btn-home', 'btn-done', 'hand-hint',
-  'card-pizza', 'card-salad', 'card-cookies', 'card-smoothie', 'card-pancakes',
+  'card-pizza', 'card-salad', 'card-cookies', 'card-smoothie', 'card-pancakes', 'card-soup',
   'character-body', 'character-eyes-open', 'character-eyes-blink', 'character-eyes-surprised', 'character-eyes-happy',
   'character-mouth-closed', 'character-mouth-open', 'character-mouth-chew',
   'mom-arm-right', 'mom-body', 'mom-head', 'mom-hair', 'mom-eyes-open', 'mom-eyes-blink', 'mom-eyes-happy',
@@ -417,6 +443,27 @@ RECIPE_ASSETS.pancakes = {
 };
 
 /** Every sound some recipe lists (so not loaded at boot). */
+RECIPE_ASSETS.soup = {
+  images: [
+    ...WASH, 'colander', 'topping-bin', 'cutting-board', 'knife', 'mom-hand-knife', 'salt-shaker', 'water-drop',
+    'veg-carrot-whole', 'veg-carrot-slice', 'veg-carrot-inside', 'piece-carrot',
+    'veg-potato-whole', 'veg-potato-slice', 'veg-potato-inside',
+    'veg-onion-whole', 'veg-onion-slice', 'veg-onion-inside', 'topping-onion',
+    'veg-zucchini-whole', 'veg-zucchini-slice', 'veg-zucchini-inside',
+    'veg-tomato-whole', 'veg-tomato-slice', 'veg-tomato-inside', 'topping-tomato',
+    'peel-skin-carrot', 'peel-skin-potato', 'peeler', 'peel-strip',
+    'pot-back', 'pot-front', 'pot-heap-1', 'pot-heap-2', 'pot-heap-3',
+    'soup-stage-1', 'soup-stage-2', 'soup-stage-3', 'stove-top', 'stove-knob-off', 'stove-knob-on', 'flame',
+    'water-jug', 'spoon-wood', 'soup-bowl-empty', 'soup-bowl-full', 'soup-portion', 'photo-frame-soup',
+  ],
+  sounds: [
+    'peel', 'slurp', 'vo-wash-veg', 'vo-wash-veg-done', 'vo-choose-veg', 'vo-cut', 'vo-cut-careful', 'vo-salt',
+    'vo-stove', 'name-carrot', 'name-onion', 'name-tomato', 'name-potato', 'name-zucchini',
+    'vo-peel', 'vo-peel-done', 'vo-into-pot', 'vo-water', 'vo-stir-soup', 'vo-soup-ready', 'vo-serve-soup',
+    'vo-soup-mom', 'vo-soup-pipa', 'vo-soup-yum', 'vo-photo-soup', 'vo-finale-soup',
+  ],
+};
+
 export const RECIPE_SOUNDS: ReadonlySet<string> = new Set(Object.values(RECIPE_ASSETS).flatMap((r) => r.sounds));
 /** Contract images in neither the core nor any recipe (a new key someone forgot to list): reported at boot. */
 export const unlistedImages = () => {
@@ -435,6 +482,8 @@ export const SOUND_KEYS = [
   'egg-crack', 'flour-poof', 'stamp', 'icing', 'cookie-crunch',
   // the smoothie (round 8; the blender is a loop, audio.ts `blenderLoop`)
   'lid-click', 'slurp', 'glass-pour',
+  // the vegetable soup (round 9; the pot cooks on the oven's own `bake` loop)
+  'peel',
 ] as const;
 export type SoundKey = (typeof SOUND_KEYS)[number];
 
@@ -538,6 +587,29 @@ export const ART = {
     candy: 0.4,
   },
   /** The smoothie's art geometry (README-smoothie.md, scenes-smoothie.js `SMOOTHIE`). */
+  /**
+   * The soup (round 9), from README-soup.md. The pot's layers share an 800x700 frame; the stove top (1200x920, from
+   * the pancakes) is drawn under it, and the knob and the flame sit on the stove, given here in the pot's frame.
+   */
+  soup: {
+    /** pot-back / pot-front / pot-heap-* / soup-stage-* (1000x760): the contents window inside the rim. */
+    potOpening: { x: 500, y: 258, rx: 368, ry: 92 },
+    /**
+     * The cooktop (`stove-top`, 1200x920, from the pancakes) is drawn under the pot at the pot's own scale, with its
+     * top-left at the pot frame's (20, 100): the pot's foot then sits in front of the big burner instead of behind
+     * its grate arms. These three are that stove's points, given in the pot's frame; the cooktop sticks out to
+     * `STOVE_RIGHT` (stage.ts) on the right and to y 1020 below.
+     */
+    stoveAt: { x: 620, y: 560 },
+    flameAt: { x: 500, y: 550 },
+    knobAt: { x: 1060, y: 852 },
+    /** water-jug (360x520): the tip of its lip, where the water leaves it. */
+    jugMouth: { x: 52, y: 118 },
+    /** soup-portion (a full ladle, 360x420): the soup in the cup, the point that follows the finger. */
+    portionAnchor: { x: 150, y: 250 },
+    /** peeler (420x460): the blade line's midpoint, which rides on the vegetable (the grip is 266 above it). */
+    peelerBlade: { x: 210, y: 358 },
+  },
   smoothie: {
     /** blender-jar-* (600x800): the rim ellipse, the seat (bottom of the blade collar), the pouring lip. */
     jarMouth: { x: 300, y: 118, rx: 208, ry: 30 },

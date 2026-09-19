@@ -125,6 +125,11 @@ export interface Stage {
    */
   blenderJar: Spot;
   blenderBase: Spot;
+  /**
+   * The soup pot (round 9): its layers (pot-back / pot-front) on the right of the prep area, standing on the stove
+   * top that comes with it, its base at the counter's front. The things poured into it wait in `pourFrom`.
+   */
+  soupPot: Spot;
   /** Open-pour: the bowl (prep-bowl layers) on the right of the prep area, and where the can or jar stands, left of it. */
   pourBowl: Spot;
   pourRest: Spot;
@@ -163,6 +168,12 @@ const LEFT_W = 480; // left column: two bin columns
 const GAP = 25;
 const BIN_TEX = 240; // topping-bin viewBox
 const BIN_REACH = 30; // a bin's touch area reaches this far beyond its drawing (DecorateStep)
+const POT_W = 1000; // pot-back / pot-front frame (round 9, README-soup.md)
+const POT_H = 760;
+// The cooktop drawn under the pot (stove-top, at the pot's scale, its top-left at the pot frame's (20,100)) sticks
+// out past the pot's own frame: to x 1220 on the right and to y 1020 below. The whole thing has to fit.
+const STOVE_RIGHT = 1220;
+const STOVE_BOTTOM = 1020;
 const HOME_TEX = 240; // btn-home viewBox
 const HOME_FACTOR = 0.85; // 204 units: over the 200 minimum, and small enough to stay out of the way
 const HOME_PAD = 30; // its hit circle reaches this far beyond the art
@@ -342,8 +353,19 @@ export function getStage(L: Layout): Stage {
   const jarSeat = { x: prepArea.x1 - 350 * blendScale - 10 * k, y: Y(1030) - 412 * blendScale };
   const blenderJar = { x: jarSeat.x, y: jarSeat.y - (776 - 400) * blendScale, scale: blendScale };
   const blenderBase = { x: jarSeat.x, y: jarSeat.y + (260 - 108) * blendScale, scale: blendScale };
+  // The soup pot on its stove: as wide as the salad bowl, its base at the counter's front (the stove is drawn under it).
+  // The same 0.62 share of the work area the salad bowl takes: what is left is where the filled bins wait to be
+  // tipped in, and they have to stay big enough for her to pick up.
+  const potScale = Math.min(0.7 * k, ((prepArea.x1 - prepArea.x0) * 0.62) / STOVE_RIGHT, (Y(1000) - Y(190)) / STOVE_BOTTOM);
+  // Placed by the cooktop, not by the pot: its right edge and its foot are what must stay inside the work area.
+  const soupPot = {
+    x: prepArea.x1 - 10 * k - (STOVE_RIGHT - POT_W / 2) * potScale,
+    y: Y(1000) - (STOVE_BOTTOM - POT_H / 2) * potScale,
+    scale: potScale,
+  };
   // (inset: a waiting thing's touch area reaches 45 beyond its drawing, never into the thumb strip)
-  const pourFrom = { x0: prepArea.x0 + 40 * k, y0: Y(380), x1: saladBowl.x - (SALAD_BOWL_W / 2) * saladScale - 10 * k, y1: prepArea.y1 };
+  const potLeft = soupPot.x - (POT_W / 2) * potScale;
+  const pourFrom = { x0: prepArea.x0 + 40 * k, y0: Y(380), x1: Math.min(saladBowl.x - (SALAD_BOWL_W / 2) * saladScale, potLeft) - 10 * k, y1: prepArea.y1 };
 
   // Home: the recipe cards in a grid between the thumb strip and Mom's face (and Pipa), under the top edge.
   const CARD_W = 400;
@@ -448,6 +470,7 @@ export function getStage(L: Layout): Stage {
     saladBowl,
     blenderJar,
     blenderBase,
+    soupPot,
     pourFrom,
     panel: panelSpot,
     tempDown: { x: panelSpot.x - btnDx, y: btnY },
