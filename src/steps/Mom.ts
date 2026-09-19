@@ -138,6 +138,14 @@ export class Mom {
     });
   }
 
+  /** Hello: happy eyes and a wave of the raised hand (the title, after the play tap). */
+  wave() {
+    this.mood = 'happy';
+    this.setEyes('happy');
+    this.scene.tweens.add({ targets: this.armR, angle: { from: -14, to: 14 }, duration: 180, yoyo: true, repeat: 3, onComplete: () => this.armR.setAngle(0) });
+    this.scene.time.delayedCall(1500, () => this.box.active && this.mood === 'happy' && this.rest());
+  }
+
   /** Stays happy (the finale, watching Pipa eat). */
   happy() {
     this.mood = 'happy';

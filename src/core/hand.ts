@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { ART, FX_SOFT, IMAGES, type ImageKey, type MomHand } from './assets';
 import type { Layout } from './layout';
+import { HINT_AFTER_MS } from './tuning';
 
 type P = { x: number; y: number };
 
@@ -43,6 +44,59 @@ export interface HandMotion {
 export const HAND_SCALE: Record<MomHand, number> = { point: 0.62, roll: 0.66, spread: 0.66, sprinkle: 1.1, grab: 0.66 };
 
 const FADE = 200;
+
+/** Mom's finger comes in and taps a point twice (buttons, the tap on the oven, the tap). */
+export function tapMotion(at: P, k: number): HandMotion {
+  return {
+    kind: 'point',
+    keys: [
+      { x: at.x + 60 * k, y: at.y + 70 * k, t: 0 },
+      { x: at.x, y: at.y, t: 400 },
+      { x: at.x, y: at.y, t: 600, press: true },
+      { x: at.x, y: at.y, t: 800 },
+      { x: at.x, y: at.y, t: 1000, press: true },
+      { x: at.x + 60 * k, y: at.y + 70 * k, t: 1500 },
+    ],
+    glow: at,
+  };
+}
+
+/**
+ * The hint on screens without steps (title, home): after HINT_AFTER_MS without a touch, Mom's pointing
+ * hand taps the target, looping, until the next touch. Nothing else moves by itself. The clock only
+ * runs while the scene updates (paused on the rotate screen). `ready()` false = the art is not in yet.
+ */
+export function screenHint(scene: Phaser.Scene, layout: Layout, target: () => P | null, ready: () => boolean) {
+  let hand: MomHandView | null = null;
+  let idle = 0;
+  let showing = false;
+  let off = false;
+  const reset = () => {
+    idle = 0;
+    if (showing) hand?.stop();
+    showing = false;
+  };
+  const tick = (_t: number, delta: number) => {
+    if (off || showing || !ready()) return;
+    idle += delta;
+    if (idle < HINT_AFTER_MS) return;
+    const at = target();
+    if (!at) return;
+    hand ??= new MomHandView(scene, layout);
+    showing = true;
+    hand.play(tapMotion(at, layout.k), { loop: true, gapMs: 900 });
+  };
+  scene.events.on(Phaser.Scenes.Events.UPDATE, tick);
+  scene.input.on(Phaser.Input.Events.POINTER_DOWN, reset);
+  const stop = () => {
+    off = true;
+    reset();
+    scene.events.off(Phaser.Scenes.Events.UPDATE, tick);
+    scene.input.off(Phaser.Input.Events.POINTER_DOWN, reset);
+  };
+  scene.events.once(Phaser.Scenes.Events.SHUTDOWN, stop);
+  return { stop };
+}
 
 /**
  * Mom's demo hand: one of the five mom-hand-* images, placed by its anchor (the fingertip, the palm,

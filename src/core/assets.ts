@@ -72,6 +72,8 @@ export const IMAGES = {
   'btn-home': { size: [240, 240] },
   'btn-done': { size: [240, 240] },
   'card-pizza': { size: [400, 520] },
+  /** The title's logo (lettering is part of the art, the only words ever drawn; the child doesn't need to read it). */
+  'logo-cooking-with-mom': { size: [900, 400] },
   /** One topping bin in the decorating step (the topping is drawn on top of it). */
   'topping-bin': { size: [240, 240] },
 } as const satisfies Record<string, { size: readonly [number, number]; raster?: number }>;

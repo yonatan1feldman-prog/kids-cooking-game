@@ -7,12 +7,10 @@ import type { Character } from './Character';
 import type { Dish } from './Dish';
 import type { Mom } from './Mom';
 
-/** Default: seconds of no progress before Mom's hand shows the gesture again (the hint). */
-export const HINT_AFTER_MS = 5000;
-/** Default: further seconds of no progress before Mom helps (vo-help, and her hand does it). */
-export const AUTO_AFTER_HINT_MS = 10000;
-/** A demo never runs longer than this. */
-export const DEMO_MAX_MS = 2500;
+import { AUTO_AFTER_HINT_MS, DEMO_MAX_MS, HINT_AFTER_MS } from '../core/tuning';
+
+// (The idle and demo timings live in the tuning table, core/tuning.ts.)
+export { AUTO_AFTER_HINT_MS, DEMO_MAX_MS, HINT_AFTER_MS };
 
 export interface StepContext {
   scene: Phaser.Scene;
@@ -30,6 +28,11 @@ export interface StepContext {
   hand: MomHandView;
   /** Where the dish rests by default during a step (game coordinates). */
   dishHome: { x: number; y: number };
+  /** State of this recipe run shared by its steps. */
+  run: {
+    /** "Watch me first!" / "Now you try!" go with the first demo of a run only; later demos just show. */
+    demoTalkDone: boolean;
+  };
 }
 
 export type PointerFn = (p: Phaser.Input.Pointer) => void;
@@ -93,6 +96,8 @@ export abstract class Step<P> {
   }
 
   private demoing = false;
+  /** This demo is the run's first: it gets "Watch me first!" and "Now you try!". */
+  private demoTalk = false;
   private demoOff?: () => void;
   /** Called when the demo ends (finished or interrupted), e.g. to put a hidden tool back. */
   protected onDemoEnd() {}
@@ -114,7 +119,10 @@ export abstract class Step<P> {
       return;
     }
     this.demoing = true;
-    voice.say('vo-watch-me', { valid: () => this.demoing });
+    // Only the run's first demo is introduced ("Watch me first!") and followed by "Now you try!".
+    this.demoTalk = !this.ctx.run.demoTalkDone;
+    this.ctx.run.demoTalkDone = true;
+    if (this.demoTalk) voice.say('vo-watch-me', { valid: () => this.demoing });
     if (this.stepLine) voice.say(this.stepLine, { valid: stillHere, ttlMs: 3500 });
     const onTouch = () => this.endDemo(true);
     this.scene.input.on(Phaser.Input.Events.POINTER_DOWN, onTouch);
@@ -134,7 +142,7 @@ export abstract class Step<P> {
     this.onDemoEnd();
     this.idleMs = 0;
     // "Now you try!" only if she hasn't started already.
-    if (!interrupted && !this.finished) voice.say('vo-your-turn', { valid: () => !this.finished && !this.owner && this.idleMs < 3000, ttlMs: 3500 });
+    if (this.demoTalk && !interrupted && !this.finished) voice.say('vo-your-turn', { valid: () => !this.finished && !this.owner && this.idleMs < 3000, ttlMs: 3500 });
   }
 
   /** Mom helps: she says so, and the step's own help animation (with her hand) finishes it. */

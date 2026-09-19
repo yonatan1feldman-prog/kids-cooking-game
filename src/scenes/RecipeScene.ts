@@ -69,7 +69,7 @@ export class RecipeScene extends Phaser.Scene {
     const mom = new Mom(this, S.mom);
     const character = new Character(this, this.recipe.character, S.pet, S.feedPet);
     if (S.pet) character.enter(300);
-    this.ctx = { scene: this, layout: L, stage: S, dish, board, mom, character, hand: new MomHandView(this, L), dishHome };
+    this.ctx = { scene: this, layout: L, stage: S, dish, board, mom, character, hand: new MomHandView(this, L), dishHome, run: { demoTalkDone: false } };
 
     // The device turned to portrait: drop whatever the finger was holding, gently.
     const onPause = () => this.step?.cancelGesture();
@@ -91,7 +91,7 @@ export class RecipeScene extends Phaser.Scene {
   private stepDone(i: number) {
     const last = i >= this.recipe.steps.length - 1;
     if (last) {
-      this.scene.start('Home');
+      this.scene.start('Home', { from: 'finale' });
       return;
     }
     const { dish, layout, mom, character } = this.ctx;
@@ -107,7 +107,7 @@ export class RecipeScene extends Phaser.Scene {
   private goHome() {
     this.step?.abort();
     voice.stop();
-    this.scene.start('Home');
+    this.scene.start('Home', { from: 'recipe' });
   }
 
   update(_time: number, delta: number) {

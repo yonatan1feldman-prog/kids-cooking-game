@@ -20,7 +20,8 @@ export const LEVEL = { voice: 1, sfx: 0.65, loop: 0.4, music: 0.22, musicDucked:
 export type VoiceKey =
   | 'vo-welcome' | 'vo-pick-pizza' | 'vo-watch-me' | 'vo-your-turn' | 'vo-roll' | 'vo-sauce' | 'vo-cheese' | 'vo-toppings'
   | 'vo-done-hint' | 'vo-oven' | 'vo-baking' | 'vo-ready' | 'vo-feed' | 'vo-help' | 'vo-finale' | 'vo-bye'
-  | 'vo-praise-1' | 'vo-praise-2' | 'vo-praise-3' | 'vo-praise-4' | 'vo-praise-5' | 'vo-praise-6' | 'vo-praise-7';
+  | 'vo-praise-1' | 'vo-praise-2' | 'vo-praise-3' | 'vo-praise-4' | 'vo-praise-5' | 'vo-praise-6' | 'vo-praise-7'
+  | 'vo-hello' | 'vo-what-make' | 'vo-wash' | 'vo-wash-rub' | 'vo-wash-done' | 'vo-knead' | 'vo-crush' | 'vo-stir' | 'vo-grate';
 
 const PRAISE: VoiceKey[] = ['vo-praise-1', 'vo-praise-2', 'vo-praise-3', 'vo-praise-4', 'vo-praise-5', 'vo-praise-6', 'vo-praise-7'];
 
@@ -199,6 +200,8 @@ class Voice {
   private queue: Pending[] = [];
   private analyser: AnalyserNode | null = null;
   private data: Uint8Array<ArrayBuffer> | null = null;
+  /** Praise lines still to come in this round: a shuffled deck, every line once before any comes back. */
+  private deck: VoiceKey[] = [];
   private lastPraise = '';
   /** Every line started, for the test harness (window.__voLog). */
   readonly log: VoiceLogEntry[] = [];
@@ -226,9 +229,19 @@ class Voice {
     this.play(p);
   }
 
-  /** A praise line, random, never the same one twice in a row. */
+  /**
+   * A praise line from a shuffled deck: all seven in random order before any comes back, and never the
+   * same one twice in a row, also where one deck ends and the next begins.
+   */
   praise(opts: SayOpts = {}) {
-    const pick = Phaser.Utils.Array.GetRandom(PRAISE.filter((k) => k !== this.lastPraise));
+    if (!this.deck.length) {
+      this.deck = Phaser.Utils.Array.Shuffle([...PRAISE]);
+      if (this.deck[0] === this.lastPraise) {
+        const j = 1 + Math.floor(Math.random() * (this.deck.length - 1));
+        [this.deck[0], this.deck[j]] = [this.deck[j], this.deck[0]];
+      }
+    }
+    const pick = this.deck.shift()!;
     this.lastPraise = pick;
     this.say(pick, opts);
   }

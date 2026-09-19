@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { blockBrowserGestures, installLifecycle } from './core/device';
 import { installOrientationGuard } from './core/orientation';
+import { registerServiceWorker } from './core/update';
 import { BASE_H, BASE_W } from './core/layout';
 import { BootScene } from './scenes/BootScene';
 import { HomeScene } from './scenes/HomeScene';
@@ -33,7 +34,5 @@ installOrientationGuard(game);
 // Handy for debugging from the browser console.
 (window as unknown as { game: Phaser.Game }).game = game;
 
-// Offline support (service worker). Browsers only allow it over HTTPS or on localhost.
-if (import.meta.env.PROD && 'serviceWorker' in navigator) {
-  import('virtual:pwa-register').then(({ registerSW }) => registerSW({ immediate: true })).catch(() => {});
-}
+// Offline support and safe updates (a new version is switched on only at the title, see core/update.ts).
+registerServiceWorker();

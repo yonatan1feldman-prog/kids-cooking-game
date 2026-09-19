@@ -17,8 +17,9 @@ export type Spot = Pt & { scale: number };
  * 4:3 (1440 wide) to 20:9 (2400 wide). The home button sits in the top-left corner.
  */
 export interface Stage {
-  /** Title: the play button. */
+  /** Title: the play button, and the logo above it (the art agent's title scene, scenes-prep.js). */
   play: Pt;
+  titleLogo: Pt;
   /** Home: where recipe card i of n sits. */
   card: (i: number, n: number) => Pt;
   /** Recipe: the home button and its scale. */
@@ -197,8 +198,13 @@ export function getStage(L: Layout): Stage {
   const feedTop = Y(984) - PET_FOOT * bs;
   const feedPet = { x: px + bw / 2, y: feedTop + (PET_H / 2) * bs, scale: bs };
 
+  // Title: logo and play button in one column: left of centre on wide screens, centred in the space left
+  // of Mom's face on narrow ones (the art agent's title scene).
+  const titleX = W >= PET_MIN_W ? dishHome.x - 80 * k : (m + momLeft + MOM_FACE.x0 * s) / 2;
+
   return {
-    play: { x: L.cx, y: L.cy },
+    play: { x: titleX, y: Y(740) },
+    titleLogo: { x: titleX, y: Y(330) },
     card: (i, n) => (n === 1 ? { x: L.cx, y: L.cy } : { x: L.cx + ((i % 3) - 1) * 520 * k, y: Y(300 + Math.floor(i / 3) * 560) }),
     home,
     homeScale,

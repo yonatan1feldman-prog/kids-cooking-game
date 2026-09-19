@@ -127,7 +127,7 @@ scripts/harness.js         test harness for the automated Chrome (see "Testing n
 scripts/bake-webp.js       pre-renders the SVGs to WebP, run inside the game page (see "Pre-rendered art")
 public/assets/images/      SVG art (the source, from the art agent) + webp/ (pre-rendered, committed)
 public/assets/sounds/      voice/ (Mom, 23 lines), music/ (1 loop), sfx/ (12 effects incl. the bake loop)
-src/main.ts                Phaser config (3 touch pointers), gesture blocking, lifecycle, orientation guard, SW
+src/main.ts                Phaser config (3 touch pointers), gesture blocking, lifecycle, orientation guard, SW registration
 src/core/
   assets.ts                THE ASSET CONTRACT: image keys + native sizes, sound keys, ART geometry (Mom pivots, hand anchors)
   placeholders.ts          code-drawn stand-ins for missing images (a generic one for most); sauce brush; opaqueBounds
@@ -282,7 +282,20 @@ fallback if the capture fails.
   not be on PATH, call it by its full path.
 - After a deploy, check: the URL, `manifest.webmanifest` and `sw.js` return 200, every file in `public/assets`
   returns 200, the game loads with no console errors and no placeholders except known missing art, and the
-  service worker registers. The installed app updates itself (autoUpdate) on its next start after a deploy.
+  service worker registers.
+- **How a new version reaches the phone (safe update, `src/core/update.ts`):** the new service worker installs in
+  the background and then WAITS (the build has no skipWaiting; `registerType: 'prompt'`, registered by our own code).
+  Only the title screen, before the play tap, checks for a waiting version (`titleShown()`, also right when one
+  finishes installing while the title is up). If there is one, it is switched on (`SKIP_WAITING` message) and the
+  page reloads at once, before the game starts; a play tap in that blink is ignored (`updating()`). After the play
+  tap (`gameStarted()`) the page is never reloaded: not in a recipe, not on the home screen; a version that arrives
+  later waits for the next start at the title. So after a deploy: the first start downloads it in the background,
+  the next start (or the same title screen, if the download finishes before she taps play) switches it on.
+- Precache revisions: only Vite's own hashed files (`assets/index-XXXXXXXX.js`) skip the content revision
+  (`dontCacheBustURLsMatching` in vite.config.ts). The game's art and sounds also live under `assets/` but keep their
+  names when they change, so they carry an md5 revision and a changed file is really re-downloaded.
+- `.gitattributes`: text files are LF everywhere (also in the Windows working copy), art and sound are binary, so a
+  local build and the GitHub Actions build produce the same revisions and the same SVG sha1s.
 - The `github-pages` environment only lets `master` deploy (a branch policy; it was set to `main` at first and
   the first run was rejected). Git pushes use gh as the credential helper for that one command:
   `git -c credential.helper= -c 'credential.helper=!"C:/Program Files/GitHub CLI/gh.exe" auth git-credential' push origin master`.

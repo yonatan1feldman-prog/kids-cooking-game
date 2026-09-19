@@ -67,10 +67,11 @@ export function art<T extends Phaser.GameObjects.Image>(img: T, layout: Layout, 
  * With `relayout` (screens with no state, like Title and Home) the scene is rebuilt at
  * the new size instead, once the screen is landscape again.
  */
-export function keepLayoutOnResize(scene: Phaser.Scene, layout: Layout, opts: { relayout?: boolean } = {}) {
+export function keepLayoutOnResize(scene: Phaser.Scene, layout: Layout, opts: { relayout?: boolean; canRelayout?: () => boolean } = {}) {
   const onResize = () => {
     const { width, height } = scene.scale;
-    if (opts.relayout) {
+    // (`canRelayout` false: the scene is on its way out, e.g. the play tap's fullscreen resize; just zoom.)
+    if (opts.relayout && (opts.canRelayout?.() ?? true)) {
       if (height > width || (Math.abs(width - layout.W) < 2 && Math.abs(height - layout.H) < 2)) return;
       queueMicrotask(() => scene.scene.isActive() && scene.scene.restart());
       return;

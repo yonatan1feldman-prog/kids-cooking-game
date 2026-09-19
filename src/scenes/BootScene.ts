@@ -8,10 +8,24 @@ import { loadSvgTexture, loadWebpTexture } from '../core/svgRaster';
 /** Asset paths in the manifest are relative to the site root; the game lives under BASE_URL. */
 const url = (p: string) => import.meta.env.BASE_URL + p;
 
-/** What the title and home screens show: loaded first, so the title appears quickly. */
+/** What the title and home screens show: loaded first, so the title appears quickly (with its play button). */
 const EARLY: ImageKey[] = ['bg-kitchen-landscape', 'btn-play', 'star', 'card-pizza'];
+/** Loaded right after: the title's logo, Mom, Pipa and Mom's pointing hand. They fade in on the title when ready. */
+const TITLE_ART: ImageKey[] = [
+  'logo-cooking-with-mom',
+  ...IMAGE_KEYS.filter((k) => (k.startsWith('mom-') && !k.startsWith('mom-hand-')) || k.startsWith('character-')),
+  'mom-hand-point',
+];
 
 let everything: Promise<void> | null = null;
+let titleArt: Promise<void> | null = null;
+
+/** Resolves once the title's logo, Mom, Pipa and the pointing hand are ready (or stood in for). */
+export function titleArtReady(): Promise<void> {
+  return titleArt ?? Promise.resolve();
+}
+let titleArtIn = false;
+export const titleArtLoaded = () => titleArtIn;
 
 /** Resolves once every image (and the placeholders for missing ones) is ready. Home waits on it before a recipe. */
 export function assetsReady(): Promise<void> {
@@ -44,7 +58,14 @@ export class BootScene extends Phaser.Scene {
 
     const t0 = performance.now();
     const early = Promise.all(EARLY.filter(exists).map(load)).catch((err) => console.warn('[assets] image loading error', err));
-    const rest = early.then(() => Promise.all(IMAGE_KEYS.filter((k) => exists(k) && !EARLY.includes(k)).map(load)));
+    titleArt = early
+      .then(() => Promise.all(TITLE_ART.filter(exists).map(load)))
+      .catch((err) => console.warn('[assets] image loading error', err))
+      .then(() => {
+        ensurePlaceholders(this.game, TITLE_ART.filter((k) => k !== 'logo-cooking-with-mom'));
+        titleArtIn = true;
+      });
+    const rest = titleArt.then(() => Promise.all(IMAGE_KEYS.filter((k) => exists(k) && !EARLY.includes(k) && !TITLE_ART.includes(k)).map(load)));
     everything = rest
       .catch((err) => console.warn('[assets] image loading error', err))
       .then(() => {

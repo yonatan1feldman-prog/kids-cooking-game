@@ -17,12 +17,14 @@ export default defineConfig({
   plugins: [
     assetManifest(),
     VitePWA({
-      registerType: 'autoUpdate',
-      injectRegister: false, // registered from src/main.ts
+      // A new version installs in the background and waits (no skipWaiting): the title screen switches it on
+      // before the game starts (src/core/update.ts), never in the middle of a recipe.
+      registerType: 'prompt',
+      injectRegister: false, // registered from src/core/update.ts
       includeAssets: ['icons/*.png'],
       manifest: {
-        name: 'Cooking',
-        short_name: 'Cooking',
+        name: 'Cooking with Mom',
+        short_name: 'Cooking with Mom',
         description: 'A private cooking game for a young child.',
         lang: 'en',
         display: 'fullscreen',
@@ -42,6 +44,9 @@ export default defineConfig({
         // (sounds included: voice, music and effects all work offline)
         globPatterns: ['**/*.{js,css,html,png,svg,webp,ogg,mp3,webmanifest}'],
         globIgnores: covered,
+        // Only Vite's own hashed files skip the content revision. The game's art and sounds also live under
+        // assets/ but keep their names when they change, so they need a revision to be updated.
+        dontCacheBustURLsMatching: /^assets\/[^/]+-[A-Za-z0-9_-]{8}\.(js|css)$/,
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
       },
     }),
