@@ -107,7 +107,7 @@ export const IMAGES = {
   /** Mom's flat pressing hand (kneading, crushing). */
   'mom-hand-press': { size: [400, 400] },
 
-  // ---- Delivered for part B of the prep round (not used yet: never loaded, see NOT_LOADED).
+  // ---- Part B of the prep round: choose, chop, open-pour, the oven panel and mitts, share, the photo.
   'btn-temp-down': { size: [240, 240] },
   'btn-temp-up': { size: [240, 240] },
   'can-corn-closed': { size: [340, 460] },
