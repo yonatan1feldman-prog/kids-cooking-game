@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import manifest from 'virtual:asset-manifest';
+import { refreshAlbumCount } from '../core/album';
 import { CORE_IMAGES, FX_DOT, FX_SOFT, IMAGES, RECIPE_ASSETS, textureSize, unlistedImages, type ImageKey } from '../core/assets';
 import { loadRecipeSounds, loadSounds, releaseSounds } from '../core/audio';
 import { ensurePlaceholders, makeFxTextures, makeUiTextures } from '../core/placeholders';
@@ -117,6 +118,9 @@ export class BootScene extends Phaser.Scene {
     const spinner = this.add.arc(W / 2, H / 2, Math.min(W, H) * 0.06, 0, 270, false).setStrokeStyle(18, 0xff8c42).setClosePath(false);
     this.tweens.add({ targets: spinner, angle: 360, duration: 900, repeat: -1 });
 
+    // The memory book is read once here, so the home screen knows straight away whether to show its button.
+    void refreshAlbumCount();
+
     const textures = this.textures;
     const loadOne = (k: ImageKey) => load(textures, k);
     warnUnloaded(textures);
@@ -156,4 +160,22 @@ export class BootScene extends Phaser.Scene {
       this.scene.start('Title');
     });
   }
+}
+
+/**
+ * Loads a handful of contract images now, outside the recipe loading (the memory book needs every recipe's photo
+ * frame). Resolves when they are in, with placeholders for any that are missing.
+ */
+export async function loadImages(game: Phaser.Game, keys: readonly ImageKey[]): Promise<void> {
+  await assetsReady();
+  await Promise.all(keys.filter((k) => exists(k) && !game.textures.exists(k)).map((k) => load(game.textures, k))).catch((err) =>
+    console.warn('[assets] image loading error', err),
+  );
+  ensurePlaceholders(game, keys);
+}
+
+/** Frees images loaded by `loadImages` (core art is kept). */
+export function releaseImages(game: Phaser.Game, keys: readonly string[]) {
+  const core = new Set<string>(CORE_IMAGES);
+  for (const k of keys) if (!core.has(k) && game.textures.exists(k)) game.textures.remove(k);
 }

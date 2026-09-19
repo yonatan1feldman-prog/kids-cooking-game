@@ -557,7 +557,30 @@ fallback if the capture fails.
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; round 8 on top, rounds 2-7 below still hold)
+## Handoff notes (written for the next agent; round 9 on top, rounds 2-8 below still hold)
+### 0000000. Round 9 (the memory book; the soup and the birthday cake)
+State: `rollback-pre-album` = master before the round; branch `round-9-album` merged and tagged `v0.10-album`.
+- **The memory book** (`src/core/album.ts`, `src/scenes/AlbumScene.ts`): at every finale `PhotoStep` snapshots the photo
+  it has just shown (`PHOTO_KEY`), shrinks it to 420 px, encodes it as WebP (~20 KB) and files it in IndexedDB
+  (`cooking-album` / `photos`) with the recipe's id and the date. At most `ALBUM_MAX` = 40; the oldest goes quietly.
+  Every failure (no IndexedDB, a private window, a full disk) is swallowed: the finale never waits for it and never
+  changes. `albumCount()` is the count as last read (refreshed once in BootScene, kept up to date by `keepPhoto`), so
+  the home screen can decide synchronously.
+- **Home:** with at least one photo the album button takes one more cell in the same card grid (`S.card(n, n + 1)`):
+  never an empty slot waiting to be filled. Its picture is drawn in code (`makeAlbumTextures` in placeholders.ts:
+  `ALBUM_ICON`, `ALBUM_ARROW`), text-free like everything she touches.
+- **The album scene:** four photos a page (2 x 2, in `S.albumArea`: right of the home button, left of Mom's face),
+  newest first, each in the frame of its own recipe (taken from that recipe's `photo` step, so a new recipe needs
+  nothing here). Arrows only when there is more than a page. A tap enlarges a photo, another tap puts it back. The
+  home button (two taps) goes back. Mom and Pipa stand beside it. No counters, no empty slots, no rewards.
+  Frames are loaded on demand (`loadImages` / `releaseImages` in BootScene) and freed when the book closes, as are
+  the photo textures. Harness: `game.scene.getScene('Album').shown` = { page, pages, count, recipes, big }.
+- Checked: a pancake run to the end, its photo in the book in the pancake frame and still there after a reload; a
+  salad run beside it, newest first, both frames right; paging, enlarging and back; 20:9 and 4:3 on the home screen
+  and in the book; no console errors, no placeholders.
+- Found and fixed: with three columns every frame came out at scale 0.37 (the room left of Mom is only ~1150 units
+  wide), so a page shows four bigger ones; a single photo was sized in a three-column cell instead of the free room.
+
 ### 000000. Round 8 (loading by recipe; the smoothie, the fourth recipe)
 State: `rollback-pre-round8` = master before the round; `v0.7-infra` = loading by recipe + the background fix (see
 "Asset contract"); `rollback-pre-smoothie`, branch `round-8-smoothie` merged and tagged `v0.8-smoothie`.

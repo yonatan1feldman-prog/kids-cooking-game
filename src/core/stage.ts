@@ -147,6 +147,11 @@ export interface Stage {
    * clear of Pipa (small beside Mom on wide screens; still big on the board's rim where she has no small spot).
    */
   photo: Spot;
+  /**
+   * The memory book (round 9): the room for the grid of photos, right of the home button (so its corner stays free)
+   * and left of Mom's face and Pipa, from just under the top edge down to above the palm strip.
+   */
+  albumArea: Box;
 }
 
 /** Native sizes the layout reasons about (opaque extents of the art, in world units at k = 1). */
@@ -359,6 +364,9 @@ export function getStage(L: Layout): Stage {
     return { x: x0 + c.w * ((i % cols) + 0.5), y: cardArea.y0 + c.h * (row + 0.5) };
   };
 
+  // The memory book: the cards' room, but starting right of the home button (it stays on screen there).
+  const albumArea = { x0: home.x + homeR + 30 * k, x1: cardArea.x1, y0: Y(60), y1: Y(1000) };
+
   // The oven's temperature panel: in the room right of the oven, then the three buttons in a row under it.
   const PANEL_W = 1200;
   const PANEL_H = 720;
@@ -447,6 +455,7 @@ export function getStage(L: Layout): Stage {
     tempUp: { x: panelSpot.x + btnDx, y: btnY },
     tempBtnScale,
     photo,
+    albumArea,
     mitts: { x: dishHome.x, y: dishHome.y + 120 * k, scale: 0.55 * k },
     lidRest: { x: (pourRest.x + bowlLeft) / 2 + 40 * k, y: Y(930) },
     // (three spots side by side under the pizza, 140 apart: bins 108 wide; a fourth (the salad's) in a row above them)

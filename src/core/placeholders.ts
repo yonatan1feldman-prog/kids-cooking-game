@@ -335,3 +335,61 @@ export function opaqueBounds(scene: Phaser.Scene, key: string) {
     return null;
   }
 }
+
+/** Texture keys drawn in code for the memory book (round 9): its button on the home screen and the paging arrows. */
+export const ALBUM_ICON = 'album-icon';
+export const ALBUM_ARROW = 'album-arrow';
+
+/**
+ * The memory book's own art, drawn in code in the style of the cards (cream paper, a warm brown edge, soft shadows):
+ * a little stack of photos with a star, at the recipe cards' size, and one arrow (mirrored for the other side).
+ * Text-free, like everything else she touches.
+ */
+export function makeAlbumTextures(game: Phaser.Game) {
+  const t = game.textures;
+  if (!t.exists(ALBUM_ICON)) {
+    const w = 400;
+    const h = 520;
+    const g = boot(game).make.graphics({}, false);
+    // The album's cover: cream paper with a warm brown edge, a soft shadow under it.
+    g.fillStyle(0x000000, 0.13).fillRoundedRect(22, 34, w - 32, h - 40, 34);
+    g.fillStyle(0xc98b5b).fillRoundedRect(10, 16, w - 32, h - 40, 34);
+    g.fillStyle(0xfff6e6).fillRoundedRect(28, 34, w - 68, h - 76, 26);
+    // Three photos lying on it, a little askew, each a warm square with its own colour inside.
+    const shot = (cx: number, cy: number, s: number, tint: number, ang: number) => {
+      g.save();
+      g.translateCanvas(cx, cy);
+      g.rotateCanvas(ang);
+      g.fillStyle(0x000000, 0.12).fillRoundedRect(-s / 2 + 8, -s / 2 + 10, s, s, 10);
+      g.fillStyle(0xffffff).fillRoundedRect(-s / 2, -s / 2, s, s, 10);
+      g.fillStyle(tint).fillRoundedRect(-s / 2 + 14, -s / 2 + 14, s - 28, s - 44, 6);
+      g.restore();
+    };
+    shot(150, 210, 150, 0xe8624a, -0.16);
+    shot(252, 300, 150, 0x8bbf5a, 0.13);
+    shot(190, 392, 150, 0xf2c14e, -0.05);
+    // One star, the game's own mark of something lovely (it never twinkles by itself here: it is just drawn on).
+    g.fillStyle(0xffd75e);
+    const sx = 306;
+    const sy = 150;
+    const pts: Phaser.Math.Vector2[] = [];
+    for (let i = 0; i < 10; i++) {
+      const a = -Math.PI / 2 + (i * Math.PI) / 5;
+      const r = i % 2 ? 22 : 50;
+      pts.push(new Phaser.Math.Vector2(sx + Math.cos(a) * r, sy + Math.sin(a) * r));
+    }
+    g.fillPoints(pts, true);
+    g.generateTexture(ALBUM_ICON, w, h);
+    g.destroy();
+  }
+  if (!t.exists(ALBUM_ARROW)) {
+    const s = 240;
+    const g = boot(game).make.graphics({}, false);
+    g.fillStyle(0x000000, 0.15).fillCircle(s / 2 + 6, s / 2 + 8, s * 0.44);
+    g.fillStyle(0xfff6e6).fillCircle(s / 2, s / 2, s * 0.44);
+    g.lineStyle(s * 0.06, 0xc98b5b).strokeCircle(s / 2, s / 2, s * 0.44);
+    g.fillStyle(0xff8c42).fillTriangle(s * 0.66, s * 0.26, s * 0.66, s * 0.74, s * 0.32, s * 0.5);
+    g.generateTexture(ALBUM_ARROW, s, s);
+    g.destroy();
+  }
+}

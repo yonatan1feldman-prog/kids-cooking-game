@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { keepPhoto } from '../core/album';
 import { ART, IMAGES } from '../core/assets';
 import { voice } from '../core/audio';
 import { boing } from '../core/fx';
@@ -16,8 +17,10 @@ const PARTY_MIN_MS = 3800;
 /** The kitchen square of the background shown behind the dish in the photo (x 660..1740 of the 2400 art). */
 const BACKDROP_X0 = 660;
 
-/** Texture key of the finale's photo (a future memory book could keep it: see AGENTS.md, Handoff notes). */
+/** Texture key of the finale's photo (the memory book keeps a copy of it: core/album.ts). */
 export const PHOTO_KEY = 'photo-made';
+/** Side of the copy kept in the memory book (big enough to fill a frame on any screen, small enough to store 40). */
+const ALBUM_PX = 420;
 
 /**
  * The finale with a photo (reusable: the last step of any recipe). Mom says "Let's take a picture!", the camera
@@ -68,7 +71,10 @@ export class PhotoStep extends Step<PhotoParams> {
     const win = ART.prep.photoWindow;
     const wc = { x: S.photo.x + (win.x + win.w / 2 - fw / 2) * fs, y: S.photo.y + (win.y + win.h / 2 - fh / 2) * fs };
     const key = this.makePhoto(Math.round(win.w * fs));
-    if (key) this.photo = this.own(this.scene.add.image(wc.x, wc.y, key).setDepth(60));
+    if (key) {
+      this.photo = this.own(this.scene.add.image(wc.x, wc.y, key).setDepth(60));
+      this.keepInAlbum(key);
+    }
     this.frame = this.own(this.scene.add.image(S.photo.x, S.photo.y, this.params.frame).setScale(fs).setDepth(61));
     const b = this.frame.getBounds();
     this.frameBox = { x0: b.x, y0: b.y, x1: b.right, y1: b.bottom };
@@ -142,6 +148,34 @@ export class PhotoStep extends Step<PhotoParams> {
     } catch (err) {
       console.warn('[photo] could not make the photo', err);
       return null;
+    }
+  }
+
+  /**
+   * A copy of the photo that was just taken goes into the memory book (core/album.ts), shrunk to ALBUM_PX and
+   * compressed. It is done in the background and every failure is swallowed: the finale never waits for it and
+   * never changes because of it.
+   */
+  private keepInAlbum(key: string) {
+    try {
+      const tex = this.scene.textures.get(key) as Phaser.Textures.DynamicTexture;
+      if (!tex?.snapshot) return;
+      tex.snapshot((img) => {
+        try {
+          if (!(img instanceof HTMLImageElement)) return;
+          const c = document.createElement('canvas');
+          c.width = c.height = ALBUM_PX;
+          const g = c.getContext('2d');
+          if (!g) return;
+          g.drawImage(img, 0, 0, ALBUM_PX, ALBUM_PX);
+          const data = c.toDataURL('image/webp', 0.72);
+          void keepPhoto(this.ctx.recipeId, data.startsWith('data:image/webp') ? data : c.toDataURL('image/png'));
+        } catch {
+          /* the photo is simply not kept */
+        }
+      });
+    } catch {
+      /* the photo is simply not kept */
     }
   }
 

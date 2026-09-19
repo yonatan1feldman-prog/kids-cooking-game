@@ -29,6 +29,8 @@ export interface StepContext {
   hand: MomHandView;
   /** Where the dish rests by default during a step (game coordinates). */
   dishHome: { x: number; y: number };
+  /** The recipe being cooked (its id): the photo step files its picture in the memory book under it. */
+  recipeId: string;
   /** State of this recipe run shared by its steps. */
   run: {
     /** "Watch me first!" / "Now you try!" go with the first demo of a run only; later demos just show. */

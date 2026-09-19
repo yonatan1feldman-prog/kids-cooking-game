@@ -1,7 +1,9 @@
 import Phaser from 'phaser';
+import { albumCount } from '../core/album';
 import { voice } from '../core/audio';
 import { stars } from '../core/fx';
 import { screenHint } from '../core/hand';
+import { ALBUM_ICON, makeAlbumTextures } from '../core/placeholders';
 import { addBackground, getLayout, keepLayoutOnResize } from '../core/layout';
 import { getStage } from '../core/stage';
 import { iconButton } from '../core/ui';
@@ -18,7 +20,7 @@ import { assetsReady, recipeAssets, releaseRecipe } from './BootScene';
  * recipe the home screen stays quiet (the finale already said goodbye). Idle 5 s: her hand taps the card.
  */
 export interface HomeData {
-  from?: 'title' | 'recipe' | 'finale';
+  from?: 'title' | 'recipe' | 'finale' | 'album';
   /** Set once Mom has asked, so a rebuild at a new size (relayout) doesn't ask again. */
   asked?: boolean;
 }
@@ -56,9 +58,12 @@ export class HomeScene extends Phaser.Scene {
     });
 
     const n = RECIPES.length;
+    // The memory book takes one more cell in the same grid, and only once there is something in it: never an empty
+    // slot waiting to be filled (Child wellbeing rules). The cards get a touch smaller the day it appears.
+    const cells = n + (albumCount() > 0 ? 1 : 0);
     const cards: Phaser.GameObjects.Image[] = [];
     RECIPES.forEach((recipe, i) => {
-      const at = S.card(i, n);
+      const at = S.card(i, cells);
       const card = iconButton(this, L, recipe.card, at.x, at.y, () => {
         if (going) return;
         going = true;
@@ -73,10 +78,23 @@ export class HomeScene extends Phaser.Scene {
           spin.remove();
           if (this.scene.isActive()) this.scene.start('Recipe', { id: recipe.id });
         });
-      }, { hitPad: n === 1 ? 120 : 30, scale: S.cardScale(n) });
+      }, { hitPad: cells === 1 ? 120 : 30, scale: S.cardScale(cells) });
       this.tweens.add({ targets: card, alpha: { from: 0, to: 1 }, duration: 400 });
       cards.push(card);
     });
+    if (cells > n) {
+      // The album button: no text, the same size as a card, its picture drawn in code (a little stack of photos).
+      makeAlbumTextures(this.game);
+      const at = S.card(n, cells);
+      const btn = iconButton(this, L, ALBUM_ICON, at.x, at.y, () => {
+        if (going) return;
+        going = true;
+        hint.stop();
+        this.scene.start('Album');
+      }, { hitPad: 30, scale: S.cardScale(cells) });
+      this.tweens.add({ targets: btn, alpha: { from: 0, to: 1 }, duration: 400 });
+    }
+
     /** The loading spinner (the one thing allowed to turn by itself): a short orange arc on a cream disc. */
     const loading = (x: number, y: number) => {
       const r = 46 * L.k;

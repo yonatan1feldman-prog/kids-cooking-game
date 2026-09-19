@@ -89,7 +89,7 @@ export class RecipeScene extends Phaser.Scene {
     const mom = new Mom(this, S.mom);
     const character = new Character(this, this.recipe.character, S.pet, S.feedPet);
     if (S.pet) character.enter(300);
-    this.ctx = { scene: this, layout: L, stage: S, dish, board, mom, character, hand: new MomHandView(this, L), dishHome, run: { demoTalkDone: false, handoff: new Map(), chosen: [], insert: [], once: new Set() } };
+    this.ctx = { scene: this, layout: L, stage: S, dish, board, mom, character, hand: new MomHandView(this, L), dishHome, recipeId: this.recipe.id, run: { demoTalkDone: false, handoff: new Map(), chosen: [], insert: [], once: new Set() } };
 
     // The device turned to portrait: drop whatever the finger was holding, gently.
     const onPause = () => this.step?.cancelGesture();

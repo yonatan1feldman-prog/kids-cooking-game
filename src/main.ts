@@ -4,6 +4,7 @@ import { installOrientationGuard } from './core/orientation';
 import { registerServiceWorker } from './core/update';
 import { BASE_H, BASE_W } from './core/layout';
 import { BootScene } from './scenes/BootScene';
+import { AlbumScene } from './scenes/AlbumScene';
 import { HomeScene } from './scenes/HomeScene';
 import { RecipeScene } from './scenes/RecipeScene';
 import { TitleScene } from './scenes/TitleScene';
@@ -24,7 +25,7 @@ const game = new Phaser.Game({
   // Three touch slots so a resting palm can't take the only slot. Which touch "owns" an
   // action is decided in Step / iconButton: the first finger rules until it is lifted.
   input: { activePointers: 3 },
-  scene: [BootScene, TitleScene, HomeScene, RecipeScene],
+  scene: [BootScene, TitleScene, HomeScene, RecipeScene, AlbumScene],
 });
 
 blockBrowserGestures();
