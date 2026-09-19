@@ -55,13 +55,26 @@ read live on the sound's own page on 2026-09-19. Downloads are the public HQ pre
 `sfx/complete.ogg`, `chop`, `can-open`, `jar-open`, `pour`, `camera`, `click` and `beep` are delivered for part B and
 not played yet.
 
+### New in round 6 (the salad)
+
+From the sound agent's `final/LICENSES.md` ("Salad sounds, batch 3"). All five are Freesound CC0; each license was read
+live on the sound's own page on 2026-09-19. Downloads are the public HQ previews.
+
+| File | Title | Author | Source page | License | Processing |
+|---|---|---|---|---|---|
+| sfx/tear.ogg | lettuce rip chomp chew saw | spanrucker | https://freesound.org/people/spanrucker/sounds/272240/ | CC0 1.0 | cut 4.50-5.05 s (one rip), faded, high-pass 100 Hz, about -23 LUFS |
+| sfx/squeeze.ogg | Lemon,Juicy,Squeeze,Fruit.wav | Filipe Chagas | https://freesound.org/people/Filipe%20Chagas/sounds/91915/ | CC0 1.0 | one squeeze (0.63 s), faded, about -20 LUFS |
+| sfx/crunch.ogg | Biting an apple | Urkki69 | https://freesound.org/people/Urkki69/sounds/628260/ | CC0 1.0 | cut 0.95-1.60 s (one bite), faded, -18 LUFS |
+| sfx/drizzle.ogg | Water pouring into glass bowl 01 | Rudmer_Rotteveel | https://freesound.org/people/Rudmer_Rotteveel/sounds/700352/ | CC0 1.0 | cut 0.50-2.55 s (a thin stream), 300 ms fade-out, about -20 LUFS |
+| sfx/salt.ogg | Shaking Salt 1 | OutbreakProtocol | https://freesound.org/people/OutbreakProtocol/sounds/720467/ | CC0 1.0 | cut 0.30-1.15 s (4 shakes), faded, -18 LUFS |
+
 ## Sounds: music (`sounds/music/`)
 
 | File | Title | Author | Source page | License | Processing |
 |---|---|---|---|---|---|
 | music/music-main.ogg | Cozy Puzzle In-Game 1 | MintoDog | https://opengameart.org/content/cozy-puzzle-in-game-1 | CC0 1.0 | none to the loop (exactly 256 beats at 118 BPM, gapless); gain -7.9 dB to -20 LUFS; Vorbis q2 |
 
-## Sounds: Mom's voice (`sounds/voice/`, 63 lines, English)
+## Sounds: Mom's voice (`sounds/voice/`, 89 lines, English)
 
 - Generated locally with **Kokoro-82M** v1.0 (https://huggingface.co/hexgrad/Kokoro-82M), ONNX build from
   https://github.com/thewh1teagle/kokoro-onnx/releases/tag/model-files-v1.0. The model weights are **Apache-2.0**;
@@ -111,10 +124,32 @@ Added in round 5 (same engine, voice, speed and processing; the sound agent's ch
 vo-temp-more, count-2, count-5, count-6, count-7 and temp-50 got small approved fixes from the sound agent (a soft
 limiter on one peak, a cleaner start); see its `final/LICENSES.md`. Lines from vo-choose on are for part B.
 
+Added in round 6, the salad (same engine, voice, speed and processing; name-carrot, name-pepper, name-onion,
+name-corn, vo-oil and vo-into-bowl got the sound agent's small fixes, see its `final/LICENSES.md`):
+
+| File | Text |
+|---|---|
+| vo-pick-salad | Let's make a salad! |
+| vo-wash-veg · vo-wash-veg-done | Let's wash the vegetables! · Squeaky clean! |
+| vo-tear | Tear the lettuce into little pieces! |
+| vo-choose-veg | Pick three vegetables you like! |
+| vo-into-bowl | Put it all in the bowl! |
+| vo-squeeze · vo-oil · vo-salt | Squeeze the lemon! · Pour a little olive oil! · A tiny pinch of salt! |
+| vo-mix | Now mix it all up! |
+| vo-serve · vo-bowl-mom · vo-fresh · vo-bowl-pipa | Let's serve the salad! · Some for me? Thank you! · Mmm, so fresh and crunchy! · Some for Pipa! |
+| vo-photo-salad · vo-finale-salad | Let's take a picture of your salad! · We made a salad together! |
+| name-cucumber · name-tomato · name-pepper · name-carrot · name-onion | Cucumber! · Tomato! · Pepper! · Carrot! · Onion! |
+| name-mushroom · name-corn · name-olives · name-lettuce · name-lemon | Mushroom! · Corn! · Olives! · Lettuce! · Lemon! |
+
+name-lettuce and name-lemon are delivered but not said yet.
+
 ## Graphics (`images/`)
 
 All SVG files in `images/` were drawn for this project by the art agent (style B, paper cut-out; generators in
 `cooking-game-assets/images-b/tools`, not part of this repo). The 57 prep-step files of round 5 (sink, faucet,
 water, bubbles, kneading dough, bowl and sauce stages, spoon, grater, cheese, the logo, Mom's pressing hand and the
-part B items) come from `cooking-game-assets/images-b-prep` (same kit, generators in its `tools/`). No third-party art, fonts or images.
+part B items) come from `cooking-game-assets/images-b-prep` (same kit, generators in its `tools/`). The 33 salad files of
+round 6 (colander, lettuce, cucumber and carrot, the salad bowl and its heaps, lemon, oil, salt, servers, serving bowl,
+portion, the salad card and photo frame, drops) come from `cooking-game-assets/images-b-salad` (same kit, generators in
+its `tools/`). No third-party art, fonts or images.
 `images/webp/` holds WebP renderings of those same SVGs, made by `scripts/bake-webp.js`.

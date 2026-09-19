@@ -54,6 +54,11 @@
   "w": 400,
   "h": 520
  },
+ "card-salad": {
+  "sha1": "c4c101f184d234f642946c095bda312b3ef1067b",
+  "w": 400,
+  "h": 520
+ },
  "character-body": {
   "sha1": "c9653d3984497c5b8074e9af01539ebe3b934b43",
   "w": 600,
@@ -129,6 +134,11 @@
   "w": 80,
   "h": 44
  },
+ "colander": {
+  "sha1": "1cdcf416045858709ed3bfa65c8529ba5e71eb43",
+  "w": 820,
+  "h": 560
+ },
  "cutting-board": {
   "sha1": "2949f9614ea953f33d187aba3e0e8c890f84c5ba",
   "w": 1000,
@@ -189,6 +199,11 @@
   "w": 340,
   "h": 480
  },
+ "juice-drop": {
+  "sha1": "1b0966fd5732db5597405ebdff74559988b6ea2c",
+  "w": 120,
+  "h": 160
+ },
  "kid-hands": {
   "sha1": "256253f20086dea287670feb4e6fc579ba2fe670",
   "w": 600,
@@ -198,6 +213,41 @@
   "sha1": "96d9fc421ed6674057c3b78b2c8f942ef51e570c",
   "w": 240,
   "h": 640
+ },
+ "lemon-half-1": {
+  "sha1": "f80e7bc60d8884a661875e1c55b595477bb2935c",
+  "w": 520,
+  "h": 520
+ },
+ "lemon-half-2": {
+  "sha1": "8e4e1b8aeea425057e004bfaf1a0bcb2cbedc707",
+  "w": 520,
+  "h": 520
+ },
+ "lemon-half-3": {
+  "sha1": "0c3730af59edb09fdb87b19d0db3ff7c06fcfaba",
+  "w": 520,
+  "h": 520
+ },
+ "lettuce-head": {
+  "sha1": "03156188eb53ee7c95f8452200576ba4e5d8989a",
+  "w": 640,
+  "h": 560
+ },
+ "lettuce-tear-1": {
+  "sha1": "f214d4d3b6781f6da921e72e45e742bdbd71626d",
+  "w": 640,
+  "h": 560
+ },
+ "lettuce-tear-2": {
+  "sha1": "ce5eb2b24318c5174bdee09cc860068ebc6731f7",
+  "w": 640,
+  "h": 560
+ },
+ "lettuce-tear-3": {
+  "sha1": "73d3756f8a1227f6d373115d8588cede3d5e35aa",
+  "w": 640,
+  "h": 560
  },
  "logo-cooking-with-mom": {
   "sha1": "535bb225921486031340c7fa58e5701e97d74f9a",
@@ -314,6 +364,16 @@
   "w": 800,
   "h": 800
  },
+ "oil-bottle": {
+  "sha1": "257930d1da6dc064088666f494d63323589583f6",
+  "w": 300,
+  "h": 640
+ },
+ "oil-drop": {
+  "sha1": "90b19daccbd1722393dccad049cf547971adc1a2",
+  "w": 120,
+  "h": 160
+ },
  "oven-closed": {
   "sha1": "2e31f8e7161aa77cbd292e9470782d3a932a34a4",
   "w": 700,
@@ -359,6 +419,26 @@
   "w": 700,
   "h": 780
  },
+ "photo-frame-salad": {
+  "sha1": "7d60ad755f89f865fd1f7f3320ad3e81cf7bcce9",
+  "w": 700,
+  "h": 780
+ },
+ "piece-carrot": {
+  "sha1": "e1a020c1793709da50c3a1a09d9b8f4d723a881b",
+  "w": 140,
+  "h": 140
+ },
+ "piece-cucumber": {
+  "sha1": "b7808f70cec0793452e5e78f9debe41451d1982e",
+  "w": 140,
+  "h": 140
+ },
+ "piece-lettuce": {
+  "sha1": "8e9c98a28eead9e15a9bb8a5c30e4ca83f44e5c2",
+  "w": 140,
+  "h": 140
+ },
  "pizza-board": {
   "sha1": "c08421194607fb7f6063afb679cc7dcb24b1a1da",
   "w": 820,
@@ -389,6 +469,51 @@
   "w": 640,
   "h": 200
  },
+ "salad-bowl-back": {
+  "sha1": "f65fda95998cee8e5324eb26685fc699926746e9",
+  "w": 900,
+  "h": 620
+ },
+ "salad-bowl-front": {
+  "sha1": "8b02958c9e519effde1fa12987f991646e727bd4",
+  "w": 900,
+  "h": 620
+ },
+ "salad-heap-1": {
+  "sha1": "edc0d252503a4cd411de7d148c5b3209d8a003c1",
+  "w": 900,
+  "h": 620
+ },
+ "salad-heap-2": {
+  "sha1": "111ff00d0a9f7c2ee83709c4bf0f7c1237c5ff2f",
+  "w": 900,
+  "h": 620
+ },
+ "salad-heap-3": {
+  "sha1": "5b2e640b6095c8b78cb732c5d438b94d0c4d1cf2",
+  "w": 900,
+  "h": 620
+ },
+ "salad-mixed": {
+  "sha1": "c355a177a16036fa4ef69afd6078d200347a1951",
+  "w": 900,
+  "h": 620
+ },
+ "salad-portion": {
+  "sha1": "0b7ad81166ea78f9e05fb1563d403488b419360e",
+  "w": 360,
+  "h": 280
+ },
+ "salad-servers": {
+  "sha1": "9be5aa67ade5c7f3a8364e2d53bfa9ee8c75d4a3",
+  "w": 440,
+  "h": 640
+ },
+ "salt-shaker": {
+  "sha1": "ceff64323d820f24938593dfb8d7471806e7dcd9",
+  "w": 260,
+  "h": 400
+ },
  "sauce-blob": {
   "sha1": "d5ba55b5a29b4ea30debd3fec70835cb0cd539fe",
   "w": 200,
@@ -418,6 +543,11 @@
   "sha1": "ed449899ea240918e3b0ed457bf6f5b290bb53ce",
   "w": 640,
   "h": 520
+ },
+ "serving-bowl": {
+  "sha1": "808424878595a2e0b836828988d52c52b788e886",
+  "w": 480,
+  "h": 320
  },
  "sink-basin": {
   "sha1": "c6e01019a91381128867862947834864620d79f1",
@@ -479,6 +609,36 @@
   "w": 820,
   "h": 830
  },
+ "veg-carrot-inside": {
+  "sha1": "e31760dd81d009536f01c60b36e14e36e200ce09",
+  "w": 60,
+  "h": 159
+ },
+ "veg-carrot-slice": {
+  "sha1": "39bac19fd531622df94623b5328faca4504a6710",
+  "w": 240,
+  "h": 240
+ },
+ "veg-carrot-whole": {
+  "sha1": "5fb0e90467614be79744ee58378004d2f9aea15d",
+  "w": 672,
+  "h": 504
+ },
+ "veg-cucumber-inside": {
+  "sha1": "674f94cbcf66c5a703447f1241c629c32b7df828",
+  "w": 60,
+  "h": 168
+ },
+ "veg-cucumber-slice": {
+  "sha1": "a4ecc8bce09cb13bdccbaea12d6f45b3ca9fd569",
+  "w": 240,
+  "h": 240
+ },
+ "veg-cucumber-whole": {
+  "sha1": "0887f7db4574210f6a21d5f20b7ef8bf49abcf04",
+  "w": 672,
+  "h": 504
+ },
  "veg-mushroom-inside": {
   "sha1": "db7fc86b348c4bd17088bb6d9adb9a84733d3a50",
   "w": 60,
@@ -538,6 +698,11 @@
   "sha1": "83755b8f590ebc3114c3a865440acbf0a07b0374",
   "w": 672,
   "h": 504
+ },
+ "water-drop": {
+  "sha1": "07652ae1b75b3272a50da84f8803c47f423131aa",
+  "w": 120,
+  "h": 160
  },
  "water-stream": {
   "sha1": "8a593f28e2ff486507f00b0c1693f3747a6a7c44",
