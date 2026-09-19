@@ -1,46 +1,74 @@
 # רישיונות / Licenses
 
-## Sounds
+Every sound and image the game ships, where it comes from, and its license. Paths are under `public/assets/`.
+Everything is CC0 1.0 (public domain dedication, no attribution required, credited anyway), drawn for this
+project, or narration generated locally with an Apache-2.0 model.
 
-All sounds in `sounds/` are taken unmodified (only renamed) from Kenney audio packs, released under **CC0 1.0 Universal (public domain)**. The `License.txt` inside each downloaded zip was checked and states "Creative Commons Zero, CC0" (http://creativecommons.org/publicdomain/zero/1.0/). Attribution is not required; credited here anyway.
+## Sounds: effects (`sounds/sfx/`)
 
-| Target file | Source pack | Original file in pack | Pack URL | License | Author | Size (bytes) | Duration |
-|---|---|---|---|---|---|---|---|
-| sounds/tap.ogg | Interface Sounds | Audio/click_001.ogg | https://kenney.nl/assets/interface-sounds | CC0 1.0 | Kenney (kenney.nl) | 4876 | 0.10 s |
-| sounds/pop.ogg | Interface Sounds | Audio/drop_002.ogg | https://kenney.nl/assets/interface-sounds | CC0 1.0 | Kenney (kenney.nl) | 6411 | 0.19 s |
-| sounds/squish.ogg | Impact Sounds | Audio/impactSoft_heavy_000.ogg | https://kenney.nl/assets/impact-sounds | CC0 1.0 | Kenney (kenney.nl) | 6570 | 0.51 s |
-| sounds/sprinkle.ogg | Casino Audio | Audio/dice-shake-1.ogg | https://kenney.nl/assets/casino-audio | CC0 1.0 | Kenney (kenney.nl) | 19388 | 1.48 s |
-| sounds/whoosh.ogg | Casino Audio | Audio/card-slide-1.ogg | https://kenney.nl/assets/casino-audio | CC0 1.0 | Kenney (kenney.nl) | 8833 | 0.60 s |
-| sounds/oven-ding.ogg | Impact Sounds | Audio/impactBell_heavy_000.ogg | https://kenney.nl/assets/impact-sounds | CC0 1.0 | Kenney (kenney.nl) | 13915 | 1.48 s |
-| sounds/munch.ogg | Impact Sounds | Audio/footstep_snow_001.ogg | https://kenney.nl/assets/impact-sounds | CC0 1.0 | Kenney (kenney.nl) | 7794 | 0.37 s |
-| sounds/cheer.ogg | Voiceover Pack | Female/congratulations.ogg | https://kenney.nl/assets/voiceover-pack | CC0 1.0 | Kenney (kenney.nl) | 13609 | 1.30 s |
-| sounds/cheer-jingle.ogg | Music Jingles | Audio/Pizzicato jingles/jingles_PIZZI10.ogg | https://kenney.nl/assets/music-jingles | CC0 1.0 | Kenney (kenney.nl) | 14004 | 0.80 s |
+### Kept from the first version (Kenney audio packs, CC0 1.0)
 
-Notes on substitutes (chosen by file name, not by ear): `squish` is a soft impact thud, `sprinkle` is a dice-in-cup shake/rattle, `whoosh` is a card slide swish, and `munch` is a soft snow crunch (Kenney has no eating sound). `cheer` is a spoken "Congratulations!" (female voice).
+Taken unmodified (only renamed). The `License.txt` inside each downloaded zip states "Creative Commons Zero, CC0"
+(http://creativecommons.org/publicdomain/zero/1.0/).
 
-`cheer-jingle` is a wordless pizzicato jingle. It was chosen without listening, because its pitch goes up (D-E-F#-G) like a victory tune. If it doesn't sound right, other rising jingles in the same pack are `jingles_PIZZI02`, `jingles_PIZZI15` and `jingles_SAX02`.
+| File | Source pack | Original file in pack | Pack URL | License | Author |
+|---|---|---|---|---|---|
+| sfx/tap.ogg | Interface Sounds | Audio/click_001.ogg | https://kenney.nl/assets/interface-sounds | CC0 1.0 | Kenney (kenney.nl) |
+| sfx/pop.ogg | Interface Sounds | Audio/drop_002.ogg | https://kenney.nl/assets/interface-sounds | CC0 1.0 | Kenney (kenney.nl) |
+| sfx/oven-ding.ogg | Impact Sounds | Audio/impactBell_heavy_000.ogg | https://kenney.nl/assets/impact-sounds | CC0 1.0 | Kenney (kenney.nl) |
+| sfx/cheer.ogg | Voiceover Pack | Female/congratulations.ogg | https://kenney.nl/assets/voiceover-pack | CC0 1.0 | Kenney (kenney.nl) |
+| sfx/cheer-jingle.ogg | Music Jingles | Audio/Pizzicato jingles/jingles_PIZZI10.ogg | https://kenney.nl/assets/music-jingles | CC0 1.0 | Kenney (kenney.nl) |
 
-## Voice clips (English)
+### New in round 4 (they replace the old munch, squish, sprinkle and whoosh)
 
-These are short English words from the Kenney **Voiceover Pack** (CC0, female voice), copied unchanged and renamed. The pack's `License.txt` was checked and says CC0. It has no "yes", "good" or "wow". It also has the numbers 1-10 (`Female/1.ogg` ... `10.ogg`), which could be used for counting toppings later.
+From the sound agent's `final/LICENSES.md`. Freesound files use the public HQ preview; all four source pages showed
+"Creative Commons 0" when checked on 2026-09-19. The OpenGameArt pages list CC0 only.
 
-| Target file | Source pack | Original file in pack | Pack URL | License | Author | Size (bytes) | Duration |
-|---|---|---|---|---|---|---|---|
-| sounds/voice/ready.ogg | Voiceover Pack | Female/ready.ogg | https://kenney.nl/assets/voiceover-pack | CC0 1.0 | Kenney (kenney.nl) | 7313 | 0.50 s |
-| sounds/voice/set.ogg | Voiceover Pack | Female/set.ogg | https://kenney.nl/assets/voiceover-pack | CC0 1.0 | Kenney (kenney.nl) | 7876 | 0.54 s |
-| sounds/voice/go.ogg | Voiceover Pack | Female/go.ogg | https://kenney.nl/assets/voiceover-pack | CC0 1.0 | Kenney (kenney.nl) | 8283 | 0.60 s |
-| sounds/voice/correct.ogg | Voiceover Pack | Female/correct.ogg | https://kenney.nl/assets/voiceover-pack | CC0 1.0 | Kenney (kenney.nl) | 8642 | 0.63 s |
-| sounds/voice/you-win.ogg | Voiceover Pack | Female/you_win.ogg | https://kenney.nl/assets/voiceover-pack | CC0 1.0 | Kenney (kenney.nl) | 10736 | 0.94 s |
-| sounds/voice/level-up.ogg | Voiceover Pack | Female/level_up.ogg | https://kenney.nl/assets/voiceover-pack | CC0 1.0 | Kenney (kenney.nl) | 9796 | 0.78 s |
+| File | Title | Author | Source page | License | Processing |
+|---|---|---|---|---|---|
+| sfx/munch.ogg | Apple Bite Quick.wav | RoofDog | https://freesound.org/people/RoofDog/sounds/79240/ | CC0 1.0 | cut 1.55-2.40 s, trimmed, faded, high-pass 60 Hz, -23 LUFS |
+| sfx/squish.ogg | Squish Sounds Effects (squish_01) | ezduzziteh | https://opengameart.org/content/squish-sounds-effects | CC0 1.0 | trimmed, faded, high-pass 80 Hz, -18 LUFS |
+| sfx/sprinkle.ogg | salt shaking.wav | simosco | https://freesound.org/people/simosco/sounds/235561/ | CC0 1.0 | cut 0.50-1.95 s (3 shakes), high-pass 150 Hz, -18 LUFS |
+| sfx/whoosh.ogg | Woosh | florianreichelt | https://freesound.org/people/florianreichelt/sounds/683096/ | CC0 1.0 | cut 0.50-1.45 s, 120 ms fades, -18 LUFS |
+| sfx/bake.ogg (loop) | sizzling cooking on stove.mp3 | FartMuffin | https://freesound.org/people/FartMuffin/sounds/575514/ | CC0 1.0 | 4.0 s seamless loop from 3.0-7.6 s, filtered, soft limiter, -21 LUFS |
+| sfx/star.ogg | Chimey UI Sounds (Chime_Confirm) | mousebyte | https://opengameart.org/content/chimey-ui-sounds | CC0 1.0 | trimmed, faded, -20 LUFS |
+| sfx/complete.ogg | Win Jingle (WinVibraphone) | fupi | https://opengameart.org/content/win-jingle | CC0 1.0 | cut to 2.8 s, 300 ms fade-out, -20 LUFS |
 
-## Backups
+## Sounds: music (`sounds/music/`)
 
-`images-v1/` and `sounds-v1/` are unchanged copies of the first version. The licenses above apply to them too.
+| File | Title | Author | Source page | License | Processing |
+|---|---|---|---|---|---|
+| music/music-main.ogg | Cozy Puzzle In-Game 1 | MintoDog | https://opengameart.org/content/cozy-puzzle-in-game-1 | CC0 1.0 | none to the loop (exactly 256 beats at 118 BPM, gapless); gain -7.9 dB to -20 LUFS; Vorbis q2 |
 
-## Missing
+## Sounds: Mom's voice (`sounds/voice/`, 23 lines, English)
 
-None. All 8 target sounds were found in CC0 Kenney packs (some are close substitutes, see notes above).
+- Generated locally with **Kokoro-82M** v1.0 (https://huggingface.co/hexgrad/Kokoro-82M), ONNX build from
+  https://github.com/thewh1teagle/kokoro-onnx/releases/tag/model-files-v1.0. The model weights are **Apache-2.0**;
+  it was trained only on permissive or non-copyrighted audio, and the generated audio contains no third-party recordings.
+- Voice `af_heart` (American English, female), speed 0.85. Silence trimmed, short fades, -18 LUFS, mono 24 kHz Vorbis.
 
-## Graphics
+| File | Text |
+|---|---|
+| vo-welcome | Let's cook together! |
+| vo-pick-pizza | Let's make a pizza! |
+| vo-watch-me | Watch me first! |
+| vo-your-turn | Now, you try! |
+| vo-roll | Let's roll the dough! |
+| vo-sauce | Now spread the sauce! |
+| vo-cheese | Sprinkle the cheese! |
+| vo-toppings | Put on anything you like! |
+| vo-done-hint | Tap here when you're done! |
+| vo-oven | Into the oven it goes! |
+| vo-baking | Look, it's baking! |
+| vo-ready | Ding! It's ready! |
+| vo-feed | Let's give Pipa a taste! |
+| vo-help | Let me help you! |
+| vo-praise-1 ... 7 | Great job! · Wow! · Beautiful! · Yummy! · I love it! · You worked so hard! · I love how you did that! |
+| vo-finale | We made a pizza together! |
+| vo-bye | That was fun! Bye bye! |
 
-All SVG files in images/ were drawn originally for this project (no third-party assets).
+## Graphics (`images/`)
+
+All SVG files in `images/` were drawn for this project by the art agent (style B, paper cut-out; generators in
+`cooking-game-assets/images-b/tools`, not part of this repo). No third-party art, fonts or images.
+`images/webp/` holds WebP renderings of those same SVGs, made by `scripts/bake-webp.js`.
