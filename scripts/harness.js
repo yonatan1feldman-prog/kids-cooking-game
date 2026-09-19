@@ -89,7 +89,7 @@
       const a = (st.placed ?? 0) * 1.7;
       await __drag([[b.x, b.y], [d.x + Math.cos(a) * r * 0.45, d.y + Math.sin(a) * r * 0.45 + 90]]);
     } else if (name === 'BakeStep') {
-      if (st.phase === 'toOven') { await __drag([[d.x, d.y], [st.open.x, st.open.y]]); await __run(4200); }
+      if (st.phase === 'toOven') { await __drag([[d.x, d.y], [st.open.x, st.open.y]]); await __run(5700); }
       else if (st.phase === 'ready') { __tap(st.closed.x, st.closed.y); await __run(1400); }
     } else if (name === 'FeedStep') {
       const s = st.slices.find((x) => !x.eaten);
@@ -301,4 +301,80 @@ window.__demoAt = async (w, h, stepName, ms = 1100) => {
   }
   await __run(ms);
   return { step: __step(), demo: __R().step.inDemo, hand: __R().ctx.hand.active };
+};
+
+/** Saves the game canvas as docs/screenshots-round4/<name>.png (dev server only). */
+window.__saveShot = async (name) => {
+  const img = await new Promise((r) => { game.renderer.snapshot(r); __tick(1); });
+  const c = document.createElement('canvas');
+  c.width = img.width; c.height = img.height;
+  c.getContext('2d').drawImage(img, 0, 0);
+  const blob = await new Promise((r) => c.toBlob(r, 'image/png'));
+  const res = await fetch(`/__dev/shot?name=${name}`, { method: 'POST', body: blob });
+  return `${name} ${img.width}x${img.height} ${res.ok ? 'saved' : 'FAILED'}`;
+};
+
+/**
+ * Screenshot tour with demos, saved as docs/screenshots-round4/<tag>-NN-<what>.png (dev server only):
+ * title, home, each step's demo and the child's own gesture, baking, ready, feeding, the finale.
+ * Takes ~15-25 s real time: start it without awaiting and read window.__tourRes later.
+ */
+window.__tour = async (w, h, tag) => {
+  const out = [];
+  let i = 1;
+  const shot = async (n) => out.push(await __saveShot(`${tag}-${String(i++).padStart(2, '0')}-${n}`));
+  const until = async (fn, ms = 8000) => { for (let t = 0; t < ms && !fn(); t += 50) await __run(50); };
+  __demos(true);
+  await __setup(w, h); await __run(600); await shot('title');
+  const b = game.scene.getScene('Title').children.list.find((o) => o.texture?.key === 'btn-play');
+  __tap(b.x, b.y); await __run(1600); await shot('home');
+  const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-pizza');
+  __tap(c.x, c.y); await until(() => game.scene.isActive('Recipe') && __R().step); await __run(1000); await shot('roll-demo');
+  await __waitDemo(); const d = __R().ctx.dish;
+  await __drag([[d.x - 150, d.y - 60], [d.x + 150, d.y - 20], [d.x - 150, d.y + 20]], { hold: true }); await __run(100); await shot('roll-child'); __touch('end', 1, d.x, d.y);
+  for (const [n, ms] of [['SpreadStep', 1100], ['SprinkleStep', 900], ['DecorateStep', 1100]]) {
+    await __demoAt(w, h, n, ms); await shot(n.replace('Step', '').toLowerCase() + '-demo');
+  }
+  await __waitDemo(); for (let g = 0; g < 3; g++) await __gesture(); await shot('decorate-child');
+  const st0 = __R().step; __tap(st0.done.x, st0.done.y);
+  await until(() => __step() === 'BakeStep'); await __run(1300); await shot('bake-demo');
+  await __waitDemo(); const st = __R().step;
+  await __drag([[__R().ctx.dish.x, __R().ctx.dish.y], [st.open.x, st.open.y]]); await __run(3000); await shot('bake-baking');
+  await until(() => st.phase === 'ready'); await __run(600); await shot('bake-ready');
+  __tap(st.closed.x, st.closed.y);
+  await until(() => __step() === 'FeedStep'); await __run(1500); await shot('feed-demo');
+  await __waitDemo(); await __gesture(); const f = __R().step, s = f.slices.find((x) => !x.eaten), sc = f.sliceCenter(s);
+  await __drag([[sc.x, sc.y], [(sc.x + f.mouthAt.x) / 2, f.mouthAt.y - 60]], { hold: true }); await __run(200); await shot('feed-child');
+  __touch('end', 1, f.mouthAt.x, f.mouthAt.y); await __run(1300);
+  for (let g = 0; g < 12 && !f.partyStarted; g++) await __gesture();
+  await __run(2200); await shot('finale');
+  return out;
+};
+
+/**
+ * A whole recipe in real time (so Mom's voice and the game share one clock), with or without demos.
+ * Needs the audio unlocked by one real click first (see AGENTS.md "Testing notes"). Takes ~50-70 s:
+ * start it without awaiting, then read window.__fr. Returns the steps seen, whether it ended at Home,
+ * and the voice log of this run (__voReport: rows [key, start, end, cut] + problems: overlaps, praise repeats).
+ */
+window.__fullRun = async (demos) => {
+  const fast = window.__fast || (window.__fast = __run);
+  window.__run = fast; __demos(demos); await __setup(900, 405);
+  window.__run = __real;
+  try {
+    const n0 = __voLog.length; const steps = [];
+    const b = game.scene.getScene('Title').children.list.find((o) => o.texture?.key === 'btn-play');
+    __tap(b.x, b.y); await __real(1600);
+    const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-pizza');
+    __tap(c.x, c.y); await __real(1800);
+    for (let g = 0; g < 80 && game.scene.isActive('Recipe'); g++) {
+      const s = __step(); if (steps.at(-1) !== s) { steps.push(s); await __waitDemo(); await __real(1300); }
+      if (!game.scene.isActive('Recipe')) break;
+      if (__R().step.finished) { await __real(100); continue; }
+      await __gesture();
+    }
+    await __real(500);
+    __voLog.splice(0, n0);
+    return { steps, home: game.scene.isActive('Home'), report: __voReport() };
+  } finally { window.__run = fast; }
 };

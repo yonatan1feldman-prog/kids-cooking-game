@@ -146,6 +146,19 @@ export function assetManifest(): Plugin {
         }
         res.writeHead(404).end();
       });
+      // Dev only: the test harness posts a PNG of the game canvas (`__saveShot`) into docs/screenshots-round4 (git-ignored).
+      server.middlewares.use('/__dev/shot', (req, res) => {
+        const name = new URL(req.url ?? '/', 'http://x').searchParams.get('name') ?? '';
+        if (req.method !== 'POST' || !/^[a-z0-9-]+$/.test(name)) return res.writeHead(400).end();
+        const chunks: Buffer[] = [];
+        req.on('data', (c: Buffer) => chunks.push(c));
+        req.on('end', () => {
+          const dir = path.join(root, 'docs', 'screenshots-round4');
+          fs.mkdirSync(dir, { recursive: true });
+          fs.writeFileSync(path.join(dir, `${name}.png`), Buffer.concat(chunks));
+          res.end('ok');
+        });
+      });
       server.watcher.on('add', onChange);
       server.watcher.on('unlink', onChange);
       server.watcher.on('change', onChange);

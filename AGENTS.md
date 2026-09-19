@@ -9,8 +9,11 @@ technical and does no manual steps: agents do everything.
 narration, sung jingles with words, any text ever shown) is in **English**, now and in the future.
 The screen stays text-free (see the UX rules). Commit messages stay in Hebrew: they are for the owner.
 
-Current content: one recipe (pizza), start to finish, with the real art and sounds, in landscape.
-Later recipes should be mostly a new data file.
+**The idea: cooking with Mom.** Mom stands at the counter for the whole recipe, shows every move with her hand,
+and talks in a warm, encouraging English voice. Pipa the hedgehog is the kitchen pet; she tastes the pizza at the end.
+
+Current content: one recipe (pizza), start to finish, with the style-B paper cut-out art, Mom's voice, music and
+sounds, in landscape. Later recipes should be mostly a new data file (plus their voice lines).
 
 Stack: Phaser 4 (4.2.x) + Vite + TypeScript, installed as a PWA (vite-plugin-pwa).
 The official Phaser 4 skills are in `node_modules/phaser/skills/*/SKILL.md`. Read the
@@ -22,11 +25,13 @@ DynamicTexture needs `.render()`).
 
 ## UX rules (must hold for every change)
 1. **Zero text to read.** Icons, motion and sound only. No words, letters or digits on screen.
-2. **You can't fail and you can't get stuck.** Each step: after 5 s without progress a guiding
-   hand demonstrates the gesture (with a glow on the target), and after 10 more seconds the step finishes itself
-   (`src/steps/Step.ts`: `HINT_AFTER_MS`, `AUTO_AFTER_HINT_MS`). Exception: free decorating waits
-   15 s for the hand (it points at the done button) and 30 s to finish itself. 3 missed drops in a row
-   show the hand right away (`Step.miss()`). There is no wrong answer and no losing.
+2. **You can't fail and you can't get stuck.** Each step: the first two times a recipe is played, Mom shows it once
+   before it starts (her demo hand, at most 2.5 s, the dish unchanged; a touch ends it at once and counts). After 5 s
+   without progress her hand shows the gesture again (the hint, with a glow on the target), and after 10 more seconds
+   Mom helps: "Let me help you!" and her hand visibly does it (`src/steps/Step.ts`: `HINT_AFTER_MS`,
+   `AUTO_AFTER_HINT_MS`, `DEMO_MAX_MS`). Exception: free decorating waits 15 s for the hint (once something is on the
+   pizza she points at the done button: "Tap here when you're done!") and 15 more to help. 3 missed drops in a row
+   show the hint right away (`Step.miss()`). There is no wrong answer and no losing.
 3. **One finger only:** tap, drag, rub. No double-tap gestures, no long-press, no multi-touch, no time limits.
    The first finger to touch owns the action until lifted. A second finger or a resting palm
    never interrupts or steals it (`Step.onDown/onMove/onUp`, `iconButton`).
@@ -74,27 +79,34 @@ DynamicTexture needs `.render()`).
   (the main device). `main.ts`: Scale `EXPAND` on a 1440x1080 base (`BASE_W/BASE_H` in `layout.ts`).
 - **Positions are never absolute 1920 numbers.** Everything is in ONE table, `src/core/stage.ts`
   (`getStage(layout)`), placed relative to the side margins (`m = 4%` of the width) and the center:
-  `[ this step's ingredients / bins ] [ the dish on its board ] [ the character ]`. Scenes and steps read
+  `[ this step's ingredients / bins ] [ the dish on its board ] [ Mom (and little Pipa) ]`. Scenes and steps read
   `ctx.stage.*`. To change the layout, change the table, not the steps.
 - **Content scale `k`** (`layout.k`): 1 on every screen 16:9 and wider. Only screens narrower than 16:9
   (4:3 tablets, physically much bigger) show everything at `k < 1` (0.75 at 4:3), because the densest step
   (bins + full board + character at 75%) needs 1766 units between the side strips (`FIT_W`).
   `layout.Y(v)` maps a y of the 1080 design band to the world, scaled by k around the palm-strip line, so on
   those screens things still stand on the counter.
-- **Background** `bg-kitchen-landscape` (1920x1080): anchored bottom-center at native height, so it is only
-  cropped at the sides (4:3). If the screen is wider than the art (20:9) it grows uniformly just enough to cover
-  the width, still bottom-anchored (`addBackground`). A wider background will come later under the same name.
+- **Background** `bg-kitchen-landscape` (2400x1080): anchored bottom-center at native height, so it is only
+  cropped at the sides (16:9, 4:3); at 20:9 it fits exactly at scale 1. If a screen is ever wider than 2400 it grows
+  uniformly just enough to cover the width, still bottom-anchored (`addBackground`).
 - **Sizes** (the old "uniform art scale" rule is cancelled): images are shown at native size x `k`, except where
-  the stage table gives an item its own scale: the character (75-100% of native, from the width left over:
-  100% at 20:9, 75% at 16:9), the oven (75-95%, filling the room left of the board), the topping bins
-  (as big as the left column allows, about 213 units at 16:9 and 20:9), the home button (85% = 204 units).
+  the stage table gives an item its own scale: Mom (the right column's scale, 75-100% of native: 100% at 20:9,
+  75% at 16:9), the oven (75-90%, filling the room left of the board), the topping bins (as big as the left column
+  allows, about 213 units at 16:9 and 20:9), the home button (85% = 204 units), the play button (1.4x, rasterized
+  at 1.4x: `raster` in assets.ts), Pipa (0.4 small, 0.62 big, x k), Mom's demo hands (point 0.62, roll/spread/grab
+  0.66, sprinkle 1.1, x k: `HAND_SCALE` in core/hand.ts, from the art agent's checked scenes).
   The pizza (dish radius 350) and the board are always at native size x k.
-- **Composition per step:** the character stands on the right for the whole recipe (blinks, her eyes follow the
-  finger / hand / dish, a short happy hop at the end of each step, `steps/Character.ts`). Roll: the pin rests
-  upright in the left column and lies across the finger while rolling. Spread: bowl left. Sprinkle: shaker left.
-  Decorate: 6 bins in 2 columns on the left, done button above the character's head. Bake: the oven left of the
-  dish, side by side. Feed: slices on the board, dragged right to her mouth (a carried slice points its tip at
-  the mouth, its middle under the finger).
+- **Composition per step:** Mom stands on the right for the whole recipe, her 800x800 frame's bottom on the screen
+  bottom (it is cut at her waist, so she never jumps: her happy move is a stretch and sway from the waist).
+  On 16:9 and wider, Pipa sits small on the counter between the pizza and Mom (never over the pizza itself or Mom's
+  face; 0.362 at 16:9 where the gap is narrow). On 4:3 Pipa only comes for feeding. Roll: the pin rests upright in the
+  left column and lies across the finger while rolling. Spread: bowl left. Sprinkle: shaker left. Decorate: 6 bins in
+  2 columns on the left, done button above Mom's head. Bake: the oven left of the dish, side by side.
+  Feed: Pipa moves to the board's right rim, big (0.62); where that would cover Mom's face (16:9, 4:3) Mom steps right
+  (`feedMomShift`, her face stays on screen). Slices are dragged right to Pipa's mouth (tip first).
+- **Mom's pointing arm** stays in its drawn pose (pointing at the pizza) on phones. Only on 4:3, where Pipa is not on
+  screen, it turns (max 20 degrees around the shoulder) toward the oven while baking. On the phone that aim passed over
+  Pipa's head, so there the demo hand points at the oven instead. Feeding: -18 degrees (tucked behind Pipa); finale: +55.
 - **Orientation:** manifest `orientation: 'landscape'`; the play button asks for fullscreen + `lock('landscape')`
   (works only in fullscreen / installed PWA). Otherwise `core/orientation.ts` watches the size of `#game`: when it
   is taller than wide it shows `#rotate` (index.html: a phone turning, with a round arrow, CSS animation), pauses
@@ -112,48 +124,58 @@ README.md, ASSET-LICENSES.md  public description and the asset licenses (the rep
 plugins/asset-manifest.ts  virtual:asset-manifest = the asset files that exist on disk
 scripts/make-icons.mjs     regenerates the temporary PWA icons (public/icons)
 scripts/harness.js         test harness for the automated Chrome (see "Testing notes")
-public/assets/images/      SVG art (from the asset agent)
-public/assets/sounds/      ogg/mp3 sounds (from the asset agent)
+scripts/bake-webp.js       pre-renders the SVGs to WebP, run inside the game page (see "Pre-rendered art")
+public/assets/images/      SVG art (the source, from the art agent) + webp/ (pre-rendered, committed)
+public/assets/sounds/      voice/ (Mom, 23 lines), music/ (1 loop), sfx/ (12 effects incl. the bake loop)
 src/main.ts                Phaser config (3 touch pointers), gesture blocking, lifecycle, orientation guard, SW
 src/core/
-  assets.ts                THE ASSET CONTRACT: image keys + native sizes, sound keys, ART geometry, palette
-  placeholders.ts          code-drawn stand-ins for missing images (incl. topping-bin); sauce brush; opaqueBounds
-  svgRaster.ts             SVG -> texture at native size, aspect kept
-  sfx.ts                   sfx(): plays if loaded, silent otherwise; sfxThen(): chain sounds
+  assets.ts                THE ASSET CONTRACT: image keys + native sizes, sound keys, ART geometry (Mom pivots, hand anchors)
+  placeholders.ts          code-drawn stand-ins for missing images (a generic one for most); sauce brush; opaqueBounds
+  svgRaster.ts             SVG -> texture at native size, aspect kept; WebP -> texture
+  audio.ts                 all sound on one Web Audio context: loading, levels, Mom's voice queue, music, bake loop, holds
+  sfx.ts                   sfx(): plays an effect if loaded, silent otherwise (relative volume); sfxThen(): chain
   device.ts                browser-gesture blocking, wake lock, audio resume (background return, every touch)
   layout.ts                world size, k, Y(), no-touch zones, resize handling, background
   stage.ts                 THE LAYOUT TABLE: every position and per-item scale, relative to margins and center
   orientation.ts           landscape guard: rotate screen, pause/resume
   fx.ts                    burst / puff / stars particles, boing squash
-  hand.ts                  HandHint: tap / drag / rub / circle demos, fingertip = image origin, target glow
+  hand.ts                  MomHandView: Mom's 5 demo hands, keyframed motions (demo / looping hint), follow (help), props
   ui.ts                    iconButton (padded hit circle, fires on press, optional two-tap confirm)
 src/recipes/
   types.ts                 Recipe + StepDef + CharacterDef types (one params type per step type)
   pizza.ts                 the pizza recipe, pure data
   index.ts                 RECIPES list shown on the home screen
 src/steps/
-  Step.ts                  base: idle timer, hint, auto-finish, finger ownership, miss streak, cancelGesture
-  Character.ts             the character on the right: layers, blink, look-at, moods, cheer
+  Step.ts                  base: intro (demo + voice), idle timer, hint, Mom's help, finger ownership, miss streak, cancelGesture
+  Mom.ts                   Mom: 12 layers, breathing, blink, look-at, lip movement from the voice, cheer, arm aim
+  Character.ts             Pipa: layers, blink, look-at, moods (expect, chew, party), small beside Mom / big for feeding
   Dish.ts                  the food carried between steps; capture() flattens it into one texture
   slices.ts                cuts the captured pizza into wedges (2D canvas), stock-art fallback
   registry.ts              step type name -> implementation
   RollStep / SpreadStep / SprinkleStep / DecorateStep / BakeStep / FeedStep
 src/scenes/
-  BootScene                loads existing assets, fills gaps with placeholders
-  TitleScene               big play button (audio resume, fullscreen + landscape lock, wake lock)
-  HomeScene                one card per recipe
-  RecipeScene              runs any recipe's steps in order; board under the dish; the character; home button
+  BootScene                loads the title's 4 images, starts Title, loads the rest + all sounds in the background
+  TitleScene               big play button (audio resume, fullscreen + landscape lock, wake lock, music, vo-welcome)
+  HomeScene                one card per recipe, Mom (and Pipa); waits for the art before starting a recipe
+  RecipeScene              runs any recipe's steps in order; board under the dish; Mom, Pipa, Mom's hand; demo counter; home button
 ```
 
 ## Recipes are data
 A recipe is `{ id, card, board, character, steps: StepDef[] }`. Each step names a reusable type and its params.
-Step types: `roll`, `spread`, `sprinkle`, `decorate`, `bake`, `feed`. `character` lists her layer keys
-(body, eyes x4, mouth x3); she is on screen for the whole recipe.
+Step types: `roll`, `spread`, `sprinkle`, `decorate`, `bake`, `feed`. `character` lists Pipa's layer keys
+(body, eyes x4, mouth x3). Mom is the same for every recipe (fixed keys in `steps/Mom.ts`).
 To add a recipe: create `src/recipes/<name>.ts`, add it to `RECIPES`, and add any new image keys
 to the contract in `src/core/assets.ts` together with a placeholder in `placeholders.ts`.
 A new step type means a new `Step` subclass + a `StepDef` variant + a registry entry + its anchors in `stage.ts`.
-Every step subclass must implement `showHint()` and `autoFinish()`, call `poke()` on real progress,
-and treat `onUp(..., cancelled)` as "put it back gently".
+Every step subclass must implement `demo()` (Mom's hand motion for the current phase, max 2.5 s, never changing the
+dish: anything carried is a see-through prop) and `autoFinish()` (Mom's help: her hand visibly does it, via
+`hand.follow` or `hand.play`), set `stepLine` (its voice line, if any), call `poke()` on real progress, and treat
+`onUp(..., cancelled)` as "put it back gently". `showHint()` defaults to looping `demo()`.
+Voice lines per event: Title tap vo-welcome; card vo-pick-pizza; demo start vo-watch-me + the step line
+(vo-roll / vo-sauce / vo-cheese / vo-toppings / vo-feed), demo end vo-your-turn; no demo: the step line only;
+step done: a random vo-praise-1..7 (never the same twice in a row); decorate done-hint vo-done-hint; pizza in the oven
+vo-oven, half-way vo-baking, ding vo-ready; finale vo-finale, then the cheer effect, then vo-bye, then home.
+One line at a time, never overlapping; a line whose moment has passed is dropped (core/audio.ts `Voice`).
 
 The child's own pizza: at the end of decorating, `Dish.capture()` renders the dish (dough, sauce,
 cheese, toppings where she put them) into one texture (`pizza-made`). That exact pizza goes into
@@ -161,32 +183,56 @@ the oven, is seen through the window, and is cut into the slices she feeds. `piz
 fallback if the capture fails.
 
 ## Asset contract (another agent produces the art and sounds)
-- Images: `public/assets/images/<key>.svg`. Sounds: `public/assets/sounds/<key>.ogg` and/or `.mp3` (ogg preferred).
-- Image keys (34): bg-kitchen-landscape, dough-ball, dough-flat, rolling-pin, sauce-bowl, sauce-blob,
-  cheese-shaker, cheese-shred, topping-tomato, topping-olive, topping-mushroom, topping-corn,
-  topping-pepper, topping-onion, tray, oven-inside, oven-closed, oven-open, pizza-slice,
-  character-body, character-eyes-open, character-eyes-blink, character-eyes-surprised,
-  character-eyes-happy, character-mouth-closed, character-mouth-open, character-mouth-chew,
-  hand-hint, star, btn-play, btn-home, btn-done, card-pizza, topping-bin.
-  (`bg-kitchen`, the portrait background, is no longer used and was removed from the game folder.)
-- **`topping-bin` (240x240) is not delivered yet:** the game draws it in code (cream rounded box, 8 px ink outline,
-  20% ink shadow) until `topping-bin.svg` arrives. The bin is scaled to fit its cell; the topping is drawn on top of it.
-- Sound keys (9): tap, pop, squish, sprinkle, whoosh, oven-ding, munch, cheer, cheer-jingle.
-  Any future voice lines are in English.
-- Art conventions the code assumes (see STYLE.md in the asset folder):
-  - viewBox = native size in world units (the world is 1080 high). Outlines are 8 px, ink `#5B3A29`.
-  - `bg-kitchen-landscape`: 1920x1080; the counter must stay plain across the whole width (it is bottom-anchored).
-  - `hand-hint`: the fingertip is at (53, 23) in its 220x280 viewBox.
+- Images: `public/assets/images/<key>.svg` (the source) and, pre-rendered, `public/assets/images/webp/<key>.webp`.
+  Sounds: `public/assets/sounds/{voice,music,sfx}/<key>.ogg` (and/or `.mp3`; the key is the file name).
+- Image keys (52), all delivered (style B, from `../cooking-game-assets/images-b`; see its README-mom.md, CRITIQUE.md
+  and the scene composer `scenes.js`, the reference for positions and scales):
+  bg-kitchen-landscape, dough-ball, dough-flat, rolling-pin, sauce-bowl, sauce-blob, cheese-shaker, cheese-shred,
+  topping-tomato, topping-olive, topping-mushroom, topping-corn, topping-pepper, topping-onion, topping-bin,
+  tray, pizza-board, oven-inside, oven-closed, oven-open, pizza-slice,
+  character-body, character-eyes-open / -blink / -surprised / -happy, character-mouth-closed / -open / -chew (Pipa),
+  **mom (12 layers, 800x800):** mom-arm-right, mom-body, mom-head, mom-hair, mom-eyes-open / -blink / -happy /
+  -surprised, mom-mouth-smile / -talk / -open, mom-arm-left,
+  **mom-hand (5, 400x400):** mom-hand-point, mom-hand-roll, mom-hand-spread, mom-hand-sprinkle, mom-hand-grab,
+  **pizza-board** (the board under the dish; `tray` is an identical older copy),
+  hand-hint (the old single hand, still in the contract, not shown), star, btn-play, btn-home, btn-done, card-pizza.
+- Sound keys: effects (12, `sfx/`): tap, pop, squish, sprinkle, whoosh, oven-ding, munch, cheer, cheer-jingle,
+  star, complete (not used yet), bake (the loop). Voice (23, `voice/`, English): vo-welcome, vo-pick-pizza,
+  vo-watch-me, vo-your-turn, vo-roll, vo-sauce, vo-cheese, vo-toppings, vo-done-hint, vo-oven, vo-baking, vo-ready,
+  vo-feed, vo-help, vo-praise-1..7, vo-finale, vo-bye. Music (`music/`): music-main (a gapless 256-beat loop).
+- Levels (core/audio.ts `LEVEL`, from the sound agent's MIXING.md with the owner's numbers): voice 1.0; effects 0.65
+  (munch 1.0, star 0.6, complete 0.7); bake loop 0.4 (300 ms fades); music 0.22, ducked to 0.11 while Mom speaks,
+  back over 0.5 s. Music and the bake loop are AudioBufferSourceNode loops. No mute button.
+- Art conventions the code assumes:
+  - viewBox = native size in world units (the world is 1080 high).
+  - `bg-kitchen-landscape`: 2400x1080; the counter must stay plain across the whole width (it is bottom-anchored).
+  - Mom: every layer shares the 800x800 frame; y 800 = her waist (the screen bottom); body centre x 500. Stack back
+    to front: arm-right, body, head, hair, eyes, mouth, arm-left. Pivots: arm-left (350, 505), arm-right (650, 505);
+    the pointing fingertip is at (37, 378). Her face (hair to chin) x 330-670, y 40-420 (kept clear of stars and Pipa).
+  - Demo-hand anchors (the point placed on the target): point (100,100) fingertip, roll (140,140) palm, spread
+    (110,250) spoon bowl, sprinkle (125,115) pinch, grab (110,150) carried item's centre (`ART.momHands`).
+  - Pipa's layers share a 600x700 frame (opaque x 30-574, feet y 684); the mouth is measured from `character-mouth-open`.
+  - `topping-bin` 240x240: the topping (140) is drawn on it at (120,112).
   - `tray` is the round pizza board under the dough (not a topping bin; that is `topping-bin`).
   - `pizza-slice`: crust at the top, tip pointing down.
   - `cheese-shaker`: holes at the top (it is turned upside down while shaking).
   - `rolling-pin`: drawn lying down; the game stands it upright (rotated 90 degrees) while it rests.
-  - Character layers share a 600x700 frame; the mouth position is measured from `character-mouth-open`.
-  - Oven layers share a 700x800 frame; the window hole is x 150-550, y 320-610; the pizza sits at (350, 480), diameter about 320.
+  - Oven layers share a 700x800 frame (opaque x 34-664, from y 20); the window hole is x 150-550, y 320-610; the pizza
+    sits at (350, 480), diameter about 320.
   - `sauce-blob`: its silhouette becomes a solid sauce brush (outline removed).
 - **Missing files are fine:** a placeholder is drawn in code and a missing sound is silent. Swapping in
   real assets is only copying files into those folders. The dev server reloads by itself. For the
   production/PWA build, run `npm run build` again, since the asset list is fixed at build time.
+- **Pre-rendered art (WebP).** The style-B SVGs use filters (paper texture, torn edges) that took ~2.6 s to rasterize
+  at load (desktop Chrome; a phone is slower). `scripts/bake-webp.js` runs inside the game page on the dev server and
+  renders each SVG exactly like the game does, at its texture size (native x `raster`), to `images/webp/<key>.webp`
+  (lossless when that is under 64 KB, else lossy 0.92), recording the SVG's sha1 in `images/webp/sources.json`.
+  The build uses a WebP only if that sha1 matches the SVG on disk; otherwise it warns and the game rasterizes the SVG.
+  **After changing or adding an SVG, re-run the bake** (open the dev page, then in the JS tool:
+  `eval(await (await fetch('scripts/bake-webp.js')).text()); await __bakeWebp(); await __compareWebp();`),
+  check the pixel diff (small items about 0.1/255, large lossy ones mean at most 3.5/255), commit `images/webp/`.
+  Nothing in the build or in GitHub Actions runs the bake (no extra tool or dependency). SVGs with a valid WebP are
+  not precached by the service worker.
 - The browser console lists which placeholders and silent sounds are in use (`[assets]` lines).
 
 ## Working rules
@@ -207,13 +253,20 @@ fallback if the capture fails.
   Its STYLE.md "Landscape layout" section is a starting point only; the owner's instructions won over it
   (no top bar, full-size pizza instead of 0.75x, background never cropped at the top).
 - Rollback points: tags `rollback-start` (first commit), `rollback-pre-assets` (before the real assets),
-  `rollback-pre-landscape` (end of round 1, portrait), `v0.2-landscape` (end of round 2, landscape).
+  `rollback-pre-landscape` (end of round 1, portrait), `v0.2-landscape` (end of round 2, landscape),
+  `rollback-pre-mom` (master before round 4, the Mom round).
+- Temporary files go in `.tmp/` inside this folder (git-ignored), never outside it.
+- This computer's memory is limited: one automated browser only, no parallel runs, no heavy sub-agents, and at least
+  2 GB free before running the harness.
 
 ## Running
 - Everything is served under the sub-path `/kids-cooking-game/` (Vite `base`), in dev and preview too.
   Code builds URLs from `import.meta.env.BASE_URL` (or page-relative paths), never from a leading `/`.
 - `npm run dev`: dev server on the LAN (`--host`, port 5173). Open `http://<computer's LAN address>:5173/kids-cooking-game/` on the phone.
 - Dev only: `?step=N` (0-based) jumps straight to step N of the recipe.
+- Mom's demos show only the first two times a recipe starts on a device (`localStorage` key `cooking.runs.pizza`).
+  To see them again: `localStorage.removeItem('cooking.runs.pizza')` in the console (the harness: `__demos(true)`).
+- Load time is logged: `[assets] title images ready in N ms` and `all images ready N ms after boot` (`window.__loadTiming`).
 - `npm run build`, `npm run preview`: production build (preview: `http://localhost:4173/kids-cooking-game/`).
   The service worker and the screen wake lock only work on HTTPS or localhost, so over plain LAN http the
   screen may still dim. The HTTPS deployment (see "Deployment") is where the PWA is installed from.
@@ -249,8 +302,46 @@ fallback if the capture fails.
 - Desktop Chrome has no touch listeners. The harness calls `game.input.onTouchStart/onTouchMove/onTouchEnd/
   onTouchCancel` with fake events.
 - Nothing replaces a real finger on a real phone. Always list what still needs a hands-on check.
+- **Audio in the automated Chrome:** synthetic touches are not a user gesture, so the AudioContext stays suspended
+  and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
+  unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (end of round 2, landscape; written for the next agent)
+## Handoff notes (written for the next agent; round 4 on top, rounds 2-3 below still hold)
+
+### 0. Round 4 (cooking with Mom): what changed and how to check it
+State: branch `round-4-mom` (from `master` at tag `rollback-pre-mom`), not merged, not pushed. Commits: stage 1 art +
+WebP, stage 2 Mom / Pipa / demos / voice manager, stage 3 sound files, stage 4 wellbeing rules, then this AGENTS update.
+Screenshots of every step, with demos, at 20:9 and 4:3: `docs/screenshots-round4/` (git-ignored; `__tour`).
+- **Load time** (desktop Chrome, this computer): SVGs rasterized at load took 2581 ms (images) / 3066 ms (to the title).
+  With the WebP files and the title loading only its 4 images first: production build, first visit 1474 ms to the
+  title (963 ms images); from the service worker cache 1.8 s (the rest is texture creation / GPU upload of ~20
+  megapixels in the hidden automated tab). Since then the title waits only for bg, play button, star and card.
+- **Voice** (`core/audio.ts`): `voice.say(key, {queue, ttlMs, valid, done})`. Default: waits for the current line;
+  `queue:false` cuts it (50 ms fade). A waiting line is dropped after `ttlMs` (2.5 s) or when `valid()` is false, so a
+  line never plays late. `voice.praise()` picks vo-praise-1..7, never the same twice in a row. The analyser level
+  drives Mom's mouth. A real-time safety timer ends a line if the context can't run (audio locked), so Mom never
+  "talks" forever. `holdAudio('rotate'|'hidden', on)` stops the line, suspends the context, resumes after.
+- **Demos** (`Step.intro`, `Step.demo()`): the first two runs per device (`cooking.runs.<id>`). A scene-level
+  POINTER_DOWN ends the demo (the step's own handler still gets the touch). `onDemoEnd()` / `HandMotion.onStop` undo
+  what the demo hid (the roll demo hides the real pin while Mom's prop pin rolls).
+- **Help** (`Step.help()` -> vo-help + `autoFinish()`): every step's autoFinish shows Mom's hand doing it
+  (`hand.follow(kind, () => point)` or `hand.play`). A whole recipe with no touches ends at Home (Mom helped 7 times).
+- **Stage table additions** (`core/stage.ts`): `mom`, `momFace`, `pet` (null below 1700 wide), `feedPet`,
+  `feedMomShift`, `feedPetLeft`. Pipa's small scale shrinks to fit between the pizza and Mom's face (0.362 at 16:9).
+  The oven is at most 90% and at Y(612): the new oven art is opaque from y 20, and at 95% its top touched the home
+  button's touch area at 20:9.
+- **Harness additions** (`scripts/harness.js`): `__demos(on)`, `__waitDemo()`, `__demoAt(w,h,step,ms)` (stops ms into
+  that step's demo), `__real(ms)` (real-time stepping), `__voReport()`, `__fullRun(demos)` (voice log of a real-time
+  run), `__saveShot(name)` + `__tour(w,h,tag)` (PNG of the game canvas into docs/screenshots-round4 through the dev
+  server's `/__dev/shot`). The audit also checks Mom (without her arms) and Pipa (not over the pizza, not over
+  Mom's face, not in the strips). `__gesture` waits 5.7 s after the oven drop (bake is 5 s now).
+- **Checked in round 4** (automated Chrome): audit clean at 20:9, 16:9, 4:3 in every step; finale stars never over
+  a face (0 of 17 at each ratio); full recipe with and without demos, voice logs without overlaps or praise repeats;
+  a touch mid-demo ends it and counts (roll progress 0.55 from that drag); rotation mid-demo and mid-line (line cut,
+  scene paused, idle clock frozen, resumes); background (line dropped, context suspended, resumes); Mom's help;
+  capture and slices (`pizza-slice-made-*`, tint FFD49A); music 0.22 -> 0.11 while speaking -> 0.22; bake loop 0.4.
+- **Hidden-tab artifact:** in the automated Chrome, `onended` of a line can arrive late (a 0.9 s line logged as 3 s),
+  so logged durations are longer than the files. The order and the no-overlap check are what count.
 
 State: branch `round-2-landscape` (from `round-1-pizza`), full pizza recipe in landscape, locked, with a rotate screen.
 Round 3 (deploy): merged to `master` (tag `v0.2-landscape`), served under `/kids-cooking-game/`, published to
@@ -327,7 +418,7 @@ Harness pitfalls:
   The grab point is `sliceCenter()` (0.6 R along the mid-angle).
 - Carrying (landscape): `FeedStep.carryPose()` puts the slice's middle under the finger and its tip (the origin) ahead of
   it, pointing at the mouth: angle = `restAngle + dir + 180 - midAngle`. A drop counts if the FINGER or the tip is near
-  the mouth, or anywhere right of the character's left edge (`stage.charLeft`).
+  the mouth, or anywhere right of Pipa's opaque left edge (`stage.feedPetLeft`).
 - The sauce is a RenderTexture inside the dish. Its stamps are recorded, and on `Renderer.Events.RESTORE_WEBGL`
   they are replayed (context loss when switching apps). After the capture it no longer matters.
 
@@ -350,8 +441,8 @@ Harness pitfalls:
   `miss()` x3 shows the hint immediately. `hit()` resets the streak.
   `autoFinish()` sets `auto` (input ignored). Multi-phase steps call `resumeAfterAuto()` to hand control back (BakeStep).
   While the rotate screen is up, the scene is paused, so none of these clocks run (checked: idle stayed 0 over 20 s).
-- The hand (`core/hand.ts`) has its origin at the fingertip and a soft glow on the first target. `stop()` kills its tweens.
-  `hand.position` is where the fingertip is (the character watches it).
+- Mom's hand (`core/hand.ts`) is placed by its anchor (ART.momHands) and glows on the target only as a hint (not in
+  the demo). `stop()` kills its tweens and runs the motion's `onStop`. `hand.position` is the anchor (Mom and Pipa watch it).
 
 ### 5. Phaser 4 pitfalls met here that the official skills don't mention
 - The TweenManager keeps its own clock from `Date.now()` (`getDelta` in TweenManager.js), not the game loop's time.
@@ -378,7 +469,21 @@ Harness pitfalls:
 - SVGs are not loaded with `this.load.svg`. `core/svgRaster.ts` fetches, sets width and height to the native viewBox size,
   rasterizes to a canvas and calls `textures.addCanvas`. This gives exact native-size textures and a clean fallback.
 
-### 6. Open points after round 2
+### 6. Open points after round 4 (round 2's list follows, updated)
+- **Needs a real finger and a real ear:** Mom's voice level against the music and effects on the phone speaker;
+  whether the lip movement reads as talking; whether "Now you try!" arriving after the step line feels natural;
+  whether the demo is slow enough to follow and a 5-year-old waits for it or taps through it (both are fine);
+  the finale order (finale line, cheer, bye) and its length; the music loop over a long session (no click at the
+  seam); sound after a real phone call / app switch / screen lock; the service worker's 5.85 MB first download on
+  mobile data; whether the praise lines vary enough.
+- 4:3 feeding: Mom steps right and her waving arm leaves the screen (her face stays). The art agent's 4:3 feed shot
+  had her fully visible with Pipa in front of her body; that version covered her face at our 4:3 sizes.
+- `sfx/complete.ogg` is delivered but not used (a 2.8 s jingle would collide with the praise line).
+- The step-completion star burst (fx.stars from the dish) is not face-aware; only the finale is.
+- Title screen: the art agent's reference shows Mom, Pipa and a baked pizza on the title. The game's title stays
+  plain (background + play button) so it can appear after 4 images; Mom and Pipa appear from the home screen on.
+
+### 6b. Open points after round 2
 - **Needs a real finger on the real phone (20:9):** the thumb strips (4%) and the palm strip in real two-handed play;
   whether 213-unit bins (~1.3 cm) and the 204-unit home button are easy for her; the two-tap home button (does she arm it
   by accident, does an adult find it); dragging a slice to the right with the tip leading; rolling with the pin lying
@@ -388,9 +493,6 @@ Harness pitfalls:
   native). Physically they are still bigger than on the phone (a tablet's 1080 units are ~15 cm), but below the
   200-unit rule in world units. If that matters, the fix is to give tablets a different composition, not to shrink more.
 - **16:9** is exactly the fit width: the character is at 75%, 25-unit gaps between the columns. Nothing to spare.
-- **20:9** crops the top 270 units of the 1920-wide background (it is scaled x1.25 to cover the width). A 2400-wide
-  `bg-kitchen-landscape` from the asset agent will fix that with no code change.
-- `topping-bin.svg` is still to come from the asset agent (240x240 viewBox; drawn in code until then).
 - The rolling pin's shadow is drawn for a lying pin; standing upright at rest, its shadow is at its side.
 - The recipe screen doesn't re-layout on a size change (camera zoom only): if the browser bar appears or disappears in
   landscape, the scene is slightly letterboxed until the next recipe.
