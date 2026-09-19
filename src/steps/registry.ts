@@ -2,6 +2,7 @@ import type { StepDef, StepType } from '../recipes/types';
 import { BakeStep } from './BakeStep';
 import { DecorateStep } from './DecorateStep';
 import { FeedStep } from './FeedStep';
+import { GrateStep } from './GrateStep';
 import { PressStep } from './PressStep';
 import { RollStep } from './RollStep';
 import { SprinkleStep } from './SprinkleStep';
@@ -19,6 +20,7 @@ const STEP_TYPES: Record<StepType, Factory> = {
   knead: (c, p, d) => new PressStep(c, p, d),
   crush: (c, p, d) => new PressStep(c, p, d),
   stir: (c, p, d) => new StirStep(c, p, d),
+  grate: (c, p, d) => new GrateStep(c, p, d),
   roll: (c, p, d) => new RollStep(c, p, d),
   spread: (c, p, d) => new SpreadStep(c, p, d),
   sprinkle: (c, p, d) => new SprinkleStep(c, p, d),

@@ -76,7 +76,23 @@ export const pizza: Recipe = {
       },
     },
     { type: 'spread', params: { source: 'sauce-bowl', blob: 'sauce-blob', coverage: TUNING.spread.coverage } },
-    { type: 'sprinkle', params: { tool: 'cheese-shaker', piece: 'cheese-shred', count: TUNING.sprinkle.count } },
+    {
+      type: 'grate',
+      params: {
+        tool: 'grater',
+        block: 'cheese-block',
+        piles: ['cheese-pile-1', 'cheese-pile-2', 'cheese-pile-3'],
+        piece: 'cheese-shred',
+        distance: TUNING.grate.distance,
+        shredEvery: TUNING.grate.shredEvery,
+        sound: 'grate',
+        line: 'vo-grate',
+      },
+    },
+    {
+      type: 'sprinkle',
+      params: { tool: 'cheese-handful', toolKind: 'handful', source: 'cheese-pile-3', piece: 'cheese-shred', count: TUNING.sprinkle.count },
+    },
     {
       type: 'decorate',
       params: {

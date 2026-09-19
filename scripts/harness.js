@@ -69,6 +69,8 @@
   };
   window.__R = () => game.scene.getScene('Recipe');
   window.__step = () => __R().step?.constructor.name;
+  /** The current step's type in the recipe ('wash', 'knead', 'roll', ...): knead and crush share a class. */
+  window.__type = () => { const sc = __R(); return sc?.step ? sc.recipe.steps.find((s) => s.params === sc.step.params)?.type : undefined; };
 })();
 
 // Auto-player: performs one round of the gesture the current step expects.
@@ -77,7 +79,24 @@
   window.__gesture = async () => {
     const st = __R().step, name = __step(), d = D();
     const r = d.R * d.scaleX;
-    if (name === 'RollStep' || name === 'SpreadStep') {
+    if (name === 'WashStep') {
+      if (st.phase === 'tap') { const b = st.faucet.getBounds(); __tap(b.centerX, b.y + b.height * 0.35); await __run(500); }
+      else if (st.phase === 'rub') {
+        const y = st.palmL.y - 30, pts = [];
+        for (let i = 0; i <= 8; i++) pts.push([i % 2 ? st.palmR.x + 30 : st.palmL.x - 30, y + (i % 2 ? 40 : -20)]);
+        await __drag(pts);
+      }
+    } else if (name === 'PressStep') {
+      __tap(st.at.x + (Math.random() - 0.5) * 80, st.at.y - 60 + (Math.random() - 0.5) * 60); await __run(250);
+    } else if (name === 'StirStep') {
+      const o = st.bowl.opening(), pts = [];
+      for (let i = 0; i <= 12; i++) { const a = (i / 12) * Math.PI * 2; pts.push([o.x + Math.cos(a) * o.rx * 0.6, o.y + Math.sin(a) * o.ry * 0.6]); }
+      await __drag(pts);
+    } else if (name === 'GrateStep') {
+      const f = st.face(), x = (f.x0 + f.x1) / 2, pts = [[st.block.x, st.block.y]];
+      for (let i = 0; i < 6; i++) pts.push([x, i % 2 ? f.y0 + 40 : f.y1 - 40]);
+      await __drag(pts);
+    } else if (name === 'RollStep' || name === 'SpreadStep') {
       const pts = [];
       for (let i = 0; i <= 8; i++) pts.push([d.x + (i % 2 ? 1 : -1) * r * 0.6, d.y - r * 0.6 + (i * r * 1.2) / 8]);
       await __drag(pts);
@@ -107,14 +126,17 @@
     __tap(card.x, card.y); await __run(1600);
   };
   /** Plays until `name` is the current step (and has had `settle` ms to enter). */
+  /** Plays until `name` (a class name like 'RollStep', or a recipe type like 'crush') is the current step. */
   window.__to = async (name, settle = 900) => {
-    for (let guard = 0; guard < 200 && __step() !== name; guard++) {
-      const before = __step();
+    const here = () => __step() === name || __type() === name;
+    for (let guard = 0; guard < 300 && !here(); guard++) {
+      const before = __R().step;
+      if (before?.finished) { await __run(100); continue; }
       await __gesture();
-      if (__step() !== before) await __run(1800);
+      if (__R().step !== before) await __run(1800);
     }
     await __run(settle);
-    return __step();
+    return __type();
   };
   /** The canvas region in viewport px, for the screenshot zoom tool. */
   window.__region = () => { const r = game.canvas.getBoundingClientRect(); return [r.left, r.top, r.right, r.bottom].map(Math.round); };
@@ -151,11 +173,38 @@
     const home = sc.children.list.find((o) => o.texture?.key === 'btn-home');
     vis.push(['home', box(home)]); hits.push(['home', hitOf(home)]);
     vis.push(['mom', momBox(sc.ctx.mom)]);
-    vis.push(['board', box(sc.ctx.board)]);
-    const d = sc.ctx.dish; hits.push(['dish', circ(d.x, d.y, d.R * d.scaleX)]);
+    const d = sc.ctx.dish, boardOn = sc.ctx.board.alpha > 0.05, aside = d.scaleX < 0.9;
+    if (boardOn) vis.push([aside ? 'pizza-aside' : 'board', box(sc.ctx.board)]);
+    // The dish is a touch target only in the middle (aside it waits; hidden it doesn't exist yet).
+    const dishSteps = ['RollStep', 'SpreadStep', 'SprinkleStep', 'DecorateStep', 'BakeStep', 'FeedStep'];
+    if (boardOn && !aside && dishSteps.includes(name)) hits.push(['dish', circ(d.x, d.y, d.R * d.scaleX)]);
+    const clipPalm = (b) => ({ ...b, y1: Math.min(b.y1, forbid.y1) });
+    const pad = (b, p) => ({ x0: b.x0 - p, y0: b.y0 - p, x1: b.x1 + p, y1: b.y1 + p });
+    const rect = (r) => ({ x0: r.x, y0: r.y, x1: r.right, y1: r.bottom });
+    if (name === 'WashStep') {
+      vis.push(['sink', box(sc.children.list.find((o) => o.texture?.key === 'sink-basin'))]);
+      vis.push(['faucet', box(st.faucet)]); hits.push(['faucet', pad(rect(st.faucet.getBounds()), 30 * L.k)]);
+      // The hands run off the bottom by design; their touch area stops at the palm strip (onDown refuses it).
+      hits.push(['hands', clipPalm(pad(rect(st.hands.getBounds()), 50 * L.k))]);
+    }
+    if (name === 'PressStep') {
+      const b = st.bowl ? st.bowl.bounds() : st.food.getBounds();
+      vis.push([st.bowl ? 'bowl' : 'dough', st.bowl ? rect(b) : box(st.food)]); hits.push([st.bowl ? 'bowl' : 'dough', st.pressArea()]);
+    }
+    if (name === 'StirStep') {
+      vis.push(['bowl', rect(st.bowl.bounds())]);
+      const o = st.bowl.opening(); hits.push(['bowl', { x0: o.x - o.rx * 1.8, y0: o.y - o.ry * 1.8, x1: o.x + o.rx * 1.8, y1: o.y + o.ry * 1.8 }]);
+    }
+    if (name === 'GrateStep') {
+      vis.push(['grater', box(st.tool)]); vis.push(['block', box(st.block)]);
+      const f = st.face(), p = 90 * L.k; hits.push(['grater', { x0: f.x0 - p, y0: f.y0 - p, x1: f.x1 + p, y1: f.y1 + p }]);
+    }
     if (name === 'RollStep') { vis.push(['pin', box(st.pin)]); hits.push(['pin', box(st.pin)]); }
     if (name === 'SpreadStep') { const b = sc.children.list.find((o) => o.texture?.key === 'sauce-bowl'); vis.push(['bowl', box(b)]); }
-    if (name === 'SprinkleStep') { vis.push(['shaker', box(st.tool)]); hits.push(['shaker', circ(st.tool.x, st.tool.y, 225 * L.k)]); }
+    if (name === 'SprinkleStep') {
+      const src = st.source ?? st.tool; vis.push(['cheese', box(src)]);
+      hits.push(['cheese', circ(st.toolRest.x, st.toolRest.y, 225 * L.k)]);
+    }
     if (name === 'DecorateStep') {
       st.bins.forEach((b, i) => { vis.push(['bin' + i, box(b.bin)]); const r = b.half + 30 * L.k; hits.push(['bin' + i, { x0: b.x - r, y0: b.y - r, x1: b.x + r, y1: b.y + r }]); });
       vis.push(['done', box(st.done)]); hits.push(['done', hitOf(st.done)]);
@@ -171,12 +220,14 @@
       if (b.y1 > forbid.y1 + 1) out.push(`palm zone: ${n} y1=${r(b.y1)} > ${r(forbid.y1)}`);
     }
     const ov = (a, b) => Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0) > 2 && Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0) > 2;
-    for (let i = 0; i < vis.length; i++) for (let j = i + 1; j < vis.length; j++) if (ov(vis[i][1], vis[j][1])) out.push(`overlap: ${vis[i][0]} / ${vis[j][0]}`);
+    // Drawn together on purpose (the art agent's scenes): the tap stands on the sink's rim.
+    const together = new Set(['sink/faucet', 'board/dough', 'grater/block']);
+    for (let i = 0; i < vis.length; i++) for (let j = i + 1; j < vis.length; j++) if (ov(vis[i][1], vis[j][1]) && !together.has(`${vis[i][0]}/${vis[j][0]}`)) out.push(`overlap: ${vis[i][0]} / ${vis[j][0]}`);
     const pet = sc.ctx.character;
     const hs = hits.filter(([n]) => n !== 'dish' && !n.startsWith('slice'));
     for (let i = 0; i < hs.length; i++) for (let j = i + 1; j < hs.length; j++) if (ov(hs[i][1], hs[j][1]) && !(hs[i][0].startsWith('bin') && hs[j][0].startsWith('bin'))) out.push(`hit overlap: ${hs[i][0]} / ${hs[j][0]}`);
-    const dishHit = hits.find(([n]) => n === 'dish')[1];
-    for (const [n, b] of hs) if (n !== 'home' && ov(b, dishHit) && !n.startsWith('pin')) out.push(`hit overlaps dish: ${n}`);
+    const dishHit = hits.find(([n]) => n === 'dish')?.[1];
+    if (dishHit) for (const [n, b] of hs) if (n !== 'home' && ov(b, dishHit) && !n.startsWith('pin')) out.push(`hit overlaps dish: ${n}`);
     // Pipa: never over the pizza itself (before feeding), never over Mom's face, never in the no-touch strips.
     if (pet.box.visible) {
       const pb = charBox(pet.box);
@@ -184,15 +235,17 @@
       if (pb.x0 < forbid.x0 - 1 || pb.x1 > forbid.x1 + 1 || pb.y1 > forbid.y1 + 1) out.push(`pet in a no-touch strip [${r(pb.x0)},${r(pb.y0)},${r(pb.x1)},${r(pb.y1)}]`);
       const sh = name === 'FeedStep' ? S.feedMomShift : 0;
       if (ov(pb, { ...S.momFace, x0: S.momFace.x0 + sh, x1: S.momFace.x1 + sh })) out.push('pet covers mom face');
-      if (name !== 'FeedStep') {
+      if (name !== 'FeedStep' && boardOn && !aside) {
         // The pizza disc: the nearest point of Pipa's box to its centre must be outside the dough radius.
         const R = d.R * d.scaleX * 0.95, nx = Math.max(pb.x0, Math.min(d.x, pb.x1)), ny = Math.max(pb.y0, Math.min(d.y, pb.y1));
         if (Math.hypot(nx - d.x, ny - d.y) < R) out.push(`pet over pizza by ${r(R - Math.hypot(nx - d.x, ny - d.y))}`);
-        for (const [n, b] of vis) if (n !== 'board' && n !== 'mom' && ov(pb, b)) out.push(`overlap: pet / ${n}`);
+      }
+      if (name !== 'FeedStep') {
+        for (const [n, b] of vis) if (n !== 'board' && n !== 'mom' && n !== 'sink' && ov(pb, b)) out.push(`overlap: pet / ${n}`);
       }
       vis.push(['pet', pb]);
     }
-    return { step: name, W, H, k: +L.k.toFixed(3), charScale: +sc.ctx.stage.charScale.toFixed(3), pet: pet.box.visible, problems: out };
+    return { step: __type(), W, H, k: +L.k.toFixed(3), charScale: +sc.ctx.stage.charScale.toFixed(3), pet: pet.box.visible, problems: out };
   };
 })();
 
@@ -201,7 +254,7 @@ window.__auditRun = async (w, h) => {
   await __setup(w, h);
   await __start();
   const res = {};
-  for (const n of ['RollStep', 'SpreadStep', 'SprinkleStep', 'DecorateStep', 'BakeStep', 'FeedStep']) {
+  for (const n of ['wash', 'knead', 'roll', 'crush', 'stir', 'spread', 'grate', 'sprinkle', 'decorate', 'bake', 'feed']) {
     await __to(n, 1200);
     const a = __audit();
     res[n] = a.problems;

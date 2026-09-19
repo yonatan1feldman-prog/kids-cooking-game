@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { ART } from '../core/assets';
 import { boing } from '../core/fx';
 import type { HandMotion } from '../core/hand';
 import { art } from '../core/layout';
@@ -8,9 +9,11 @@ import { clampToRadius } from './Dish';
 import { Step } from './Step';
 
 /**
- * Sprinkling: tap over the dish, or drag across it, and the shaker follows the
- * finger (floating just above it, tipped over, so it stays visible) and showers
- * pieces down. Pieces land where the finger is.
+ * Sprinkling: tap over the dish, or drag across it, and the tool follows the finger and showers pieces
+ * down where the finger is. Two kinds of tool:
+ * - 'shaker': floats just above the finger, tipped over (holes down), so it stays visible;
+ * - 'handful' (her own grated cheese): a handful taken from the pile in the left column (`source`, left
+ *   by the grate step), held just above the finger; it goes back into the pile when she lets go.
  */
 /** Touch radius around the resting shaker (it stands 400 tall: this reaches past its drawing). */
 export const TOOL_REACH = 225;
@@ -26,18 +29,34 @@ export class SprinkleStep extends Step<SprinkleParams> {
   private last = { x: 0, y: 0 };
   private done = false;
   private k = 1;
+  private source?: Phaser.GameObjects.Image;
+
+  private get handful() {
+    return this.params.toolKind === 'handful';
+  }
 
   start() {
     const L = this.layout;
     this.k = L.k;
+    this.workspace('dish');
     this.toolRest = this.ctx.stage.shaker;
+    if (this.handful && this.params.source) {
+      // The pile she grated (left by the step before), or a fresh one.
+      this.source = this.adopt(this.params.source) ?? undefined;
+      if (!this.source) {
+        this.source = this.own(this.scene.add.image(this.toolRest.x, this.toolRest.y, this.params.source).setScale(0).setDepth(2));
+        this.scene.tweens.add({ targets: this.source, scale: 0.8 * this.k, duration: 450, ease: 'Back.easeOut' });
+      }
+    }
     this.tool = this.own(art(this.scene.add.image(this.toolRest.x, this.toolRest.y, this.params.tool), L).setDepth(30));
     this.tool.setScale(0);
-    this.scene.tweens.add({ targets: this.tool, scale: this.k, duration: 450, ease: 'Back.easeOut' });
+    if (this.handful) this.tool.setOrigin(ART.prep.handfulClump.x / 300, ART.prep.handfulClump.y / 260);
+    // A handful only shows while held; a shaker stands in the left column.
+    if (!this.handful) this.scene.tweens.add({ targets: this.tool, scale: this.k, duration: 450, ease: 'Back.easeOut' });
 
     this.onDown((p) => {
       const nearDish = this.dish.reach(p.worldX, p.worldY) < 1.5;
-      const nearTool = Phaser.Math.Distance.Between(p.worldX, p.worldY, this.tool.x, this.tool.y) < TOOL_REACH * this.k;
+      const nearTool = Phaser.Math.Distance.Between(p.worldX, p.worldY, this.toolRest.x, this.toolRest.y) < TOOL_REACH * this.k;
       if (!nearDish && !nearTool) return;
       this.active = true;
       this.travel = 0;
@@ -67,22 +86,30 @@ export class SprinkleStep extends Step<SprinkleParams> {
     this.setIdle(true);
   }
 
-  /** The shaker floats above the finger, upside down (holes at the bottom). */
+  /** The shaker floats above the finger, upside down (holes at the bottom); a handful is held just above it. */
   private hover(x: number, y: number, animate: boolean) {
-    const ty = y - 260 * this.k;
+    const ty = y - (this.handful ? 110 : 260) * this.k;
+    const angle = this.handful ? 0 : 180;
     this.scene.tweens.killTweensOf(this.tool);
-    this.tool.setScale(this.k);
-    if (animate) this.scene.tweens.add({ targets: this.tool, x, y: ty, angle: 180, duration: 140, ease: 'Quad.easeOut' });
-    else this.tool.setPosition(x, ty).setAngle(180);
+    if (this.handful && animate) {
+      // Taken from the pile: it comes from there to the finger.
+      if (this.tool.scale < 0.1) this.tool.setPosition(this.toolRest.x, this.toolRest.y);
+      if (this.source) boing(this.scene, this.source, 0.08);
+    }
+    this.tool.setScale(this.k).setAlpha(1);
+    if (animate) this.scene.tweens.add({ targets: this.tool, x, y: ty, angle, duration: 140, ease: 'Quad.easeOut' });
+    else this.tool.setPosition(x, ty).setAngle(angle);
   }
 
   private rest() {
     this.scene.tweens.killTweensOf(this.tool);
-    this.scene.tweens.add({ targets: this.tool, x: this.toolRest.x, y: this.toolRest.y, angle: 0, scale: this.k, duration: 350, ease: 'Back.easeOut' });
+    const scale = this.handful ? 0 : this.k;
+    this.scene.tweens.add({ targets: this.tool, x: this.toolRest.x, y: this.toolRest.y, angle: 0, scale, duration: 350, ease: this.handful ? 'Quad.easeIn' : 'Back.easeOut' });
   }
 
   private shake() {
-    this.scene.tweens.add({ targets: this.tool, angle: { from: 165, to: 195 }, duration: 70, yoyo: true, repeat: 2 });
+    if (this.handful) this.scene.tweens.add({ targets: this.tool, angle: { from: -12, to: 12 }, duration: 70, yoyo: true, repeat: 2 });
+    else this.scene.tweens.add({ targets: this.tool, angle: { from: 165, to: 195 }, duration: 70, yoyo: true, repeat: 2 });
   }
 
   /** Drops `n` pieces from the shaker onto the dish around the finger. */
@@ -92,7 +119,7 @@ export class SprinkleStep extends Step<SprinkleParams> {
     const k = this.k;
     for (let i = 0; i < n; i++) {
       this.thrown++;
-      const from = { x: this.tool.x + Phaser.Math.FloatBetween(-40, 40) * k, y: this.tool.y + 170 * k };
+      const from = { x: this.tool.x + Phaser.Math.FloatBetween(-40, 40) * k, y: this.tool.y + (this.handful ? 50 : 170) * k };
       const aim = this.dish.toLocal(fx + Phaser.Math.FloatBetween(-90, 90) * k, fy + Phaser.Math.FloatBetween(-90, 90) * k);
       const spot = clampToRadius(aim, this.dish.R * 0.8);
       const land = this.dish.toWorld(spot.x, spot.y);

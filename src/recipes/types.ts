@@ -158,6 +158,7 @@ export type StepDef =
   | { type: 'knead'; params: PressParams }
   | { type: 'crush'; params: PressParams }
   | { type: 'stir'; params: StirParams }
+  | { type: 'grate'; params: GrateParams }
   | { type: 'roll'; params: RollParams }
   | { type: 'spread'; params: SpreadParams }
   | { type: 'sprinkle'; params: SprinkleParams }
