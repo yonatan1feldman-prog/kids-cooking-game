@@ -22,10 +22,6 @@ const DECORATE_AUTO_AFTER_HINT_MS = 15000;
 /** A dragged item is lifted: shown a bit bigger and above the finger so it stays visible. */
 const LIFT = 1.3;
 const LIFT_UP = 90;
-/** Layout (design coordinates): bin rows start below the home button; the pizza moves down a bit. */
-const BINS_TOP = 400;
-const DISH_AT = { x: 540, y: 1175 };
-const DONE_AT = { x: 860, y: 1610 };
 
 /**
  * Free decorating: drag items from bins onto the dish. No limit, no right or wrong.
@@ -49,12 +45,8 @@ export class DecorateStep extends Step<DecorateParams> {
     this.autoAfterHintMs = DECORATE_AUTO_AFTER_HINT_MS;
 
     const items = this.params.items;
-    const cols = 3;
     items.forEach((key, i) => {
-      const row = Math.floor(i / cols);
-      const col = i % cols;
-      const inRow = Math.min(cols, items.length - row * cols);
-      const { x, y } = L.P(540 + (col - (inRow - 1) / 2) * 290, BINS_TOP + row * 260);
+      const { x, y } = this.ctx.stage.bin(i, items.length);
       const bin = this.own(art(this.scene.add.image(x, y, UI_BIN), L));
       const icon = this.own(art(this.scene.add.image(x, y - 8 * L.k, key), L));
       this.bins.push({ key, x, y, bin, icon });
@@ -66,10 +58,10 @@ export class DecorateStep extends Step<DecorateParams> {
       this.scene.tweens.add({ targets: icon, angle: { from: -6, to: 6 }, duration: 900 + i * 60, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     });
 
-    const to = L.P(DISH_AT.x, DISH_AT.y);
+    const to = this.ctx.stage.decorateDish;
     this.scene.tweens.add({ targets: [this.dish, this.ctx.board], x: to.x, y: to.y, duration: 450, ease: 'Sine.easeInOut' });
 
-    const btn = L.P(DONE_AT.x, DONE_AT.y);
+    const btn = this.ctx.stage.done;
     this.done = this.own(iconButton(this.scene, L, this.params.doneButton, btn.x, btn.y, () => this.finish()));
 
     this.onDown((p) => {

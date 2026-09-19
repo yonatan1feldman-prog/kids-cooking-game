@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import type { HandHint } from '../core/hand';
 import { PALM_ZONE, type Layout } from '../core/layout';
+import type { Stage } from '../core/stage';
 import type { Dish } from './Dish';
 
 /** Default: seconds of no progress before the guiding hand shows the gesture. */
@@ -11,6 +12,8 @@ export const AUTO_AFTER_HINT_MS = 10000;
 export interface StepContext {
   scene: Phaser.Scene;
   layout: Layout;
+  /** Every fixed position on screen (core/stage.ts). */
+  stage: Stage;
   dish: Dish;
   /** The round board the dish sits on. */
   board: Phaser.GameObjects.Image;

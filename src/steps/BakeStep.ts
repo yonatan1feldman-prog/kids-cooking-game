@@ -8,10 +8,6 @@ import { Step } from './Step';
 
 type Phase = 'toOven' | 'baking' | 'ready' | 'out';
 
-/** Oven center, and where the board + dish wait below it (design coordinates). */
-const OVEN_AT = { x: 540, y: 480 };
-const DISH_WAIT = { x: 540, y: 1330 };
-
 /**
  * Baking: drag the dish up into the open oven. The door closes and the pizza is seen
  * through the oven window (layers: oven-inside, pizza, oven-closed), slowly turning
@@ -31,7 +27,7 @@ export class BakeStep extends Step<BakeParams> {
   start() {
     const L = this.layout;
     this.k = L.k;
-    const o = L.P(OVEN_AT.x, OVEN_AT.y);
+    const o = this.ctx.stage.oven;
     this.open = this.own(art(this.scene.add.image(o.x, o.y, this.params.open), L).setDepth(5));
     this.inside = this.own(art(this.scene.add.image(o.x, o.y, this.params.inside), L).setDepth(5).setVisible(false));
     this.closed = this.own(art(this.scene.add.image(o.x, o.y, this.params.closed), L).setDepth(7).setVisible(false));
@@ -39,7 +35,7 @@ export class BakeStep extends Step<BakeParams> {
     this.scene.tweens.add({ targets: this.open, scale: this.k, duration: 450, ease: 'Back.easeOut' });
 
     // Board and pizza slide down to make room under the oven.
-    this.rest = L.P(DISH_WAIT.x, DISH_WAIT.y);
+    this.rest = this.ctx.stage.dishWait;
     this.dish.setDepth(10);
     this.scene.tweens.add({ targets: [this.dish, this.ctx.board], x: this.rest.x, y: this.rest.y, duration: 500, ease: 'Sine.easeInOut' });
 

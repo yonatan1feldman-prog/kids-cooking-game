@@ -3,15 +3,13 @@ import { boing, stars } from '../core/fx';
 import { HandHint } from '../core/hand';
 import { addBackground, art, getLayout, keepLayoutOnResize } from '../core/layout';
 import { sfx } from '../core/sfx';
+import { getStage } from '../core/stage';
 import { iconButton } from '../core/ui';
 import { getRecipe } from '../recipes';
 import type { Recipe } from '../recipes/types';
 import { Dish } from '../steps/Dish';
 import { createStep } from '../steps/registry';
 import type { Step, StepContext } from '../steps/Step';
-
-/** Where the dish (on its board) rests by default, in design coordinates. */
-const DISH_HOME = { x: 540, y: 1110 };
 
 /**
  * Plays any recipe: runs its steps in order, carrying the dish between them.
@@ -36,13 +34,14 @@ export class RecipeScene extends Phaser.Scene {
     keepLayoutOnResize(this, L);
     addBackground(this, L);
 
-    const home = L.P(160, 160);
+    const S = getStage(L);
+    const home = S.home;
     iconButton(this, L, 'btn-home', home.x, home.y, () => this.goHome()).setDepth(900);
 
-    const dishHome = L.P(DISH_HOME.x, DISH_HOME.y);
+    const dishHome = S.dishHome;
     const board = art(this.add.image(dishHome.x, dishHome.y, this.recipe.board), L).setDepth(-1);
     const dish = new Dish(this, dishHome.x, dishHome.y, L);
-    this.ctx = { scene: this, layout: L, dish, board, hand: new HandHint(this, L), dishHome };
+    this.ctx = { scene: this, layout: L, stage: S, dish, board, hand: new HandHint(this, L), dishHome };
 
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.step?.abort());
     this.runStep(devStartStep(this.recipe.steps.length));

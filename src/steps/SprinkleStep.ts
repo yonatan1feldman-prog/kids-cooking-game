@@ -25,7 +25,7 @@ export class SprinkleStep extends Step<SprinkleParams> {
   start() {
     const L = this.layout;
     this.k = L.k;
-    this.toolRest = L.P(850, 470);
+    this.toolRest = this.ctx.stage.shaker;
     this.tool = this.own(art(this.scene.add.image(this.toolRest.x, this.toolRest.y, this.params.tool), L).setDepth(30));
     this.tool.setScale(0);
     this.scene.tweens.add({ targets: this.tool, scale: this.k, duration: 450, ease: 'Back.easeOut' });

@@ -3,6 +3,7 @@ import { requestWakeLock, resumeAudio } from '../core/device';
 import { stars } from '../core/fx';
 import { addBackground, getLayout, keepLayoutOnResize } from '../core/layout';
 import { sfx } from '../core/sfx';
+import { getStage } from '../core/stage';
 import { iconButton } from '../core/ui';
 
 /**
@@ -20,7 +21,7 @@ export class TitleScene extends Phaser.Scene {
     keepLayoutOnResize(this, L);
     addBackground(this, L);
 
-    const at = L.P(540, 960);
+    const at = getStage(L).play;
     const btn = iconButton(this, L, 'btn-play', at.x, at.y, () => this.go(btn.x, btn.y), { pulse: true, fireOn: 'up', hitPad: 130 });
     this.tweens.add({ targets: btn, alpha: { from: 0, to: 1 }, duration: 400 });
   }

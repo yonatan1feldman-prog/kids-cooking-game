@@ -16,8 +16,6 @@ interface Slice {
 
 type Mood = 'rest' | 'expect' | 'chew' | 'party';
 
-/** Character center (design coordinates). */
-const CHAR_AT = { x: 540, y: 470 };
 /** Slices spread apart a little so the cuts show. */
 const EXPLODE = 12;
 
@@ -87,9 +85,8 @@ export class FeedStep extends Step<FeedParams> {
   }
 
   private buildCharacter() {
-    const L = this.layout;
     const p = this.params;
-    this.charRest = L.P(CHAR_AT.x, CHAR_AT.y);
+    this.charRest = this.ctx.stage.character;
     // All layers share the 600x700 frame: stacked at one position, same scale.
     const body = new Phaser.GameObjects.Image(this.scene, 0, 0, p.body).setScale(this.k);
     this.eyes = new Phaser.GameObjects.Image(this.scene, 0, 0, p.eyesOpen).setScale(this.k);

@@ -32,7 +32,7 @@ export class RollStep extends Step<RollParams> {
     this.ball.setScale(0);
     this.scene.tweens.add({ targets: this.ball, scale: this.k, duration: 500, ease: 'Back.easeOut' });
 
-    this.pinRest = L.P(540, 540);
+    this.pinRest = this.ctx.stage.pinRest;
     this.pin = this.own(art(this.scene.add.image(this.pinRest.x, this.pinRest.y, this.params.tool), L).setDepth(20));
 
     this.render();

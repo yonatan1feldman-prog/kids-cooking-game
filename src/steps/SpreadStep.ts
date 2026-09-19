@@ -28,7 +28,7 @@ export class SpreadStep extends Step<SpreadParams> {
     this.paintR = R * 0.68;
     this.brush = R * 0.42;
 
-    const bowlAt = L.P(820, 500);
+    const bowlAt = this.ctx.stage.bowl;
     const bowl = this.own(art(this.scene.add.image(bowlAt.x, bowlAt.y, this.params.source), L));
     bowl.setScale(0);
     this.scene.tweens.add({ targets: bowl, scale: L.k, duration: 450, ease: 'Back.easeOut' });
