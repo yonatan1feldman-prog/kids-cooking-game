@@ -99,6 +99,19 @@ export const TUNING = {
     cut: { pressMs: 520 },
     oven: { target: 150 },
   },
+  /**
+   * The smoothie (round 8; aim: 4-5 minutes from the card to home). Wash the fruit: drops of rubbing, as the salad's
+   * vegetables. Chop: cuts per fruit. Into the jar: ms of pouring each bin. Milk: ms of pouring. Blend: ms the motor must
+   * run in all (holding the button or tapping it: a tap runs it at least `tapMs`). Glass: ms of pouring to fill one glass.
+   */
+  smoothie: {
+    washFruit: { bubbles: 10, rubPerBubble: 300, rubLineAt: 99, rinseMs: 1200 },
+    chop: { cuts: 5, minSwipe: 50 },
+    transfer: { ms: 1500 },
+    milk: { ms: 2200 },
+    blend: { runMs: 6000, tapMs: 450 },
+    glass: { ms: 2400 },
+  },
   /** Mom's help (after the idle hint): the pace of her own presses, rubs and strokes. */
   help: { pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150, chopEveryMs: 950, openMs: 1500, tempEveryMs: 1100 },
 } as const;

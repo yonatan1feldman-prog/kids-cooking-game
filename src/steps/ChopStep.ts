@@ -8,7 +8,7 @@ import { TUNING } from '../core/tuning';
 import { VEG, vegColumn } from '../core/vegArt';
 import type { ChopParams } from '../recipes/types';
 import { Step } from './Step';
-import { binKey, binsWaiting, fillBin, makeBin, parkBin } from './ToppingBin';
+import { binKey, binsWaiting, fillBin, iconScale, makeBin, parkBin } from './ToppingBin';
 
 /** The knife's size (x the board's own scale / 1.05; it is 0.9 in the art agent's scene, a little smaller so it fits above the vegetable). */
 const KNIFE = 0.8;
@@ -260,7 +260,7 @@ export class ChopStep extends Step<ChopParams> {
       const bin = makeBin(this.scene, p.bin, p.topping, pileX, b.y + 20 * u, 0);
       const bs = 0.8 * this.layout.k;
       this.scene.tweens.add({ targets: [bin], scale: bs, duration: 300, ease: 'Back.easeOut' });
-      this.scene.tweens.add({ targets: [bin.getData('icon')], scale: bs * 1.1, duration: 300, ease: 'Back.easeOut' });
+      this.scene.tweens.add({ targets: [bin.getData('icon')], scale: iconScale(bin.getData('icon'), bs), duration: 300, ease: 'Back.easeOut' });
       const index = binsWaiting(this.ctx);
       this.scene.time.delayedCall(320, () =>
         fillBin(this.scene, bin, this.pile.splice(0), () => {

@@ -1,6 +1,5 @@
 import { TUNING } from '../core/tuning';
 import type { ImageKey } from '../core/assets';
-import type { VegName } from '../core/vegArt';
 import type { Recipe, StepDef } from './types';
 
 /** Tomato red of the crushed tomatoes and the sauce (juice drops); flour white for the dough. */
@@ -8,7 +7,7 @@ const TOMATO = 0xe4523b;
 const FLOUR = 0xfff6e6;
 
 /** Cutting one vegetable (the chop step type): its pictures, and the colour of its juice drops. */
-const chop = (veg: Exclude<VegName, 'cucumber' | 'carrot'>, juice: number): StepDef => ({
+const chop = (veg: 'tomato' | 'mushroom' | 'pepper' | 'onion', juice: number): StepDef => ({
   type: 'chop',
   params: {
     veg,

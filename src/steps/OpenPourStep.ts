@@ -6,9 +6,10 @@ import { tapMotion, type HandMotion } from '../core/hand';
 import { sfx } from '../core/sfx';
 import { TUNING } from '../core/tuning';
 import type { OpenPourParams } from '../recipes/types';
+import { MADE_KEY, snapshotTexture } from './Dish';
 import { BOWL_DEPTH, PrepBowl } from './PrepBowl';
 import { Step } from './Step';
-import { binIcon, binKey, binsWaiting, fillBin, makeBin, parkBin } from './ToppingBin';
+import { binIcon, binKey, binsWaiting, fillBin, iconScale, makeBin, parkBin } from './ToppingBin';
 
 type Phase = 'open' | 'pour' | 'done';
 
@@ -21,6 +22,14 @@ const PIECE = 0.55;
 const FALLING = 0.45;
 /** A bin's mouth (its opening, in the 240x240 topping-bin frame). */
 const BIN_MOUTH = { x: 120, y: 70 };
+
+/** A glass to fill (glasses mode): the empty one, the full one over it cropped to how full it is. */
+interface Glass {
+  empty: Phaser.GameObjects.Image;
+  full: Phaser.GameObjects.Image;
+  poured: number;
+  done: boolean;
+}
 
 /** One thing to pour: the can or jar, the oil bottle, a filled bin, the torn lettuce. */
 interface Source {
@@ -67,6 +76,9 @@ export class OpenPourStep extends Step<OpenPourParams> {
   private inBowl: Phaser.GameObjects.Image[] = [];
   private helping = false;
   private k = 1;
+  /** Glasses mode: the glasses (empty, the full one cropped over it as it fills) and how long each has been poured into. */
+  private glasses: Glass[] = [];
+  private glass?: Glass;
 
   /** The can or jar (the first source). */
   private get box() {
@@ -91,10 +103,15 @@ export class OpenPourStep extends Step<OpenPourParams> {
       this.back = this.own(this.scene.add.image(b.x, b.y, p.bowl.back).setScale(b.scale).setDepth(BOWL_DEPTH.back));
       this.front = this.own(this.scene.add.image(b.x, b.y, p.bowl.front).setScale(b.scale).setDepth(BOWL_DEPTH.front));
     }
-    this.buildSources();
+    if (p.glasses) this.buildGlasses();
+    else this.buildSources();
     this.cur = this.sources[0];
     this.phase = opening ? 'open' : 'pour';
-    const entering = [...(p.keep ? [] : [this.back, this.front]), ...this.sources.filter((s) => !s.img.getData('adopted')).map((s) => s.img)];
+    const entering = [
+      ...(p.keep ? [] : [this.back, this.front]),
+      ...this.sources.filter((s) => !s.img.getData('adopted') && !p.glasses).map((s) => s.img),
+      ...this.glasses.flatMap((g) => [g.empty, g.full]),
+    ];
     for (const o of entering) {
       o.setAlpha(0).setY(o.y + 100 * k);
       this.scene.tweens.add({ targets: o, alpha: 1, y: o.y - 100 * k, duration: 450, ease: 'Back.easeOut' });
@@ -212,6 +229,7 @@ export class OpenPourStep extends Step<OpenPourParams> {
     if (this.phase !== 'pour' || !this.over) return;
     const s = this.cur;
     if (this.params.dropIn) return this.dropIn(s);
+    if (this.params.glasses) return this.pourGlass(delta);
     s.poured += delta;
     this.sinceDrop += delta;
     while (this.sinceDrop > 85) {
@@ -227,7 +245,7 @@ export class OpenPourStep extends Step<OpenPourParams> {
     const icon = binIcon(img);
     if (!icon || !img.active) return;
     const v = new Phaser.Math.Vector2(0, -8 * img.scaleX).rotate(Phaser.Math.DegToRad(img.angle));
-    icon.setPosition(img.x + v.x, img.y + v.y).setAngle(img.angle).setScale(img.scaleX * 1.1, img.scaleY * 1.1).setDepth(img.depth + 0.1).setAlpha(img.alpha);
+    icon.setPosition(img.x + v.x, img.y + v.y).setAngle(img.angle).setScale(iconScale(icon, img.scaleX), iconScale(icon, img.scaleY)).setDepth(img.depth + 0.1).setAlpha(img.alpha);
   }
 
   /** A thing to pour under the finger (with a generous margin), the nearest if several. */
@@ -252,8 +270,9 @@ export class OpenPourStep extends Step<OpenPourParams> {
     return x > b.x - pad && x < b.right + pad && y > b.y - pad && y < b.bottom + pad;
   }
 
-  /** The bowl's opening (an ellipse; the same art as the prep bowl). */
+  /** The bowl's opening (an ellipse; the same art as the prep bowl); in glasses mode the rim of the glass poured into. */
   opening() {
+    if (this.params.glasses) return this.rimOf(this.glass ?? this.glasses.find((g) => !g.done) ?? this.glasses[0]);
     if (this.bowl) return this.bowl.opening();
     const o = ART.prep.bowlOpening;
     const [w, h] = IMAGES['prep-bowl-back'].size;
@@ -264,12 +283,19 @@ export class OpenPourStep extends Step<OpenPourParams> {
   /** Where the can or jar is held to pour: up and to the left of the bowl's opening (as in the art agent's scene). */
   pourPoint() {
     const o = this.opening();
-    if (this.bowl) return { x: o.x - o.rx * 0.6, y: o.y - 250 * this.k };
+    if (this.params.glasses) {
+      // The jar held so that, tipped, its lip is above the glass's rim.
+      const lip = this.lipOffset(-(this.params.tilt ?? TILT));
+      return { x: o.x - lip.x, y: o.y - 170 * this.k - lip.y };
+    }
+    // (a tall bowl, the blender jar: never above the top of the screen)
+    if (this.bowl) return { x: o.x - o.rx * 0.6, y: Math.max(o.y - 250 * this.k, 210 * this.k) };
     return { x: o.x - o.rx * 0.95, y: o.y - 250 * this.back.scaleX };
   }
 
   /** Forgiving: anywhere above the bowl (its width, plus a margin toward the left), or near the pouring spot. */
   private isOver(x: number, y: number) {
+    if (this.params.glasses) return this.overGlass();
     const o = this.opening();
     const pp = this.pourPoint();
     const near = Phaser.Math.Distance.Between(x, y, pp.x, pp.y) < 300 * (this.bowl ? this.k : this.back.scaleX);
@@ -329,7 +355,7 @@ export class OpenPourStep extends Step<OpenPourParams> {
   private setOver(on: boolean) {
     if (on === this.over) return;
     this.over = on;
-    const dir = this.box.x < this.opening().x ? 1 : -1;
+    const dir = this.params.glasses ? -1 : this.box.x < this.opening().x ? 1 : -1;
     this.scene.tweens.add({ targets: this.box, angle: on ? this.cur.tilt * dir : 0, duration: on ? 320 : 250, ease: 'Sine.easeInOut' });
   }
 
@@ -460,7 +486,7 @@ export class OpenPourStep extends Step<OpenPourParams> {
       const bin = makeBin(this.scene, p.bin!, p.topping!, o.x, o.y + 260 * this.back.scaleX, 0);
       const bs = 0.8 * this.k;
       this.scene.tweens.add({ targets: [bin], scale: bs, duration: 300, ease: 'Back.easeOut' });
-      this.scene.tweens.add({ targets: [bin.getData('icon')], scale: bs * 1.1, duration: 300, ease: 'Back.easeOut' });
+      this.scene.tweens.add({ targets: [bin.getData('icon')], scale: iconScale(bin.getData('icon'), bs), duration: 300, ease: 'Back.easeOut' });
       const index = binsWaiting(this.ctx);
       this.inBowl.forEach((q) => q.setDepth(21));
       this.scene.time.delayedCall(320, () =>
@@ -469,6 +495,145 @@ export class OpenPourStep extends Step<OpenPourParams> {
           parkBin(this.ctx, bin, index, () => this.complete());
         }),
       );
+    });
+  }
+
+  // ---------------------------------------------------------------- glasses mode (the smoothie)
+
+  /**
+   * The kept jar becomes one picture (its back, contents and front) she can pick up and tip; the base stays on the
+   * counter. The glasses stand on its left, side by side.
+   */
+  private buildGlasses() {
+    const g = this.params.glasses!;
+    const bowl = this.bowl!;
+    const k = this.k;
+    const S = this.ctx.stage;
+    // The base and the jar go with this step (the base fades at its end; the jar is the picture below).
+    bowl.parts.forEach((o) => this.own(o));
+    const at = bowl.position;
+    const img = this.own(this.scene.add.image(at.x, at.y, bowl.back.texture.key).setScale(bowl.scale).setDepth(6).setVisible(false));
+    this.sources.push({ img, piece: this.params.piece, mouth: { x: 0, y: 0 }, tilt: this.params.tilt ?? TILT, rest: { ...at }, poured: 0, done: false });
+    const copy = (o: Phaser.GameObjects.Image) => new Phaser.GameObjects.Image(this.scene, 0, 0, o.texture.key);
+    snapshotTexture(this.scene, 'jar-made', 800, [copy(bowl.back), copy(bowl.contents), copy(bowl.front)]).then((ok) => {
+      if (this.aborted) return;
+      if (ok) img.setTexture('jar-made');
+      img.setVisible(true);
+      [bowl.back, bowl.contents, bowl.front, ...bowl.extras].forEach((o) => o.setVisible(false));
+      // (its lip in the 800 square: the 600-wide jar sits in the middle)
+      this.sources[0].mouth = { x: ART.smoothie.jarLip.x + (ok ? 100 : 0), y: ART.smoothie.jarLip.y - 20 };
+    });
+    // The glasses: side by side on the counter left of the blender (at most 0.8, never past the prep area's left edge).
+    const [gw, gh] = IMAGES[g.empty].size;
+    const baseLeft = S.blenderBase.x - 350 * S.blenderBase.scale;
+    // (nothing waits in the left column now: the glasses may use it, up to the home button's column)
+    const room = baseLeft - 380 * k - Math.min(S.prepArea.x0, S.home.x);
+    const gs = Math.min(0.8 * k, room / (gw * 1.15 * g.count));
+    const bottom = S.blenderBase.y + (520 / 2 - 30) * S.blenderBase.scale;
+    for (let i = 0; i < g.count; i++) {
+      const x = baseLeft - 380 * k - gw * gs * (0.5 + 1.15 * (g.count - 1 - i));
+      const y = bottom - (gh / 2) * gs;
+      const empty = this.own(this.scene.add.image(x, y, g.empty).setScale(gs).setDepth(5));
+      const full = this.own(this.scene.add.image(x, y, g.full).setScale(gs).setDepth(5.1));
+      full.setCrop(0, gh, gw, 0);
+      this.glasses.push({ empty, full, poured: 0, done: false });
+    }
+  }
+
+  /** A glass's rim (world). */
+  private rimOf(g: Glass) {
+    const r = ART.smoothie.glassRim;
+    const [w, h] = IMAGES[g.empty.texture.key as ImageKey].size;
+    const s = g.empty.scaleX;
+    return { x: g.empty.x + (r.x - w / 2) * s, y: g.empty.y + (r.y - h / 2) * s, rx: r.rx * s, ry: r.ry * s };
+  }
+
+  /** Where the jar's lip is from its centre when it is turned by `angle` degrees. */
+  private lipOffset(angle: number) {
+    const s = this.cur?.img.scaleX ?? this.bowl!.scale;
+    const lip = { x: ART.smoothie.jarLip.x - 300, y: ART.smoothie.jarLip.y - 400 };
+    const v = new Phaser.Math.Vector2(lip.x * s, lip.y * s).rotate(Phaser.Math.DegToRad(angle));
+    return { x: v.x, y: v.y };
+  }
+
+  /** Over a glass that is not full yet: the one its (tipped) lip is nearest to, when it is anywhere above the glasses. */
+  private overGlass() {
+    const lip = this.lipOffset(-(this.params.tilt ?? TILT));
+    const lx = this.box.x + lip.x;
+    let best: Glass | undefined;
+    let bestD = Infinity;
+    for (const g of this.glasses) {
+      if (g.done) continue;
+      const d = Math.abs(this.rimOf(g).x - lx);
+      if (d < bestD) {
+        bestD = d;
+        best = g;
+      }
+    }
+    if (!best) return false;
+    const rim = this.rimOf(best);
+    const on = bestD < 230 * this.k && this.box.y + lip.y < rim.y + 40 * this.k;
+    if (on) this.glass = best;
+    return on;
+  }
+
+  /** Pouring into the glass it is over: a stream from the lip, the glass fills from the bottom up; then the next one. */
+  private pourGlass(delta: number) {
+    if (!this.glass) this.overGlass();
+    const g = this.glass;
+    if (!g || g.done) return;
+    const p = this.params;
+    g.poured += delta;
+    this.sinceDrop += delta;
+    while (this.sinceDrop > 45) {
+      this.sinceDrop -= 45;
+      this.dropPiece();
+    }
+    if (!this.helping) this.poke();
+    const f = Math.min(1, g.poured / p.pourMs);
+    const [w, h] = IMAGES[p.glasses!.full].size;
+    const top = ART.smoothie.fillBottom - (ART.smoothie.fillBottom - ART.smoothie.fillTop) * f;
+    g.full.setCrop(0, top, w, h - top);
+    if (f < 1) return;
+    // Full: the whole glass (the straw and the foam show), a pop; the jar turns upright until it is over the next one.
+    g.done = true;
+    g.full.setCrop();
+    boing(this.scene, g.full, 0.08);
+    boing(this.scene, g.empty, 0.08);
+    sfx(this.scene, 'pop', { volume: 0.6 });
+    this.hit();
+    this.glass = undefined;
+    this.setOver(false);
+    if (this.glasses.some((x) => !x.done)) {
+      // (Mom's help carries it on to the next glass)
+      if (this.helping) this.scene.time.delayedCall(350, () => this.helpPour());
+      return;
+    }
+    this.glassesDone();
+  }
+
+  /** Both full: the jar goes back onto its base, the glasses become her pieces to share and the photo's picture. */
+  private glassesDone() {
+    const s = this.cur;
+    s.done = true;
+    this.phase = 'done';
+    this.held = false;
+    this.helping = false;
+    this.setIdle(false);
+    this.hand.stop();
+    this.scene.tweens.killTweensOf(s.img);
+    this.scene.tweens.add({ targets: s.img, x: s.rest.x, y: s.rest.y, angle: 0, duration: 420, ease: 'Sine.easeInOut' });
+    const home = this.ctx.stage.dishHome;
+    this.ctx.run.pieces = this.glasses.map((g) => ({ key: g.full.texture.key, x: g.full.x - home.x, y: g.full.y - home.y, scale: g.full.scaleX, tint: 0xffffff }));
+    // The photo: the full glasses side by side.
+    const gs = 0.85;
+    const [w, h] = IMAGES[this.params.glasses!.full].size;
+    const n = this.glasses.length;
+    const objs = this.glasses.map((g, i) => new Phaser.GameObjects.Image(this.scene, (i - (n - 1) / 2) * w * 0.95 * gs, 0, g.full.texture.key).setScale(gs));
+    if (this.scene.textures.exists(MADE_KEY)) this.scene.textures.remove(MADE_KEY);
+    snapshotTexture(this.scene, MADE_KEY, Math.ceil(Math.max(w * 0.95 * n, h) * gs * 1.05), objs).then(() => {
+      if (this.aborted) return;
+      this.scene.time.delayedCall(450, () => !this.aborted && this.complete());
     });
   }
 

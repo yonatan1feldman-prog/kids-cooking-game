@@ -50,6 +50,8 @@ export class RecipeScene extends Phaser.Scene {
   stepDef?: StepDef;
   private step?: Step<unknown>;
   private ctx!: StepContext;
+  /** False while the recipe's art is still loading (nothing is built yet). */
+  private built = false;
   private withDemos = true;
 
   constructor() {
@@ -61,6 +63,7 @@ export class RecipeScene extends Phaser.Scene {
     this.steps = [...this.recipe.steps];
     this.step = undefined;
     this.stepDef = undefined;
+    this.built = false;
   }
 
   create() {
@@ -95,6 +98,7 @@ export class RecipeScene extends Phaser.Scene {
       this.game.events.off(ORIENTATION_PAUSE, onPause);
       this.step?.abort();
     });
+    this.built = true;
     this.runStep(this.devStart());
   }
 
@@ -151,6 +155,7 @@ export class RecipeScene extends Phaser.Scene {
   }
 
   update(_time: number, delta: number) {
+    if (!this.built) return;
     this.step?.update(delta);
     // They watch the action: the finger on the screen, else Mom's demo hand, else the dish.
     const p = this.input.manager.pointers.find((q) => q.isDown);

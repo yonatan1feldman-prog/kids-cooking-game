@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import type { ImageKey } from '../core/assets';
+import { IMAGES, type ImageKey } from '../core/assets';
 import { boing, setRestScale } from '../core/fx';
 import { sfx } from '../core/sfx';
 import type { StepContext } from './Step';
@@ -15,9 +15,14 @@ export const binKey = (topping: string) => `bin:${topping}`;
 /** The topping on its bin: 140 on 240, as big as in decorating (bin 0.9, topping 1.0). */
 const ICON = 1.1;
 
+/** A topping drawn in a bigger frame than 140 (a fruit slice, 240) shows at the same size on its bin. */
+const fitOf = (topping: string) => Math.min(1, 150 / Math.max(...((IMAGES[topping as ImageKey]?.size as readonly number[] | undefined) ?? [140])));
+/** The icon's scale on a bin of scale `binScale`. */
+export const iconScale = (icon: Phaser.GameObjects.Image | undefined, binScale: number) => binScale * ICON * (icon ? fitOf(icon.texture.key) : 1);
+
 export function makeBin(scene: Phaser.Scene, bin: ImageKey, topping: ImageKey, x: number, y: number, scale: number) {
   const img = scene.add.image(x, y, bin).setScale(scale).setDepth(20);
-  const icon = scene.add.image(x, y - 8 * scale, topping).setScale(scale * ICON).setDepth(20.1);
+  const icon = scene.add.image(x, y - 8 * scale, topping).setScale(scale * ICON * fitOf(topping)).setDepth(20.1);
   img.setData('icon', icon);
   img.once(Phaser.GameObjects.Events.DESTROY, () => icon.destroy());
   return img;
@@ -32,7 +37,7 @@ export function moveBin(scene: Phaser.Scene, bin: Phaser.GameObjects.Image, x: n
   bin.setData({ restScaleX: scale, restScaleY: scale });
   scene.tweens.killTweensOf(bin);
   scene.tweens.add({ targets: bin, x, y, scale, duration: ms, ease: 'Sine.easeInOut', onComplete: () => (setRestScale(bin), onComplete?.()) });
-  if (icon) scene.tweens.add({ targets: icon, x, y: y - 8 * scale, scale: scale * ICON, duration: ms, ease: 'Sine.easeInOut' });
+  if (icon) scene.tweens.add({ targets: icon, x, y: y - 8 * scale, scale: iconScale(icon, scale), duration: ms, ease: 'Sine.easeInOut' });
 }
 
 export function setBinVisible(bin: Phaser.GameObjects.Image, on: boolean) {

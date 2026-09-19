@@ -3,8 +3,8 @@
 ## Quick start (read this, then only the sections your task needs)
 - **What:** a text-free, English-speaking cooking game for a 5-year-old (Android phone, landscape): she cooks with
   Mom, Pipa the hedgehog watches and eats. Phaser 4 + Vite + TypeScript PWA, deployed to GitHub Pages from `master`.
-  Three recipes: pizza (`src/recipes/pizza.ts`), salad (`src/recipes/salad.ts`) and cookies (`src/recipes/cookies.ts`),
-  cards side by side on the home screen.
+  Four recipes: pizza (`src/recipes/pizza.ts`), salad (`src/recipes/salad.ts`), cookies (`src/recipes/cookies.ts`) and
+  smoothie (`src/recipes/smoothie.ts`), cards in a grid on the home screen.
 - **Where things are:** `src/recipes/` recipes as pure data (`types.ts` = every step type's params); `src/steps/` one
   reusable class per step type (`registry.ts` maps names to classes); `src/core/tuning.ts` every count and threshold;
   `src/core/stage.ts` every position; `src/core/assets.ts` the asset contract (image keys, sizes, art anchors `ART`);
@@ -213,7 +213,7 @@ src/scenes/
 ## Recipes are data
 A recipe is `{ id, card, board, character, steps: StepDef[] }`. Each step names a reusable type and its params.
 Step types: `wash`, `knead`, `crush`, `stir`, `grate`, `roll`, `spread`, `sprinkle`, `choose`, `chop`, `open-pour`,
-`decorate`, `bake`, `share`, `photo`, `cutters` (and `feed`, the older single-eater ending with its own finale, no longer used).
+`decorate`, `bake`, `share`, `photo`, `cutters`, `blend` (and `feed`, the older single-eater ending with its own finale, no longer used).
 The salad (`salad.ts`) is the second worked example: see Handoff notes 0000.
 The pizza: wash, knead, roll, crush, stir, spread, grate, sprinkle, choose, then the prep step of each of the three
 chosen toppings in the order she picked them (chop, or open-pour), decorate, bake (with the panel and the mitts),
@@ -307,6 +307,20 @@ Reusable step type of round 7 (the cookies; params in `recipes/types.ts`):
   'cookies'` (each thing lands inside the nearest cookie; at the end every cookie with its icing is captured on its own,
   `run.pieces`, and the whole tray into MADE_KEY without flattening the dish); `share` `pieces` (her cookies carried
   upright; the empty tray fades at the end); `photo` `made` (the photo shows MADE_KEY, no board).
+
+Reusable step type of round 8 (the smoothie; params in `recipes/types.ts`):
+- `blend` (`BlendStep`, `BlendParams`): the kept jar stands on its motor base (a `PrepBowl` whose back layer is
+  `blender-jar-back`: its `stand` = the base and the big button, moving with it). A tap on the lid (or the jar) drops it on
+  the mouth (`lidSound`, `lidLine` then `line`). While a finger is on the button (big touch area, or anywhere on the jar)
+  the motor runs: button lit, the jar shakes a little, the contents sway, bits whirl, `blenderLoop` (audio.ts); a tap
+  runs it at least `tapMs`, so taps add up too. The running time goes through `stages` up to `runMs`, then `doneLine`,
+  the lid lifts off, the jar is kept. Demo and help: `mom-hand-point` tapping the lid, then pressing and holding the button.
+  A milkshake, a soup, a mixer: the same type with other pictures.
+- Round 8 also generalised, each optional: `open-pour` `glasses` (the kept jar itself is poured into `count` glasses on
+  its left: it becomes one picture, `jar-made`; each glass fills from the bottom up, `full` cropped over `empty`; the full
+  glasses become `run.pieces` for `share` with `pieces`, and MADE_KEY for `photo` with `made`); a tall kept bowl's pour
+  point stays on screen; chop's vegetables include the fruit (`FruitName` in vegArt.ts); a bin's icon from a bigger frame
+  (a 240 fruit slice) shows at the topping size (`iconScale`).
 
 **What every future recipe must provide** (data only, unless it needs a new step type):
 1. `src/recipes/<name>.ts` with `id`, `card`, `board`, `character` and its `steps`, added to `RECIPES`.
@@ -533,7 +547,29 @@ fallback if the capture fails.
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; round 7 on top, rounds 2-6 below still hold)
+## Handoff notes (written for the next agent; round 8 on top, rounds 2-7 below still hold)
+### 000000. Round 8 (loading by recipe; the smoothie, the fourth recipe)
+State: `rollback-pre-round8` = master before the round; `v0.7-infra` = loading by recipe + the background fix (see
+"Asset contract"); `rollback-pre-smoothie`, branch `round-8-smoothie` merged and tagged `v0.8-smoothie`.
+Reference shots: `../cooking-game-assets/images-b-smoothie/shots/` (README-smoothie.md: jar mouth, seat, lip, base
+button, glass fill rows).
+- **The smoothie is data** (`src/recipes/smoothie.ts`): wash · wash the fruit (`colander-fruit`) · choose 3 of 4 fruits
+  (names) · chop each (fruit profiles in vegArt.ts) · into the jar (open-pour `sources: ['chosen']`, jar-heap-1..3) ·
+  milk (`milk-carton`, `milk-drop`, the kept jar) · blend (new type) · pour into two glasses (open-pour `glasses`) · share
+  the glasses (`pieces`, slurp) · photo (`made`). The jar stands on its base on `stage.blenderJar` / `blenderBase`.
+  Counts: `TUNING.smoothie`. Harness: `__robust8(recipe, moments, how)`, `__smoothieMoments()`, `__recipe = 'smoothie'`
+  for `__fullRun5` / `__auditRun5`; `__blendTaps = true` blends by taps instead of holding.
+- **Checked (virtual clock, simulated voice):** child pace with demos 173 s card to home (cookies 178 s), voice in order,
+  no overlap, no help needed; salad fast regression home, clean. Layout audit on every step at 20:9 and 4:3: clean but
+  Mom's known finale sway. Rotate and background mid-blend (finger on the button) and mid-drag of a glass: dropped,
+  kept, finished.
+- **Found and fixed:** the recipe screen's update ran before its art had loaded (dev links, a rotation during loading);
+  the glasses were tiny (sized from the salad's waiting area); the blender small; fruit slices huge on their bins; the
+  harness's rub path started above a colander's touch area (the salad's too: its runs needed Mom's help).
+- **Needs a real finger:** holding vs tapping the blender button (does she hold it?), dragging the heavy-looking jar over
+  a glass and keeping it there, carrying a glass to Pipa.
+- Precache: 15.5 MB (381 files); the service worker still precaches every recipe (only memory is per recipe).
+
 ### 00000. Round 7 (the cookies, the third recipe)
 State: `rollback-pre-cookies` = master before the cookies; branch `round-7-cookies` merged and tagged `v0.6-cookies`.
 Screenshots (git-ignored): `docs/screenshots-round7/` (`__tour7(w, h, tag)`), to compare with

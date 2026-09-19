@@ -33,13 +33,17 @@ export type VoiceKey =
   | 'vo-pick-cookies' | 'vo-flour' | 'vo-sugar' | 'vo-butter' | 'vo-egg' | 'vo-stir-dough' | 'vo-knead-cookies' | 'vo-roll-cookies'
   | 'vo-pick-cutter' | 'vo-stamp' | 'vo-tray' | 'vo-temp-150' | 'vo-decorate-cookies' | 'vo-share-cookies' | 'vo-cookie-mom'
   | 'vo-cookie-pipa' | 'vo-cookie-yum' | 'vo-photo-cookies' | 'vo-finale-cookies'
+  // the smoothie (round 8)
+  | 'vo-pick-smoothie' | 'vo-wash-fruit' | 'vo-choose-fruit' | 'vo-into-blender' | 'vo-milk' | 'vo-lid' | 'vo-blend'
+  | 'vo-blend-done' | 'vo-pour-glass' | 'vo-share-smoothie' | 'vo-glass-mom' | 'vo-glass-pipa' | 'vo-smoothie-yum'
+  | 'vo-photo-smoothie' | 'vo-finale-smoothie'
   | CountKey | TempKey | NameKey;
 
 /** Mom counting (count-1..10) and saying the oven temperature (temp-50..250). */
 export type CountKey = `count-${1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10}`;
 export type TempKey = `temp-${50 | 100 | 150 | 200 | 250}`;
 /** Mom naming what she picked (the choose step: a new name may cut the name playing, never another line). */
-export type NameKey = `name-${'tomato' | 'mushroom' | 'pepper' | 'onion' | 'corn' | 'olives' | 'cucumber' | 'carrot' | 'lemon' | 'lettuce' | 'star' | 'heart' | 'circle' | 'flower'}`;
+export type NameKey = `name-${'tomato' | 'mushroom' | 'pepper' | 'onion' | 'corn' | 'olives' | 'cucumber' | 'carrot' | 'lemon' | 'lettuce' | 'star' | 'heart' | 'circle' | 'flower' | 'banana' | 'strawberry' | 'mango' | 'kiwi'}`;
 export const countKey = (n: number): CountKey => `count-${Math.max(1, Math.min(10, Math.round(n)))}` as CountKey;
 
 const PRAISE: VoiceKey[] = ['vo-praise-1', 'vo-praise-2', 'vo-praise-3', 'vo-praise-4', 'vo-praise-5', 'vo-praise-6', 'vo-praise-7'];
@@ -105,7 +109,7 @@ export function releaseSounds(keys: readonly string[]) {
 }
 
 /** Played as gapless loops here (not through Phaser). */
-const LOOPS = ['music-main', 'bake', 'water'];
+const LOOPS = ['music-main', 'bake', 'water', 'blender', 'sizzle'];
 
 let soundsLoaded = false;
 export const allSoundsLoaded = () => soundsLoaded;
@@ -182,7 +186,7 @@ export const music = {
 };
 
 /** A gapless effect loop that fades in and out over 300 ms (the oven sizzle, the running tap). */
-function effectLoop(key: string, level: number) {
+function effectLoop(key: string, level: number, fade = 0.3) {
   return {
     gain: null as GainNode | null,
     src: null as AudioBufferSourceNode | null,
@@ -201,7 +205,7 @@ function effectLoop(key: string, level: number) {
         this.gain = null;
         return;
       }
-      ramp(this.gain, level, 0.3);
+      ramp(this.gain, level, fade);
     },
     stop() {
       const c = ctx();
@@ -209,9 +213,9 @@ function effectLoop(key: string, level: number) {
       this.src = null;
       this.gain = null;
       if (!c || !src || !gain) return;
-      ramp(gain, 0, 0.3);
+      ramp(gain, 0, fade);
       try {
-        src.stop(c.currentTime + 0.32);
+        src.stop(c.currentTime + fade + 0.02);
       } catch {
         /* already stopped */
       }
@@ -223,6 +227,10 @@ function effectLoop(key: string, level: number) {
 export const bakeLoop = effectLoop('bake', LEVEL.loop);
 /** The running tap while washing hands (0.35, MIXING.md). */
 export const waterLoop = effectLoop('water', LEVEL.water);
+/** The blender motor while her finger holds its button (0.35, MIXING.md; a quick fade so it answers the finger at once). */
+export const blenderLoop = effectLoop('blender', 0.35, 0.06);
+/** The batter sizzling in the pan while she pours it (pancakes). */
+export const sizzleLoop = effectLoop('sizzle', 0.35, 0.15);
 
 // ---------------------------------------------------------------- voice
 

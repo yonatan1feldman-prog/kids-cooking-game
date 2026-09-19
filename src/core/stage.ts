@@ -118,6 +118,13 @@ export interface Stage {
    */
   saladBowl: Spot;
   pourFrom: Box;
+  /**
+   * The blender (the smoothie): the jar's layers (600x800) and, under it at the same scale, its motor base (700x520),
+   * the jar's seat on the base's seat; on the right of the prep area at most the art agent's 0.66, the base's bottom at
+   * the counter's front. The things poured into it wait in `pourFrom`.
+   */
+  blenderJar: Spot;
+  blenderBase: Spot;
   /** Open-pour: the bowl (prep-bowl layers) on the right of the prep area, and where the can or jar stands, left of it. */
   pourBowl: Spot;
   pourRest: Spot;
@@ -326,6 +333,10 @@ export function getStage(L: Layout): Stage {
   const SALAD_BOWL_W = 900;
   const saladScale = Math.min(0.95 * k, ((prepArea.x1 - prepArea.x0) * 0.62) / SALAD_BOWL_W, (Y(994) - Y(330)) / 620);
   const saladBowl = { x: prepArea.x1 - (SALAD_BOWL_W / 2) * saladScale - 10 * k, y: Y(720), scale: saladScale };
+  const blendScale = Math.min(0.66 * k, ((prepArea.x1 - prepArea.x0) * 0.5) / 700, (Y(1030) - Y(240)) / (412 + 776));
+  const jarSeat = { x: prepArea.x1 - 350 * blendScale - 10 * k, y: Y(1030) - 412 * blendScale };
+  const blenderJar = { x: jarSeat.x, y: jarSeat.y - (776 - 400) * blendScale, scale: blendScale };
+  const blenderBase = { x: jarSeat.x, y: jarSeat.y + (260 - 108) * blendScale, scale: blendScale };
   // (inset: a waiting thing's touch area reaches 45 beyond its drawing, never into the thumb strip)
   const pourFrom = { x0: prepArea.x0 + 40 * k, y0: Y(380), x1: saladBowl.x - (SALAD_BOWL_W / 2) * saladScale - 10 * k, y1: prepArea.y1 };
 
@@ -427,6 +438,8 @@ export function getStage(L: Layout): Stage {
     pourBowl,
     pourRest,
     saladBowl,
+    blenderJar,
+    blenderBase,
     pourFrom,
     panel: panelSpot,
     tempDown: { x: panelSpot.x - btnDx, y: btnY },

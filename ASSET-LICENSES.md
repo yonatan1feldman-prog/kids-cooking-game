@@ -82,6 +82,19 @@ recording of a cutter pressed into dough or of a piping bag was found).
 | sfx/icing.ogg | Squeezing Sound | wesleywestmusic | https://freesound.org/people/wesleywestmusic/sounds/680684/ | CC0 1.0 | cut 0.25-0.75 s (one squeeze), faded, -18 LUFS |
 | sfx/cookie-crunch.ogg | Eating A Biscuit or Cookie | black_trillium | https://freesound.org/people/black_trillium/sounds/752128/ | CC0 1.0 | cut 1.65-2.15 s (one bite), soft limiter, faded, about -23 LUFS |
 
+### New in round 8 (the smoothie)
+
+From the sound agent's `final/LICENSES.md` (the smoothie batch). All four are Freesound CC0; each license was read live
+on the sound's own page on 2026-09-19. Downloads are the public HQ previews. glass-pour is water (no CC0 recording of a
+thick drink poured was found); lid-click is a plastic container lid.
+
+| File | Title | Author | Source page | License | Processing |
+|---|---|---|---|---|---|
+| sfx/blender.ogg | blender-making-lassi.ogg | pbimal | https://freesound.org/people/pbimal/sounds/646773/ | CC0 1.0 | 8.6-13.2 s, a seamless 4.0 s loop (0.6 s crossfade), low-pass 8 kHz, -20 LUFS; played as a loop at 0.35 |
+| sfx/lid-click.ogg | Close_Plastic_Container_Lid | Mediasaur | https://freesound.org/people/Mediasaur/sounds/788095/ | CC0 1.0 | whole file, trimmed, faded, -18 LUFS |
+| sfx/slurp.ogg | milkshake.wav | 180007 | https://freesound.org/people/180007/sounds/445523/ | CC0 1.0 | cut 0.60-1.45 s (one slurp), faded, -18 LUFS |
+| sfx/glass-pour.ogg | Pouring water into a glass | ahamirikia | https://freesound.org/people/ahamirikia/sounds/710550/ | CC0 1.0 | cut 0.35-2.45 s, soft limiter, faded, about -19 LUFS |
+
 ## Sounds: music (`sounds/music/`)
 
 | File | Title | Author | Source page | License | Processing |
@@ -172,6 +185,18 @@ trim, five lines the same gentle limiter, name-heart was regenerated; see the so
 | vo-share-cookies · vo-cookie-mom · vo-cookie-yum · vo-cookie-pipa | Let's share the cookies! · A cookie for me? Thank you! · Mmm, so sweet and crumbly! · A cookie for Pipa! |
 | vo-photo-cookies · vo-finale-cookies | Let's take a picture of your cookies! · We made cookies together! |
 
+Added in round 8, the smoothie (same engine, voice, speed and processing; name-banana and name-kiwi got a tight start
+cut, vo-into-blender an end cut, three lines the same gentle limiter; see the sound agent's `final/LICENSES.md`):
+
+| File | Text |
+|---|---|
+| vo-pick-smoothie · vo-wash-fruit · vo-choose-fruit | Let's make a smoothie! · Let's wash the fruit! · Pick three fruits you like! |
+| name-banana · name-strawberry · name-mango · name-kiwi | Banana! · Strawberry! · Mango! · Kiwi! |
+| vo-into-blender · vo-milk · vo-lid | Put it all in the blender! · Pour in the milk! · Put the lid on tight! |
+| vo-blend · vo-blend-done · vo-pour-glass | Press the big button! · All smooth! · Pour it into the glasses! |
+| vo-share-smoothie · vo-glass-mom · vo-smoothie-yum · vo-glass-pipa | Let's share the smoothie! · A glass for me? Thank you! · Mmm, so fruity and cold! · A glass for Pipa! |
+| vo-photo-smoothie · vo-finale-smoothie | Let's take a picture of your smoothie! · We made a smoothie together! |
+
 ## Graphics (`images/`)
 
 All SVG files in `images/` were drawn for this project by the art agent (style B, paper cut-out; generators in
@@ -182,6 +207,9 @@ round 6 (colander, lettuce, cucumber and carrot, the salad bowl and its heaps, l
 portion, the salad card and photo frame, drops) come from `cooking-game-assets/images-b-salad` (same kit, generators in
 its `tools/`). The 32 cookie files of round 7 (flour bag, sugar jar, butter, egg, batter stages, cookie dough, sheet,
 tray, cutters, cookies, icing, sprinkles, candy, the cookie card and photo frame) come from
-`cooking-game-assets/images-b-cookies` (same kit, generators in its `tools/`). The egg's yolk in the bowl and the flour
+`cooking-game-assets/images-b-cookies` (same kit, generators in its `tools/`). The 31 smoothie files of round 8 (the
+fruit, the fruit colander, the blender jar, heaps, blend stages, base, button and lid, the milk carton and drop, the
+glasses, the smoothie card and photo frame) come from `cooking-game-assets/images-b-smoothie` (same kit, generators in its
+`tools/`); the pouring stream is drawn in code. The egg's yolk in the bowl and the flour
 and sugar specks are drawn in code. No third-party art, fonts or images.
 `images/webp/` holds WebP renderings of those same SVGs, made by `scripts/bake-webp.js`.

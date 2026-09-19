@@ -29,6 +29,51 @@
   "w": 2400,
   "h": 1080
  },
+ "blend-stage-1": {
+  "sha1": "406b34049d97dc74195bd893bbf3f42ea224e742",
+  "w": 600,
+  "h": 800
+ },
+ "blend-stage-2": {
+  "sha1": "0a68654028b11498916c435df86720ce446e428e",
+  "w": 600,
+  "h": 800
+ },
+ "blend-stage-3": {
+  "sha1": "4c3540ea0a3a087cab49d6cb333ca878fda9e41b",
+  "w": 600,
+  "h": 800
+ },
+ "blender-base": {
+  "sha1": "33059f2a6342678f812089e41b9bfa489d2dce7a",
+  "w": 700,
+  "h": 520
+ },
+ "blender-button-off": {
+  "sha1": "94a11f3cc04a6d5bf42df4aea9749cb3e1cfface",
+  "w": 280,
+  "h": 280
+ },
+ "blender-button-on": {
+  "sha1": "ad135f030014b4993e9179efb66bfe8fc6eeb187",
+  "w": 280,
+  "h": 280
+ },
+ "blender-jar-back": {
+  "sha1": "910aba6b46adb3229836e2cdbaac5070fcc117cb",
+  "w": 600,
+  "h": 800
+ },
+ "blender-jar-front": {
+  "sha1": "f600fafe4831caf25e031733a7fb928f2acf9173",
+  "w": 600,
+  "h": 800
+ },
+ "blender-lid": {
+  "sha1": "c6dd8fa97091ef720c6bfea0ade08d15e26087f2",
+  "w": 480,
+  "h": 240
+ },
  "btn-done": {
   "sha1": "0bb643d5e5c68d3eb88e4428e46b91c499e1afed",
   "w": 240,
@@ -96,6 +141,11 @@
  },
  "card-salad": {
   "sha1": "c4c101f184d234f642946c095bda312b3ef1067b",
+  "w": 400,
+  "h": 520
+ },
+ "card-smoothie": {
+  "sha1": "8c1896e8b59735b60f74679d96ff48b05688917a",
   "w": 400,
   "h": 520
  },
@@ -176,6 +226,11 @@
  },
  "colander": {
   "sha1": "1cdcf416045858709ed3bfa65c8529ba5e71eb43",
+  "w": 820,
+  "h": 560
+ },
+ "colander-fruit": {
+  "sha1": "61181fef9cf4cd656b1a2049d7abaa112584d25c",
   "w": 820,
   "h": 560
  },
@@ -299,6 +354,76 @@
   "w": 400,
   "h": 520
  },
+ "fruit-banana-inside": {
+  "sha1": "fa399af3e29f3d5373ad201218d87137ec354fa2",
+  "w": 60,
+  "h": 136
+ },
+ "fruit-banana-slice": {
+  "sha1": "e1d8cd4157b00b9caa7da9a2aa132fb064354779",
+  "w": 240,
+  "h": 240
+ },
+ "fruit-banana-whole": {
+  "sha1": "f190b1c7af884f718a5634f2fc574dc3c67d06f5",
+  "w": 672,
+  "h": 504
+ },
+ "fruit-kiwi-inside": {
+  "sha1": "5e00f87c7e1f6d9f7fce1a29298a302def385bfb",
+  "w": 60,
+  "h": 322
+ },
+ "fruit-kiwi-slice": {
+  "sha1": "c7a136a40da87902677380a70d0d5e5cd59b69cd",
+  "w": 240,
+  "h": 240
+ },
+ "fruit-kiwi-whole": {
+  "sha1": "f768906bbd692835abc02160bb7d5b9af6e0404e",
+  "w": 672,
+  "h": 504
+ },
+ "fruit-mango-inside": {
+  "sha1": "7d034508f8e1afd322d70a3ef622f31f31024c5a",
+  "w": 60,
+  "h": 324
+ },
+ "fruit-mango-slice": {
+  "sha1": "3e325f7e931000993b876a2ab8ae5283f3133b9f",
+  "w": 240,
+  "h": 240
+ },
+ "fruit-mango-whole": {
+  "sha1": "4cab39cf451b44985f00d18fce8b649f598dfbf7",
+  "w": 672,
+  "h": 504
+ },
+ "fruit-strawberry-inside": {
+  "sha1": "972b24ac239180af5436ed9a9b3370e317f23aa4",
+  "w": 60,
+  "h": 303
+ },
+ "fruit-strawberry-slice": {
+  "sha1": "438b545ff5b95141c531f7d57feb96d662db70d0",
+  "w": 240,
+  "h": 240
+ },
+ "fruit-strawberry-whole": {
+  "sha1": "b9a1d7b6504718892b35bdb2a9d3de12fd747b68",
+  "w": 672,
+  "h": 504
+ },
+ "glass-empty": {
+  "sha1": "a16f8a0ebedd3d54931d1a35945029c4168a2906",
+  "w": 320,
+  "h": 440
+ },
+ "glass-full": {
+  "sha1": "2fb51ff5bf1d178062dcb98b43a0c802b2c7ce66",
+  "w": 320,
+  "h": 440
+ },
  "grater": {
   "sha1": "d48b1748d37b82e98e68b74a1c8343bd2816701f",
   "w": 506,
@@ -328,6 +453,21 @@
   "sha1": "03f2c7330221c4b9da78cc2d7176c55fb0923b76",
   "w": 260,
   "h": 520
+ },
+ "jar-heap-1": {
+  "sha1": "3af8e63b27184108a453c107b757c08cbc7bb726",
+  "w": 600,
+  "h": 800
+ },
+ "jar-heap-2": {
+  "sha1": "49b411f8cf803472651c4b69ce121641d0a115d2",
+  "w": 600,
+  "h": 800
+ },
+ "jar-heap-3": {
+  "sha1": "7f779a244417d5d19cfd718d2f00a48a2276a60e",
+  "w": 600,
+  "h": 800
  },
  "jar-lid": {
   "sha1": "e4b008e2617aef0310948bd7060576b0f5c7b933",
@@ -398,6 +538,16 @@
   "sha1": "535bb225921486031340c7fa58e5701e97d74f9a",
   "w": 900,
   "h": 400
+ },
+ "milk-carton": {
+  "sha1": "5138a695096f18727a15b4cc93879ec35ae7b9eb",
+  "w": 320,
+  "h": 560
+ },
+ "milk-drop": {
+  "sha1": "939f77f6877855769ab31db6472fa23c8057036f",
+  "w": 120,
+  "h": 160
  },
  "mitt-single": {
   "sha1": "5f7d8040db5981c2b09867985d7f40a1f3b1ac94",
@@ -571,6 +721,11 @@
  },
  "photo-frame-salad": {
   "sha1": "7d60ad755f89f865fd1f7f3320ad3e81cf7bcce9",
+  "w": 700,
+  "h": 780
+ },
+ "photo-frame-smoothie": {
+  "sha1": "9f1fb704d8f90c7b72e3779c22b8eba53a8f5eee",
   "w": 700,
   "h": 780
  },

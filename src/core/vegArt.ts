@@ -1,18 +1,20 @@
 /**
  * Cutting art geometry (README-prep.md, "Cutting" and "Cut-face strips"; scenes-prep.js `PREP`, measured by the art
- * agent's gen_prep_e.py (and, for the salad's cucumber and carrot, gen_salad_a.py) from the same outlines that draw veg-*-whole). All numbers are in the 672x504 whole-vegetable
+ * agent's gen_prep_e.py (for the salad's cucumber and carrot gen_salad_a.py, for the smoothie's fruit gen_smoothie_a.py) from the same outlines that draw veg-*-whole). All numbers are in the 672x504 whole-vegetable
  * file's units (the vegetables rest on the board at about y 475).
  */
-export type VegName = 'tomato' | 'mushroom' | 'pepper' | 'onion' | 'cucumber' | 'carrot';
+/** The smoothie's fruit: cut the same way, drawn as fruit-*-whole / -slice / -inside. */
+export type FruitName = 'banana' | 'strawberry' | 'mango' | 'kiwi';
+export type VegName = 'tomato' | 'mushroom' | 'pepper' | 'onion' | 'cucumber' | 'carrot' | FruitName;
 
 export const VEG = {
   /** The veg-*-whole frame. */
   size: [672, 504] as const,
   /** The body's x span: cutting goes from right to left inside it (the pepper's stem is not cut). */
-  span: { tomato: [125, 547], mushroom: [91, 581], pepper: [60, 588], onion: [31, 636], cucumber: [53, 619], carrot: [36, 577] } as Record<VegName, readonly [number, number]>,
+  span: { tomato: [125, 547], mushroom: [91, 581], pepper: [60, 588], onion: [31, 636], cucumber: [53, 619], carrot: [36, 577], banana: [48, 583], strawberry: [115, 535], mango: [67, 600], kiwi: [79, 593] } as Record<VegName, readonly [number, number]>,
   /** veg-*-inside strips: 60 wide, as tall as the body at its tallest. */
   stripW: 60,
-  stripH: { tomato: 378, mushroom: 406, pepper: 378, onion: 327, cucumber: 168, carrot: 159 } as Record<VegName, number>,
+  stripH: { tomato: 378, mushroom: 406, pepper: 378, onion: 327, cucumber: 168, carrot: 159, banana: 136, strawberry: 303, mango: 324, kiwi: 322 } as Record<VegName, number>,
   /** Mushroom: the cap part of its strip (rows 0..59.76%), used where the cut misses the stem. */
   mushCapFrac: 0.5976,
   /** Below this body bottom a mushroom cut misses the stem (outside x ~236..436). */
@@ -26,6 +28,11 @@ export const VEG = {
     // the salad's (README-salad.md, measured by gen_salad_a.py --profiles)
     cucumber: [[57, 364.1, 394], [81, 331.7, 424.5], [105, 321.1, 433.2], [129, 312.6, 439.9], [153, 306.3, 444.6], [177, 301.3, 447.9], [201, 297.4, 450.5], [225, 294.4, 452.3], [249, 292.1, 453.5], [273, 290.5, 454.4], [297, 289.4, 454.9], [321, 288.8, 455.2], [345, 288.6, 455.5], [369, 288.6, 455.7], [393, 289, 455.7], [417, 290, 455.5], [441, 291.6, 454.8], [465, 293.9, 453.6], [489, 297.2, 451.6], [513, 301.6, 448.8], [537, 307.5, 444.6], [561, 315.3, 438.6], [585, 325.3, 430.4], [609, 351.7, 405.9]],
     carrot: [[40, 423.9, 431.1], [64, 408.8, 435.7], [88, 399.4, 437.2], [112, 391.6, 438.7], [136, 384.7, 440.2], [160, 378.2, 441.7], [184, 372.3, 443.2], [208, 366.8, 444.7], [232, 361.5, 446.3], [256, 356.5, 447.7], [280, 351.6, 449.2], [304, 347, 450.7], [328, 342.5, 452.2], [352, 338.1, 453.6], [376, 333.8, 455.2], [400, 329.7, 456.7], [424, 325.7, 458.2], [448, 321.8, 459.7], [472, 318, 461.2], [496, 314.2, 462.7], [520, 310.6, 464.2], [544, 307.4, 465.3], [568, 331.3, 441.5]],
+    // the smoothie's fruit (README-smoothie.md, measured by gen_smoothie_a.py --profiles)
+    banana: [[76,  290.0,  356.4],  [100,  296.6,  380.5],  [124,  304.2,  400.7],  [148,  311.8,  417.8],  [172,  318.8,  432.2],  [196,  325.0,  444.3],  [220,  330.2,  454.2],  [244,  334.3,  462.0],  [268,  337.2,  467.6],  [292,  339.0,  471.4],  [316,  339.3,  473.1],  [340,  338.2,  473.2],  [364,  335.8,  471.4],  [388,  332.2,  467.5],  [412,  327.3,  461.6],  [436,  321.5,  453.5],  [460,  314.8,  443.0],  [484,  307.4,  430.1],  [508,  299.6,  414.3],  [532,  291.9,  395.4],  [556,  284.8,  373.4]],
+    strawberry: [[119,  283.2,  306.6],  [143,  259.7,  338.6],  [167,  243.7,  353.9],  [191,  230.3,  366.5],  [215,  218.9,  377.5],  [239,  209.0,  387.6],  [263,  200.4,  396.8],  [287,  192.8,  405.5],  [311,  185.7,  413.6],  [335,  178.4,  421.2],  [359,  170.7,  428.3],  [383,  162.5,  434.7],  [407,  154.5,  440.1],  [431,  147.6,  444.1],  [455,  143.4,  446.0],  [479,  144.0,  444.3],  [503,  152.7,  436.3],  [527,  174.4,  417.9]],
+    mango: [[95,  273.3,  387.8],  [119,  245.3,  414.4],  [143,  225.8,  432.4],  [167,  210.1,  445.7],  [191,  196.7,  455.6],  [215,  184.7,  463.0],  [239,  173.9,  468.0],  [263,  164.5,  471.2],  [287,  156.8,  472.7],  [311,  151.2,  472.7],  [335,  148.1,  471.7],  [359,  147.5,  469.8],  [383,  149.3,  467.2],  [407,  153.6,  463.8],  [431,  160.1,  459.3],  [455,  168.7,  453.4],  [479,  179.3,  445.8],  [503,  191.9,  436.0],  [527,  207.2,  423.4],  [551,  226.1,  406.6],  [575,  251.9,  382.8]],
+    kiwi: [[83,  271.1,  348.9],  [107,  232.2,  388.1],  [131,  209.5,  410.8],  [155,  193.1,  427.3],  [179,  180.6,  440.1],  [203,  171.0,  450.0],  [227,  163.8,  457.9],  [251,  158.7,  464.1],  [275,  155.3,  468.8],  [299,  153.5,  472.3],  [323,  153.1,  474.6],  [347,  154.1,  475.7],  [371,  156.3,  475.4],  [395,  159.6,  473.7],  [419,  164.2,  470.5],  [443,  170.3,  465.5],  [467,  178.1,  458.5],  [491,  187.8,  449.1],  [515,  200.3,  436.9],  [539,  216.4,  420.9],  [563,  238.4,  398.9],  [587,  274.9,  362.5]],
   } as Record<VegName, [number, number, number][]>,
 };
 

@@ -82,7 +82,7 @@
     if (name === 'WashStep') {
       if (st.phase === 'tap') { const b = st.faucet.getBounds(); __tap(b.centerX, b.y + b.height * 0.35); await __run(500); }
       else if (st.phase === 'rub') {
-        const y = st.palmL.y - 30, pts = [];
+        const y = st.palmL.y + (st.basket ? 40 : -30), pts = [];
         for (let i = 0; i <= 8; i++) pts.push([i % 2 ? st.palmR.x + 30 : st.palmL.x - 30, y + (i % 2 ? 40 : -20)]);
         await __drag(pts);
       }
@@ -154,6 +154,14 @@
         const c = st.cutters[n % st.cutters.length];
         if (st.picked !== c) { __tap(c.x, c.y); await __run(300); }
         const s = st.slotAt(st.filled.indexOf(false)); __tap(s.x + 20, s.y + 10); await __run(700);
+      }
+    } else if (name === 'BlendStep') {
+      // Round 8: a tap on the lid, then the button held a while (a child may also tap: see __blendTaps).
+      if (st.phase === 'lid') { __tap(st.lid.x, st.lid.y); await __run(900); }
+      else if (st.phase === 'blend') {
+        const b = st.button;
+        if (window.__blendTaps) { __tap(b.x, b.y); await __run(250); }
+        else { __touch('start', 1, b.x, b.y); await __run(1500); __touch('end', 1, b.x, b.y); await __run(200); }
       }
     } else if (name === 'PhotoStep') {
       await __run(500);
@@ -1078,3 +1086,46 @@ window.__bg8 = async (id = 'cookies', type = 'stir') => {
   const back = { gamePaused: game.isPaused, idleRuns: st.idleMs > before.idle, ctx: c.state };
   return (window.__b8 = { before, away, back });
 };
+
+/**
+ * Round 8 robustness (as __robust7) for a new recipe: `moments` = [[name, stepType, setup(st), progress(st), held(st)]].
+ * how: 'rotate' | 'background' (the background fakes document.hidden too, __setHidden). Read window.__rb8.
+ */
+window.__robust8 = async (recipe, moments, how = 'rotate', w = 900, h = 405) => {
+  for (let i = 0; i < 60 && !__voice.allLoaded; i++) await new Promise((r) => setTimeout(r, 250));
+  window.__recipe = recipe; __demos(false); await __setup(w, h); __voSim(true); window.__shareTo = 'alt';
+  const g = document.getElementById('game');
+  const away = async () => {
+    if (how === 'rotate') { g.style.width = h + 'px'; g.style.height = w + 'px'; window.dispatchEvent(new Event('resize')); await __yield(); __tick(16); __touch('end', 1, 10, 10); }
+    else { __touch('cancel', 1, 10, 10); __setHidden(true); }
+  };
+  const back = async () => {
+    if (how === 'rotate') { g.style.width = w + 'px'; g.style.height = h + 'px'; window.dispatchEvent(new Event('resize')); await __yield(); __tick(16); }
+    else __setHidden(false);
+  };
+  const rows = [];
+  try {
+    await __start();
+    for (const [name, type, setup, progress, held] of moments) {
+      await __to(type, 1300);
+      const st = __R().step;
+      await setup(st);
+      const p0 = progress(st), idle0 = st.idleMs;
+      await away();
+      await __run(how === 'rotate' ? 4000 : 3000);
+      const row = { name, paused: __R().scene.isPaused() || game.isPaused, held: held(st), progressKept: JSON.stringify(progress(st)) === JSON.stringify(p0), idleFrozen: st.idleMs === idle0 };
+      await back(); await __run(600);
+      row.resumed = !__R().scene.isPaused() && !game.isPaused;
+      for (let k = 0; k < 400 && __R().step === st && game.scene.isActive('Recipe'); k++) { if (st.finished) await __run(200); else await __gesture(); }
+      row.finished = __R().step !== st;
+      rows.push(row);
+    }
+    for (let k = 0; k < 400 && game.scene.isActive('Recipe'); k++) { if (__R().step.finished || __type() === 'photo') await __run(200); else await __gesture(); }
+    return (window.__rb8 = { how, home: game.scene.isActive('Home'), rows });
+  } finally { window.__recipe = 'pizza'; }
+};
+/** The smoothie's moments for __robust8: the blender running under a held finger, and a glass held mid-drag. */
+window.__smoothieMoments = () => [
+  ['blend (button held, motor running)', 'blend', async (st) => { __tap(st.lid.x, st.lid.y); await __run(900); __touch('start', 1, st.button.x, st.button.y); await __run(700); }, (st) => st.phase + ':' + Math.round(st.ran / 100), (st) => st.pressing],
+  ['share (a glass held mid-drag)', 'share', async (st) => { const s = st.slices.find((x) => !x.eaten), c = st.sliceCenter(s); await __drag([[c.x, c.y], [c.x + 150, c.y - 80]], { hold: true }); }, (st) => st.slices.filter((x) => x.eaten).length, (st) => !!st.held],
+];

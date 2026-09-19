@@ -23,9 +23,26 @@ export const BOWL_DEPTH = { back: 1.5, contents: 1.6, tool: 1.75, front: 1.9 };
  * The big bowls, by their back layer: where each stands (a stage spot) and its opening in its own frame. The prep bowl
  * of the pizza stands in the middle; the salad bowl on the right of the prep area (the things poured in wait left of it).
  */
-const BOWLS: Record<string, { spot: 'prepBowl' | 'saladBowl'; opening: { x: number; y: number; rx: number; ry: number } }> = {
+const BOWLS: Record<
+  string,
+  {
+    spot: 'prepBowl' | 'saladBowl' | 'blenderJar';
+    opening: { x: number; y: number; rx: number; ry: number };
+    /** What it stands on, drawn under it and moving with it (the blender's base and its button), in the bowl's frame. */
+    stand?: { key: ImageKey; at: { x: number; y: number } }[];
+  }
+> = {
   'prep-bowl-back': { spot: 'prepBowl', opening: ART.prep.bowlOpening },
   'salad-bowl-back': { spot: 'saladBowl', opening: ART.salad.bowlOpening },
+  // the jar's seat on the base's seat (README-smoothie.md): the base's centre and its button's, in the jar's frame
+  'blender-jar-back': {
+    spot: 'blenderJar',
+    opening: ART.smoothie.jarMouth,
+    stand: [
+      { key: 'blender-base', at: { x: ART.smoothie.jarSeat.x, y: ART.smoothie.jarSeat.y + 260 - ART.smoothie.baseSeat.y } },
+      { key: 'blender-button-off', at: { x: ART.smoothie.jarSeat.x, y: ART.smoothie.jarSeat.y + ART.smoothie.button.y - ART.smoothie.baseSeat.y } },
+    ],
+  },
 };
 const bowlOf = (back: string) => BOWLS[back] ?? BOWLS['prep-bowl-back'];
 
@@ -40,6 +57,8 @@ export class PrepBowl {
   contents: Phaser.GameObjects.Image;
   /** What lies on the contents until it is stirred in (the butter cube, the egg's yolk). */
   readonly extras: Phaser.GameObjects.Image[] = [];
+  /** What it stands on (the blender's base, then its button), if anything. */
+  readonly stand: Phaser.GameObjects.Image[] = [];
   readonly contentsDepth = BOWL_DEPTH.contents;
   private scene: Phaser.Scene;
   private s: number;
@@ -63,16 +82,23 @@ export class PrepBowl {
     this.back = img(layers.back, BOWL_DEPTH.back);
     this.contents = img(contents ?? layers.back, BOWL_DEPTH.contents).setVisible(!!contents);
     this.front = img(layers.front, BOWL_DEPTH.front);
+    (bowlOf(layers.back).stand ?? []).forEach((st, i) => {
+      const at = this.point(st.at.x, st.at.y);
+      this.stand.push(img(st.key, BOWL_DEPTH.back - 0.1 + i * 0.01).setPosition(at.x, at.y));
+    });
     this.back.setData(KEY, this);
     // It slides in from below, with a little bounce.
     const all = this.parts;
-    all.forEach((o) => o.setAlpha(0).setY(spot.y + 120 * ctx.layout.k));
-    this.scene.tweens.add({ targets: all, alpha: 1, y: spot.y, duration: 450, ease: 'Back.easeOut' });
+    all.forEach((o) => {
+      const y = o.y;
+      o.setAlpha(0).setY(y + 120 * ctx.layout.k);
+      this.scene.tweens.add({ targets: o, alpha: 1, y, duration: 450, ease: 'Back.easeOut' });
+    });
     this.front.setData({ restScaleX: this.s, restScaleY: this.s });
   }
 
   get parts() {
-    return [this.back, this.contents, ...this.extras, this.front];
+    return [...this.stand, this.back, this.contents, ...this.extras, this.front];
   }
 
   /** Where a point of the bowl's frame is on screen. */

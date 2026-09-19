@@ -217,6 +217,44 @@ export const IMAGES = {
   'sprinkles-cluster': { size: [140, 140] },
   'candy-dot': { size: [140, 140] },
   'photo-frame-cookies': { size: [700, 780] },
+  // ---- The smoothie (round 8, ../cooking-game-assets/images-b-smoothie, README-smoothie.md). Anchors: ART.smoothie.
+  'card-smoothie': { size: [400, 520] },
+  /** Wash the fruit: the salad's colander frame with fruit in it. */
+  'colander-fruit': { size: [820, 560] },
+  /** The fruit to cut (the vegetable spec: whole 672x504, slice 240, inside strip 60 x the body's height; profiles in vegArt.ts). */
+  'fruit-banana-whole': { size: [672, 504] },
+  'fruit-banana-slice': { size: [240, 240] },
+  'fruit-banana-inside': { size: [60, 136] },
+  'fruit-strawberry-whole': { size: [672, 504] },
+  'fruit-strawberry-slice': { size: [240, 240] },
+  'fruit-strawberry-inside': { size: [60, 303] },
+  'fruit-mango-whole': { size: [672, 504] },
+  'fruit-mango-slice': { size: [240, 240] },
+  'fruit-mango-inside': { size: [60, 324] },
+  'fruit-kiwi-whole': { size: [672, 504] },
+  'fruit-kiwi-slice': { size: [240, 240] },
+  'fruit-kiwi-inside': { size: [60, 322] },
+  /** The blender jar: back, contents (the heaps as it fills, then the blend stages), front, all one 600x800 frame. */
+  'blender-jar-back': { size: [600, 800] },
+  'blender-jar-front': { size: [600, 800] },
+  'jar-heap-1': { size: [600, 800] },
+  'jar-heap-2': { size: [600, 800] },
+  'jar-heap-3': { size: [600, 800] },
+  'blend-stage-1': { size: [600, 800] },
+  'blend-stage-2': { size: [600, 800] },
+  'blend-stage-3': { size: [600, 800] },
+  /** The motor base the jar stands on (at the jar's scale), its big button (one frame for off and on), the lid. */
+  'blender-base': { size: [700, 520] },
+  'blender-button-off': { size: [280, 280] },
+  'blender-button-on': { size: [280, 280] },
+  'blender-lid': { size: [480, 240] },
+  /** The milk carton (also the pancakes') and a falling drop of milk. */
+  'milk-carton': { size: [320, 560] },
+  'milk-drop': { size: [120, 160] },
+  /** A glass, empty and full (one frame; the full one is revealed from the bottom up while it fills). */
+  'glass-empty': { size: [320, 440] },
+  'glass-full': { size: [320, 440] },
+  'photo-frame-smoothie': { size: [700, 780] },
 } as const satisfies Record<string, { size: readonly [number, number]; raster?: number }>;
 
 /** Texture size of an image: its native size, times its `raster` factor if it is shown bigger than native. */
@@ -251,7 +289,7 @@ export const LOADED_KEYS = IMAGE_KEYS.filter((k) => !NOT_LOADED.has(k));
  */
 export const CORE_IMAGES: readonly ImageKey[] = [
   'bg-kitchen-landscape', 'logo-cooking-with-mom', 'star', 'btn-play', 'btn-home', 'btn-done', 'hand-hint',
-  'card-pizza', 'card-salad', 'card-cookies',
+  'card-pizza', 'card-salad', 'card-cookies', 'card-smoothie',
   'character-body', 'character-eyes-open', 'character-eyes-blink', 'character-eyes-surprised', 'character-eyes-happy',
   'character-mouth-closed', 'character-mouth-open', 'character-mouth-chew',
   'mom-arm-right', 'mom-body', 'mom-head', 'mom-hair', 'mom-eyes-open', 'mom-eyes-blink', 'mom-eyes-happy',
@@ -267,6 +305,7 @@ const OVEN: ImageKey[] = [
 const PREP_BOWL: ImageKey[] = ['prep-bowl-back', 'prep-bowl-front', 'spoon-wood', 'press-dent'];
 const CHOP: ImageKey[] = ['cutting-board', 'knife', 'topping-bin'];
 const cut = (...names: string[]) => names.flatMap((n) => ['whole', 'slice', 'inside'].map((s) => `veg-${n}-${s}` as ImageKey));
+const fruit = (...names: string[]) => names.flatMap((n) => ['whole', 'slice', 'inside'].map((s) => `fruit-${n}-${s}` as ImageKey));
 
 export const RECIPE_ASSETS: Record<string, { images: readonly ImageKey[]; sounds: readonly string[] }> = {
   pizza: {
@@ -317,6 +356,21 @@ export const RECIPE_ASSETS: Record<string, { images: readonly ImageKey[]; sounds
   },
 };
 
+RECIPE_ASSETS.smoothie = {
+  images: [
+    ...WASH, ...CHOP, ...fruit('banana', 'strawberry', 'mango', 'kiwi'),
+    'colander-fruit', 'water-drop', 'blender-jar-back', 'blender-jar-front', 'jar-heap-1', 'jar-heap-2', 'jar-heap-3',
+    'blend-stage-1', 'blend-stage-2', 'blend-stage-3', 'blender-base', 'blender-button-off', 'blender-button-on',
+    'blender-lid', 'milk-carton', 'milk-drop', 'glass-empty', 'glass-full', 'photo-frame-smoothie',
+  ],
+  sounds: [
+    'blender', 'lid-click', 'slurp', 'glass-pour', 'name-banana', 'name-strawberry', 'name-mango', 'name-kiwi',
+    'vo-wash-fruit', 'vo-wash-veg-done', 'vo-choose-fruit', 'vo-into-blender', 'vo-milk', 'vo-lid', 'vo-blend', 'vo-blend-done',
+    'vo-pour-glass', 'vo-share-smoothie', 'vo-glass-mom', 'vo-glass-pipa', 'vo-smoothie-yum', 'vo-photo-smoothie',
+    'vo-finale-smoothie',
+  ],
+};
+
 /** Every sound some recipe lists (so not loaded at boot). */
 export const RECIPE_SOUNDS: ReadonlySet<string> = new Set(Object.values(RECIPE_ASSETS).flatMap((r) => r.sounds));
 /** Contract images in neither the core nor any recipe (a new key someone forgot to list): reported at boot. */
@@ -334,6 +388,8 @@ export const SOUND_KEYS = [
   'tear', 'squeeze', 'drizzle', 'salt', 'crunch',
   // the cookies (round 7)
   'egg-crack', 'flour-poof', 'stamp', 'icing', 'cookie-crunch',
+  // the smoothie (round 8; the blender is a loop, audio.ts `blenderLoop`)
+  'lid-click', 'slurp', 'glass-pour',
 ] as const;
 export type SoundKey = (typeof SOUND_KEYS)[number];
 
@@ -435,6 +491,26 @@ export const ART = {
     /** A decoration on a cookie drawn at scale c: blobs and sprinkles 0.85 c, a candy dot 0.4 c. */
     stamp: 0.85,
     candy: 0.4,
+  },
+  /** The smoothie's art geometry (README-smoothie.md, scenes-smoothie.js `SMOOTHIE`). */
+  smoothie: {
+    /** blender-jar-* (600x800): the rim ellipse, the seat (bottom of the blade collar), the pouring lip. */
+    jarMouth: { x: 300, y: 118, rx: 208, ry: 30 },
+    jarSeat: { x: 300, y: 776 },
+    jarLip: { x: 72, y: 100 },
+    /** blender-base (700x520) at the jar's scale: its seat meets the jar's seat; the button's centre (button frame 280, centre 140). */
+    baseSeat: { x: 350, y: 108 },
+    button: { x: 350, y: 306 },
+    /** blender-lid (480x240): the plug's bottom centre, put on the jar's mouth. */
+    lidSeat: { x: 240, y: 150 },
+    /** milk-carton (320x560): where the milk leaves it. */
+    cartonSpout: { x: 38, y: 118 },
+    /** glass-* (320x440): the rim, and the liquid from its surface (y 98) to the inside bottom (y 370). */
+    glassRim: { x: 160, y: 72, rx: 100, ry: 18 },
+    fillTop: 98,
+    fillBottom: 370,
+    /** The smoothie's colour (drops, the pouring stream). */
+    tint: 0xf6a186,
   },
 } as const;
 

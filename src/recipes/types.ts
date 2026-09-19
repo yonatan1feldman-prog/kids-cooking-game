@@ -310,6 +310,36 @@ export interface OpenPourParams {
    * over the bowl and pours for `pourMs`.
    */
   sources?: ({ handoff: string; image: ImageKey; piece: ImageKey; tilt?: number } | 'chosen')[];
+  /**
+   * Pour the kept big bowl itself (the blender jar, with `keep`) into `count` glasses standing on its left: she drags the
+   * jar over a glass, it tips (`tilt`) and a stream (`piece`, `pieceTint`) fills that glass from the bottom up (`full`
+   * revealed over `empty`, ART.smoothie glass geometry) for `pourMs`, then the next. The full glasses are her pieces to
+   * share (`run.pieces`) and the photo's picture (MADE_KEY).
+   */
+  glasses?: { empty: ImageKey; full: ImageKey; count: number };
+}
+
+/**
+ * Blend (BlendStep): the kept jar (`bowl` layers, contents `from` if it is new) stands on its base with the big button;
+ * put the `lid` on, then run the motor with the button (held, or tapped: each tap runs at least `tapMs`) until it has run
+ * `runMs` in all; the contents go through `stages`. Geometry: ART.smoothie (the mouth, the lid's seat, the button).
+ */
+export interface BlendParams {
+  bowl: { back: ImageKey; front: ImageKey };
+  from: ImageKey;
+  lid: ImageKey;
+  buttonOff: ImageKey;
+  buttonOn: ImageKey;
+  stages: ImageKey[];
+  runMs: number;
+  tapMs: number;
+  /** "Put the lid on tight!", then "Press the big button!", and at the end "All smooth!". */
+  lidLine: VoiceKey;
+  line: VoiceKey;
+  doneLine: VoiceKey;
+  lidSound: SoundKey;
+  /** The colour of the bits that whirl up. */
+  tint: number;
 }
 
 export interface DecorateParams {
@@ -454,7 +484,8 @@ export type StepDef =
   | { type: 'open-pour'; params: OpenPourParams }
   | { type: 'share'; params: ShareParams }
   | { type: 'photo'; params: PhotoParams }
-  | { type: 'cutters'; params: CutterParams };
+  | { type: 'cutters'; params: CutterParams }
+  | { type: 'blend'; params: BlendParams };
 
 export type StepType = StepDef['type'];
 

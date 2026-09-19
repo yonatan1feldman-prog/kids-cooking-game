@@ -1,6 +1,6 @@
 import { TUNING } from '../core/tuning';
 import type { ImageKey } from '../core/assets';
-import type { VegName } from '../core/vegArt';
+import type { FruitName, VegName } from '../core/vegArt';
 import type { Recipe, StepDef } from './types';
 import { pizza } from './pizza';
 
@@ -15,7 +15,7 @@ const LEMON = 0xf5d547;
 const LETTUCE = 0x9fd36b;
 
 /** Cutting one vegetable: its pictures, its juice colour, and the piece it becomes in the bowl (shown on its bin). */
-const chop = (veg: VegName, juice: number, piece: ImageKey): StepDef => ({
+const chop = (veg: Exclude<VegName, FruitName>, juice: number, piece: ImageKey): StepDef => ({
   type: 'chop',
   params: {
     veg,
