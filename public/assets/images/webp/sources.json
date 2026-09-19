@@ -1,0 +1,262 @@
+{
+ "bg-kitchen-landscape": {
+  "sha1": "60802d2c14bbdf03b808841055c3c0a5c8c22e2e",
+  "w": 2400,
+  "h": 1080
+ },
+ "btn-done": {
+  "sha1": "0bb643d5e5c68d3eb88e4428e46b91c499e1afed",
+  "w": 240,
+  "h": 240
+ },
+ "btn-home": {
+  "sha1": "564e1d6a6f7b75936f3c7432362bb4c8a3d6b39b",
+  "w": 240,
+  "h": 240
+ },
+ "btn-play": {
+  "sha1": "94dd13c2d996300c36f043fd9558701e89d8fb1d",
+  "w": 336,
+  "h": 336
+ },
+ "card-pizza": {
+  "sha1": "e6eacea0df0ad9d8fb50934638b04397d0ae7eb8",
+  "w": 400,
+  "h": 520
+ },
+ "character-body": {
+  "sha1": "c9653d3984497c5b8074e9af01539ebe3b934b43",
+  "w": 600,
+  "h": 700
+ },
+ "character-eyes-blink": {
+  "sha1": "23af30588562bca8d947a74bbba6a519a5080784",
+  "w": 600,
+  "h": 700
+ },
+ "character-eyes-happy": {
+  "sha1": "87acf1fcaf5a84af67e644a5c4dee74a6d893db1",
+  "w": 600,
+  "h": 700
+ },
+ "character-eyes-open": {
+  "sha1": "f0b396acff53e2eb6a3c5b975bea9d54f4bec0e6",
+  "w": 600,
+  "h": 700
+ },
+ "character-eyes-surprised": {
+  "sha1": "103a38b925792ed3e2873010f1ddd8541b9d5123",
+  "w": 600,
+  "h": 700
+ },
+ "character-mouth-chew": {
+  "sha1": "4d7fcb11c90a92e04657db8ee315d4c683d60358",
+  "w": 600,
+  "h": 700
+ },
+ "character-mouth-closed": {
+  "sha1": "653676bc7e95e3b86dbdb90a3e59e5512dae268c",
+  "w": 600,
+  "h": 700
+ },
+ "character-mouth-open": {
+  "sha1": "146c20b0ddaa27df585a7027f1ab7d8d2ffb903d",
+  "w": 600,
+  "h": 700
+ },
+ "cheese-shaker": {
+  "sha1": "b61cc07749439a07dfcba9fb3d94a39b3a750b3b",
+  "w": 260,
+  "h": 400
+ },
+ "cheese-shred": {
+  "sha1": "06ed665d8bc1584ad58ee410521831095570efb1",
+  "w": 80,
+  "h": 44
+ },
+ "dough-ball": {
+  "sha1": "42282b854d76724b0efe3b1bec911f7ff23060b8",
+  "w": 360,
+  "h": 300
+ },
+ "dough-flat": {
+  "sha1": "ef403e6baf12fd0af4f75efb171de930eeb675a3",
+  "w": 720,
+  "h": 720
+ },
+ "hand-hint": {
+  "sha1": "6b68a244d4079f2bf1f08f923612e6e87c72919c",
+  "w": 220,
+  "h": 280
+ },
+ "mom-arm-left": {
+  "sha1": "1096c98fa5ef1e5b1e1d14288c52b0f9ca7ac5a7",
+  "w": 800,
+  "h": 800
+ },
+ "mom-arm-right": {
+  "sha1": "c86432326eb2c76b9a38543430a0500927ea9cd7",
+  "w": 800,
+  "h": 800
+ },
+ "mom-body": {
+  "sha1": "e4330f83e6982da534e0bb02caf7ea19ecd99936",
+  "w": 800,
+  "h": 800
+ },
+ "mom-eyes-blink": {
+  "sha1": "881e9b36a42308aa8b5c960e166afa0dbd269f6b",
+  "w": 800,
+  "h": 800
+ },
+ "mom-eyes-happy": {
+  "sha1": "9e98197807a0ac5215e7b87659c2465230e3e52c",
+  "w": 800,
+  "h": 800
+ },
+ "mom-eyes-open": {
+  "sha1": "54f3e6d8bd51897c51a1fe91ad13f97b9023924a",
+  "w": 800,
+  "h": 800
+ },
+ "mom-eyes-surprised": {
+  "sha1": "4dfca5f0b9729af081cb11cb3c2e052ba79b8111",
+  "w": 800,
+  "h": 800
+ },
+ "mom-hair": {
+  "sha1": "2dae167f573e099160842c94a365a83e7b96c41d",
+  "w": 800,
+  "h": 800
+ },
+ "mom-hand-grab": {
+  "sha1": "7c2b2f9bb5bfd22af4d0295b2b8ad3e52cbe66d9",
+  "w": 400,
+  "h": 400
+ },
+ "mom-hand-point": {
+  "sha1": "208c892048645663083269441288b6b922ed181f",
+  "w": 400,
+  "h": 400
+ },
+ "mom-hand-roll": {
+  "sha1": "a7b110b8bcbf5a39dfe431b3e678b9043f435799",
+  "w": 400,
+  "h": 400
+ },
+ "mom-hand-spread": {
+  "sha1": "78aea42681c6e933be94bc0bff1aba6eeea32556",
+  "w": 400,
+  "h": 400
+ },
+ "mom-hand-sprinkle": {
+  "sha1": "b175ff14f2c812e2ee92394d548426fee801baf5",
+  "w": 400,
+  "h": 400
+ },
+ "mom-head": {
+  "sha1": "da5dd4fd432f016a338994e8908b91eb8f0472a1",
+  "w": 800,
+  "h": 800
+ },
+ "mom-mouth-open": {
+  "sha1": "d3cb7292169f4b0a7b8c27467b667325f01979b4",
+  "w": 800,
+  "h": 800
+ },
+ "mom-mouth-smile": {
+  "sha1": "f19e2dc6feec0349732e05cac1e1b2c28ee80d28",
+  "w": 800,
+  "h": 800
+ },
+ "mom-mouth-talk": {
+  "sha1": "e0f8e814017656601e4ec234ff6094674b7d5f82",
+  "w": 800,
+  "h": 800
+ },
+ "oven-closed": {
+  "sha1": "2e31f8e7161aa77cbd292e9470782d3a932a34a4",
+  "w": 700,
+  "h": 800
+ },
+ "oven-inside": {
+  "sha1": "d06af2f15005e98d7661843cd0fceb192ec247dd",
+  "w": 700,
+  "h": 800
+ },
+ "oven-open": {
+  "sha1": "d3ff0b38453b35369222be7dfd03ec4c815ddc10",
+  "w": 700,
+  "h": 800
+ },
+ "pizza-board": {
+  "sha1": "c08421194607fb7f6063afb679cc7dcb24b1a1da",
+  "w": 820,
+  "h": 830
+ },
+ "pizza-slice": {
+  "sha1": "32f6c1a3e94e22092b331edbcbefd235948aec9e",
+  "w": 300,
+  "h": 300
+ },
+ "rolling-pin": {
+  "sha1": "56483e16c440d61675c0b7418c7baf6489e7c15f",
+  "w": 640,
+  "h": 200
+ },
+ "sauce-blob": {
+  "sha1": "d5ba55b5a29b4ea30debd3fec70835cb0cd539fe",
+  "w": 200,
+  "h": 200
+ },
+ "sauce-bowl": {
+  "sha1": "c17552f0f81a6d978fe98ead21684422f22aaa46",
+  "w": 340,
+  "h": 300
+ },
+ "star": {
+  "sha1": "bc47a69307f49b63e072aceb13ce8e8a2f2b6a66",
+  "w": 200,
+  "h": 200
+ },
+ "topping-bin": {
+  "sha1": "0a96df93db413a641f89d656efb9b5fd0a5472e8",
+  "w": 240,
+  "h": 240
+ },
+ "topping-corn": {
+  "sha1": "ca23e6514d1b4ca35e41944dd81bff79ac812f0a",
+  "w": 140,
+  "h": 140
+ },
+ "topping-mushroom": {
+  "sha1": "579c7dae069e0ee7332a00cabb704c3772aac2d0",
+  "w": 140,
+  "h": 140
+ },
+ "topping-olive": {
+  "sha1": "c263b377839bbe8970758d99a54e7ab2d27337d6",
+  "w": 140,
+  "h": 140
+ },
+ "topping-onion": {
+  "sha1": "083f4bccc2b7404cfab9d496adef5973124c2ed7",
+  "w": 140,
+  "h": 140
+ },
+ "topping-pepper": {
+  "sha1": "79b1ce6dcd3e54b04ae8cbeb22fb164f5cba1bf1",
+  "w": 140,
+  "h": 140
+ },
+ "topping-tomato": {
+  "sha1": "1a917c0851fdceda8b8ae50c8685f0526ac1e571",
+  "w": 140,
+  "h": 140
+ },
+ "tray": {
+  "sha1": "c08421194607fb7f6063afb679cc7dcb24b1a1da",
+  "w": 820,
+  "h": 830
+ }
+}

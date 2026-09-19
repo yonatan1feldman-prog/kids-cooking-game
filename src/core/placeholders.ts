@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
-import { CREAM, FX_DOT, FX_SOFT, IMAGES, INK, SAUCE_BRUSH, SAUCE_RED, type ImageKey } from './assets';
+import { CREAM, FX_DOT, FX_SOFT, IMAGES, INK, SAUCE_BRUSH, SAUCE_RED, textureSize, type ImageKey } from './assets';
 
 /**
- * Temporary art drawn in code for every image that is missing on disk.
+ * Temporary art drawn in code for every image that is missing on disk (all 52 are delivered now).
  * Each placeholder is drawn at the contract box size, so swapping in the
  * real SVG later needs no code change.
  */
@@ -38,7 +38,8 @@ function topping(base: number, detail: (g: G, cx: number, cy: number, r: number)
   };
 }
 
-const DRAW: Record<ImageKey, Draw> = {
+/** Specific stand-ins; every other key (Mom's layers and hands, the bins, the board) gets `plain`. */
+const DRAW: Partial<Record<ImageKey, Draw>> = {
   'bg-kitchen-landscape': (g, w, h) => {
     g.fillStyle(0xffe9c7).fillRect(0, 0, w, h);
     const tile = w / 8;
@@ -251,44 +252,48 @@ const DRAW: Record<ImageKey, Draw> = {
     }
     g.fillStyle(0x2e9e3e).fillCircle(cx, cy, r * 0.1);
   },
-  // Drawn in the art style (cream, 8px ink outline, 20% ink shadow) until the real asset arrives.
-  'topping-bin': (g, w, h) => {
-    g.fillStyle(INK, 0.2).fillRoundedRect(8, 20, w - 16, h - 24, 48);
-    g.fillStyle(CREAM).fillRoundedRect(8, 8, w - 16, h - 24, 48);
-    g.lineStyle(8, INK).strokeRoundedRect(8, 8, w - 16, h - 24, 48);
-  },
 };
 
-function bake(scene: Phaser.Scene, key: string, w: number, h: number, draw: Draw) {
-  const g = scene.make.graphics({}, false);
+/** Generic stand-in: a soft cream shape with an ink outline, so a missing file is visible but harmless. */
+const plain: Draw = (g, w, h) => {
+  g.fillStyle(CREAM, 0.9).fillRoundedRect(w * 0.1, h * 0.1, w * 0.8, h * 0.8, Math.min(w, h) * 0.2);
+  g.lineStyle(8, INK).strokeRoundedRect(w * 0.1, h * 0.1, w * 0.8, h * 0.8, Math.min(w, h) * 0.2);
+};
+
+/** Placeholders are drawn with the Boot scene's graphics factory (it stays available after Boot stops). */
+const boot = (game: Phaser.Game) => game.scene.getScene('Boot');
+
+function bake(game: Phaser.Game, key: string, w: number, h: number, draw: Draw) {
+  const g = boot(game).make.graphics({}, false);
   draw(g, w, h);
   g.generateTexture(key, w, h);
   g.destroy();
 }
 
-/** Draws a placeholder for every contract image that has no texture yet. Returns the keys it drew. */
-export function ensurePlaceholders(scene: Phaser.Scene): string[] {
+/** Draws a placeholder for every contract image (or every one of `keys`) that has no texture yet. Returns the keys it drew. */
+export function ensurePlaceholders(game: Phaser.Game, keys = Object.keys(IMAGES) as ImageKey[]): string[] {
   const drawn: string[] = [];
-  for (const key of Object.keys(IMAGES) as ImageKey[]) {
-    if (scene.textures.exists(key)) continue;
-    const [w, h] = IMAGES[key].size;
-    bake(scene, key, w, h, DRAW[key]);
+  for (const key of keys) {
+    if (game.textures.exists(key)) continue;
+    const [w, h] = textureSize(key);
+    bake(game, key, w, h, DRAW[key] ?? plain);
     drawn.push(key);
   }
   return drawn;
 }
 
 /** Internal particle textures, always made in code. */
-export function makeFxTextures(scene: Phaser.Scene) {
-  if (!scene.textures.exists(FX_DOT)) bake(scene, FX_DOT, 32, 32, (g) => g.fillStyle(0xffffff).fillCircle(16, 16, 15));
-  if (!scene.textures.exists(FX_SOFT))
-    bake(scene, FX_SOFT, 64, 64, (g) => {
+export function makeFxTextures(game: Phaser.Game) {
+  if (!game.textures.exists(FX_DOT)) bake(game, FX_DOT, 32, 32, (g) => g.fillStyle(0xffffff).fillCircle(16, 16, 15));
+  if (!game.textures.exists(FX_SOFT))
+    bake(game, FX_SOFT, 64, 64, (g) => {
       for (let i = 8; i >= 1; i--) g.fillStyle(0xffffff, 0.12).fillCircle(32, 32, i * 4);
     });
 }
 
 /** Style-matched UI textures made in code: the solid sauce brush. */
-export function makeUiTextures(scene: Phaser.Scene) {
+export function makeUiTextures(game: Phaser.Game) {
+  const scene = { textures: game.textures };
   if (scene.textures.exists(SAUCE_BRUSH)) scene.textures.remove(SAUCE_BRUSH);
   // Silhouette of sauce-blob filled with sauce red: paint without outlines.
   const src = scene.textures.get('sauce-blob').getSourceImage() as CanvasImageSource & { width: number; height: number };

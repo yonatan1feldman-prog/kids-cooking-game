@@ -1,11 +1,14 @@
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
-import { assetManifest } from './plugins/asset-manifest.ts';
+import { assetManifest, scanAssets } from './plugins/asset-manifest.ts';
 
 // The game is served from a sub-path (https://<user>.github.io/kids-cooking-game/), in dev and
 // preview too, so local runs use the same URLs as the deployment. Code builds URLs from
 // import.meta.env.BASE_URL, never from a leading '/'.
 const BASE = '/kids-cooking-game/';
+
+// SVGs that have an up-to-date pre-rendered WebP are never loaded by the game: don't precache them twice.
+const covered = Object.keys(scanAssets(process.cwd()).webp).map((k) => `assets/images/${k}.svg`);
 
 export default defineConfig({
   base: BASE,
@@ -36,7 +39,9 @@ export default defineConfig({
       },
       workbox: {
         // Everything the game needs is precached, so it works offline after the first visit.
-        globPatterns: ['**/*.{js,css,html,png,svg,ogg,mp3,webmanifest}'],
+        // (sounds included: voice, music and effects all work offline)
+        globPatterns: ['**/*.{js,css,html,png,svg,webp,ogg,mp3,webmanifest}'],
+        globIgnores: covered,
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
       },
     }),

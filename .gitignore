@@ -5,3 +5,5 @@ dev-dist/
 docs/screenshots-round1/
 docs/screenshots-round2/
 backups/
+.tmp/
+docs/screenshots-round4/

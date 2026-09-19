@@ -3,7 +3,7 @@ import type { Recipe } from './types';
 export const pizza: Recipe = {
   id: 'pizza',
   card: 'card-pizza',
-  board: 'tray',
+  board: 'pizza-board',
   character: {
     body: 'character-body',
     eyesOpen: 'character-eyes-open',
@@ -25,7 +25,7 @@ export const pizza: Recipe = {
         doneButton: 'btn-done',
       },
     },
-    { type: 'bake', params: { inside: 'oven-inside', closed: 'oven-closed', open: 'oven-open', bakeMs: 3500, bakedTint: 0xffd49a } },
+    { type: 'bake', params: { inside: 'oven-inside', closed: 'oven-closed', open: 'oven-open', bakeMs: 5000, bakedTint: 0xffd49a } },
     { type: 'feed', params: { slice: 'pizza-slice', slices: 6 } },
   ],
 };

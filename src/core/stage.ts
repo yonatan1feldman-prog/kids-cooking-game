@@ -51,7 +51,7 @@ export interface Stage {
 const BOARD_W = 786; // tray: the round board is 786 wide inside its 820 frame
 const CHAR_W = 600; // character frame (the arms reach almost the full width)
 const CHAR_H = 700;
-const OVEN_W = 628; // oven body inside its 700 frame
+const OVEN_W = 636; // oven (opaque x 34-664 of its 700 frame, centred at 350: 2 x 316, plus a little air)
 const LEFT_W = 480; // left column: two bin columns
 const GAP = 25;
 const BIN_TEX = 240; // topping-bin viewBox
@@ -106,9 +106,9 @@ export function getStage(L: Layout): Stage {
 
   // Oven: side by side with the dish, filling the space left of the board.
   const ovenRoom = dishHome.x - (BOARD_W / 2) * k - gap - m;
-  // (at most 95%, so its top stays clear of the home button on the widest screens)
-  const ovenScale = clamp(ovenRoom / (OVEN_W * k), 0.75, 0.95) * k;
-  const oven = { x: m + ovenRoom / 2, y: Y(600) };
+  // (at most 90% and a little low, so its top (opaque from y 20) stays clear of the home button on the widest screens)
+  const ovenScale = clamp(ovenRoom / (OVEN_W * k), 0.75, 0.9) * k;
+  const oven = { x: m + ovenRoom / 2, y: Y(612) };
 
   return {
     play: { x: L.cx, y: L.cy },

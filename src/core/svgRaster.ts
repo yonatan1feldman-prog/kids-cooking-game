@@ -78,3 +78,26 @@ function decodeImage(src: string): Promise<HTMLImageElement> {
     img.src = src;
   });
 }
+
+/**
+ * Loads a pre-rendered WebP (scripts/bake-webp.js) as a canvas texture. It already has the
+ * texture size, so nothing is rasterized at load time. Resolves false on any failure.
+ */
+export async function loadWebpTexture(textures: Phaser.Textures.TextureManager, key: string, url: string): Promise<boolean> {
+  try {
+    const img = await decodeImage(url);
+    if (!img.naturalWidth) return false;
+    const canvas = document.createElement('canvas');
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return false;
+    ctx.drawImage(img, 0, 0);
+    if (textures.exists(key)) textures.remove(key);
+    textures.addCanvas(key, canvas);
+    return true;
+  } catch (err) {
+    console.warn(`[assets] webp "${key}" failed, trying the svg`, err);
+    return false;
+  }
+}
