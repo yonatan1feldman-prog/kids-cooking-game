@@ -1,10 +1,94 @@
-import type { ImageKey } from '../core/assets';
+import type { ImageKey, SoundKey } from '../core/assets';
+import type { VoiceKey } from '../core/audio';
 
 /**
  * A recipe is pure data: an ordered list of steps. Each step names a reusable step
  * type (implemented once in src/steps) plus that type's parameters.
  * A new recipe = a new file here + its card image; no new code unless it needs a new step type.
  */
+
+/**
+ * Wash hands: a sink with a tap and the child's own hands under it. Tap the tap (the water runs), rub the
+ * hands (bubbles grow on them), then the water rinses the bubbles off and the tap closes by itself.
+ * Counts: TUNING.wash.
+ */
+export interface WashParams {
+  basin: ImageKey;
+  faucet: ImageKey;
+  stream: ImageKey;
+  hands: ImageKey;
+  bubble: ImageKey;
+  bubbles: number;
+  rubPerBubble: number;
+  /** Mom's lines: at the start, part-way through the rubbing, and when it is clean. */
+  line: VoiceKey;
+  rubLine: VoiceKey;
+  doneLine: VoiceKey;
+  /** After this many bubbles she says the rub line. */
+  rubLineAt: number;
+  rinseMs: number;
+}
+
+/**
+ * Press: press the food with a finger, again and again; it squashes and springs back each time, a dent
+ * shows under the finger, and every few presses it visibly changes to its next state (`stages`, first to
+ * last). Knead dough on the board, crush tomatoes in the bowl, mash potatoes, squash cookie dough...
+ * Counts: TUNING.knead / TUNING.crush (`pressesPerStage`).
+ */
+export interface PressParams {
+  /** The food's states, first to last (the last one is the result). */
+  stages: ImageKey[];
+  pressesPerStage: number;
+  /**
+   * Where the food is: 'board' (on the pizza board in the middle, the board otherwise empty) or 'bowl'
+   * (inside the big prep bowl in the middle, the pizza waits aside). With 'bowl', `bowl` gives its layers.
+   */
+  place: 'board' | 'bowl';
+  bowl?: { back: ImageKey; front: ImageKey };
+  /** The hollow a press leaves (drawn in code if the file is missing). */
+  dent: ImageKey;
+  /** Colour of the bits that fly on each press (flour, tomato juice). */
+  splash: number;
+  sound: SoundKey;
+  line: VoiceKey;
+  /** The result is left for the next step under this key (`run.handoff`), e.g. 'dough-ball' for rolling. */
+  handoff?: string;
+}
+
+/**
+ * Stir: a spoon follows the finger inside the bowl; any movement in the bowl counts (no exact circles),
+ * and the contents turn smoothly into the result. At the end the bowl goes to the left column and becomes
+ * the next step's source (`handoffAs`, e.g. the sauce bowl for spreading). Distance: TUNING.stir.
+ */
+export interface StirParams {
+  bowl: { back: ImageKey; front: ImageKey };
+  /** Contents before (usually what the step before left in the bowl) and after. */
+  from: ImageKey;
+  to: ImageKey;
+  tool: ImageKey;
+  distance: number;
+  splash: number;
+  line: VoiceKey;
+  /** The next step's bowl image; the stirred bowl turns into it in the left column. */
+  handoffAs?: ImageKey;
+}
+
+/**
+ * Grate (or any "rub it on a tool"): a block follows the finger; rubbing it on the tool drops pieces, the
+ * pile under the tool grows through `piles`, and the block gets smaller. The pile is left for the next step
+ * (a handful sprinkled from it). Distance: TUNING.grate.
+ */
+export interface GrateParams {
+  tool: ImageKey;
+  block: ImageKey;
+  piles: ImageKey[];
+  /** The little piece that falls while rubbing. */
+  piece: ImageKey;
+  distance: number;
+  shredEvery: number;
+  sound: SoundKey;
+  line: VoiceKey;
+}
 
 export interface RollParams {
   /** Unflattened dough. */
@@ -26,7 +110,11 @@ export interface SpreadParams {
 }
 
 export interface SprinkleParams {
+  /** What the finger holds: a shaker (turned upside down over the dish) or a handful (held as it is). */
   tool: ImageKey;
+  toolKind?: 'shaker' | 'handful';
+  /** Handful only: the pile it is taken from, resting in the left column (left by the step before). */
+  source?: ImageKey;
   piece: ImageKey;
   /** Pieces that must land before the step completes. */
   count: number;
@@ -66,6 +154,7 @@ export interface CharacterDef {
 }
 
 export type StepDef =
+  | { type: 'wash'; params: WashParams }
   | { type: 'roll'; params: RollParams }
   | { type: 'spread'; params: SpreadParams }
   | { type: 'sprinkle'; params: SprinkleParams }

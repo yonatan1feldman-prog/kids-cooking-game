@@ -1,15 +1,47 @@
 /**
  * THE TUNING TABLE: every count, threshold and timing that decides how long a step takes or how much work
- * it needs, in one place, so it is easy to change after watching the child play.
+ * it needs, in one place, so it is easy to change after watching the child play. Recipes read their
+ * numbers from here (src/recipes/*.ts); the step types read the rest.
  *
  * The rule behind the numbers: she can't fail and nothing needs precision. More work means more repeats
  * and more visible in-between states, never something harder. A step is about 10-20 s of active doing
- * for a 5-year-old. Distances are world units at k = 1 (the steps multiply them by layout.k).
+ * for a 5-year-old. Distances are world units at k = 1 (the steps multiply them by layout.k); for scale,
+ * the pizza is 700 across and a relaxed child's rub moves the finger about 600-900 units a second.
  */
 
-/** Seconds of no progress (ms) before Mom's hand shows the gesture again (the hint), on every screen. */
+/** Ms of no progress before Mom's hand shows the gesture again (the hint), on every screen and step. */
 export const HINT_AFTER_MS = 5000;
 /** Further ms of no progress before Mom helps ("Let me help you!", and her hand does it). */
 export const AUTO_AFTER_HINT_MS = 10000;
 /** A demo never runs longer than this. */
 export const DEMO_MAX_MS = 2500;
+
+export const TUNING = {
+  /** Wash hands: tap the tap, then rub the hands until the bubbles are there; then the water rinses them. */
+  wash: {
+    /** Bubbles that grow on the hands before they are rinsed. */
+    bubbles: 12,
+    /** Rubbing distance (finger travel over the hands) per new bubble. */
+    rubPerBubble: 300,
+    /** After this many bubbles Mom says "Rub, rub, rub!". */
+    rubLineAt: 4,
+    /** How long the rinse takes (the bubbles slide off, the water runs, the tap closes). */
+    rinseMs: 1500,
+  },
+  /** Knead: presses on the dough per stage (dough-knead-1 -> 2 -> 3 -> dough-ball: 3 changes). */
+  knead: { pressesPerStage: 3 },
+  /** Crush: presses on the tomatoes per stage (sauce-stage-0 -> 1 -> 2: 2 changes). */
+  crush: { pressesPerStage: 3 },
+  /** Stir: finger travel inside the bowl to go from chunky (stage 2) to smooth sauce (stage 3). About 2-3 laps. */
+  stir: { distance: 3600 },
+  /** Grate: rubbing travel on the grater (up and down counts fully, sideways a third) for the whole block. */
+  grate: { distance: 3600, shredEvery: 60 },
+  /** Roll: rubbing distance in dough widths. */
+  roll: { rubWidths: 5 },
+  /** Spread: share of the dough that must be painted (the game fills the rest). */
+  spread: { coverage: 0.7 },
+  /** Sprinkle: cheese pieces that land before the step is done. */
+  sprinkle: { count: 45 },
+  /** Mom's help (after the idle hint): the pace of her own presses, rubs and strokes. */
+  help: { pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600 },
+} as const;

@@ -32,6 +32,12 @@ export interface StepContext {
   run: {
     /** "Watch me first!" / "Now you try!" go with the first demo of a run only; later demos just show. */
     demoTalkDone: boolean;
+    /**
+     * Things a step leaves on screen for the next one, by image key (the kneaded dough ball for rolling,
+     * the stirred sauce bowl for spreading, the grated cheese pile for sprinkling). The next step adopts
+     * the object (`adopt`) instead of popping in a new one, so the food visibly carries on.
+     */
+    handoff: Map<string, Phaser.GameObjects.Image>;
   };
 }
 
@@ -214,6 +220,42 @@ export abstract class Step<P> {
   protected setIdle(on: boolean) {
     this.idleOn = on;
     this.poke();
+  }
+
+  /** Takes over what the previous step left for this one (see `run.handoff`); it becomes this step's own. */
+  protected adopt(key: string): Phaser.GameObjects.Image | null {
+    const img = this.ctx.run.handoff.get(key);
+    this.ctx.run.handoff.delete(key);
+    return img && img.active ? this.own(img) : null;
+  }
+
+  /** Leaves an object on screen for the next step (not faded out by `complete()`). */
+  protected handOff(key: string, img: Phaser.GameObjects.Image) {
+    this.owned = this.owned.filter((o) => o !== img);
+    this.ctx.run.handoff.get(key)?.destroy();
+    this.ctx.run.handoff.set(key, img);
+  }
+
+  /**
+   * Where the board with the dish is during this step: 'dish' in the middle (the default), 'aside' small in
+   * the left column (prep work happens in the middle: the pizza waits there), 'none' not shown (nothing
+   * on it yet, e.g. washing hands).
+   */
+  protected workspace(mode: 'dish' | 'aside' | 'none', ms = 500) {
+    const { board, dish, stage, layout } = this.ctx;
+    const home = stage.dishHome;
+    const at = mode === 'aside' ? stage.aside : home;
+    const f = mode === 'aside' ? stage.asideScale : 1;
+    const alpha = mode === 'none' ? 0 : 1;
+    this.scene.tweens.killTweensOf([board, dish]);
+    const to = (o: Phaser.GameObjects.Image | Dish, scale: number) => {
+      if (ms <= 0) return o.setPosition(at.x, at.y).setScale(scale).setAlpha(alpha);
+      return this.scene.tweens.add({ targets: o, x: at.x, y: at.y, scale, alpha, duration: ms, ease: 'Sine.easeInOut' });
+    };
+    to(board, layout.k * f);
+    to(dish, f);
+    // (The board's resting scale for boing() follows it.)
+    board.setData({ restScaleX: layout.k * f, restScaleY: layout.k * f });
   }
 
   protected own<T extends Phaser.GameObjects.GameObject>(obj: T): T {

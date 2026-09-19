@@ -1,3 +1,4 @@
+import { TUNING } from '../core/tuning';
 import type { Recipe } from './types';
 
 export const pizza: Recipe = {
@@ -14,10 +15,25 @@ export const pizza: Recipe = {
     mouthOpen: 'character-mouth-open',
     mouthChew: 'character-mouth-chew',
   },
+  // Counts and thresholds come from the tuning table (core/tuning.ts).
   steps: [
-    { type: 'roll', params: { ball: 'dough-ball', flat: 'dough-flat', tool: 'rolling-pin', rubWidths: 5 } },
-    { type: 'spread', params: { source: 'sauce-bowl', blob: 'sauce-blob', coverage: 0.7 } },
-    { type: 'sprinkle', params: { tool: 'cheese-shaker', piece: 'cheese-shred', count: 45 } },
+    {
+      type: 'wash',
+      params: {
+        basin: 'sink-basin',
+        faucet: 'faucet',
+        stream: 'water-stream',
+        hands: 'kid-hands',
+        bubble: 'bubble',
+        ...TUNING.wash,
+        line: 'vo-wash',
+        rubLine: 'vo-wash-rub',
+        doneLine: 'vo-wash-done',
+      },
+    },
+    { type: 'roll', params: { ball: 'dough-ball', flat: 'dough-flat', tool: 'rolling-pin', rubWidths: TUNING.roll.rubWidths } },
+    { type: 'spread', params: { source: 'sauce-bowl', blob: 'sauce-blob', coverage: TUNING.spread.coverage } },
+    { type: 'sprinkle', params: { tool: 'cheese-shaker', piece: 'cheese-shred', count: TUNING.sprinkle.count } },
     {
       type: 'decorate',
       params: {

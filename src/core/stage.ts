@@ -67,6 +67,25 @@ export interface Stage {
   feedMomShift: number;
   /** Feeding: a slice dropped right of this line lands at Pipa (her frame's opaque left edge). */
   feedPetLeft: number;
+
+  // ---- Prep steps (round 5; positions and scales from the art agent's scenes-prep.js)
+  /** While prep work fills the middle, the board with the pizza waits small in the left column. */
+  aside: Pt;
+  asideScale: number;
+  /** Wash: the sink (centre), the tap's base on its back rim, the child's hands (their bottom edge below the screen). */
+  sink: Spot;
+  faucetBase: Pt;
+  faucetScale: number;
+  kidHandsScale: number;
+  kidHandsBottom: number;
+  /** Knead (and any dough pressed on the board): where the dough sits and its scale. */
+  kneadDough: Spot;
+  /** Crush and stir: the big prep bowl in the middle (all its layers at one position). */
+  prepBowl: Spot;
+  /** Grate: the grater, the cheese block resting on it, the pile growing under it. */
+  grater: Spot;
+  graterBlock: Spot;
+  graterPile: Spot;
 }
 
 /** Native sizes the layout reasons about (opaque extents of the art, in world units at k = 1). */
@@ -198,6 +217,18 @@ export function getStage(L: Layout): Stage {
   const feedTop = Y(984) - PET_FOOT * bs;
   const feedPet = { x: px + bw / 2, y: feedTop + (PET_H / 2) * bs, scale: bs };
 
+  // Prep steps (scenes-prep.js): the sink, the dough and the bowl sit where the pizza sits; the pizza waits
+  // small in the left column meanwhile.
+  const sinkY = Y(700);
+  const faucetScale = 0.95 * k;
+  const graterAt = { x: dishHome.x - 60 * k, y: Y(640) };
+
+  // The prep bowl at 1.25 (the art agent's scene), but never reaching Pipa (16:9 is narrow): its 640 frame
+  // stays 12 units left of her opaque left edge.
+  const PREP_BOWL_W = 640;
+  let bowlScale = 1.25 * k;
+  if (pet) bowlScale = Math.min(bowlScale, ((pet.x - (PET_W / 2 - PET_OPAQUE_X0) * pet.scale - 12 * k - dishHome.x) * 2) / PREP_BOWL_W);
+
   // Title: logo and play button in one column: left of centre on wide screens, centred in the space left
   // of Mom's face on narrow ones (the art agent's title scene).
   const titleX = W >= PET_MIN_W ? dishHome.x - 80 * k : (m + momLeft + MOM_FACE.x0 * s) / 2;
@@ -231,5 +262,17 @@ export function getStage(L: Layout): Stage {
     feedPet,
     feedMomShift,
     feedPetLeft: px + PET_OPAQUE_X0 * bs,
+    aside: { x: sideX, y: Y(640) },
+    asideScale: 0.4,
+    sink: { x: dishHome.x, y: sinkY, scale: 1.1 * k },
+    faucetBase: { x: dishHome.x - 150 * k, y: sinkY - 250 * k },
+    faucetScale,
+    kidHandsScale: 1.3 * k,
+    kidHandsBottom: L.H + 30 * k,
+    kneadDough: { x: dishHome.x, y: dishHome.y + 10 * k, scale: 1.6 * k },
+    prepBowl: { x: dishHome.x, y: Y(640), scale: bowlScale },
+    grater: { ...graterAt, scale: (1.05 * k) / 1.15 },
+    graterBlock: { x: graterAt.x - 20 * k, y: graterAt.y + 20 * k, scale: 0.8 * k },
+    graterPile: { x: graterAt.x + 10 * k, y: graterAt.y + 260 * k, scale: 1.15 * k },
   };
 }

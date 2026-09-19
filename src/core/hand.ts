@@ -36,6 +36,13 @@ export interface HandMotion {
   props?: HandProp[];
   /** Soft glow on this point (hints only: where to touch first). */
   glow?: P;
+  /**
+   * A mark that shows under the hand while it presses (the dent a press leaves in dough or tomatoes), at
+   * the anchor, fading in and out with the press. A see-through prop: the real food is not changed.
+   */
+  mark?: { key: string; scale: number };
+  /** The hand's size, times its usual HAND_SCALE (e.g. bigger next to the big prep bowl). */
+  size?: number;
   /** Runs when the motion ends for any reason (done, interrupted, progress): undo anything it hid. */
   onStop?: () => void;
 }
@@ -108,10 +115,12 @@ export class MomHandView {
   private img: Phaser.GameObjects.Image;
   private glow: Phaser.GameObjects.Image;
   private props: Phaser.GameObjects.Image[] = [];
+  private mark?: Phaser.GameObjects.Image;
   private tween?: Phaser.Tweens.Tween;
   private glowTween?: Phaser.Tweens.Tween;
   private followFn?: () => P | null;
   private kind: MomHand = 'point';
+  private base = 1;
   private onStop?: () => void;
 
   constructor(private scene: Phaser.Scene, private layout: Layout) {
@@ -131,13 +140,14 @@ export class MomHandView {
     return this.img.visible ? { x: this.img.x, y: this.img.y } : null;
   }
 
-  private setKind(kind: MomHand, scale?: number) {
+  private setKind(kind: MomHand, size = 1) {
     this.kind = kind;
+    this.base = HAND_SCALE[kind] * size * this.layout.k;
     const key = `mom-hand-${kind}` as ImageKey;
     const [w, h] = IMAGES[key].size;
     const a = ART.momHands[kind];
     this.img.setTexture(key).setOrigin(a.x / w, a.y / h);
-    this.img.setScale((scale ?? HAND_SCALE[kind]) * this.layout.k);
+    this.img.setScale(this.base);
   }
 
   private makeProps(list: HandProp[] = []) {
@@ -150,9 +160,18 @@ export class MomHandView {
     });
   }
 
+  /**
+   * A press is a real push: the hand goes down (and a flat hand spreads a little) and comes back up. That
+   * reads as pressing, not as a wave. The mark (a dent) shows under it while it is down.
+   */
   private place(x: number, y: number, alpha: number, t: number, press = 0, total = 1) {
-    const base = HAND_SCALE[this.kind] * this.layout.k;
-    this.img.setPosition(x, y).setAlpha(alpha).setScale(base * (1 - 0.1 * press));
+    const base = this.base;
+    const flat = this.kind === 'press';
+    const down = (flat ? 34 : 12) * this.layout.k * press;
+    this.img.setPosition(x, y + down).setAlpha(alpha);
+    if (flat) this.img.setScale(base * (1 + 0.05 * press), base * (1 - 0.1 * press));
+    else this.img.setScale(base * (1 - 0.1 * press));
+    this.mark?.setPosition(x, y + down).setAlpha(alpha * Math.min(1, press * 1.6));
     for (const img of this.props) {
       const p = img.getData('prop') as HandProp;
       let a = alpha * (p.alpha ?? 1);
@@ -169,8 +188,9 @@ export class MomHandView {
    */
   play(m: HandMotion, opts: { loop?: boolean; gapMs?: number; onDone?: () => void } = {}) {
     this.stop();
-    this.setKind(m.kind);
+    this.setKind(m.kind, m.size);
     this.makeProps(m.props);
+    if (m.mark) this.mark = this.scene.add.image(0, 0, m.mark.key).setDepth(997).setScale(m.mark.scale).setAlpha(0);
     this.onStop = m.onStop;
     const keys = m.keys;
     const total = keys[keys.length - 1].t;
@@ -210,9 +230,9 @@ export class MomHandView {
   }
 
   /** Mom helping: the hand shows and follows `at()` every frame (null = hide it for now) until stopped. */
-  follow(kind: MomHand, at: () => P | null) {
+  follow(kind: MomHand, at: () => P | null, size = 1) {
     this.stop();
-    this.setKind(kind);
+    this.setKind(kind, size);
     this.followFn = at;
     this.img.setAlpha(0).setVisible(true);
     this.scene.tweens.add({ targets: this.img, alpha: 1, duration: FADE });
@@ -239,6 +259,8 @@ export class MomHandView {
     this.scene.tweens.killTweensOf(this.img);
     this.props.forEach((p) => p.destroy());
     this.props = [];
+    this.mark?.destroy();
+    this.mark = undefined;
     this.img.setVisible(false);
     this.glow.setVisible(false);
   }

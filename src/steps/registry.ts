@@ -5,12 +5,14 @@ import { FeedStep } from './FeedStep';
 import { RollStep } from './RollStep';
 import { SprinkleStep } from './SprinkleStep';
 import { SpreadStep } from './SpreadStep';
+import { WashStep } from './WashStep';
 import type { Step, StepContext } from './Step';
 
 type Factory = (ctx: StepContext, params: never, onDone: () => void) => Step<unknown>;
 
 /** Step type name (as used in recipe files) -> reusable implementation. */
 const STEP_TYPES: Record<StepType, Factory> = {
+  wash: (c, p, d) => new WashStep(c, p, d),
   roll: (c, p, d) => new RollStep(c, p, d),
   spread: (c, p, d) => new SpreadStep(c, p, d),
   sprinkle: (c, p, d) => new SprinkleStep(c, p, d),
