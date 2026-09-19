@@ -162,9 +162,8 @@ export class StirStep extends Step<StirParams> {
     return { kind: 'spread', size: STIR_HAND, keys, glow: { x: o.x, y: o.y }, onStop: () => this.spoon.active && this.spoon.setVisible(true) };
   }
 
-  intro(withDemo: boolean) {
-    if (withDemo) this.spoon.setVisible(false);
-    super.intro(withDemo);
+  protected onDemoStart() {
+    this.spoon.setVisible(false);
   }
 
   protected showHint() {

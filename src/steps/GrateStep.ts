@@ -188,9 +188,8 @@ export class GrateStep extends Step<GrateParams> {
     };
   }
 
-  intro(withDemo: boolean) {
-    if (withDemo) this.block.setVisible(false);
-    super.intro(withDemo);
+  protected onDemoStart() {
+    this.block.setVisible(false);
   }
 
   protected showHint() {

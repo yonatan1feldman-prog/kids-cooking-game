@@ -15,6 +15,8 @@ export const HINT_AFTER_MS = 5000;
 export const AUTO_AFTER_HINT_MS = 10000;
 /** A demo never runs longer than this. */
 export const DEMO_MAX_MS = 2500;
+/** Before a demo, Mom finishes the line she is saying, waiting at most this long. */
+export const DEMO_WAIT_MS = 2000;
 
 export const TUNING = {
   /** Wash hands: tap the tap, then rub the hands until the bubbles are there; then the water rinses them. */

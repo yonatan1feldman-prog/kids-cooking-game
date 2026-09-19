@@ -146,14 +146,17 @@ export function assetManifest(): Plugin {
         }
         res.writeHead(404).end();
       });
-      // Dev only: the test harness posts a PNG of the game canvas (`__saveShot`) into docs/screenshots-round4 (git-ignored).
+      // Dev only: the test harness posts a PNG of the game canvas (`__saveShot`) into docs/screenshots-roundN
+      // (git-ignored; `dir` picks the round's folder, screenshots-round4 by default).
       server.middlewares.use('/__dev/shot', (req, res) => {
-        const name = new URL(req.url ?? '/', 'http://x').searchParams.get('name') ?? '';
-        if (req.method !== 'POST' || !/^[a-z0-9-]+$/.test(name)) return res.writeHead(400).end();
+        const q = new URL(req.url ?? '/', 'http://x').searchParams;
+        const name = q.get('name') ?? '';
+        const folder = q.get('dir') ?? 'screenshots-round4';
+        if (req.method !== 'POST' || !/^[a-z0-9-]+$/.test(name) || !/^screenshots-round[0-9a-z]+$/.test(folder)) return res.writeHead(400).end();
         const chunks: Buffer[] = [];
         req.on('data', (c: Buffer) => chunks.push(c));
         req.on('end', () => {
-          const dir = path.join(root, 'docs', 'screenshots-round4');
+          const dir = path.join(root, 'docs', folder);
           fs.mkdirSync(dir, { recursive: true });
           fs.writeFileSync(path.join(dir, `${name}.png`), Buffer.concat(chunks));
           res.end('ok');

@@ -13,7 +13,9 @@ The screen stays text-free (see the UX rules). Commit messages stay in Hebrew: t
 and talks in a warm, encouraging English voice. Pipa the hedgehog is the kitchen pet; she tastes the pizza at the end.
 
 Current content: one recipe (pizza), start to finish, with the style-B paper cut-out art, Mom's voice, music and
-sounds, in landscape. Later recipes should be mostly a new data file (plus their voice lines).
+sounds, in landscape: wash hands, knead, roll, crush the tomatoes, stir the sauce, spread it, grate the cheese,
+sprinkle it, decorate, bake, feed Pipa. Later recipes (salad, cookies, soup...) should be mostly a new data file
+(plus their voice lines): the prep steps are reusable, data-driven step types (see "Recipes are data").
 
 Stack: Phaser 4 (4.2.x) + Vite + TypeScript, installed as a PWA (vite-plugin-pwa).
 The official Phaser 4 skills are in `node_modules/phaser/skills/*/SKILL.md`. Read the
@@ -28,8 +30,9 @@ DynamicTexture needs `.render()`).
 2. **You can't fail and you can't get stuck.** Each step: the first two times a recipe is played, Mom shows it once
    before it starts (her demo hand, at most 2.5 s, the dish unchanged; a touch ends it at once and counts). After 5 s
    without progress her hand shows the gesture again (the hint, with a glow on the target), and after 10 more seconds
-   Mom helps: "Let me help you!" and her hand visibly does it (`src/steps/Step.ts`: `HINT_AFTER_MS`,
-   `AUTO_AFTER_HINT_MS`, `DEMO_MAX_MS`). Exception: free decorating waits 15 s for the hint (once something is on the
+   Mom helps: "Let me help you!" and her hand visibly does it (the timings are in the tuning table,
+   `src/core/tuning.ts`: `HINT_AFTER_MS`, `AUTO_AFTER_HINT_MS`, `DEMO_MAX_MS`, `DEMO_WAIT_MS`). The title and home
+   screens have the same 5 s hint (Mom's pointing hand taps the play button / the card; `screenHint` in core/hand.ts). Exception: free decorating waits 15 s for the hint (once something is on the
    pizza she points at the done button: "Tap here when you're done!") and 15 more to help. 3 missed drops in a row
    show the hint right away (`Step.miss()`). There is no wrong answer and no losing.
 3. **One finger only:** tap, drag, rub. No double-tap gestures, no long-press, no multi-touch, no time limits.
@@ -96,6 +99,11 @@ DynamicTexture needs `.render()`).
   at 1.4x: `raster` in assets.ts), Pipa (0.4 small, 0.62 big, x k), Mom's demo hands (point 0.62, roll/spread/grab
   0.66, sprinkle 1.1, x k: `HAND_SCALE` in core/hand.ts, from the art agent's checked scenes).
   The pizza (dish radius 350) and the board are always at native size x k.
+- **Prep steps (round 5, from the art agent's `scenes-prep.js`):** the work happens in the middle where the pizza
+  sits: the sink (1.1), the kneading dough on the board (1.6), the prep bowl (1.25; smaller at 16:9 so it never
+  reaches Pipa: 0.93), the grater (0.91) with its pile under it. While the middle is busy with the bowl or the
+  grater, the board with the pizza waits small (0.4) in the left column (`stage.aside`); for washing there is no
+  board yet. The title: logo and play button in one column left of centre (4:3: centred left of Mom's face).
 - **Composition per step:** Mom stands on the right for the whole recipe, her 800x800 frame's bottom on the screen
   bottom (it is cut at her waist, so she never jumps: her happy move is a stretch and sway from the waist).
   On 16:9 and wider, Pipa sits small on the counter between the pizza and Mom (never over the pizza itself or Mom's
@@ -141,6 +149,8 @@ src/core/
   fx.ts                    burst / puff / stars particles, boing squash
   hand.ts                  MomHandView: Mom's 5 demo hands, keyframed motions (demo / looping hint), follow (help), props
   ui.ts                    iconButton (padded hit circle, fires on press, optional two-tap confirm)
+  tuning.ts                THE TUNING TABLE: every count, threshold and idle timing
+  update.ts                service worker registration and the safe update (only at the title, see "Deployment")
 src/recipes/
   types.ts                 Recipe + StepDef + CharacterDef types (one params type per step type)
   pizza.ts                 the pizza recipe, pure data
@@ -153,16 +163,45 @@ src/steps/
   slices.ts                cuts the captured pizza into wedges (2D canvas), stock-art fallback
   registry.ts              step type name -> implementation
   RollStep / SpreadStep / SprinkleStep / DecorateStep / BakeStep / FeedStep
+  WashStep / PressStep (knead, crush) / StirStep / GrateStep   the round-5 prep step types
+  PrepBowl                 the big prep bowl in three layers, kept across steps
 src/scenes/
-  BootScene                loads the title's 4 images, starts Title, loads the rest + all sounds in the background
-  TitleScene               big play button (audio resume, fullscreen + landscape lock, wake lock, music, vo-welcome)
-  HomeScene                one card per recipe, Mom (and Pipa); waits for the art before starting a recipe
+  BootScene                loads the title's 4 images, starts Title, then the title art (logo, Mom, Pipa, pointing hand), the rest + all sounds
+  TitleScene               play button at once; logo, Mom, Pipa fade in when loaded; the tap: audio, fullscreen, lock, wake lock, music, vo-hello + wave; the update check
+  HomeScene                one card per recipe, Mom (and Pipa), vo-what-make; waits for the art before starting a recipe
   RecipeScene              runs any recipe's steps in order; board under the dish; Mom, Pipa, Mom's hand; demo counter; home button
 ```
 
 ## Recipes are data
 A recipe is `{ id, card, board, character, steps: StepDef[] }`. Each step names a reusable type and its params.
-Step types: `roll`, `spread`, `sprinkle`, `decorate`, `bake`, `feed`. `character` lists Pipa's layer keys
+Step types: `wash`, `knead`, `crush`, `stir`, `grate`, `roll`, `spread`, `sprinkle`, `decorate`, `bake`, `feed`.
+The pizza: wash, knead, roll, crush, stir, spread, grate, sprinkle, decorate, bake, feed, then the finale.
+**Every count and threshold (how many presses, how much rubbing or stirring) is in ONE table, `src/core/tuning.ts`
+(`TUNING`); recipes read their numbers from there.** Change the table after watching the child play, not the steps.
+
+Reusable prep step types (round 5; params in `recipes/types.ts`, each with Mom's demo, 5 s hint and help):
+- `wash` (`WashStep`, `WashParams`): a basin, a tap, the child's hands (`kid-hands`, bottom edge below the screen),
+  bubbles. Tap the tap (the stream grows down onto the hands, `waterLoop`), rub the hands (a bubble per
+  `rubPerBubble` of finger travel, `rubLine` after `rubLineAt` bubbles), then by itself: the bubbles wash off, the
+  done line, the tap closes. Tapping the hands first only wiggles them (a miss; 3 misses show the hint).
+- `knead` and `crush` are the same class, `PressStep` (`PressParams`): each press squashes the food and springs back,
+  a dent (`press-dent`, or a drawn shadow if missing) under the finger, bits fly (`splash` colour), a sound; every
+  `pressesPerStage` presses the food changes to its next picture in `stages`. `place: 'board'` = on the board in the
+  middle; `place: 'bowl'` = inside the big prep bowl (`PrepBowl`: back layer, contents, front layer) with the pizza
+  waiting small in the left column. `handoff` leaves the result for the next step (the dough ball for `roll`).
+  Salad, cookies, soup: mashing, squashing cookie dough, pressing anything is this type with other pictures.
+- `stir` (`StirStep`, `StirParams`): the spoon (`spoon-wood`, anchored at its bowl) follows the finger inside the
+  bowl's opening; any movement in the bowl adds up (`distance`), no circles needed; `from` fades into `to`. At the
+  end the bowl moves to the left column and turns into `handoffAs` (the sauce bowl of `spread`).
+- `grate` (`GrateStep`, `GrateParams`): the block follows the finger; rubbing on the tool's face (up/down counts
+  fully, sideways a third) drops `piece`s into a pile that grows through `piles`, the block shrinks. The pile goes to
+  the left column for the next step. Also fits any "rub it on a tool" step.
+- `sprinkle` gained `toolKind: 'handful'` + `source`: a handful taken from the pile (the grated cheese), held just
+  above the finger, instead of the upside-down shaker.
+Shared pieces for step types: `Step.workspace('dish' | 'aside' | 'none')` (where the board with the pizza is during
+the step), `run.handoff` + `Step.handOff(key, img)` / `Step.adopt(key)` (the food visibly carries on from one step
+to the next), `PrepBowl.take(ctx)` / `keep()` (the bowl across steps), `HandMotion.mark` (the dent under Mom's
+pressing hand), `HandMotion.size` (a bigger hand next to the big bowl), `tapMotion(at, k)`. `character` lists Pipa's layer keys
 (body, eyes x4, mouth x3). Mom is the same for every recipe (fixed keys in `steps/Mom.ts`).
 To add a recipe: create `src/recipes/<name>.ts`, add it to `RECIPES`, and add any new image keys
 to the contract in `src/core/assets.ts` together with a placeholder in `placeholders.ts`.
@@ -171,10 +210,15 @@ Every step subclass must implement `demo()` (Mom's hand motion for the current p
 dish: anything carried is a see-through prop) and `autoFinish()` (Mom's help: her hand visibly does it, via
 `hand.follow` or `hand.play`), set `stepLine` (its voice line, if any), call `poke()` on real progress, and treat
 `onUp(..., cancelled)` as "put it back gently". `showHint()` defaults to looping `demo()`.
-Voice lines per event: Title tap vo-welcome; card vo-pick-pizza; demo start vo-watch-me + the step line
-(vo-roll / vo-sauce / vo-cheese / vo-toppings / vo-feed), demo end vo-your-turn; no demo: the step line only;
-step done: a random vo-praise-1..7 (never the same twice in a row); decorate done-hint vo-done-hint; pizza in the oven
-vo-oven, half-way vo-baking, ding vo-ready; finale vo-finale, then the cheer effect, then vo-bye, then home.
+Voice lines per event: Title tap vo-hello (Mom waves); home screen vo-what-make (from the title or the home button;
+not after a finished recipe: the home screen stays quiet then); card vo-pick-pizza; demo: Mom first finishes the
+line she is saying (at most `DEMO_WAIT_MS`), then the step line (vo-wash / vo-knead / vo-roll / vo-crush / vo-stir /
+vo-sauce / vo-grate / vo-cheese / vo-toppings / vo-feed) while her hand shows it. Only the FIRST demo of a recipe run
+is introduced with vo-watch-me and followed by vo-your-turn (`run.demoTalkDone`); later demos just show. No demo:
+the step line only. Wash also says vo-wash-rub part-way through the rubbing and vo-wash-done before the tap closes.
+Step done: a praise line from a shuffled deck (all seven vo-praise-1..7 before any repeats, never the same twice in a
+row, also across decks; `voice.praise`); decorate done-hint vo-done-hint; pizza in the oven vo-oven, half-way
+vo-baking, ding vo-ready; finale vo-finale, then the cheer effect, then vo-bye, then home.
 One line at a time, never overlapping; a line whose moment has passed is dropped (core/audio.ts `Voice`).
 
 The child's own pizza: at the end of decorating, `Dish.capture()` renders the dish (dough, sauce,
@@ -271,7 +315,8 @@ fallback if the capture fails.
   (no top bar, full-size pizza instead of 0.75x, background never cropped at the top).
 - Rollback points: tags `rollback-start` (first commit), `rollback-pre-assets` (before the real assets),
   `rollback-pre-landscape` (end of round 1, portrait), `v0.2-landscape` (end of round 2, landscape),
-  `rollback-pre-mom` (master before round 4, the Mom round).
+  `rollback-pre-mom` (master before round 4, the Mom round), `v0.3-mom` (end of round 4), `rollback-pre-prep`
+  (master before round 5, the prep steps).
 - Temporary files go in `.tmp/` inside this folder (git-ignored), never outside it.
 - This computer's memory is limited: one automated browser only, no parallel runs, no heavy sub-agents, and at least
   2 GB free before running the harness.
@@ -336,7 +381,46 @@ fallback if the capture fails.
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; round 4 on top, rounds 2-3 below still hold)
+## Handoff notes (written for the next agent; round 5 on top, rounds 2-4 below still hold)
+
+### 00. Round 5, part A (the prep steps): what changed and how to check it
+State: branch `round-5-prep-a` (from `master` at tag `rollback-pre-prep`), not merged, not pushed. Commits: stage 1
+(five fixes + infra), stage 2 (assets), stage 3a-3d (wash, knead, crush + stir, grate + handful), stage 4 (verification,
+harness, docs). Part B (choosing toppings, cutting, cans and jars, oven temperature, sharing the pizza) is the next
+round; its art and voice are already in the repo (`NOT_LOADED` in assets.ts; the lines are listed in the asset contract).
+Screenshots of every step (Mom's demo and the child mid-gesture) at 20:9 and 4:3: `docs/screenshots-round5a/`
+(git-ignored; `__tour5(w, h, tag)`). Compare with `../cooking-game-assets/images-b-prep/shots/final-*-2400.png` / `-1440.png`.
+- **Fixes:** vo-watch-me / vo-your-turn only with the run's first demo (`run.demoTalkDone`); a demo first lets Mom
+  finish her current line (`DEMO_WAIT_MS`), and the step's real tool is hidden only when her hand starts
+  (`onDemoStart`); praise from a shuffled deck (`Voice.praise`; the deck carries across runs); title: play button at
+  once, logo + Mom + Pipa fade in (`TITLE_ART` group in Boot, `titleArtReady()`), the tap: vo-hello + `Mom.wave()`,
+  Home after 900 ms (the title no longer rebuilds on the fullscreen resize after the tap: `canRelayout`); home:
+  vo-what-make; the 5 s pointing-hand hint on title and home (`screenHint`); the safe update (see "Deployment");
+  the manifest name; `.gitattributes`.
+- **Precache revisions:** before this round every art and sound file under `assets/` had `revision: null`
+  (vite-plugin-pwa treats `assets/` as hashed), so a changed sound or WebP with the same name would never have reached
+  an installed app. Now only Vite's hashed chunks skip the revision (`dontCacheBustURLsMatching`). 203 files, 9.3 MB.
+- **First deploy of this round:** the phone runs round 4's code, which cannot switch the new waiting service worker
+  on (and the new one has no skipWaiting). The new version therefore arrives only after the app has been fully closed
+  once (all windows); from then on every update is switched on at the title screen. Checked against a local build.
+- **Voice/sound:** new keys in `VoiceKey`; a voice line is any file in `voice/` (count-*, temp-* too); `waterLoop`
+  (0.35) next to `bakeLoop`; effect gains for the new files in sfx.ts (MIXING.md). All 50 new files exist: no sound missing.
+- **Harness (`scripts/harness.js`):** `__type()` (the recipe step type; knead and crush share `PressStep`), `__to(type)`,
+  gestures and audit for the new steps (`together` = pairs drawn together on purpose: sink/faucet, board/dough,
+  grater/block; Pipa may stand in front of the sink rim as in the art agent's scene); `__real` hops through a
+  MessageChannel (a hidden tab throttles setTimeout to once a second); `__fullRun(demos, 'fast' | 'child' | 'none')`
+  (child = 650 units/s drags, about 0.5 s between actions; it fakes `visibilityState` so the hidden window doesn't hold
+  the sound); `__tour5`; `__saveShot(name, dir)` (the dev server's `/__dev/shot?dir=screenshots-roundN`).
+- **Checked in round 5 (automated Chrome):** audit clean at 20:9, 16:9 and 4:3 in all 11 steps; a full run with demos
+  at a child's pace (236 s from the card tap to home), a full run without demos, a full run with no touch (Mom helped
+  12 times, ends at home): voice logs without overlaps, in order, vo-watch-me once, the praise decks complete; rotation
+  and background in the middle of wash, knead, crush, stir and grate (the gesture is dropped, everything pauses, the
+  idle clock is frozen, progress is kept, it carries on); a touch mid-demo ends it and counts; the update check at the
+  title (applied, reloaded), after the play tap (waits, no reload on home or in a recipe), at the next start (applied).
+- **Hidden-window artifact (again):** the automated window reports `visibilityState: hidden` even after resizing, so
+  the AudioContext never runs there and lines "end" by their throttled safety timer: logged durations are long and a
+  queued "Now you try!" can expire before it plays. Order and no-overlap are what count.
+- **Open points (part A):** see "6. Open points" below, first block.
 
 ### 0. Round 4 (cooking with Mom): what changed and how to check it
 State: branch `round-4-mom` (from `master` at tag `rollback-pre-mom`), not merged, not pushed. Commits: stage 1 art +
@@ -499,7 +583,19 @@ Harness pitfalls:
 - SVGs are not loaded with `this.load.svg`. `core/svgRaster.ts` fetches, sets width and height to the native viewBox size,
   rasterizes to a canvas and calls `textures.addCanvas`. This gives exact native-size textures and a clean fallback.
 
-### 6. Open points after round 4 (round 2's list follows, updated)
+### 6. Open points after round 5, part A (round 4's list follows)
+- **Needs a real finger and a real ear:** whether 12 bubbles / 9 kneading presses / 6 crushing presses / 3600 units of
+  stirring / 3600 of grating feel right (tune `TUNING`); the water loop and the grate sound (a 2 s file with three
+  strokes, restarted at most every 0.7 s) against the voice; whether she understands tapping the tap first (the hint
+  appears after 3 taps on the hands); Mom's pressing hand reading as a press (it pushes down 34 units and spreads, with
+  the dent); holding the cheese handful above the finger; the demo's wait for Mom's sentence (up to 2 s of stillness).
+- **Part B** is not built: its 33 images are delivered but not loaded (`NOT_LOADED`), its voice lines are loaded
+  (about 12 MB of decoded audio in total on the phone; only decode what is used if memory gets tight).
+- **16:9** is tight: the prep bowl shrinks to 0.93 there so it never reaches Pipa (1.25 on 20:9, 0.94 at 4:3's k).
+- The bubbles grow only over the hands (the art agent's scene also floats a few around the sink).
+- vo-welcome is no longer played (vo-hello replaced it); `cheese-shaker` is still loaded but no longer shown.
+
+### 6a. Open points after round 4 (round 2's list follows, updated)
 - **Needs a real finger and a real ear:** Mom's voice level against the music and effects on the phone speaker;
   whether the lip movement reads as talking; whether "Now you try!" arriving after the step line feels natural;
   whether the demo is slow enough to follow and a 5-year-old waits for it or taps through it (both are fine);

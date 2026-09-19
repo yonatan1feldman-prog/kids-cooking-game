@@ -7,7 +7,7 @@ import type { Character } from './Character';
 import type { Dish } from './Dish';
 import type { Mom } from './Mom';
 
-import { AUTO_AFTER_HINT_MS, DEMO_MAX_MS, HINT_AFTER_MS } from '../core/tuning';
+import { AUTO_AFTER_HINT_MS, DEMO_MAX_MS, DEMO_WAIT_MS, HINT_AFTER_MS } from '../core/tuning';
 
 // (The idle and demo timings live in the tuning table, core/tuning.ts.)
 export { AUTO_AFTER_HINT_MS, DEMO_MAX_MS, HINT_AFTER_MS };
@@ -105,6 +105,8 @@ export abstract class Step<P> {
   /** This demo is the run's first: it gets "Watch me first!" and "Now you try!". */
   private demoTalk = false;
   private demoOff?: () => void;
+  /** Called when Mom's demo hand starts, e.g. to hide the real tool while her prop tool moves. */
+  protected onDemoStart() {}
   /** Called when the demo ends (finished or interrupted), e.g. to put a hidden tool back. */
   protected onDemoEnd() {}
 
@@ -125,18 +127,41 @@ export abstract class Step<P> {
       return;
     }
     this.demoing = true;
-    // Only the run's first demo is introduced ("Watch me first!") and followed by "Now you try!".
-    this.demoTalk = !this.ctx.run.demoTalkDone;
-    this.ctx.run.demoTalkDone = true;
-    if (this.demoTalk) voice.say('vo-watch-me', { valid: () => this.demoing });
-    if (this.stepLine) voice.say(this.stepLine, { valid: stillHere, ttlMs: 3500 });
     const onTouch = () => this.endDemo(true);
     this.scene.input.on(Phaser.Input.Events.POINTER_DOWN, onTouch);
     this.demoOff = () => this.scene.input.off(Phaser.Input.Events.POINTER_DOWN, onTouch);
-    const keys = m.keys;
-    if (keys[keys.length - 1].t > DEMO_MAX_MS) console.warn('[step] demo longer than 2.5 s');
-    // (No glow in the demo: that is for the hint, when she needs to find where to touch.)
-    this.hand.play({ ...m, glow: undefined }, { onDone: () => this.endDemo(false) });
+    const begin = () => {
+      // She started by herself while Mom was still talking: no demo, just the step's line.
+      if (!this.demoing) {
+        if (this.stepLine) voice.say(this.stepLine, { valid: stillHere });
+        return;
+      }
+      // Only the run's first demo is introduced ("Watch me first!") and followed by "Now you try!".
+      this.demoTalk = !this.ctx.run.demoTalkDone;
+      this.ctx.run.demoTalkDone = true;
+      if (this.demoTalk) voice.say('vo-watch-me', { valid: () => this.demoing });
+      if (this.stepLine) voice.say(this.stepLine, { valid: stillHere, ttlMs: 3500 });
+      const mm = this.demo() ?? m;
+      const keys = mm.keys;
+      if (keys[keys.length - 1].t > DEMO_MAX_MS) console.warn('[step] demo longer than 2.5 s');
+      this.onDemoStart();
+      // (No glow in the demo: that is for the hint, when she needs to find where to touch.)
+      this.hand.play({ ...mm, glow: undefined }, { onDone: () => this.endDemo(false) });
+    };
+    // Mom first finishes what she is saying ("Let's make a pizza!", the praise for the last step), at most
+    // DEMO_WAIT_MS, so "Watch me first!" comes while her hand shows it.
+    if (!voice.speaking) return begin();
+    let waited = 0;
+    const wait = this.scene.time.addEvent({
+      delay: 100,
+      loop: true,
+      callback: () => {
+        waited += 100;
+        if (voice.speaking && this.demoing && waited < DEMO_WAIT_MS) return;
+        wait.remove();
+        begin();
+      },
+    });
   }
 
   private endDemo(interrupted: boolean) {

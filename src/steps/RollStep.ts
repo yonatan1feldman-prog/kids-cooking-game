@@ -150,9 +150,8 @@ export class RollStep extends Step<RollParams> {
     this.pin.setVisible(true);
   }
 
-  intro(withDemo: boolean) {
-    if (withDemo) this.pin.setVisible(false);
-    super.intro(withDemo);
+  protected onDemoStart() {
+    this.pin.setVisible(false);
   }
 
   /** Mom helps: her hand on the pin rolls the rest. */

@@ -319,8 +319,11 @@ window.__shotAt = async (w, h, what) => {
   window.__real = async (ms) => {
     const end = performance.now() + ms;
     let last = performance.now();
+    // A MessageChannel hop, not setTimeout: a hidden tab throttles timers to one per second.
+    const hop = () => new Promise((r) => { const c = new MessageChannel(); c.port1.onmessage = () => r(); c.port2.postMessage(0); });
     while (performance.now() < end) {
-      await new Promise((r) => setTimeout(r, 16));
+      const until = performance.now() + 16;
+      while (performance.now() < until) await hop();
       const now = performance.now();
       __tick(Math.min(100, now - last));
       last = now;
@@ -356,14 +359,14 @@ window.__demoAt = async (w, h, stepName, ms = 1100) => {
   return { step: __step(), demo: __R().step.inDemo, hand: __R().ctx.hand.active };
 };
 
-/** Saves the game canvas as docs/screenshots-round4/<name>.png (dev server only). */
-window.__saveShot = async (name) => {
+/** Saves the game canvas as docs/<dir>/<name>.png (dev server only; dir: screenshots-round4 by default). */
+window.__saveShot = async (name, dir = 'screenshots-round4') => {
   const img = await new Promise((r) => { game.renderer.snapshot(r); __tick(1); });
   const c = document.createElement('canvas');
   c.width = img.width; c.height = img.height;
   c.getContext('2d').drawImage(img, 0, 0);
   const blob = await new Promise((r) => c.toBlob(r, 'image/png'));
-  const res = await fetch(`/__dev/shot?name=${name}`, { method: 'POST', body: blob });
+  const res = await fetch(`/__dev/shot?name=${name}&dir=${dir}`, { method: 'POST', body: blob });
   return `${name} ${img.width}x${img.height} ${res.ok ? 'saved' : 'FAILED'}`;
 };
 
@@ -410,24 +413,103 @@ window.__tour = async (w, h, tag) => {
  * start it without awaiting, then read window.__fr. Returns the steps seen, whether it ended at Home,
  * and the voice log of this run (__voReport: rows [key, start, end, cut] + problems: overlaps, praise repeats).
  */
-window.__fullRun = async (demos) => {
+window.__fullRun = async (demos, mode = 'fast') => {
+  // mode 'fast': gestures as quick as the harness does them; 'child': a 5-year-old's pace (drags at ~650
+  // units/s, ~0.5 s between actions, ~1 s to look before starting a step); 'none': no touch at all (Mom helps).
   const fast = window.__fast || (window.__fast = __run);
-  window.__run = fast; __demos(demos); await __setup(900, 405);
+  const drag0 = window.__drag0 || (window.__drag0 = __drag);
+  window.__run = fast; window.__drag = drag0; __demos(demos); await __setup(900, 405);
+  // The automated window is hidden: pretend it is visible so the game doesn't hold the sound.
+  try { Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'visible' }); document.dispatchEvent(new Event('visibilitychange')); } catch (e) {}
   window.__run = __real;
+  if (mode === 'child') {
+    window.__drag = async (pts, opts = {}) => {
+      __touch('start', 1, ...pts[0]);
+      for (let i = 1; i < pts.length; i++) {
+        const [a, b] = pts[i - 1], [c, d] = pts[i], L = Math.hypot(c - a, d - b), n = Math.max(2, Math.ceil(L / 40));
+        for (let k = 1; k <= n; k++) { __touch('move', 1, a + ((c - a) * k) / n, b + ((d - b) * k) / n); await __real((L / 650) * 1000 / n); }
+      }
+      if (!opts.hold) __touch('end', 1, ...pts[pts.length - 1]);
+    };
+  }
   try {
-    const n0 = __voLog.length; const steps = [];
+    const n0 = __voLog.length; const steps = []; const t0 = performance.now(); const at = {};
     const b = game.scene.getScene('Title').children.list.find((o) => o.texture?.key === 'btn-play');
-    __tap(b.x, b.y); await __real(1600);
+    __tap(b.x, b.y); await __real(mode === 'child' ? 2500 : 1600);
     const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-pizza');
+    const tCard = performance.now();
     __tap(c.x, c.y); await __real(1800);
-    for (let g = 0; g < 80 && game.scene.isActive('Recipe'); g++) {
-      const s = __step(); if (steps.at(-1) !== s) { steps.push(s); await __waitDemo(); await __real(1300); }
+    for (let g = 0; g < 2000 && game.scene.isActive('Recipe'); g++) {
+      const s = __type();
+      if (steps.at(-1) !== s) { steps.push(s); at[s] = Math.round((performance.now() - tCard) / 1000); await __waitDemo(); await __real(mode === 'child' ? 1000 : 1300); }
       if (!game.scene.isActive('Recipe')) break;
-      if (__R().step.finished) { await __real(100); continue; }
+      if (__R().step.finished || mode === 'none') { await __real(100); continue; }
       await __gesture();
+      if (mode === 'child') await __real(450);
     }
     await __real(500);
+    const logRows = __voLog.slice(n0);
     __voLog.splice(0, n0);
-    return { steps, home: game.scene.isActive('Home'), report: __voReport() };
-  } finally { window.__run = fast; }
+    const rep = __voReport();
+    const praise = logRows.filter((e) => e.key.startsWith('vo-praise')).map((e) => e.key);
+    return { mode, demos, steps, startedAt: at, recipeSeconds: Math.round((performance.now() - tCard) / 1000), totalSeconds: Math.round((performance.now() - t0) / 1000),
+      home: game.scene.isActive('Home'), watchMe: logRows.filter((e) => e.key === 'vo-watch-me').length, yourTurn: logRows.filter((e) => e.key === 'vo-your-turn').length,
+      helps: logRows.filter((e) => e.key === 'vo-help').length, praise, firstSevenDistinct: new Set(praise.slice(0, 7)).size === Math.min(7, praise.length), report: rep };
+  } finally { window.__run = fast; window.__drag = drag0; }
+};
+
+/**
+ * Round 5 screenshot tour (dev server only), saved as docs/screenshots-round5a/<tag>-NN-<what>.png:
+ * title, home, then for every step Mom's demo (1.1 s in) and the child mid-gesture, and the finale.
+ * Start it without awaiting and read window.__tourRes later (it takes ~30-60 s real time).
+ */
+window.__tour5 = async (w, h, tag) => {
+  const out = [];
+  let i = 1;
+  const shot = async (n) => out.push(await __saveShot(`${tag}-${String(i++).padStart(2, '0')}-${n}`, 'screenshots-round5a'));
+  const until = async (fn, ms = 8000) => { for (let t = 0; t < ms && !fn(); t += 50) await __run(50); };
+  __demos(true);
+  await __setup(w, h); await __run(900); await shot('title');
+  const b = game.scene.getScene('Title').children.list.find((o) => o.texture?.key === 'btn-play');
+  __tap(b.x, b.y); await __run(1600); await shot('home');
+  const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-pizza');
+  __tap(c.x, c.y); await until(() => game.scene.isActive('Recipe') && __R().step);
+  // Mid-gesture poses for each step (the finger stays down for the picture).
+  const child = {
+    wash: async (st) => {
+      const f = st.faucet.getBounds(); __tap(f.centerX, f.y + f.height * 0.35); await __run(600);
+      const y = st.palmL.y - 30; await __drag([[st.palmL.x - 30, y], [st.palmR.x + 30, y + 40], [st.palmL.x - 30, y], [st.palmR.x, y + 20]], { hold: true }); await __run(300);
+    },
+    knead: async (st) => { for (let k = 0; k < 4; k++) { __tap(st.at.x + 30, st.at.y - 60); await __run(250); } __touch('start', 1, st.at.x - 40, st.at.y - 60); await __run(80); },
+    crush: async (st) => { for (let k = 0; k < 4; k++) { __tap(st.at.x + 30, st.at.y - 120); await __run(250); } __touch('start', 1, st.at.x - 60, st.at.y - 130); await __run(80); },
+    stir: async (st) => { const o = st.bowl.opening(); await __drag([[o.x - 100, o.y], [o.x, o.y + 40], [o.x + 100, o.y], [o.x, o.y - 30], [o.x - 60, o.y + 10]], { hold: true }); await __run(80); },
+    grate: async (st) => { const f = st.face(), x = (f.x0 + f.x1) / 2; await __drag([[st.block.x, st.block.y], [x, f.y0 + 60], [x, f.y1 - 120], [x, f.y0 + 60], [x, f.y0 + 200]], { hold: true }); await __run(120); },
+    roll: async () => { const d = __R().ctx.dish; await __drag([[d.x - 150, d.y - 60], [d.x + 150, d.y - 20], [d.x - 150, d.y + 20]], { hold: true }); await __run(100); },
+    spread: async () => { const d = __R().ctx.dish; await __drag([[d.x - 150, d.y - 100], [d.x + 150, d.y - 60], [d.x - 150, d.y], [d.x + 100, d.y + 40]], { hold: true }); await __run(100); },
+    sprinkle: async () => { const d = __R().ctx.dish; for (let k = 0; k < 4; k++) { __tap(d.x - 120 + k * 80, d.y + 40); await __run(150); } __touch('start', 1, d.x + 60, d.y - 80); await __run(250); },
+  };
+  for (const type of ['wash', 'knead', 'roll', 'crush', 'stir', 'spread', 'grate', 'sprinkle']) {
+    await until(() => __type() === type && !__R().step.finished, 15000);
+    // (Mom may first finish her sentence: wait for her hand, then take the picture mid-demo.)
+    await until(() => __R().ctx.hand.active, 3000); await __run(800); await shot(`${type}-demo`);
+    await __waitDemo(); await __run(200);
+    await child[type](__R().step); await shot(`${type}-child`);
+    __touch('end', 1, 5, 5);
+    for (let g = 0; g < 200 && __type() === type; g++) { if (__R().step.finished) await __run(100); else await __gesture(); }
+  }
+  await until(() => __type() === 'decorate', 8000); await __run(1100); await shot('decorate-demo');
+  await __waitDemo(); for (let g = 0; g < 3; g++) await __gesture(); await shot('decorate-child');
+  const st0 = __R().step; __tap(st0.done.x, st0.done.y);
+  await until(() => __type() === 'bake'); await __run(1300); await shot('bake-demo');
+  await __waitDemo(); const st = __R().step;
+  await __drag([[__R().ctx.dish.x, __R().ctx.dish.y], [st.open.x, st.open.y]]); await __run(3000); await shot('bake-baking');
+  await until(() => st.phase === 'ready'); await __run(600); await shot('bake-ready');
+  __tap(st.closed.x, st.closed.y);
+  await until(() => __type() === 'feed'); await __run(1500); await shot('feed-demo');
+  await __waitDemo(); await __gesture(); const f = __R().step, s = f.slices.find((x) => !x.eaten), sc = f.sliceCenter(s);
+  await __drag([[sc.x, sc.y], [(sc.x + f.mouthAt.x) / 2, f.mouthAt.y - 60]], { hold: true }); await __run(200); await shot('feed-child');
+  __touch('end', 1, f.mouthAt.x, f.mouthAt.y); await __run(1300);
+  for (let g = 0; g < 12 && !f.partyStarted; g++) await __gesture();
+  await __run(2200); await shot('finale');
+  return out;
 };

@@ -216,9 +216,10 @@ export class WashStep extends Step<WashParams> {
     return this.rubMotion();
   }
 
+  /** Mom taps the tap's handle (the blue knob at art (206, 313), right of its base). */
   private tapPoint() {
-    const b = this.faucet.getBounds();
-    return { x: b.centerX, y: b.y + b.height * 0.3 };
+    const f = this.faucet;
+    return { x: f.x + (206 - 120) * f.scaleX, y: f.y + (313 - ART.prep.faucetBase) * f.scaleY };
   }
 
   private rubMotion(): HandMotion {
