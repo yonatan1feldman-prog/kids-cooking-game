@@ -8,6 +8,7 @@ import { iconButton } from '../core/ui';
 import type { DecorateParams } from '../recipes/types';
 import { clampToRadius } from './Dish';
 import { Step } from './Step';
+import { binIcon, binKey, moveBin, setBinVisible } from './ToppingBin';
 
 interface Bin {
   key: string;
@@ -25,6 +26,8 @@ const BIN_REACH = 30;
 /** Idle timings for free play: the hand only comes after 15 s, and it ends itself after 30 s. */
 const DECORATE_HINT_MS = 15000;
 const DECORATE_AUTO_AFTER_HINT_MS = 15000;
+/** The topping drawn on its bin, relative to the bin (140 on 240: the same as in the prep steps' bins). */
+const ICON = 1.1;
 /** A dragged item is lifted: shown a bit bigger and above the finger so it stays visible. */
 const LIFT = 1.3;
 const LIFT_UP = 90;
@@ -53,22 +56,37 @@ export class DecorateStep extends Step<DecorateParams> {
     this.hintAfterMs = DECORATE_HINT_MS;
     this.autoAfterHintMs = DECORATE_AUTO_AFTER_HINT_MS;
 
-    const items = this.params.items;
+    // Only what she chose (and prepared) when the recipe had a choose step; else every item.
+    const chosen = this.ctx.run.chosen.map((o) => o.topping);
+    const items = chosen.length ? chosen : this.params.items;
     const binScale = this.ctx.stage.binScale(items.length);
     items.forEach((key, i) => {
       const { x, y } = this.ctx.stage.bin(i, items.length);
+      // The bin her prep step filled (waiting in the left column, or off screen) comes to its place and grows.
+      const kept = this.adopt(binKey(key));
+      const keptIcon = kept && binIcon(kept);
+      if (kept && keptIcon) {
+        this.own(keptIcon);
+        setBinVisible(kept, true);
+        kept.setDepth(0);
+        keptIcon.setDepth(0.1);
+        moveBin(this.scene, kept, x, y, binScale, 500);
+        this.scene.time.delayedCall(520, () => kept.active && boing(this.scene, kept, 0.1));
+        this.bins.push({ key, x, y, bin: kept, icon: keptIcon, half: (240 * binScale) / 2 });
+        return;
+      }
       const bin = this.own(this.scene.add.image(x, y, 'topping-bin'));
-      const icon = this.own(art(this.scene.add.image(x, y - 8 * binScale, key), L));
+      const icon = this.own(this.scene.add.image(x, y - 8 * binScale, key));
       const half = (Math.max(bin.frame.realWidth, bin.frame.realHeight) * binScale) / 2;
       this.bins.push({ key, x, y, bin, icon, half });
-      for (const [o, s] of [[bin, binScale], [icon, L.k]] as const) {
+      for (const [o, s] of [[bin, binScale], [icon, binScale * ICON]] as const) {
         o.setScale(0);
         this.scene.tweens.add({ targets: o, scale: s, duration: 400, delay: i * 70, ease: 'Back.easeOut' });
       }
     });
 
-    const to = this.ctx.stage.decorateDish;
-    this.scene.tweens.add({ targets: [this.dish, this.ctx.board], x: to.x, y: to.y, duration: 450, ease: 'Sine.easeInOut' });
+    // The pizza comes back to the middle (it waited aside, or off screen, during the prep).
+    this.workspace('dish', 450);
 
     const btn = this.ctx.stage.done;
     this.done = this.own(iconButton(this.scene, L, this.params.doneButton, btn.x, btn.y, () => this.finish()));

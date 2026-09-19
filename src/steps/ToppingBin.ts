@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import type { ImageKey } from '../core/assets';
-import { boing } from '../core/fx';
+import { boing, setRestScale } from '../core/fx';
 import { sfx } from '../core/sfx';
 import type { StepContext } from './Step';
 
@@ -28,7 +28,10 @@ export const binIcon = (bin: Phaser.GameObjects.Image) => bin.getData('icon') as
 /** Moves (and resizes) the bin with its topping. */
 export function moveBin(scene: Phaser.Scene, bin: Phaser.GameObjects.Image, x: number, y: number, scale: number, ms: number, onComplete?: () => void) {
   const icon = binIcon(bin);
-  scene.tweens.add({ targets: bin, x, y, scale, duration: ms, ease: 'Sine.easeInOut', onComplete });
+  // (a later boing must rest at the new size)
+  bin.setData({ restScaleX: scale, restScaleY: scale });
+  scene.tweens.killTweensOf(bin);
+  scene.tweens.add({ targets: bin, x, y, scale, duration: ms, ease: 'Sine.easeInOut', onComplete: () => (setRestScale(bin), onComplete?.()) });
   if (icon) scene.tweens.add({ targets: icon, x, y: y - 8 * scale, scale: scale * ICON, duration: ms, ease: 'Sine.easeInOut' });
 }
 

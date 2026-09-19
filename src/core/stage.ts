@@ -180,13 +180,17 @@ export function getStage(L: Layout): Stage {
   const binsBottom = Y(994) - reach;
   const binsLeft = m + reach;
   const rowsOf = (n: number) => Math.max(1, Math.ceil(n / 2));
-  const cellW = (leftW - reach) / 2;
+  // With only a few bins (the three toppings she chose) they may also use the free counter between the left column
+  // and the board, so they are bigger where the screen allows it (20:9); elsewhere the column is already full width.
+  const colW = (n: number) => (n <= 3 ? Math.max(leftW, dishHome.x - (BOARD_W / 2) * k - gap - m) : leftW);
+  const cellW = (n: number) => (colW(n) - reach) / 2;
   const cellH = (n: number) => (binsBottom - binsTop) / rowsOf(n);
   // Square cells; when there is height to spare (narrow screens) the grid sits on the counter, packed from the bottom.
-  const cell = (n: number) => Math.min(cellW, cellH(n));
+  const cell = (n: number) => Math.min(cellW(n), cellH(n));
   const binScale = (n: number) => (cell(n) - 10 * k) / BIN_TEX;
   const bin = (i: number, n: number) => ({
-    x: binsLeft + cellW * ((i % 2) + 0.5),
+    // (an odd last bin sits in the middle of its row)
+    x: n % 2 === 1 && i === n - 1 ? binsLeft + (colW(n) - reach) / 2 : binsLeft + cellW(n) * ((i % 2) + 0.5),
     y: binsBottom - cell(n) * (rowsOf(n) - Math.floor(i / 2) - 0.5),
   });
 
