@@ -40,15 +40,19 @@ export class TitleScene extends Phaser.Scene {
 /** Best effort: fullscreen + landscape lock. Silently ignored where unsupported (the rotate screen covers the rest). */
 export function enterFullscreen() {
   const lockLandscape = () => {
-    const orientation = screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> };
-    orientation?.lock?.('landscape').catch(() => {});
+    try {
+      const orientation = screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> };
+      orientation?.lock?.('landscape')?.catch(() => {});
+    } catch {
+      /* not supported: fine */
+    }
   };
   try {
     const standalone = window.matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches;
     const el = document.documentElement;
     if (!standalone && !document.fullscreenElement && el.requestFullscreen) {
       // The scale manager (EXPAND) picks up the new size through the resize event.
-      el.requestFullscreen({ navigationUI: 'hide' }).then(lockLandscape, () => {});
+      el.requestFullscreen({ navigationUI: 'hide' })?.then(lockLandscape, () => {});
     } else lockLandscape();
   } catch {
     /* not supported: fine */

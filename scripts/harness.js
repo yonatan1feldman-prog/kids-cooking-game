@@ -1,6 +1,6 @@
 // Test harness for the hidden automated Chrome (dev server only). See AGENTS.md, "Handoff notes".
 // Load it into the page right after navigation:
-//   eval(await (await fetch('/scripts/harness.js')).text()); await __setup(640, 288);
+//   eval(await (await fetch('scripts/harness.js')).text()); await __setup(640, 288);
 // __setup(w, h) shrinks the game container to w x h CSS px (the screen ratio to emulate),
 // installs a virtual clock (Date.now + game.loop.step), and restarts at the Title scene.
 // All coordinates for __touch/__drag/__tap are GAME pixels.
