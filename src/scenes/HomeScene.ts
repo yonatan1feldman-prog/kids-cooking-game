@@ -8,7 +8,7 @@ import { iconButton } from '../core/ui';
 import { RECIPES } from '../recipes';
 import { Character } from '../steps/Character';
 import { Mom } from '../steps/Mom';
-import { assetsReady } from './BootScene';
+import { assetsReady, recipeAssets, releaseRecipe } from './BootScene';
 
 /**
  * Home: one card per recipe (a grid, up to 8 without scrolling), Mom at the counter (and Pipa beside her on phones). Nothing moves by
@@ -31,6 +31,9 @@ export class HomeScene extends Phaser.Scene {
   create(data: HomeData = {}) {
     const L = getLayout(this);
     let going = false;
+    // Back home: the last recipe's art and sounds are released (the recipe scene has already shut down).
+    releaseRecipe(this.game);
+    let mom: Mom | null = null;
     if ((data.from === 'title' || data.from === 'recipe') && !data.asked) {
       data.asked = true;
       voice.say('vo-what-make', { ttlMs: 4000, valid: () => this.scene.isActive() && !going });
@@ -42,13 +45,13 @@ export class HomeScene extends Phaser.Scene {
     // Mom and Pipa come in as soon as their art is loaded (normally before this screen shows).
     assetsReady().then(() => {
       if (!this.scene.isActive()) return;
-      const mom = new Mom(this, S.mom);
-      mom.box.setAlpha(0);
-      this.tweens.add({ targets: mom.box, alpha: 1, duration: 300 });
+      const m = (mom = new Mom(this, S.mom));
+      m.box.setAlpha(0);
+      this.tweens.add({ targets: m.box, alpha: 1, duration: 300 });
       if (S.pet) new Character(this, RECIPES[0].character, S.pet, S.feedPet).enter(150);
       this.events.on(Phaser.Scenes.Events.UPDATE, () => {
         const p = this.input.manager.pointers.find((q) => q.isDown);
-        mom.lookAt(p ? p.worldX : L.cx, p ? p.worldY : L.cy);
+        m.lookAt(p ? p.worldX : L.cx, p ? p.worldY : L.cy);
       });
     });
 
@@ -62,14 +65,25 @@ export class HomeScene extends Phaser.Scene {
         hint.stop();
         stars(this, card.x, card.y, 14, 70 * L.k);
         voice.say(recipe.pickLine, { ttlMs: 3000 });
-        // (If the art is still loading, the recipe starts the moment it is ready.)
-        Promise.all([assetsReady(), new Promise((r) => this.time.delayedCall(350, r))]).then(
-          () => this.scene.isActive() && this.scene.start('Recipe', { id: recipe.id }),
-        );
+        // The recipe's own art and sounds load now: Mom waves, a small spinner turns over the card (only if it takes a
+        // moment), and the recipe starts the moment they are in.
+        mom?.wave();
+        const spin = this.time.delayedCall(250, () => loading(card.x, card.y + card.displayHeight * 0.1));
+        Promise.all([recipeAssets(this.game, recipe.id), new Promise((r) => this.time.delayedCall(350, r))]).then(() => {
+          spin.remove();
+          if (this.scene.isActive()) this.scene.start('Recipe', { id: recipe.id });
+        });
       }, { hitPad: n === 1 ? 120 : 30, scale: S.cardScale(n) });
       this.tweens.add({ targets: card, alpha: { from: 0, to: 1 }, duration: 400 });
       cards.push(card);
     });
+    /** The loading spinner (the one thing allowed to turn by itself): a short orange arc on a cream disc. */
+    const loading = (x: number, y: number) => {
+      const r = 46 * L.k;
+      this.add.circle(x, y, r * 1.5, 0xfff6e6, 0.92).setDepth(50);
+      const arc = this.add.arc(x, y, r, 0, 270, false).setStrokeStyle(12 * L.k, 0xff8c42).setClosePath(false).setDepth(51);
+      this.tweens.add({ targets: arc, angle: 360, duration: 900, repeat: -1 });
+    };
     const hint = screenHint(this, L, () => (going || !cards[0] ? null : { x: cards[0].x, y: cards[0].y }), () => true);
   }
 }

@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import manifest from 'virtual:asset-manifest';
+import { RECIPE_SOUNDS } from './assets';
 
 /**
  * Every sound, on the one Web Audio context Phaser already made (game.sound.context).
@@ -55,31 +56,52 @@ const ctx = () => (game?.sound as Phaser.Sound.WebAudioSoundManager | undefined)
  */
 export function loadSounds(g: Phaser.Game, url: (path: string) => string) {
   game = g;
+  soundUrl = url;
   const sm = g.sound as Phaser.Sound.WebAudioSoundManager;
   sm.pauseOnBlur = false; // the page lifecycle is handled here (holdAudio), not by window blur
-  const c = ctx();
-  if (!c) return;
-  const missing: string[] = [];
+  if (!ctx()) return;
   // Voice first (the hello line comes right after the play tap), then effects, then the long music file.
-  // A voice line is any file in voice/ (vo-*, and count-* / temp-* for part B).
-  const isVoice = (k: string) => manifest.sounds[k].some((p) => p.includes('/voice/'));
+  // A voice line is any file in voice/ (vo-*, and count-* / temp-* for part B). A recipe's own sounds wait for its card.
   const order = (k: string) => (isVoice(k) ? 0 : k === 'music-main' ? 2 : 1);
-  const keys = Object.keys(manifest.sounds).sort((a, b) => order(a) - order(b));
-  (async () => {
-    for (const key of keys) {
-      try {
-        const res = await fetch(url(manifest.sounds[key][0]));
-        const buf = await c.decodeAudioData(await res.arrayBuffer());
-        buffers.set(key, buf);
-        if (!isVoice(key) && !LOOPS.includes(key)) g.cache.audio.add(key, buf);
-        if (key === 'music-main') music.onLoaded();
-      } catch {
-        missing.push(key);
-      }
+  const keys = Object.keys(manifest.sounds).filter((k) => !RECIPE_SOUNDS.has(k)).sort((a, b) => order(a) - order(b));
+  decodeAll(keys).then(() => (soundsLoaded = true));
+}
+
+let soundUrl: (path: string) => string = (p) => p;
+const isVoice = (k: string) => manifest.sounds[k].some((p) => p.includes('/voice/'));
+
+/** Fetches and decodes `keys` one after another (the ones on disk and not decoded yet); a missing one stays silent. */
+async function decodeAll(keys: readonly string[]) {
+  const c = ctx();
+  const missing: string[] = [];
+  for (const key of keys) {
+    if (buffers.has(key)) continue;
+    if (!manifest.sounds[key] || !c || !game) {
+      missing.push(key);
+      continue;
     }
-    if (missing.length) console.info(`[assets] silent sounds: ${missing.join(', ')}`);
-    soundsLoaded = true;
-  })();
+    try {
+      const res = await fetch(soundUrl(manifest.sounds[key][0]));
+      const buf = await c.decodeAudioData(await res.arrayBuffer());
+      buffers.set(key, buf);
+      if (!isVoice(key) && !LOOPS.includes(key)) game.cache.audio.add(key, buf);
+      if (key === 'music-main') music.onLoaded();
+    } catch {
+      missing.push(key);
+    }
+  }
+  if (missing.length) console.info(`[assets] silent sounds: ${missing.join(', ')}`);
+}
+
+/** A recipe's own sounds (RECIPE_ASSETS), loaded when its card is tapped. */
+export const loadRecipeSounds = (keys: readonly string[]) => decodeAll(keys);
+
+/** Frees a recipe's own sounds on the home screen (a line or effect still playing keeps its buffer until it ends). */
+export function releaseSounds(keys: readonly string[]) {
+  for (const key of keys) {
+    buffers.delete(key);
+    if (game?.cache.audio.exists(key)) game.cache.audio.remove(key);
+  }
 }
 
 /** Played as gapless loops here (not through Phaser). */

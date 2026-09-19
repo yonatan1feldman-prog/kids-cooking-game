@@ -64,11 +64,17 @@ export function resumeAudio(game: Phaser.Game) {
  * only allows resuming from a gesture.
  */
 export function installLifecycle(game: Phaser.Game) {
-  // In the background every sound stops (the voice line is dropped); it all comes back on return.
+  // In the background every sound stops (the voice line is dropped) and the game itself is paused (no step, no tween,
+  // no idle clock runs, even where the browser keeps calling the frame loop); it all comes back on return.
+  // (Phaser's own handler only pauses its frame loop, and only when `document.hidden` says so.)
   document.addEventListener('visibilitychange', () => {
     const hidden = document.visibilityState !== 'visible';
     holdAudio('hidden', hidden);
-    if (hidden) return;
+    if (hidden) {
+      game.pause();
+      return;
+    }
+    game.resume();
     resumeAudio(game);
     if (wantWakeLock) requestWakeLock();
   });

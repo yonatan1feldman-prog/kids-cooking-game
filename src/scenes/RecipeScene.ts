@@ -12,6 +12,7 @@ import { Character } from '../steps/Character';
 import { Dish } from '../steps/Dish';
 import { Mom } from '../steps/Mom';
 import { createStep } from '../steps/registry';
+import { recipeAssets, recipeLoaded } from './BootScene';
 import type { Step, StepContext } from '../steps/Step';
 
 /** Mom shows each step by herself only the first times a recipe is played. */
@@ -67,6 +68,12 @@ export class RecipeScene extends Phaser.Scene {
     keepLayoutOnResize(this, L);
     addBackground(this, L);
     const S = getStage(L);
+    // Started without its art (a dev link, the test harness): load it first, then start over.
+    if (!recipeLoaded(this.recipe.id)) {
+      const id = this.recipe.id;
+      recipeAssets(this.game, id).then(() => this.scene.isActive() && this.scene.restart({ id }));
+      return;
+    }
     this.withDemos = countRun(this.recipe.id) < DEMO_RUNS;
 
     // Home needs a second tap within 2 s (a stray tap only makes it wobble).

@@ -414,6 +414,18 @@ fallback if the capture fails.
   - Oven layers share a 700x800 frame (opaque x 34-664, from y 20); the window hole is x 150-550, y 320-610; the pizza
     sits at (350, 480), diameter about 320.
   - `sauce-blob`: its silhouette becomes a solid sauce brush (outline removed).
+- **Loading by recipe (round 8):** `RECIPE_ASSETS` / `CORE_IMAGES` in `core/assets.ts` is the one place that says what
+  is core (loaded at boot: title, home, Mom, Pipa, kitchen, demo hands, buttons, cards; every sound no recipe lists) and
+  what belongs to a recipe (its images and own sounds). A card tap loads the recipe's part (`recipeAssets` in
+  BootScene; Mom waves, a small spinner over the card after 250 ms); the home screen releases every non-core texture
+  and the recipe's sounds (`releaseRecipe`). A new recipe MUST add its entry; a key asked for but not loaded warns
+  `[assets] not loaded yet: <key>` in the console, a key in no list warns at boot. The service worker still precaches
+  everything. Measured (desktop, hidden automated tab): home textures 177 -> 41; all art ready 4.6 s -> core 1.4 s;
+  a recipe loads in 1.6-1.9 s. Harness: `__infra8()` (enter / leave / re-enter runs), `__loadStats()`, `__bg8()`.
+- **Background (round 8):** `device.ts` pauses the whole game (`game.pause()`) on `visibilitychange` to hidden and
+  resumes it on return, besides holding the audio. (Round 7's paused=false / idleFrozen=false came from the harness:
+  it faked only `visibilityState`, which Phaser's own handler ignores, and steps the loop by hand.) `__setHidden(on)`
+  fakes both `document.hidden` and `visibilityState`.
 - **Missing files are fine:** a placeholder is drawn in code and a missing sound is silent. Swapping in
   real assets is only copying files into those folders. The dev server reloads by itself. For the
   production/PWA build, run `npm run build` again, since the asset list is fixed at build time.

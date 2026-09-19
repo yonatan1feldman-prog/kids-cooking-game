@@ -171,6 +171,20 @@
     const h = game.scene.getScene('Home');
     const card = h.children.list.find((o) => o.texture?.key === `card-${window.__recipe || 'pizza'}`);
     __tap(card.x, card.y); await __run(1600);
+    await __waitRecipe();
+  };
+  /** Round 8: a recipe's own art loads on the card tap, in real time: keep stepping until its scene and first step are up. */
+  window.__waitRecipe = async () => {
+    for (let i = 0; i < 300 && !(game.scene.isActive('Recipe') && __R().step); i++) { await __run(50); await new Promise((r) => setTimeout(r, 20)); }
+  };
+  /** Round 8: load timing (title, core, each recipe loaded so far) and how many textures are in memory now. */
+  window.__loadStats = () => ({ ...window.__loadTiming, recipe: { ...window.__loadTiming.recipe }, textures: game.textures.getTextureKeys().length,
+    sounds: game.cache.audio.getKeys().length });
+  /** Round 8: a real background trip in a visible page (document.hidden and visibilityState both faked). */
+  window.__setHidden = (on) => {
+    Object.defineProperty(document, 'hidden', { configurable: true, get: () => on });
+    Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => (on ? 'hidden' : 'visible') });
+    document.dispatchEvent(new Event('visibilitychange'));
   };
   /** Plays until `name` is the current step (and has had `settle` ms to enter). */
   /** Plays until `name` (a class name like 'RollStep', or a recipe type like 'crush') is the current step. */
@@ -358,7 +372,7 @@ window.__shotAt = async (w, h, what) => {
   }
   if (what === 'roll') {
     const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-pizza');
-    __tap(c.x, c.y); await __run(1600);
+    __tap(c.x, c.y); await __run(1600); await __waitRecipe();
     const d = D(); return __drag([[d.x - 150, d.y - 60], [d.x + 150, d.y - 20], [d.x - 150, d.y + 20]], { hold: true });
   }
   if (what === 'spread') {
@@ -467,7 +481,7 @@ window.__tour = async (w, h, tag) => {
   const b = game.scene.getScene('Title').children.list.find((o) => o.texture?.key === 'btn-play');
   __tap(b.x, b.y); await __run(1600); await shot('home');
   const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-pizza');
-  __tap(c.x, c.y); await until(() => game.scene.isActive('Recipe') && __R().step); await __run(1000); await shot('roll-demo');
+  __tap(c.x, c.y); await __waitRecipe(); await until(() => game.scene.isActive('Recipe') && __R().step); await __run(1000); await shot('roll-demo');
   await __waitDemo(); const d = __R().ctx.dish;
   await __drag([[d.x - 150, d.y - 60], [d.x + 150, d.y - 20], [d.x - 150, d.y + 20]], { hold: true }); await __run(100); await shot('roll-child'); __touch('end', 1, d.x, d.y);
   for (const [n, ms] of [['SpreadStep', 1100], ['SprinkleStep', 900], ['DecorateStep', 1100]]) {
@@ -555,7 +569,7 @@ window.__tour5 = async (w, h, tag) => {
   const b = game.scene.getScene('Title').children.list.find((o) => o.texture?.key === 'btn-play');
   __tap(b.x, b.y); await __run(1600); await shot('home');
   const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-pizza');
-  __tap(c.x, c.y); await until(() => game.scene.isActive('Recipe') && __R().step);
+  __tap(c.x, c.y); await __waitRecipe(); await until(() => game.scene.isActive('Recipe') && __R().step);
   // Mid-gesture poses for each step (the finger stays down for the picture).
   const child = {
     wash: async (st) => {
@@ -661,7 +675,7 @@ window.__fullRun5 = async (demos, mode = 'child', picks = ['tomato', 'corn', 'ol
     __tap(b.x, b.y); await __run(mode === 'child' ? 2500 : 1600);
     const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === `card-${window.__recipe || 'pizza'}`);
     const n0 = __voLog.length; const t0 = T(); const steps = []; const at = {};
-    __tap(c.x, c.y); await __run(1800);
+    __tap(c.x, c.y); await __run(1800); await __waitRecipe();
     for (let g = 0; g < 4000 && game.scene.isActive('Recipe'); g++) {
       const s = __type(); const st = __R().step;
       if (st && st !== window.__lastStep) {
@@ -782,7 +796,7 @@ window.__tour5b = async (w, h, tag) => {
   const b = game.scene.getScene('Title').children.list.find((o) => o.texture?.key === 'btn-play');
   __tap(b.x, b.y); await __run(1600); await shot('home');
   const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-pizza');
-  __tap(c.x, c.y); await until(() => game.scene.isActive('Recipe') && __R().step);
+  __tap(c.x, c.y); await __waitRecipe(); await until(() => game.scene.isActive('Recipe') && __R().step);
   const D = () => __R().ctx.dish;
   const child = {
     wash: async (st) => { const f = st.faucet.getBounds(); __tap(f.centerX, f.y + f.height * 0.35); await __run(600); const y = st.palmL.y - 30; await __drag([[st.palmL.x - 30, y], [st.palmR.x + 30, y + 40], [st.palmL.x - 30, y], [st.palmR.x, y + 20]], { hold: true }); await __run(300); },
@@ -845,7 +859,7 @@ window.__tour6 = async (w, h, tag) => {
   const b = game.scene.getScene('Title').children.list.find((o) => o.texture?.key === 'btn-play');
   __tap(b.x, b.y); await __run(1600); await shot('home');
   const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-salad');
-  __tap(c.x, c.y); await until(() => game.scene.isActive('Recipe') && __R().step);
+  __tap(c.x, c.y); await __waitRecipe(); await until(() => game.scene.isActive('Recipe') && __R().step);
   const seen = new Set();
   for (let guard = 0; guard < 60 && game.scene.isActive('Recipe'); guard++) {
     await until(() => !__R().step?.finished, 15000);
@@ -942,7 +956,7 @@ window.__tour7 = async (w, h, tag) => {
   const b = game.scene.getScene('Title').children.list.find((o) => o.texture?.key === 'btn-play');
   __tap(b.x, b.y); await __run(1600); await shot('home');
   const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-cookies');
-  __tap(c.x, c.y); await until(() => game.scene.isActive('Recipe') && __R().step);
+  __tap(c.x, c.y); await __waitRecipe(); await until(() => game.scene.isActive('Recipe') && __R().step);
   try {
     for (let guard = 0; guard < 60 && game.scene.isActive('Recipe'); guard++) {
       await until(() => !__R().step?.finished, 15000);
@@ -1014,4 +1028,53 @@ window.__robust7 = async (how = 'rotate', w = 900, h = 405) => {
     for (let k = 0; k < 400 && game.scene.isActive('Recipe'); k++) { if (__R().step.finished || __type() === 'photo') await __run(200); else await __gesture(); }
     return { how, home: game.scene.isActive('Home'), rows };
   } finally { window.__recipe = 'pizza'; }
+};
+
+/**
+ * Round 8 (loading by recipe): fast runs to home with entering, leaving and re-entering recipes. Each row: the textures
+ * and effect sounds in memory in the recipe and back home, whether it got home, and the voice check. Start without
+ * awaiting; read window.__i8. Also look for "[assets] not loaded yet" in the console (a key missing from RECIPE_ASSETS).
+ */
+window.__infra8 = async () => {
+  const rows = [];
+  const mem = () => ({ tex: game.textures.getTextureKeys().length, sfx: game.cache.audio.getKeys().length });
+  const picks = { pizza: ['tomato', 'corn', 'olive'], salad: ['cucumber', 'carrot', 'tomato'], cookies: [] };
+  const enterLeave = async (id) => {
+    window.__recipe = id; __demos(false); await __setup(900, 405); await __start();
+    const inR = mem(); await __run(1500); __R().goHome(); await __run(1500);
+    rows.push({ id, how: 'enter+leave', atHome: game.scene.isActive('Home'), inRecipe: inR, home: mem() });
+  };
+  const full = async (id) => {
+    window.__recipe = id;
+    const r = await __fullRun5(false, 'fast', picks[id]);
+    rows.push({ id, how: 'full', home: r.home, secs: r.recipeSeconds, voice: r.check, homeMem: mem() });
+  };
+  try {
+    await full('pizza');
+    await enterLeave('salad');
+    await enterLeave('cookies');
+    await enterLeave('cookies');
+    await full('cookies');
+    await full('salad');
+  } finally { window.__recipe = 'pizza'; }
+  window.__i8 = rows;
+  return rows;
+};
+
+/**
+ * Round 8: the background in a visible page (document.hidden and visibilityState both faked, as a real trip away):
+ * inside a step with music on, go away for 3 s of game time and come back. Reads whether the game is paused, the step's
+ * idle clock and time stood still, the voice line was dropped, the audio context suspended; then that it all resumes.
+ */
+window.__bg8 = async (id = 'cookies', type = 'stir') => {
+  window.__recipe = id; __demos(false); await __setup(900, 405); __voSim(false); await __start(); await __to(type, 1300);
+  const st = __R().step, c = game.sound.context;
+  __voice.say ? __voice.say('vo-help', {}) : 0; await __run(100);
+  const before = { idle: st.idleMs, t: game.loop.frame, voice: __voice.current, ctx: c.state };
+  __setHidden(true); await __run(3000); await new Promise((r) => setTimeout(r, 300));
+  const away = { gamePaused: game.isPaused, idleFrozen: st.idleMs === before.idle, framesFrozen: game.loop.frame === before.t || game.isPaused,
+    voice: __voice.current, ctx: c.state };
+  __setHidden(false); await new Promise((r) => setTimeout(r, 300)); await __run(2000);
+  const back = { gamePaused: game.isPaused, idleRuns: st.idleMs > before.idle, ctx: c.state };
+  return (window.__b8 = { before, away, back });
 };

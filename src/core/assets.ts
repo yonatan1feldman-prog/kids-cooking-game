@@ -238,6 +238,93 @@ export const NOT_LOADED: ReadonlySet<ImageKey> = new Set<ImageKey>([]);
 /** The images the game loads (everything in the contract except NOT_LOADED). */
 export const LOADED_KEYS = IMAGE_KEYS.filter((k) => !NOT_LOADED.has(k));
 
+// ---------------------------------------------------------------- loading by recipe (round 8)
+/**
+ * The ONE place that says which art and sounds belong to the core and which to a recipe.
+ * - Core images (`CORE_IMAGES`: title, home, Mom, Pipa, the kitchen, Mom's demo hands, the buttons, the cards) load at
+ *   boot and stay. Every other image belongs to the recipes that list it in `RECIPE_ASSETS` (art several recipes
+ *   share, the sink or the oven, is a group listed in each of them).
+ * - Sounds are core unless a recipe lists them: shared lines (hello, praise, counting, help, wash, oven), the pick lines
+ *   (said while the recipe loads), effects the step types play, music. A sound may be listed by several recipes.
+ * A recipe's images and sounds are loaded when its card is tapped (BootScene `recipeAssets`) and released again on the
+ * home screen (`releaseRecipe`). A new recipe adds its entry here; a key in no list is reported in the console.
+ */
+export const CORE_IMAGES: readonly ImageKey[] = [
+  'bg-kitchen-landscape', 'logo-cooking-with-mom', 'star', 'btn-play', 'btn-home', 'btn-done', 'hand-hint',
+  'card-pizza', 'card-salad', 'card-cookies',
+  'character-body', 'character-eyes-open', 'character-eyes-blink', 'character-eyes-surprised', 'character-eyes-happy',
+  'character-mouth-closed', 'character-mouth-open', 'character-mouth-chew',
+  'mom-arm-right', 'mom-body', 'mom-head', 'mom-hair', 'mom-eyes-open', 'mom-eyes-blink', 'mom-eyes-happy',
+  'mom-eyes-surprised', 'mom-mouth-smile', 'mom-mouth-talk', 'mom-mouth-open', 'mom-mouth-chew', 'mom-arm-left',
+  'mom-hand-point', 'mom-hand-roll', 'mom-hand-spread', 'mom-hand-sprinkle', 'mom-hand-grab', 'mom-hand-press',
+  'mom-hand-knife', 'mom-hand-mitt',
+];
+const WASH: ImageKey[] = ['sink-basin', 'faucet', 'water-stream', 'kid-hands', 'bubble'];
+const OVEN: ImageKey[] = [
+  'oven-inside', 'oven-closed', 'oven-open', 'oven-panel', 'oven-needle', 'oven-start-off', 'oven-start-on', 'temp-glow',
+  'btn-temp-up', 'btn-temp-down', 'mitt-single', 'oven-mitts',
+];
+const PREP_BOWL: ImageKey[] = ['prep-bowl-back', 'prep-bowl-front', 'spoon-wood', 'press-dent'];
+const CHOP: ImageKey[] = ['cutting-board', 'knife', 'topping-bin'];
+const cut = (...names: string[]) => names.flatMap((n) => ['whole', 'slice', 'inside'].map((s) => `veg-${n}-${s}` as ImageKey));
+
+export const RECIPE_ASSETS: Record<string, { images: readonly ImageKey[]; sounds: readonly string[] }> = {
+  pizza: {
+    images: [
+      ...WASH, ...OVEN, ...PREP_BOWL, ...CHOP, ...cut('tomato', 'mushroom', 'pepper', 'onion'),
+      'dough-ball', 'dough-flat', 'rolling-pin', 'sauce-bowl', 'sauce-blob', 'cheese-shaker', 'cheese-shred', 'tray',
+      'pizza-board', 'pizza-slice', 'topping-tomato', 'topping-olive', 'topping-mushroom', 'topping-corn', 'topping-pepper',
+      'topping-onion', 'dough-knead-1', 'dough-knead-2', 'dough-knead-3', 'sauce-stage-0', 'sauce-stage-1', 'sauce-stage-2',
+      'sauce-stage-3', 'grater', 'cheese-block', 'cheese-pile-1', 'cheese-pile-2', 'cheese-pile-3', 'cheese-handful',
+      'can-corn-closed', 'can-corn-open', 'can-lid', 'jar-lid', 'jar-olives-closed', 'jar-olives-open', 'photo-frame',
+    ],
+    sounds: [
+      'can-open', 'jar-open', 'grate', 'name-corn', 'name-mushroom', 'name-olives', 'vo-choose', 'vo-crush', 'vo-grate',
+      'vo-knead', 'vo-mom-yum', 'vo-open-can', 'vo-open-jar', 'vo-photo', 'vo-pour', 'vo-share', 'vo-slice-mom',
+      'vo-slice-pipa', 'vo-stir', 'vo-temp',
+    ],
+  },
+  salad: {
+    images: [
+      ...WASH, ...CHOP, ...cut('tomato', 'pepper', 'onion', 'cucumber', 'carrot'),
+      'topping-tomato', 'topping-pepper', 'topping-onion', 'colander', 'water-drop', 'lettuce-head', 'lettuce-tear-1',
+      'lettuce-tear-2', 'lettuce-tear-3', 'piece-cucumber', 'piece-carrot', 'piece-lettuce', 'salad-bowl-back',
+      'salad-bowl-front', 'salad-heap-1', 'salad-heap-2', 'salad-heap-3', 'salad-mixed', 'lemon-half-1', 'lemon-half-2',
+      'lemon-half-3', 'juice-drop', 'oil-bottle', 'oil-drop', 'salt-shaker', 'salad-servers', 'serving-bowl',
+      'salad-portion', 'photo-frame-salad',
+    ],
+    sounds: [
+      'tear', 'squeeze', 'drizzle', 'crunch', 'name-carrot', 'name-cucumber', 'vo-bowl-mom', 'vo-bowl-pipa',
+      'vo-choose-veg', 'vo-finale-salad', 'vo-fresh', 'vo-into-bowl', 'vo-mix', 'vo-oil', 'vo-photo-salad', 'vo-salt',
+      'vo-serve', 'vo-squeeze', 'vo-tear', 'vo-wash-veg', 'vo-wash-veg-done',
+    ],
+  },
+  cookies: {
+    images: [
+      ...WASH, ...OVEN, ...PREP_BOWL, 'rolling-pin', 'topping-bin',
+      'flour-bag', 'sugar-jar', 'butter-cube', 'egg-1', 'egg-2', 'egg-3', 'batter-stage-0', 'batter-stage-1',
+      'batter-stage-2', 'batter-stage-3', 'cookie-dough-knead-1', 'cookie-dough-knead-2', 'cookie-dough-knead-3',
+      'cookie-dough-ball', 'cookie-dough-flat', 'baking-tray', 'cutter-star', 'cutter-heart', 'cutter-circle',
+      'cutter-flower', 'cookie-star', 'cookie-heart', 'cookie-circle', 'cookie-flower', 'icing-tube-pink',
+      'icing-tube-choc', 'icing-blob-pink', 'icing-blob-choc', 'sprinkles-cluster', 'candy-dot', 'photo-frame-cookies',
+    ],
+    sounds: [
+      'cookie-crunch', 'egg-crack', 'flour-poof', 'stamp', 'name-circle', 'name-flower', 'name-heart', 'name-star',
+      'vo-butter', 'vo-cookie-mom', 'vo-cookie-pipa', 'vo-cookie-yum', 'vo-decorate-cookies', 'vo-egg',
+      'vo-finale-cookies', 'vo-flour', 'vo-knead-cookies', 'vo-photo-cookies', 'vo-pick-cutter', 'vo-roll-cookies',
+      'vo-share-cookies', 'vo-stamp', 'vo-stir-dough', 'vo-sugar', 'vo-temp-150', 'vo-tray',
+    ],
+  },
+};
+
+/** Every sound some recipe lists (so not loaded at boot). */
+export const RECIPE_SOUNDS: ReadonlySet<string> = new Set(Object.values(RECIPE_ASSETS).flatMap((r) => r.sounds));
+/** Contract images in neither the core nor any recipe (a new key someone forgot to list): reported at boot. */
+export const unlistedImages = () => {
+  const listed = new Set<ImageKey>([...CORE_IMAGES, ...Object.values(RECIPE_ASSETS).flatMap((r) => r.images)]);
+  return LOADED_KEYS.filter((k) => !listed.has(k));
+};
+
 /** Short effects played through Phaser (sfx.ts). Voice lines, music and the bake loop are in audio.ts. */
 export const SOUND_KEYS = [
   'tap', 'pop', 'squish', 'sprinkle', 'whoosh', 'oven-ding', 'munch', 'cheer', 'cheer-jingle', 'star', 'complete',
