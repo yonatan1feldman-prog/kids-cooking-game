@@ -64,7 +64,7 @@ export class PhotoStep extends Step<PhotoParams> {
     const flash = this.own(this.scene.add.rectangle(L.W / 2, L.H / 2, L.W * 1.2, L.H * 1.2, 0xffffff).setDepth(2000).setAlpha(0.9));
     this.scene.tweens.add({ targets: flash, alpha: 0, duration: 380, ease: 'Quad.easeOut' });
     const fs = S.photo.scale;
-    const [fw, fh] = IMAGES['photo-frame'].size;
+    const [fw, fh] = IMAGES[this.params.frame].size;
     const win = ART.prep.photoWindow;
     const wc = { x: S.photo.x + (win.x + win.w / 2 - fw / 2) * fs, y: S.photo.y + (win.y + win.h / 2 - fh / 2) * fs };
     const key = this.makePhoto(Math.round(win.w * fs));
@@ -95,13 +95,27 @@ export class PhotoStep extends Step<PhotoParams> {
       const sc = size / bg.frame.realHeight;
       bg.setScale(sc).setCrop(BACKDROP_X0, 0, bg.frame.realHeight, bg.frame.realHeight);
       dt.draw(bg, -BACKDROP_X0 * sc, 0);
+      const temp = [bg];
+      if (this.params.bowl) {
+        // The salad: its bowl (back, contents, front) at 92% of the square, standing a little low (scenes-salad.js).
+        const b = this.params.bowl;
+        const s = (size / IMAGES[b.back].size[0]) * 0.92;
+        for (const key of [b.back, b.fill, b.front]) {
+          const img = new Phaser.GameObjects.Image(this.scene, 0, 0, key).setScale(s);
+          dt.draw(img, size / 2, size / 2 + 60 * (size / 540));
+          temp.push(img);
+        }
+        dt.render();
+        temp.forEach((o) => o.destroy());
+        return PHOTO_KEY;
+      }
       // The board and the pizza fill about 86% of the square, standing a little low (on the counter).
       const boardKey = this.ctx.board.texture.key;
       const board = new Phaser.GameObjects.Image(this.scene, 0, 0, boardKey);
       const bs = ((size / board.frame.realWidth) * 0.86);
       board.setScale(bs);
       dt.draw(board, size / 2, size / 2 + 40 * (size / 540));
-      const temp = [bg, board];
+      temp.push(board);
       if (tex.exists(MADE_KEY)) {
         const pizza = new Phaser.GameObjects.Image(this.scene, 0, 0, MADE_KEY);
         // The capture is in game pixels at the content scale k: it is shown at the board's scale / k.

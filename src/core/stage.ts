@@ -20,8 +20,12 @@ export interface Stage {
   /** Title: the play button, and the logo above it (the art agent's title scene, scenes-prep.js). */
   play: Pt;
   titleLogo: Pt;
-  /** Home: where recipe card i of n sits. */
+  /**
+   * Home: where recipe card i of n sits, and the cards' scale. A grid left of Mom (and Pipa): one row up to 3 cards,
+   * else two rows (up to 8: 4 + 4), every card as big as its cell allows, never scrolling.
+   */
   card: (i: number, n: number) => Pt;
+  cardScale: (n: number) => number;
   /** Recipe: the home button and its scale. */
   home: Pt;
   homeScale: number;
@@ -108,6 +112,12 @@ export interface Stage {
   cutBoard: Spot;
   /** A filled topping bin waiting in the left column (index 0-2: side by side under the pizza), or null. */
   binWait: (i: number) => Spot | null;
+  /**
+   * The salad bowl (900x620 layers) that stays from filling it to mixing it: on the right of the prep area at most the
+   * art agent's 0.95, clear of Pipa; the things poured into it wait in `pourFrom` on its left.
+   */
+  saladBowl: Spot;
+  pourFrom: Box;
   /** Open-pour: the bowl (prep-bowl layers) on the right of the prep area, and where the can or jar stands, left of it. */
   pourBowl: Spot;
   pourRest: Spot;
@@ -312,6 +322,32 @@ export function getStage(L: Layout): Stage {
   const bowlLeft = pourBowl.x - (PREP_BOWL_W / 2) * pourScale;
   const pourRest = { x: (prepArea.x0 + bowlLeft) / 2 - 20 * k, y: Y(690), scale: 0.8 * k };
 
+  // The salad bowl: as big as the art agent's scene where there is room, leaving about 38% of the prep area on its left.
+  const SALAD_BOWL_W = 900;
+  const saladScale = Math.min(0.95 * k, ((prepArea.x1 - prepArea.x0) * 0.62) / SALAD_BOWL_W, (Y(994) - Y(330)) / 620);
+  const saladBowl = { x: prepArea.x1 - (SALAD_BOWL_W / 2) * saladScale - 10 * k, y: Y(720), scale: saladScale };
+  // (inset: a waiting thing's touch area reaches 45 beyond its drawing, never into the thumb strip)
+  const pourFrom = { x0: prepArea.x0 + 40 * k, y0: Y(380), x1: saladBowl.x - (SALAD_BOWL_W / 2) * saladScale - 10 * k, y1: prepArea.y1 };
+
+  // Home: the recipe cards in a grid between the thumb strip and Mom's face (and Pipa), under the top edge.
+  const CARD_W = 400;
+  const CARD_H = 520;
+  const cardArea = { x0: m + 40 * k, x1: Math.min(momFace.x0, petLeft) - 30 * k, y0: Y(80), y1: Y(1000) };
+  const cardCols = (n: number) => (n <= 3 ? n : Math.ceil(n / 2));
+  const cardRows = (n: number) => Math.ceil(n / cardCols(n));
+  const cardCell = (n: number) => ({ w: (cardArea.x1 - cardArea.x0) / cardCols(n), h: (cardArea.y1 - cardArea.y0) / cardRows(n) });
+  const cardScale = (n: number) => Math.min(1.2 * k, (cardCell(n).w - 40 * k) / CARD_W, (cardCell(n).h - 40 * k) / CARD_H);
+  const card = (i: number, n: number) => {
+    if (n === 1) return { x: L.cx, y: L.cy };
+    const cols = cardCols(n);
+    const c = cardCell(n);
+    const row = Math.floor(i / cols);
+    // (a shorter last row is centred)
+    const inRow = row === cardRows(n) - 1 ? n - row * cols : cols;
+    const x0 = (cardArea.x0 + cardArea.x1) / 2 - (inRow * c.w) / 2;
+    return { x: x0 + c.w * ((i % cols) + 0.5), y: cardArea.y0 + c.h * (row + 0.5) };
+  };
+
   // The oven's temperature panel: in the room right of the oven, then the three buttons in a row under it.
   const PANEL_W = 1200;
   const PANEL_H = 720;
@@ -342,7 +378,8 @@ export function getStage(L: Layout): Stage {
   return {
     play: { x: titleX, y: Y(740) },
     titleLogo: { x: titleX, y: Y(330) },
-    card: (i, n) => (n === 1 ? { x: L.cx, y: L.cy } : { x: L.cx + ((i % 3) - 1) * 520 * k, y: Y(300 + Math.floor(i / 3) * 560) }),
+    card,
+    cardScale: (n) => (n === 1 ? k : cardScale(n)),
     home,
     homeScale,
     dishHome,
@@ -389,6 +426,8 @@ export function getStage(L: Layout): Stage {
     cutBoard,
     pourBowl,
     pourRest,
+    saladBowl,
+    pourFrom,
     panel: panelSpot,
     tempDown: { x: panelSpot.x - btnDx, y: btnY },
     tempStart: { x: panelSpot.x, y: btnY },
@@ -397,7 +436,7 @@ export function getStage(L: Layout): Stage {
     photo,
     mitts: { x: dishHome.x, y: dishHome.y + 120 * k, scale: 0.55 * k },
     lidRest: { x: (pourRest.x + bowlLeft) / 2 + 40 * k, y: Y(930) },
-    // (three spots side by side under the pizza, 140 apart: bins 108 wide)
-    binWait: (i) => (prepWide ? { x: sideX + ((i % 3) - 1) * 140 * k, y: Y(895), scale: 0.45 * k } : null),
+    // (three spots side by side under the pizza, 140 apart: bins 108 wide; a fourth (the salad's) in a row above them)
+    binWait: (i) => (prepWide ? { x: sideX + ((i % 3) - 1) * 140 * k, y: Y(895) - Math.floor(i / 3) * 150 * k, scale: 0.45 * k } : null),
   };
 }

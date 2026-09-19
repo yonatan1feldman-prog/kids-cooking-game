@@ -26,7 +26,7 @@ const LIFTED = 22;
 /**
  * Choose (reusable: toppings for a pizza, fruit for a salad, sweets for cookies...): the options stand on their bins
  * in the middle of the counter, the pizza waits aside. A tap picks one: it hops and stays a little lifted with a
- * soft glow under it, pop, and Mom counts ("One!", "Two!", "Three!"). A tap on a picked one puts it back (no
+ * soft glow under it, pop, and Mom says its name ("Tomato!"; `name`, else she counts). A tap on a picked one puts it back (no
  * counting, nothing lost). With `pick` chosen the step goes on by itself after a short pause: the chosen options'
  * prep steps come next, in the order she picked them (`run.insert`), and `run.chosen` tells decorating which
  * toppings she has. There is no wrong choice. Mom's help picks the rest for her, one tap at a time.
@@ -112,7 +112,9 @@ export class ChooseStep extends Step<ChooseParams> {
     });
     this.scene.tweens.add({ targets: c.glow, alpha: 0.75, duration: 200 });
     boing(this.scene, c.bin, 0.12);
-    voice.say(countKey(this.picks.length), { group: 'count', sequence: true, ttlMs: 5000 });
+    // Mom names it ("Cucumber!"); a newer name cuts the one playing, never another line. Options without a name: she counts.
+    if (c.opt.name) voice.say(c.opt.name, { group: 'name', ttlMs: 2500 });
+    else voice.say(countKey(this.picks.length), { group: 'count', sequence: true, ttlMs: 5000 });
     if (this.picks.length >= this.params.pick) this.finish();
   }
 

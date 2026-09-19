@@ -73,7 +73,8 @@ export class RecipeScene extends Phaser.Scene {
     iconButton(this, L, 'btn-home', S.home.x, S.home.y, () => this.goHome(), { confirm: true, scale: S.homeScale, hitPad: 30 }).setDepth(900);
 
     const dishHome = S.dishHome;
-    const board = art(this.add.image(dishHome.x, dishHome.y, this.recipe.board), L).setDepth(-1);
+    // (a recipe without a board, the salad, keeps an invisible one: the steps may still move it around)
+    const board = art(this.add.image(dishHome.x, dishHome.y, this.recipe.board ?? '__DEFAULT'), L).setDepth(-1).setVisible(!!this.recipe.board);
     const dish = new Dish(this, dishHome.x, dishHome.y, L);
     const mom = new Mom(this, S.mom);
     const character = new Character(this, this.recipe.character, S.pet, S.feedPet);

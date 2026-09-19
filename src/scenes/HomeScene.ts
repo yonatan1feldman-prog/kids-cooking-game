@@ -11,7 +11,7 @@ import { Mom } from '../steps/Mom';
 import { assetsReady } from './BootScene';
 
 /**
- * Home: one card per recipe, Mom at the counter (and Pipa beside her on phones). Nothing moves by
+ * Home: one card per recipe (a grid, up to 8 without scrolling), Mom at the counter (and Pipa beside her on phones). Nothing moves by
  * itself here except Mom breathing and blinking: the child picks a card when she wants to, and the
  * game never starts a recipe on its own. Tapping a card starts that recipe ("Let's make a pizza!").
  * Arriving from the title (or by the home button) Mom asks "What shall we make today?"; after a finished
@@ -61,12 +61,12 @@ export class HomeScene extends Phaser.Scene {
         going = true;
         hint.stop();
         stars(this, card.x, card.y, 14, 70 * L.k);
-        if (recipe.id === 'pizza') voice.say('vo-pick-pizza', { ttlMs: 3000 });
+        voice.say(recipe.pickLine, { ttlMs: 3000 });
         // (If the art is still loading, the recipe starts the moment it is ready.)
         Promise.all([assetsReady(), new Promise((r) => this.time.delayedCall(350, r))]).then(
           () => this.scene.isActive() && this.scene.start('Recipe', { id: recipe.id }),
         );
-      }, { hitPad: n === 1 ? 120 : 40 });
+      }, { hitPad: n === 1 ? 120 : 30, scale: S.cardScale(n) });
       this.tweens.add({ targets: card, alpha: { from: 0, to: 1 }, duration: 400 });
       cards.push(card);
     });

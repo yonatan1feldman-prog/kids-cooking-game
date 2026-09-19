@@ -11,6 +11,10 @@ const KEY_GAIN: Partial<Record<SoundKey, number>> = {
   camera: 0.6 / LEVEL.sfx,
   beep: 0.6 / LEVEL.sfx,
   click: 0.5 / LEVEL.sfx,
+  // the salad: tear is 5 dB quieter in its file (like munch), squeeze and drizzle 2 dB
+  tear: 1 / LEVEL.sfx,
+  squeeze: 0.8 / LEVEL.sfx,
+  drizzle: 0.8 / LEVEL.sfx,
 };
 const gainOf = (key: SoundKey, rel = 1) => Math.min(1, rel * LEVEL.sfx * (KEY_GAIN[key] ?? 1));
 

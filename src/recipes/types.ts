@@ -23,11 +23,17 @@ export interface WashParams {
   rubPerBubble: number;
   /** Mom's lines: at the start, part-way through the rubbing, and when it is clean. */
   line: VoiceKey;
-  rubLine: VoiceKey;
+  rubLine?: VoiceKey;
   doneLine: VoiceKey;
   /** After this many bubbles she says the rub line. */
   rubLineAt: number;
   rinseMs: number;
+  /**
+   * What is washed (default 'hands'). 'basket': `hands` is a basket of vegetables standing in the sink (the colander)
+   * under the stream; rubbing it throws `bubble`s (water drops) off it and makes the vegetables shine more and more,
+   * instead of growing bubbles on it. Without `rubLine` nothing is said part-way.
+   */
+  target?: 'hands' | 'basket';
 }
 
 /**
@@ -44,10 +50,23 @@ export interface PressParams {
    * Where the food is: 'board' (on the pizza board in the middle, the board otherwise empty) or 'bowl'
    * (inside the big prep bowl in the middle, the pizza waits aside). With 'bowl', `bowl` gives its layers.
    */
-  place: 'board' | 'bowl';
+  place: 'board' | 'bowl' | 'over-bowl';
   bowl?: { back: ImageKey; front: ImageKey };
-  /** The hollow a press leaves (drawn in code if the file is missing). */
-  dent: ImageKey;
+  /**
+   * 'board' only: the board the food lies on, drawn by this step on the cutting-board spot (`stage.cutBoard`), and the
+   * food's size (x the board's scale / 1.05). Without it the food sits on the recipe's board, 1.6x.
+   */
+  board?: ImageKey;
+  size?: number;
+  /**
+   * 'over-bowl': the food is held tilted over the big bowl the step before left (a lemon squeezed over the salad), and
+   * each press lets `drop`s fall into the bowl. The bowl stays for the next step.
+   */
+  drop?: ImageKey;
+  /** The result waits in the left column (like a filled bin) for a later step, under `handoff` (e.g. 'bin:lettuce'). */
+  park?: boolean;
+  /** The hollow a press leaves (drawn in code if the file is missing); none for food that doesn't dent (lettuce). */
+  dent?: ImageKey;
   /** Colour of the bits that fly on each press (flour, tomato juice). */
   splash: number;
   sound: SoundKey;
@@ -72,6 +91,11 @@ export interface StirParams {
   line: VoiceKey;
   /** The next step's bowl image; the stirred bowl turns into it in the left column. */
   handoffAs?: ImageKey;
+  /** The tool's point that follows the finger (default: the wooden spoon's bowl), and its sound (default squish). */
+  toolAnchor?: { x: number; y: number };
+  sound?: SoundKey;
+  /** The bowl stays in place for the next step (with `to` in it), instead of moving aside. */
+  keep?: boolean;
 }
 
 /**
@@ -119,6 +143,16 @@ export interface SprinkleParams {
   piece: ImageKey;
   /** Pieces that must land before the step completes. */
   count: number;
+  /** Mom's line (default vo-cheese) and the shake sound (default sprinkle). */
+  line?: VoiceKey;
+  sound?: SoundKey;
+  /**
+   * 'bowl': sprinkled into the big bowl the step before left (a pinch of salt on the salad): the shaker is held by its
+   * `holes` over the finger, tipped over, and the grains (drawn in code, `piece` unused) fall into the bowl and melt in.
+   * Every shake counts one of `count`. The bowl stays for the next step.
+   */
+  into?: 'dish' | 'bowl';
+  holes?: { x: number; y: number };
 }
 
 /**
@@ -136,6 +170,8 @@ export interface ChooseOption {
   topping: ImageKey;
   /** How it is prepared once chosen (a `chop` or `open-pour` step). */
   prep?: StepDef;
+  /** Mom says its name when it is picked (a newer name may cut the one playing). Without it she counts. */
+  name?: VoiceKey;
 }
 
 export interface ChooseParams {
@@ -183,22 +219,41 @@ export interface ChopParams {
  * into the topping's bin (left for decorating). Counts: TUNING.open, TUNING.pour.
  */
 export interface OpenPourParams {
-  kind: 'can' | 'jar';
+  /** 'open': nothing to open (an oil bottle), only the pouring; also for pouring several things in (`sources`). */
+  kind: 'can' | 'jar' | 'open';
   closed: ImageKey;
   open: ImageKey;
-  lid: ImageKey;
-  sound: SoundKey;
-  openLine: VoiceKey;
+  /** The lid, the opening sound and the opening line (not for `open`). */
+  lid?: ImageKey;
+  sound?: SoundKey;
+  openLine?: VoiceKey;
   pourLine: VoiceKey;
   bowl: { back: ImageKey; front: ImageKey };
   /** What pours out (one piece of the topping). */
   piece: ImageKey;
-  bin: ImageKey;
-  topping: ImageKey;
+  bin?: ImageKey;
+  topping?: ImageKey;
   taps: number;
   swipe: number;
   twist: number;
   pourMs: number;
+  /** The container's mouth in its file (default: the can's or the jar's top), and how far it tips (default 112). */
+  mouth?: { x: number; y: number };
+  tilt?: number;
+  /** The pouring sound (default pour). */
+  pourSound?: SoundKey;
+  /**
+   * The big bowl stays across steps (the salad bowl: taken from the step before, left for the next), and its contents
+   * rise through `fills` as the things are poured in; the pieces melt into them instead of piling up. Without it the
+   * step brings its own bowl and puts the contents into the topping's bin.
+   */
+  keep?: { fills?: ImageKey[] };
+  /**
+   * Pour several things in, one after another, in any order (the salad into its bowl): what the steps before left
+   * waiting (`run.handoff` keys; `'chosen'` = the bins of what she chose, their `topping` as the piece). Each is dragged
+   * over the bowl and pours for `pourMs`.
+   */
+  sources?: ({ handoff: string; image: ImageKey; piece: ImageKey; tilt?: number } | 'chosen')[];
 }
 
 export interface DecorateParams {
@@ -265,6 +320,14 @@ export interface ShareParams {
   forMom: VoiceKey;
   momYum: VoiceKey;
   forPet: VoiceKey;
+  /** The chewing sound (default munch). */
+  eat?: SoundKey;
+  /**
+   * Portions instead of slices (a salad): `count` portions (`image`, held by `anchor`) lie over the big bowl the step
+   * before left; a serving `bowl` stands in front of Mom and one in front of Pipa, and a portion let go near one lands
+   * in it (`fill` shows in the bowl) and that one eats.
+   */
+  portions?: { image: ImageKey; anchor: { x: number; y: number }; count: number; bowl: ImageKey; fill: ImageKey };
 }
 
 /**
@@ -279,6 +342,8 @@ export interface PhotoParams {
   line: VoiceKey;
   finale: VoiceKey;
   bye: VoiceKey;
+  /** The photo shows this bowl (back, contents, front: the salad) instead of her pizza on its board. */
+  bowl?: { back: ImageKey; fill: ImageKey; front: ImageKey };
 }
 
 /** Character layers sharing one frame, stacked body -> eyes -> mouth. She stays for the whole recipe. */
@@ -315,10 +380,11 @@ export type StepType = StepDef['type'];
 
 export interface Recipe {
   id: string;
-  /** Card shown on the home screen. */
+  /** Card shown on the home screen, and Mom's line when it is tapped ("Let's make a pizza!"). */
   card: ImageKey;
-  /** Board the dish sits on for the whole recipe. */
-  board: ImageKey;
+  pickLine: VoiceKey;
+  /** Board the dish sits on for the whole recipe (none: nothing is carried on a board, e.g. the salad). */
+  board: ImageKey | null;
   /** Who stands on the right, watches, cheers each step and eats the result. */
   character: CharacterDef;
   steps: StepDef[];

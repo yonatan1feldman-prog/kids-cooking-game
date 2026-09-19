@@ -7,6 +7,16 @@ const KEY = 'prep-bowl';
 export const BOWL_DEPTH = { back: 1.5, contents: 1.6, tool: 1.75, front: 1.9 };
 
 /**
+ * The big bowls, by their back layer: where each stands (a stage spot) and its opening in its own frame. The prep bowl
+ * of the pizza stands in the middle; the salad bowl on the right of the prep area (the things poured in wait left of it).
+ */
+const BOWLS: Record<string, { spot: 'prepBowl' | 'saladBowl'; opening: { x: number; y: number; rx: number; ry: number } }> = {
+  'prep-bowl-back': { spot: 'prepBowl', opening: ART.prep.bowlOpening },
+  'salad-bowl-back': { spot: 'saladBowl', opening: ART.salad.bowlOpening },
+};
+const bowlOf = (back: string) => BOWLS[back] ?? BOWLS['prep-bowl-back'];
+
+/**
  * The big prep bowl in the middle (crush, stir, and any later mixing step): its back layer, its contents,
  * its front layer, all at one position (stage.prepBowl), so the contents sit inside it. It lives across
  * steps: a step that is done with it but not the next one calls `keep()`, and the next step `take`s it.
@@ -27,14 +37,15 @@ export class PrepBowl {
     return img?.active ? ((img.getData(KEY) as PrepBowl) ?? null) : null;
   }
 
-  constructor(private ctx: StepContext, layers: { back: ImageKey; front: ImageKey }, contents: ImageKey) {
+  /** Empty (no contents yet) until the first `crossfade`. */
+  constructor(private ctx: StepContext, layers: { back: ImageKey; front: ImageKey }, contents: ImageKey | null) {
     this.scene = ctx.scene;
-    const spot = ctx.stage.prepBowl;
+    const spot = ctx.stage[bowlOf(layers.back).spot];
     this.s = spot.scale;
     this.at = { x: spot.x, y: spot.y };
     const img = (key: string, depth: number) => this.scene.add.image(spot.x, spot.y, key).setScale(this.s).setDepth(depth);
     this.back = img(layers.back, BOWL_DEPTH.back);
-    this.contents = img(contents, BOWL_DEPTH.contents);
+    this.contents = img(contents ?? layers.back, BOWL_DEPTH.contents).setVisible(!!contents);
     this.front = img(layers.front, BOWL_DEPTH.front);
     this.back.setData(KEY, this);
     // It slides in from below, with a little bounce.
@@ -54,6 +65,7 @@ export class PrepBowl {
 
   setContents(key: ImageKey) {
     if (this.contents.texture.key !== key) this.contents.setTexture(key);
+    this.contents.setVisible(true);
   }
 
   /** The contents change to `key` (crossfade). */
@@ -75,8 +87,9 @@ export class PrepBowl {
 
   /** The bowl's opening (an ellipse) in world coordinates. */
   opening() {
-    const o = ART.prep.bowlOpening;
-    const [w, h] = IMAGES['prep-bowl-back'].size;
+    const key = this.back.texture.key as ImageKey;
+    const o = bowlOf(key).opening;
+    const [w, h] = IMAGES[key].size;
     const s = this.back.scaleX;
     return { x: this.back.x + (o.x - w / 2) * s, y: this.back.y + (o.y - h / 2) * s, rx: o.rx * s, ry: o.ry * s };
   }

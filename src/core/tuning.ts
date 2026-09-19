@@ -65,6 +65,23 @@ export const TUNING = {
   oven: { from: 50, step: 50, min: 50, max: 250, target: 200, bakeMs: 5000 },
   /** Share: slices the pizza is cut into (shared between Mom and Pipa, any way she likes). */
   share: { slices: 6 },
+  /**
+   * The salad (round 6; aim: 4-5 minutes from the card to home). Wash the vegetables: drops (bursts) of rubbing, as
+   * `wash.bubbles`. Tear the lettuce: presses per stage (head -> tear-1 -> 2 -> 3: 3 changes). Chop: cuts per vegetable.
+   * Into the bowl: ms of pouring each of the four (the lettuce and her three vegetables). Lemon: presses per stage
+   * (3 states: 2 changes). Oil: ms of pouring. Salt: shakes. Mix: finger travel in the bowl. Serve: portions.
+   */
+  salad: {
+    washVeg: { bubbles: 8, rubPerBubble: 300, rubLineAt: 99, rinseMs: 1200 },
+    tear: { pressesPerStage: 3 },
+    chop: { cuts: 4, minSwipe: 50 },
+    transfer: { ms: 1300 },
+    lemon: { pressesPerStage: 3 },
+    oil: { ms: 1800 },
+    salt: { shakes: 5 },
+    mix: { distance: 3000 },
+    serve: { portions: 4 },
+  },
   /** Mom's help (after the idle hint): the pace of her own presses, rubs and strokes. */
   help: { pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150, chopEveryMs: 950, openMs: 1500, tempEveryMs: 1100 },
 } as const;

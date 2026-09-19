@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { ART, IMAGES } from '../core/assets';
-import { burst } from '../core/fx';
+import { boing, burst } from '../core/fx';
 import type { HandMotion } from '../core/hand';
 import { sfx } from '../core/sfx';
 import { TUNING } from '../core/tuning';
@@ -15,7 +15,8 @@ const STIR_HAND = 1.35;
  * Stirring: the spoon follows the finger, its bowl kept inside the bowl's opening, and every movement in
  * the bowl stirs: no circles needed, any wiggle counts. The contents turn smoothly from `from` into `to`
  * as the stirring adds up (TUNING.stir.distance). At the end the bowl moves to the left column and turns
- * into the next step's bowl (`handoffAs`), while the pizza comes back to the middle.
+ * into the next step's bowl (`handoffAs`), while the pizza comes back to the middle. With `keep` the bowl stays in
+ * place with the result in it (the mixed salad); `toolAnchor` and `sound` fit another tool (the salad servers).
  */
 export class StirStep extends Step<StirParams> {
   private bowl!: PrepBowl;
@@ -41,10 +42,17 @@ export class StirStep extends Step<StirParams> {
     // The spoon rests in the bowl, leaning on the right rim (the art agent's mash scene).
     const s = this.bowl.scale;
     const p = this.bowl.position;
-    this.rest = { x: p.x + 250 * s, y: p.y - 20 * s, angle: 28 };
-    const [w, h] = IMAGES['spoon-wood'].size;
+    const anchor = this.params.toolAnchor;
+    if (anchor) {
+      // Another tool (the salad servers): resting in the bowl on the right of its opening, the heads sunk in.
+      const o = this.bowl.opening();
+      this.rest = { x: o.x + o.rx * 0.45, y: o.y - o.ry * 0.2, angle: 14 };
+    } else this.rest = { x: p.x + 250 * s, y: p.y - 20 * s, angle: 28 };
+    const [w, h] = IMAGES[this.params.tool].size;
+    const at = anchor ?? ART.prep.spoonBowl;
     this.spoon = this.own(this.scene.add.image(this.rest.x, this.rest.y, this.params.tool).setDepth(BOWL_DEPTH.tool));
-    this.spoon.setOrigin(ART.prep.spoonBowl.x / w, ART.prep.spoonBowl.y / h).setScale(0.8 * this.k).setAngle(this.rest.angle).setAlpha(0);
+    // (the servers at the bowl's own scale, as in the art agent's mix scene; the spoon at 0.8)
+    this.spoon.setOrigin(at.x / w, at.y / h).setScale(anchor ? s : 0.8 * this.k).setAngle(this.rest.angle).setAlpha(0);
     this.scene.tweens.add({ targets: this.spoon, alpha: 1, duration: 300 });
 
     this.onDown((q) => {
@@ -55,7 +63,7 @@ export class StirStep extends Step<StirParams> {
       const at = this.spoonAt(q.worldX, q.worldY);
       this.last = at;
       this.moveSpoon(at);
-      sfx(this.scene, 'squish', { minGapMs: 150, volume: 0.6 });
+      sfx(this.scene, this.sound, { minGapMs: 150, volume: 0.6 });
       this.drops(at.x, at.y, 4);
     });
     this.onMove((q) => {
@@ -76,6 +84,10 @@ export class StirStep extends Step<StirParams> {
   }
 
   /** The spoon's bowl goes where the finger is, kept inside the opening. */
+  private get sound() {
+    return this.params.sound ?? 'squish';
+  }
+
   private spoonAt(x: number, y: number) {
     return this.bowl.clampToOpening(x, y, 0.85);
   }
@@ -102,7 +114,7 @@ export class StirStep extends Step<StirParams> {
     this.sinceFx += d;
     if (this.sinceFx > 110 * this.k) {
       this.sinceFx = 0;
-      sfx(this.scene, 'squish', { minGapMs: 180, volume: 0.45 });
+      sfx(this.scene, this.sound, { minGapMs: 180, volume: 0.45 });
       this.drops(x, y, 2);
     }
     if (this.progress >= 1) this.finish();
@@ -128,6 +140,17 @@ export class StirStep extends Step<StirParams> {
     this.bowl.contents.setAngle(0);
     this.done.setAngle(0);
     this.scene.tweens.add({ targets: this.spoon, alpha: 0, duration: 250 });
+    if (this.params.keep) {
+      // The bowl stays where it is, now with the result in it, for the next step.
+      this.scene.time.delayedCall(350, () => {
+        this.bowl.setContents(this.params.to);
+        this.done.destroy();
+        boing(this.scene, this.bowl.front, 0.05);
+        this.bowl.keep();
+        this.complete();
+      });
+      return;
+    }
     const S = this.ctx.stage;
     const parts = [...this.bowl.parts, this.done];
     this.scene.time.delayedCall(350, () => {
@@ -194,7 +217,7 @@ export class StirStep extends Step<StirParams> {
         this.render();
         const p = at();
         if (Math.random() < 0.15) this.drops(p.x, p.y, 2);
-        sfx(this.scene, 'squish', { minGapMs: 300, volume: 0.45 });
+        sfx(this.scene, this.sound, { minGapMs: 300, volume: 0.45 });
       },
       onComplete: () => {
         this.spoon.setVisible(true);

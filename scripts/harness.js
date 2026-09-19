@@ -100,6 +100,9 @@
       const pts = [];
       for (let i = 0; i <= 8; i++) pts.push([d.x + (i % 2 ? 1 : -1) * r * 0.6, d.y - r * 0.6 + (i * r * 1.2) / 8]);
       await __drag(pts);
+    } else if (name === 'SprinkleStep' && st.bowl) {
+      const o = st.bowl.opening();
+      for (let i = 0; i < 3; i++) { __tap(o.x + (i - 1) * o.rx * 0.4, o.y - 40); await __run(250); }
     } else if (name === 'SprinkleStep') {
       for (let i = 0; i < 6; i++) { const a = Math.random() * 6.28; __tap(d.x + Math.cos(a) * r * 0.5, d.y + Math.sin(a) * r * 0.5); await __run(120); }
     } else if (name === 'DecorateStep') {
@@ -141,7 +144,7 @@
       if (s) {
         const mode = window.__shareTo || 'alt', n = st.slices.filter((x) => x.eaten).length;
         const who = mode === 'alt' ? (n % 2 ? 'pet' : 'mom') : mode;
-        const c = st.sliceCenter(s), m = st.mouthOf(who);
+        const c = st.sliceCenter(s), m = st.targetOf(who);
         await __drag([[c.x, c.y], [(c.x + m.x) / 2, (c.y + m.y) / 2 - 40], [m.x, m.y]]); await __run(1250);
       }
     } else if (name === 'PhotoStep') {
@@ -158,7 +161,7 @@
     const btn = t.children.list.find((o) => o.texture?.key === 'btn-play');
     __tap(btn.x, btn.y); await __run(1300);
     const h = game.scene.getScene('Home');
-    const card = h.children.list.find((o) => o.texture?.key === 'card-pizza');
+    const card = h.children.list.find((o) => o.texture?.key === `card-${window.__recipe || 'pizza'}`);
     __tap(card.x, card.y); await __run(1600);
   };
   /** Plays until `name` is the current step (and has had `settle` ms to enter). */
@@ -223,7 +226,8 @@
       vis.push(['sink', box(sc.children.list.find((o) => o.texture?.key === 'sink-basin'))]);
       vis.push(['faucet', box(st.faucet)]); hits.push(['faucet', pad(rect(st.faucet.getBounds()), 30 * L.k)]);
       // The hands run off the bottom by design; their touch area stops at the palm strip (onDown refuses it).
-      hits.push(['hands', clipPalm(pad(rect(st.hands.getBounds()), 50 * L.k))]);
+      const ha = st.handsArea();
+      hits.push(['hands', clipPalm({ x0: ha.x0, y0: ha.y0, x1: ha.x1, y1: Math.min(ha.y1, 1e5) })]);
     }
     if (name === 'PressStep') {
       const b = st.bowl ? st.bowl.bounds() : st.food.getBounds();
@@ -377,7 +381,7 @@ window.__shotAt = async (w, h, what) => {
 // Round 4: demos, Mom's voice, real-time runs.
 (() => {
   /** Demos on (the first two runs of a recipe) or off (later runs), by setting the run counter. */
-  window.__demos = (on) => localStorage.setItem('cooking.runs.pizza', on ? '0' : '5');
+  window.__demos = (on) => localStorage.setItem(`cooking.runs.${window.__recipe || 'pizza'}`, on ? '0' : '5');
   /** Steps virtual time until Mom's demo (if any) has finished. */
   window.__waitDemo = async () => {
     for (let i = 0; i < 60 && __R().step?.inDemo; i++) await __run(100);
@@ -647,7 +651,7 @@ window.__fullRun5 = async (demos, mode = 'child', picks = ['tomato', 'corn', 'ol
   try {
     const b = game.scene.getScene('Title').children.list.find((o) => o.texture?.key === 'btn-play');
     __tap(b.x, b.y); await __run(mode === 'child' ? 2500 : 1600);
-    const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-pizza');
+    const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === `card-${window.__recipe || 'pizza'}`);
     const n0 = __voLog.length; const t0 = T(); const steps = []; const at = {};
     __tap(c.x, c.y); await __run(1800);
     for (let g = 0; g < 4000 && game.scene.isActive('Recipe'); g++) {
@@ -814,4 +818,103 @@ window.__tour5b = async (w, h, tag) => {
     for (let g2 = 0; g2 < 300 && __R().step === st; g2++) { if (st.finished) await __run(100); else await __gesture(); }
   }
   return out;
+};
+
+// Round 6: the salad. `window.__recipe = 'salad'` switches __start, __demos and __fullRun5 to it (default 'pizza').
+/**
+ * Salad screenshot tour (about 12 shots, docs/screenshots-round6/<tag>-NN-<what>.png): home, then the child mid-gesture
+ * in each salad step (the hand wash is the pizza's), the photo. Picks cucumber, carrot, tomato. Start without awaiting;
+ * read window.__tourRes.
+ */
+window.__tour6 = async (w, h, tag) => {
+  for (let i = 0; i < 60 && !__voice.allLoaded; i++) await new Promise((r) => setTimeout(r, 250));
+  const out = [];
+  let i = 1;
+  const shot = async (n) => out.push(await __saveShot(`${tag}-${String(i++).padStart(2, '0')}-${n}`, 'screenshots-round6'));
+  const until = async (fn, ms = 8000) => { for (let t = 0; t < ms && !fn(); t += 50) await __run(50); };
+  window.__recipe = 'salad'; __demos(false); await __setup(w, h); __voSim(true);
+  window.__pickOrder = ['cucumber', 'carrot', 'tomato']; window.__shareTo = 'alt';
+  const b = game.scene.getScene('Title').children.list.find((o) => o.texture?.key === 'btn-play');
+  __tap(b.x, b.y); await __run(1600); await shot('home');
+  const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-salad');
+  __tap(c.x, c.y); await until(() => game.scene.isActive('Recipe') && __R().step);
+  const seen = new Set();
+  for (let guard = 0; guard < 60 && game.scene.isActive('Recipe'); guard++) {
+    await until(() => !__R().step?.finished, 15000);
+    const st = __R().step, type = __type();
+    await __run(900);
+    const first = !seen.has(type + st.params.target); seen.add(type + st.params.target);
+    if (type === 'photo') { await until(() => st.frame, 8000); await __run(1400); await shot('photo'); await __run(1600); await shot('photo-stars'); break; }
+    if (type === 'wash' && st.params.target === 'basket') { await __gesture(); const y = st.palmL.y - 30; await __drag([[st.palmL.x, y], [st.palmR.x, y + 40], [st.palmL.x, y], [st.palmR.x - 60, y + 20]], { hold: true }); await __run(120); await shot('wash-veg'); __touch('end', 1, 5, 5); }
+    else if (type === 'knead') { for (let k = 0; k < 4; k++) { __tap(st.at.x + 30, st.at.y); await __run(250); } __touch('start', 1, st.at.x - 40, st.at.y); await __run(80); await shot('tear'); __touch('end', 1, 5, 5); }
+    else if (type === 'choose') { await __gesture(); await __gesture(); await __run(300); await shot('choose'); }
+    else if (type === 'chop' && first) { await __gesture(); const z = st.cutZone(); await __drag([[st.knife.x, z.y0 + 60], [st.knife.x, (z.y0 + z.y1) / 2 + 30]], { hold: true }); await __run(80); await shot('chop-' + st.params.veg); __touch('end', 1, 5, 5); }
+    else if (type === 'open-pour') {
+      if (st.params.sources) { await __gesture(); await __run(300); }
+      const pp = st.pourPoint(); await __drag([[st.box.x, st.box.y], [pp.x, pp.y]], { hold: true }); await __run(700); await shot(st.params.sources ? 'into-bowl' : 'oil');
+      await __run(st.params.pourMs); __touch('end', 1, pp.x, pp.y);
+    } else if (type === 'crush') { for (let k = 0; k < 4; k++) { __tap(st.at.x, st.at.y); await __run(200); } await shot('lemon'); }
+    else if (type === 'sprinkle') { const o = st.bowl.opening(); __touch('start', 1, o.x, o.y - 40); await __run(120); await shot('salt'); __touch('end', 1, o.x, o.y - 40); }
+    else if (type === 'stir') { const o = st.bowl.opening(); await __drag([[o.x - 100, o.y], [o.x, o.y + 40], [o.x + 100, o.y], [o.x, o.y - 30]], { hold: true }); await __run(80); await shot('mix'); __touch('end', 1, 5, 5); }
+    else if (type === 'share') {
+      const s = st.slices[0], cc = st.sliceCenter(s), m = st.targetOf('mom');
+      await __drag([[cc.x, cc.y], [m.x - 120, m.y - 60]], { hold: true }); await __run(150); await shot('serve-to-mom');
+      __touch('end', 1, m.x - 120, m.y - 60); await __run(700);
+      window.__shareTo = 'pet'; await __gesture(); await __run(300); await shot('serve-pipa'); window.__shareTo = 'alt';
+    }
+    for (let g2 = 0; g2 < 400 && __R().step === st; g2++) { if (st.finished) await __run(100); else await __gesture(); }
+  }
+  window.__recipe = 'pizza';
+  return out;
+};
+
+/** Salad layout audit (as __auditRun5): every step, and again after every gesture. Start without awaiting. */
+window.__auditRun6 = async (w, h, picks = ['cucumber', 'carrot', 'tomato']) => {
+  window.__recipe = 'salad';
+  try { return await __auditRun5(w, h, picks); } finally { window.__recipe = 'pizza'; }
+};
+
+/**
+ * Salad robustness (as __robust5) in the two step types it generalised the most: pouring several things into the kept
+ * bowl (a bin held over it, pouring) and sharing portions (one held mid-drag). how: 'rotate' | 'background'.
+ */
+window.__robust6 = async (how = 'rotate', w = 900, h = 405) => {
+  for (let i = 0; i < 60 && !__voice.allLoaded; i++) await new Promise((r) => setTimeout(r, 250));
+  window.__recipe = 'salad'; __demos(false); await __setup(w, h); __voSim(true);
+  window.__pickOrder = ['cucumber', 'carrot', 'tomato']; window.__shareTo = 'alt';
+  const g = document.getElementById('game');
+  const setHidden = (on) => { Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => (on ? 'hidden' : 'visible') }); document.dispatchEvent(new Event('visibilitychange')); };
+  const away = async () => {
+    if (how === 'rotate') { g.style.width = h + 'px'; g.style.height = w + 'px'; window.dispatchEvent(new Event('resize')); await __yield(); __tick(16); __touch('end', 1, 10, 10); }
+    else { __touch('cancel', 1, 10, 10); setHidden(true); }
+  };
+  const back = async () => {
+    if (how === 'rotate') { g.style.width = w + 'px'; g.style.height = h + 'px'; window.dispatchEvent(new Event('resize')); await __yield(); __tick(16); }
+    else setHidden(false);
+  };
+  const rows = [];
+  const moment = async (name, setup, progress, held) => {
+    await setup();
+    const st = __R().step, p0 = progress(st), idle0 = st.idleMs;
+    await away();
+    if (how === 'rotate') await __run(4000);
+    const row = { name, paused: __R().scene.isPaused(), held: held(st), progressKept: JSON.stringify(progress(st)) === JSON.stringify(p0), idleFrozen: st.idleMs === idle0 };
+    await back(); await __run(600);
+    row.resumed = !__R().scene.isPaused();
+    const type = __type();
+    for (let k = 0; k < 400 && __R().step === st && game.scene.isActive('Recipe'); k++) { if (st.finished) await __run(200); else await __gesture(); }
+    row.finished = __R().step !== st;
+    rows.push(row);
+  };
+  try {
+    await __start();
+    await __to('open-pour', 1300);
+    await moment('into the bowl (a bin held over it, pouring)', async () => { const st = __R().step, pp = st.pourPoint(); await __drag([[st.box.x, st.box.y], [pp.x, pp.y]], { hold: true }); await __run(600); },
+      (st) => st.sources.map((x) => x.done).join(), (st) => st.held || st.over);
+    await __to('share', 1300);
+    await moment('serve (a portion held mid-drag)', async () => { const st = __R().step, s = st.slices.find((x) => !x.eaten), c = st.sliceCenter(s); await __drag([[c.x, c.y], [c.x + 150, c.y - 80]], { hold: true }); },
+      (st) => st.slices.filter((x) => x.eaten).length, (st) => !!st.held);
+    for (let k = 0; k < 400 && game.scene.isActive('Recipe'); k++) { if (__R().step.finished || __type() === 'photo') await __run(200); else await __gesture(); }
+    return { how, home: game.scene.isActive('Home'), rows };
+  } finally { window.__recipe = 'pizza'; }
 };

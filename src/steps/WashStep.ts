@@ -20,6 +20,8 @@ export const FAUCET_PAD = 30;
  *      part-way through);
  *   3. rinse (by itself): the water washes the bubbles off, "All clean!", and the tap closes.
  * Any rubbing over the hands counts; nothing needs precision. The board is not shown (nothing on it yet).
+ * `target: 'basket'` washes vegetables the same way: the colander stands in the sink under the stream, and rubbing it
+ * throws water drops off and makes the vegetables shine more and more; then the rinse, the done line, the tap closes.
  */
 export class WashStep extends Step<WashParams> {
   private phase: 'tap' | 'rub' | 'rinse' = 'tap';
@@ -37,6 +39,13 @@ export class WashStep extends Step<WashParams> {
   private outlet = { x: 0, y: 0 };
   private palmL = { x: 0, y: 0 };
   private palmR = { x: 0, y: 0 };
+  /** Basket mode: the shine on the vegetables (a lighter copy of the basket), growing with the rubbing. */
+  private shine?: Phaser.GameObjects.Image;
+  private drops = 0;
+
+  private get basket() {
+    return this.params.target === 'basket';
+  }
 
   start() {
     this.stepLine = this.params.line;
@@ -52,15 +61,31 @@ export class WashStep extends Step<WashParams> {
     this.faucet.setOrigin(120 / 320, ART.prep.faucetBase / 400);
     this.outlet = { x: S.faucetBase.x + (ART.prep.faucetOut.x - 120) * fs, y: S.faucetBase.y + (ART.prep.faucetOut.y - ART.prep.faucetBase) * fs };
 
-    // The child's hands under the outlet, bottom edge below the screen.
-    const hs = S.kidHandsScale;
-    this.handsX = this.outlet.x;
-    this.hands = add(this.outlet.x, S.kidHandsBottom, this.params.hands).setScale(hs).setDepth(3.5).setOrigin(0.5, 1);
-    const top = S.kidHandsBottom - 420 * hs;
-    const palm = (p: { x: number; y: number }) => ({ x: this.outlet.x + (p.x - 300) * hs, y: top + p.y * hs });
-    this.palmL = palm(ART.prep.kidPalmL);
-    this.palmR = palm(ART.prep.kidPalmR);
-    const tips = top + ART.prep.kidTips * hs;
+    let tips: number;
+    if (this.basket) {
+      // The basket of vegetables stands in the sink (README-salad.md: 0.86 at a sink of 1.1, 40 right, 20 down), the
+      // stream falling on the lettuce; rubbing anywhere on it counts, its left and right halves stand for the palms.
+      const c = ART.salad.colander;
+      const cs = S.sink.scale * c.scale;
+      this.handsX = S.sink.x + c.dx * k;
+      const cy = S.sink.y + c.dy * k;
+      this.hands = add(this.handsX, cy, this.params.hands).setScale(cs).setDepth(3.5);
+      this.shine = add(this.handsX, cy, this.params.hands).setScale(cs).setDepth(3.6).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0);
+      const top = cy - 280 * cs;
+      this.palmL = { x: this.handsX - c.halfW * cs, y: top + c.top * cs };
+      this.palmR = { x: this.handsX + c.halfW * cs, y: top + c.top * cs };
+      tips = top + c.top * cs - 20 * k;
+    } else {
+      // The child's hands under the outlet, bottom edge below the screen.
+      const hs = S.kidHandsScale;
+      this.handsX = this.outlet.x;
+      this.hands = add(this.outlet.x, S.kidHandsBottom, this.params.hands).setScale(hs).setDepth(3.5).setOrigin(0.5, 1);
+      const top = S.kidHandsBottom - 420 * hs;
+      const palm = (p: { x: number; y: number }) => ({ x: this.outlet.x + (p.x - 300) * hs, y: top + p.y * hs });
+      this.palmL = palm(ART.prep.kidPalmL);
+      this.palmR = palm(ART.prep.kidPalmR);
+      tips = top + ART.prep.kidTips * hs;
+    }
 
     // The stream, from the outlet down to the fingertips (stretched vertically only). Hidden until she opens the tap.
     this.stream = add(this.outlet.x, this.outlet.y - 4 * k, this.params.stream).setOrigin(0.5, 0).setDepth(2);
@@ -94,15 +119,16 @@ export class WashStep extends Step<WashParams> {
       if (!this.rubbing || this.phase !== 'rub') return;
       const d = Phaser.Math.Distance.Between(this.last.x, this.last.y, p.worldX, p.worldY);
       this.last = { x: p.worldX, y: p.worldY };
-      // The hands rub along with the finger, a little.
+      // The hands (the basket) rub along with the finger, a little.
       this.hands.x = this.handsX + Phaser.Math.Clamp((p.worldX - this.handsX) * 0.05, -16 * k, 16 * k);
+      this.shine?.setX(this.hands.x);
       if (!this.onHands(p.worldX, p.worldY)) return;
       this.rub(d, p.worldX, p.worldY);
     });
     this.onUp(() => {
       if (!this.rubbing) return;
       this.rubbing = false;
-      this.scene.tweens.add({ targets: this.hands, x: this.handsX, duration: 200 });
+      this.scene.tweens.add({ targets: [this.hands, this.shine].filter((o) => !!o), x: this.handsX, duration: 200 });
     });
 
     this.scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => waterLoop.stop());
@@ -116,17 +142,25 @@ export class WashStep extends Step<WashParams> {
   }
 
   private onHands(x: number, y: number) {
+    const b = this.handsArea();
+    return x > b.x0 && x < b.x1 && y > b.y0 && y < b.y1;
+  }
+
+  /** The hands' touch area (padded); the basket's starts at its vegetables, well clear of the tap above. */
+  handsArea() {
     const b = this.hands.getBounds();
     const pad = 50 * this.k;
-    return x > b.x - pad && x < b.right + pad && y > b.y - pad;
+    if (!this.basket) return { x0: b.x - pad, x1: b.right + pad, y0: b.y - pad, y1: Infinity };
+    return { x0: b.x - pad, x1: b.right + pad, y0: this.palmL.y - 20 * this.k, y1: b.bottom + pad };
   }
 
   private splash(x: number, y: number, n: number) {
     burst(this.scene, x, y, { tint: WATER, count: n, size: 18 * this.k, speed: 320 * this.k, gravityY: 900, lifespan: 500, depth: 6 });
   }
 
-  /** Small bubbles fly up from the finger. */
+  /** Small bubbles fly up from the finger (basket: water drops fly off the vegetables). */
   private foam(x: number, y: number) {
+    if (this.basket) return this.fling(x, y, 2);
     burst(this.scene, x, y, { texture: this.params.bubble, count: 3, size: 46 * this.k, speed: 220 * this.k, gravityY: -300, lifespan: 700, depth: 6 });
   }
 
@@ -155,8 +189,25 @@ export class WashStep extends Step<WashParams> {
     } else if (Math.random() < dist / (140 * this.k)) this.foam(x, y);
   }
 
+  /** Water drops fly up and off the basket, then fall (answering the rubbing). */
+  private fling(x: number, y: number, n: number) {
+    burst(this.scene, x, y - 30 * this.k, { texture: this.params.bubble, count: n, size: 44 * this.k, speed: 420 * this.k, gravityY: 1300, lifespan: 650, depth: 6 });
+  }
+
+  /** Basket: a burst of drops, and the vegetables shine a little more (instead of a bubble). */
+  private polish(x: number, y: number) {
+    this.drops++;
+    this.fling(x, y, 5);
+    sfx(this.scene, 'bubbles', { minGapMs: 250, volume: 0.6 });
+    this.shine?.setAlpha((0.28 * this.drops) / this.params.bubbles);
+    boing(this.scene, this.hands, 0.02);
+    if (this.params.rubLine && this.drops === this.params.rubLineAt) voice.say(this.params.rubLine, { valid: () => this.phase === 'rub' });
+    if (this.drops >= this.params.bubbles) this.rinse();
+  }
+
   /** A bubble grows on the hands near the finger (kept on the hands). */
   private addBubble(x: number, y: number) {
+    if (this.basket) return this.polish(x, y);
     const k = this.k;
     const left = this.palmL.x - 170 * k;
     const right = this.palmR.x + 170 * k;
@@ -168,7 +219,7 @@ export class WashStep extends Step<WashParams> {
     this.bubbles.push(b);
     sfx(this.scene, 'bubbles', { minGapMs: 250 });
     const n = this.bubbles.length;
-    if (n === this.params.rubLineAt) voice.say(this.params.rubLine, { valid: () => this.phase === 'rub' });
+    if (this.params.rubLine && n === this.params.rubLineAt) voice.say(this.params.rubLine, { valid: () => this.phase === 'rub' });
     if (n >= this.params.bubbles) this.rinse();
   }
 
@@ -194,7 +245,7 @@ export class WashStep extends Step<WashParams> {
     });
     for (let i = 0; i < 4; i++) this.scene.time.delayedCall(i * 260, () => this.splash(this.outlet.x + Phaser.Math.Between(-60, 60) * this.k, this.palmL.y, 6));
     sfx(this.scene, 'bubbles');
-    this.scene.tweens.add({ targets: this.hands, x: this.handsX, duration: 200 });
+    this.scene.tweens.add({ targets: [this.hands, this.shine].filter((o) => !!o), x: this.handsX, duration: 200 });
     let closed = false;
     const close = () => {
       if (closed || !this.stream.active) return;
@@ -242,7 +293,7 @@ export class WashStep extends Step<WashParams> {
         return { x: this.outlet.x + Math.sin(a) * (this.palmR.x - this.palmL.x) * 0.7, y: y + Math.cos(a * 2) * 25 * k };
       };
       this.hand.follow('point', at);
-      const left = this.params.bubbles - this.bubbles.length;
+      const left = this.params.bubbles - (this.basket ? this.drops : this.bubbles.length);
       const every = TUNING.help.rubMs / Math.max(1, left);
       for (let i = 0; i < left; i++) {
         this.scene.time.delayedCall((i + 1) * every, () => {

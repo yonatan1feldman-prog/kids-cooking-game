@@ -1,5 +1,27 @@
 # AGENTS.md — read this first
 
+## Quick start (read this, then only the sections your task needs)
+- **What:** a text-free, English-speaking cooking game for a 5-year-old (Android phone, landscape): she cooks with
+  Mom, Pipa the hedgehog watches and eats. Phaser 4 + Vite + TypeScript PWA, deployed to GitHub Pages from `master`.
+  Two recipes: pizza (`src/recipes/pizza.ts`) and salad (`src/recipes/salad.ts`), cards side by side on the home screen.
+- **Where things are:** `src/recipes/` recipes as pure data (`types.ts` = every step type's params); `src/steps/` one
+  reusable class per step type (`registry.ts` maps names to classes); `src/core/tuning.ts` every count and threshold;
+  `src/core/stage.ts` every position; `src/core/assets.ts` the asset contract (image keys, sizes, art anchors `ART`);
+  `src/core/audio.ts` voice keys and the voice queue; `scripts/harness.js` the test harness (automated Chrome).
+- **Add a recipe:** see "Recipes are data" (what every recipe must provide). In short: copy its SVGs into
+  `public/assets/images`, sounds into `public/assets/sounds/{voice,sfx}`; add the image keys to `IMAGES` (and anchors to
+  `ART`), sound keys to `SOUND_KEYS` / `VoiceKey`; bake the WebPs; write `src/recipes/<name>.ts` on the existing step
+  types (a step type bound to one recipe's art gets optional params, defaults = today's behaviour); add it to `RECIPES`
+  (its `card`, `pickLine`); its counts in `TUNING`; a `photo` step last. Then `ASSET-LICENSES.md`. The salad is the
+  worked example (round 6 handoff note).
+- **Which sections for which task:**
+  - any change: "Child wellbeing rules", "UX rules", "Working rules".
+  - new recipe or step type: "Recipes are data", "Asset contract", Handoff notes 0000 (salad) and 000 (part B).
+  - layout / positions: "Landscape layout", Handoff notes 2; tuning after watching her play: `core/tuning.ts` only.
+  - voice or sound: "Asset contract" (levels), "Recipes are data" (voice lines per event, the queue rules).
+  - testing: "Testing notes for agents", Handoff notes 1 (harness) and 5 (Phaser pitfalls).
+  - deploying: "Deployment" (every push needs the owner's explicit approval for that round).
+
 ## What this is
 A private cooking game for a 5-year-old girl. She plays mainly on an Android phone (20:9) held
 sideways (landscape, locked), sometimes on a tablet. It is not for any app store. The owner is not
@@ -12,7 +34,9 @@ The screen stays text-free (see the UX rules). Commit messages stay in Hebrew: t
 **The idea: cooking with Mom.** Mom stands at the counter for the whole recipe, shows every move with her hand,
 and talks in a warm, encouraging English voice. Pipa the hedgehog is the kitchen pet; she tastes the pizza at the end.
 
-Current content: one recipe (pizza), start to finish, with the style-B paper cut-out art, Mom's voice, music and
+Current content: two recipes. The salad (round 6): wash hands, wash the vegetables, tear the lettuce, choose three
+vegetables, cut each, put everything in the bowl, squeeze the lemon, oil, salt, mix, serve Mom and Pipa, the photo.
+The pizza, start to finish, with the style-B paper cut-out art, Mom's voice, music and
 sounds, in landscape: wash hands, knead, roll, crush the tomatoes, stir the sauce, spread it, grate the cheese,
 sprinkle it, choose three toppings, prepare each (cut a vegetable; open a can or a jar and pour it), decorate, bake
 (drag it in, set the oven to 200, start it, put on the mitts, take it out), share it between Mom and Pipa, and the
@@ -189,6 +213,7 @@ src/scenes/
 A recipe is `{ id, card, board, character, steps: StepDef[] }`. Each step names a reusable type and its params.
 Step types: `wash`, `knead`, `crush`, `stir`, `grate`, `roll`, `spread`, `sprinkle`, `choose`, `chop`, `open-pour`,
 `decorate`, `bake`, `share`, `photo` (and `feed`, the older single-eater ending with its own finale, no longer used).
+The salad (`salad.ts`) is the second worked example: see Handoff notes 0000.
 The pizza: wash, knead, roll, crush, stir, spread, grate, sprinkle, choose, then the prep step of each of the three
 chosen toppings in the order she picked them (chop, or open-pour), decorate, bake (with the panel and the mitts),
 share, photo (the finale). The run's step list is live: a `choose` step puts its picks' `prep` steps right after
@@ -314,7 +339,7 @@ fallback if the capture fails.
 ## Asset contract (another agent produces the art and sounds)
 - Images: `public/assets/images/<key>.svg` (the source) and, pre-rendered, `public/assets/images/webp/<key>.webp`.
   Sounds: `public/assets/sounds/{voice,music,sfx}/<key>.ogg` (and/or `.mp3`; the key is the file name).
-- Image keys (109), all delivered and all loaded (`NOT_LOADED` is empty since part B) (style B, from `../cooking-game-assets/images-b` and, since round 5,
+- Image keys (142: the 109 below and the salad's 33, see `assets.ts` and README-salad.md), all delivered and all loaded (`NOT_LOADED` is empty since part B) (style B, from `../cooking-game-assets/images-b` and, since round 5,
   `../cooking-game-assets/images-b-prep`; see their README-mom.md / README-prep.md, CRITIQUE.md and the scene
   composers `scenes.js` / `scenes-prep.js`, the reference for positions and scales):
   bg-kitchen-landscape, dough-ball, dough-flat, rolling-pin, sauce-bowl, sauce-blob, cheese-shaker, cheese-shred,
@@ -336,9 +361,11 @@ fallback if the capture fails.
   mitt-single, oven-mitts, oven-panel, oven-needle, oven-start-off/on, temp-glow, photo-frame,
   veg-tomato/mushroom/pepper/onion-whole / -slice / -inside. (`NOT_LOADED` in assets.ts is the place for art that is
   delivered before a step uses it: baked and precached, but not loaded.)
-- Sound keys: effects (`sfx/`, 22): tap, pop, squish, sprinkle, whoosh, oven-ding, munch, cheer, cheer-jingle,
+- Sound keys: effects (`sfx/`, 27; the salad added tear, squeeze, drizzle, salt, crunch; levels tear 1.0, squeeze and
+  drizzle 0.8, per MIXING.md): tap, pop, squish, sprinkle, whoosh, oven-ding, munch, cheer, cheer-jingle,
   star, complete (not used yet), bake (loop), water (loop), bubbles, grate, and for part B chop, can-open, jar-open,
-  pour, camera, click, beep. Voice (63, `voice/`, English): vo-welcome (no longer used: the title says vo-hello),
+  pour, camera, click, beep. Voice (89, `voice/`, English; the salad's 16 lines and 10 `name-*` are listed in
+  ASSET-LICENSES.md): vo-welcome (no longer used: the title says vo-hello),
   vo-hello, vo-what-make, vo-pick-pizza, vo-watch-me, vo-your-turn, vo-wash, vo-wash-rub, vo-wash-done, vo-knead,
   vo-roll, vo-crush, vo-stir, vo-sauce, vo-grate, vo-cheese, vo-toppings, vo-done-hint, vo-oven, vo-baking, vo-ready,
   vo-feed, vo-help, vo-praise-1..7, vo-finale, vo-bye; for part B vo-choose, vo-cut, vo-cut-careful, vo-open-can,
@@ -401,7 +428,8 @@ fallback if the capture fails.
 - Rollback points: tags `rollback-start` (first commit), `rollback-pre-assets` (before the real assets),
   `rollback-pre-landscape` (end of round 1, portrait), `v0.2-landscape` (end of round 2, landscape),
   `rollback-pre-mom` (master before round 4, the Mom round), `v0.3-mom` (end of round 4), `rollback-pre-prep`
-  (master before round 5, the prep steps), `rollback-pre-prep-b` (round-5-prep-a before part B).
+  (master before round 5, the prep steps), `rollback-pre-prep-b` (round-5-prep-a before part B), `v0.4-pizza-full`
+  (the full pizza), `rollback-pre-salad` (master before round 6), `v0.5-salad` (with the salad).
 - Temporary files go in `.tmp/` inside this folder (git-ignored), never outside it.
 - This computer's memory is limited: one automated browser only, no parallel runs, no heavy sub-agents, and at least
   2 GB free before running the harness.
@@ -472,7 +500,42 @@ fallback if the capture fails.
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; round 5 on top, rounds 2-4 below still hold)
+## Handoff notes (written for the next agent; round 6 on top, rounds 2-5 below still hold)
+
+### 0000. Round 6 (the salad, the second recipe)
+State: `v0.4-pizza-full` = the full pizza on master; `rollback-pre-salad` = master before the salad; branch
+`round-6-salad` merged and tagged `v0.5-salad`. Screenshots (git-ignored): `docs/screenshots-round6/` (`__tour6(w, h,
+tag)`), to compare with `../cooking-game-assets/images-b-salad/shots/`.
+- **The salad is data on the old step types** (`src/recipes/salad.ts`): wash (hands, the pizza's own step) · wash
+  `target: 'basket'` (the colander; rubbing throws `water-drop`s and makes the vegetables shine) · knead (`board:
+  'cutting-board'`, the lettuce's four states, `handoff: 'bin:lettuce'` + `park`: it waits like a filled bin) · choose
+  (5 vegetables, `name` on each option: Mom says the name, a newer name may cut the name playing, group 'name'; the
+  pizza's options got names too; cutting still counts) · chop per pick (cucumber and carrot profiles in `vegArt.ts`) ·
+  open-pour `kind: 'open'` + `sources` + `keep.fills` (drag the lettuce and each bin over the salad bowl; each pours
+  `TUNING.salad.transfer.ms`; the contents rise salad-heap-1..3) · crush `place: 'over-bowl'` (the lemon held tilted
+  over the bowl, `juice-drop`s) · open-pour `kind: 'open'` + `keep` (the oil bottle, `oil-drop`, drizzle) · sprinkle
+  `into: 'bowl'` + `holes` (salt grains drawn in code, a shake counts one) · stir `keep` + `toolAnchor` (the servers,
+  heap-3 -> salad-mixed) · share `portions` (4 portions dragged to the serving bowls in front of Mom and Pipa; crunch)
+  · photo `bowl` (the mixed bowl in `photo-frame-salad`). The recipe has `board: null` (an invisible board).
+- **The big bowl across steps:** `PrepBowl` knows two bowls by their back layer (`BOWLS`): the prep bowl in the middle
+  (`stage.prepBowl`) and the salad bowl on the right of the prep area (`stage.saladBowl`); `stage.pourFrom` is the room
+  on its left for the things poured in (and the salt shaker's rest). Each salad step `take`s it and `keep`s it.
+- **Home:** `stage.card(i, n)` / `cardScale(n)`: one row up to 3 cards, else two rows (up to 8), left of Mom and Pipa.
+  `Recipe.pickLine` is said on the tap. Demo counters stay per recipe (`cooking.runs.<id>`).
+- **Checked (virtual clock, simulated voice):** full salad at the child model's pace with demos (cucumber, carrot,
+  tomato): 190 s from the card to home, voice in order, no overlap, no forbidden cut, vo-cut-careful once. Pizza
+  regression run: see the round's report. Layout audit (`__auditRun6`) at 20:9 (two pick sets) and 4:3: clean except
+  Mom's known finale sway. Rotate and background (`__robust6`) mid-pour and mid-serve: dropped gently, resumed, home.
+- **Found and fixed:** the colander's touch area reached the tap (it now starts at the vegetables); the first salt
+  shake's grains started at the shaker's rest; the parked lettuce was tiny; the portions were crowded over the bowl
+  (now a row on the counter, two rows where it is narrow); a waiting bin's touch margin touched the thumb strip at 4:3.
+- **Needs a real finger:** tearing (taps on the lettuce), rubbing the colander, dragging four things over the bowl
+  (1.3 s each), holding the oil bottle (1.8 s), the salt shakes (taps over the bowl), mixing with the servers,
+  dragging a portion to a serving bowl (at 4:3 the two bowls are close), and whether the names ("Cucumber!") help.
+- **Open task: when the precache passes 15 MB, switch to caching per recipe** (precache the shared art and the title;
+  each recipe's own art and voice in a runtime cache filled when its card is first tapped). It is 11.5 MB (267 files) now.
+- **Length:** the child model gives 3.2 min; a real child is slower (the pizza's model said 3.8 for a 6-8 min aim).
+  If the real salad runs short or long, the knobs are in `TUNING.salad`.
 
 ### 000. Round 5, part B (choose, cut, open and pour, the oven panel, mitts, sharing, the photo)
 State: branch `round-5-prep-b` (from `round-5-prep-a` at tag `rollback-pre-prep-b`), not merged, not pushed. Commits:

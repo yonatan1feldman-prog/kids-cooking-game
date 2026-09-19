@@ -141,6 +141,46 @@ export const IMAGES = {
   'veg-onion-whole': { size: [672, 504] },
   'veg-onion-slice': { size: [240, 240] },
   'veg-onion-inside': { size: [60, 327] },
+  // ---- The salad (round 6, ../cooking-game-assets/images-b-salad, README-salad.md). Anchors: ART.salad.
+  'card-salad': { size: [400, 520] },
+  /** Wash the vegetables: the colander with them in it, in the sink; drops fly off while she rubs. */
+  colander: { size: [820, 560] },
+  'water-drop': { size: [120, 160] },
+  /** Tear the lettuce: one frame for the four states (head, then torn more and more). */
+  'lettuce-head': { size: [640, 560] },
+  'lettuce-tear-1': { size: [640, 560] },
+  'lettuce-tear-2': { size: [640, 560] },
+  'lettuce-tear-3': { size: [640, 560] },
+  /** The cut vegetables of the salad (the same spec as the prep vegetables), and the pieces in the bowl (topping frame). */
+  'veg-cucumber-whole': { size: [672, 504] },
+  'veg-cucumber-slice': { size: [240, 240] },
+  'veg-cucumber-inside': { size: [60, 168] },
+  'veg-carrot-whole': { size: [672, 504] },
+  'veg-carrot-slice': { size: [240, 240] },
+  'veg-carrot-inside': { size: [60, 159] },
+  'piece-cucumber': { size: [140, 140] },
+  'piece-carrot': { size: [140, 140] },
+  'piece-lettuce': { size: [140, 140] },
+  /** The salad bowl: back, contents (the heaps as it fills, then mixed), front, all at one position. */
+  'salad-bowl-back': { size: [900, 620] },
+  'salad-bowl-front': { size: [900, 620] },
+  'salad-heap-1': { size: [900, 620] },
+  'salad-heap-2': { size: [900, 620] },
+  'salad-heap-3': { size: [900, 620] },
+  'salad-mixed': { size: [900, 620] },
+  /** Dressing: the lemon squeezed out in three states, the oil bottle, the salt shaker, the falling drops. */
+  'lemon-half-1': { size: [520, 520] },
+  'lemon-half-2': { size: [520, 520] },
+  'lemon-half-3': { size: [520, 520] },
+  'juice-drop': { size: [120, 160] },
+  'oil-bottle': { size: [300, 640] },
+  'oil-drop': { size: [120, 160] },
+  'salt-shaker': { size: [260, 400] },
+  /** Mix and serve: the salad servers, the serving bowls, a portion on the spoon. The salad's photo frame. */
+  'salad-servers': { size: [440, 640] },
+  'serving-bowl': { size: [480, 320] },
+  'salad-portion': { size: [360, 280] },
+  'photo-frame-salad': { size: [700, 780] },
 } as const satisfies Record<string, { size: readonly [number, number]; raster?: number }>;
 
 /** Texture size of an image: its native size, times its `raster` factor if it is shown bigger than native. */
@@ -167,6 +207,8 @@ export const SOUND_KEYS = [
   'tap', 'pop', 'squish', 'sprinkle', 'whoosh', 'oven-ding', 'munch', 'cheer', 'cheer-jingle', 'star', 'complete',
   // prep steps (round 5); water is a loop (audio.ts `waterLoop`), not an effect
   'bubbles', 'grate', 'chop', 'can-open', 'jar-open', 'pour', 'camera', 'click', 'beep',
+  // the salad (round 6)
+  'tear', 'squeeze', 'drizzle', 'salt', 'crunch',
 ] as const;
 export type SoundKey = (typeof SOUND_KEYS)[number];
 
@@ -226,6 +268,25 @@ export const ART = {
     jarTop: { x: 170, y: 55 },
     /** Part B: the knife's blade tip (it follows the finger). Mom's knife and mitt hands: ART.momHands. The veg: core/vegArt.ts. */
     knifeTip: { x: 118, y: 618 },
+  },
+  /** The salad's art geometry (README-salad.md, scenes-salad.js `SALAD`). */
+  salad: {
+    /** salad-bowl-* and salad-heap-* / salad-mixed (900x620): the opening (the pieces go inside it). */
+    bowlOpening: { x: 450, y: 218, rx: 388, ry: 100 },
+    /** serving-bowl (480x320): its opening; a full bowl = salad-mixed at rx 196 / 388 of its scale, opening on opening. */
+    servingOpening: { x: 240, y: 122, rx: 196, ry: 50 },
+    /** colander (820x560): drawn at 0.86 / 1.1 of the sink, 40 right of and 20 below its centre; the lettuce under the stream. */
+    colander: { scale: 0.86 / 1.1, dx: 40, dy: 20, top: 120, halfW: 250 },
+    oilSpout: { x: 150, y: 30 },
+    saltHoles: { x: 130, y: 70 },
+    /** salad-servers: between the two heads (it follows the finger). */
+    servers: { x: 220, y: 500 },
+    /** salad-portion: the heap on the spoon. */
+    portion: { x: 160, y: 146 },
+    /** lemon-half-*: the cut face; drops fall from the lower rim. */
+    lemonFace: { x: 260, y: 226 },
+    /** A falling drop (juice, oil, water): its round bottom. */
+    drop: { x: 60, y: 106 },
   },
 } as const;
 

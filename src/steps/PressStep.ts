@@ -1,11 +1,17 @@
 import Phaser from 'phaser';
+import { ART } from '../core/assets';
 import { boing, burst, puff } from '../core/fx';
 import type { HandMotion } from '../core/hand';
 import { sfx } from '../core/sfx';
 import { TUNING } from '../core/tuning';
 import type { PressParams } from '../recipes/types';
-import { PrepBowl } from './PrepBowl';
+import { BOWL_DEPTH, PrepBowl } from './PrepBowl';
 import { Step } from './Step';
+import { binsWaiting, parkBin } from './ToppingBin';
+
+/** Over the bowl: how the food is held (tilted, drops falling from its lower rim), x k. */
+const OVER_ANGLE = 24;
+const OVER_SIZE = 0.62;
 
 /** Code-drawn stand-in for a missing dent image: a soft shadow ellipse. */
 const DENT_FALLBACK = 'press-dent-drawn';
@@ -22,11 +28,16 @@ const PRESS_PAD = 70;
  * `place: 'board'`: the food sits on the board in the middle (the board is otherwise empty).
  * `place: 'bowl'`: the food is inside the big prep bowl in the middle, between its back and front layers;
  * the pizza waits small in the left column, and the bowl stays for the next step (stir).
+ * `board`: the food lies on its own board where the cutting board stands (tearing the lettuce); `park` sends the result
+ * to wait in the left column like a filled bin. `place: 'over-bowl'`: the food is held tilted over the bowl the step
+ * before left and every press lets `drop`s fall into it (squeezing a lemon over the salad).
  */
 export class PressStep extends Step<PressParams> {
   private food!: Phaser.GameObjects.Image;
   private next?: Phaser.GameObjects.Image;
   private bowl?: PrepBowl;
+  /** 'over-bowl': the food is held over the bowl (not in it). */
+  private over = false;
   private stage = 0;
   private presses = 0;
   private busy = false;
@@ -39,13 +50,33 @@ export class PressStep extends Step<PressParams> {
     const S = this.ctx.stage;
     this.k = this.layout.k;
     const first = this.params.stages[0];
-    if (this.params.place === 'bowl') {
+    if (this.params.place === 'over-bowl') {
+      // Held tilted over the bowl the step before left (its contents stay); drops fall into it on every press.
+      this.workspace('none');
+      this.bowl = PrepBowl.take(this.ctx) ?? new PrepBowl(this.ctx, this.params.bowl!, null);
+      this.over = true;
+      const o = this.bowl.opening();
+      this.scale = OVER_SIZE * this.k;
+      this.at = { x: o.x - 60 * this.k, y: o.y - 230 * this.k };
+      this.food = this.own(this.scene.add.image(this.at.x, this.at.y, first).setScale(0).setAngle(OVER_ANGLE).setDepth(BOWL_DEPTH.front + 0.5));
+      this.squashTween = this.scene.tweens.add({ targets: this.food, scale: this.scale, duration: 450, ease: 'Back.easeOut' });
+    } else if (this.params.place === 'bowl') {
       this.workspace('aside');
       this.bowl = PrepBowl.take(this.ctx) ?? new PrepBowl(this.ctx, this.params.bowl!, first);
       this.bowl.setContents(first);
       this.food = this.bowl.contents;
       this.at = { x: S.prepBowl.x, y: S.prepBowl.y };
       this.scale = S.prepBowl.scale;
+    } else if (this.params.board) {
+      // On its own board (the lettuce on the cutting board), where the cutting board stands (the art agent's tear scene).
+      this.workspace('none');
+      const b = S.cutBoard;
+      const u = b.scale / 1.05;
+      this.own(this.scene.add.image(b.x, b.y, this.params.board).setScale(b.scale).setDepth(1.5));
+      this.at = { x: b.x - 20 * u, y: b.y - 140 * u };
+      this.scale = (this.params.size ?? 1.2) * u;
+      this.food = this.own(this.scene.add.image(this.at.x, this.at.y, first).setScale(0).setDepth(2));
+      this.squashTween = this.scene.tweens.add({ targets: this.food, scale: this.scale, duration: 450, ease: 'Back.easeOut' });
     } else {
       this.workspace('dish');
       this.at = { x: S.kneadDough.x, y: S.kneadDough.y };
@@ -71,19 +102,49 @@ export class PressStep extends Step<PressParams> {
 
   /** Padded on three sides; below, it stops at the drawing (the palm strip is close under the bowl). */
   pressArea() {
-    const b = this.bowl ? this.bowl.bounds() : this.food.getBounds();
+    const b = this.bowl && !this.over ? this.bowl.bounds() : this.food.getBounds();
     const pad = PRESS_PAD * this.k;
     return { x0: b.x - pad, y0: b.y - pad, x1: b.right + pad, y1: b.bottom + 10 * this.k };
   }
 
   /** Where a dent can show: on the food (in the bowl: inside its opening, above the front wall). */
   private dentPoint(x: number, y: number) {
+    if (this.over) return this.dripPoint();
     if (this.bowl) return this.bowl.clampToOpening(x, y, 0.8);
     const b = this.food.getBounds();
     return { x: Phaser.Math.Clamp(x, b.x + b.width * 0.2, b.right - b.width * 0.2), y: Phaser.Math.Clamp(y, b.y + b.height * 0.3, b.bottom - b.height * 0.2) };
   }
 
+  /** Over the bowl: the food's lower rim, where the drops fall from (turned with it). */
+  private dripPoint() {
+    const f = ART.salad.lemonFace;
+    const w = this.food.frame.realWidth;
+    const h = this.food.frame.realHeight;
+    const v = new Phaser.Math.Vector2((f.x - w / 2) * this.scale, (f.y + 120 - h / 2) * this.scale).rotate(Phaser.Math.DegToRad(this.food.angle));
+    return { x: this.food.x + v.x, y: this.food.y + v.y };
+  }
+
+  /** Over the bowl: a few drops fall from the food into the bowl and melt in. */
+  private drip(n: number) {
+    const key = this.params.drop;
+    if (!key || !this.bowl) return;
+    const from = this.dripPoint();
+    const o = this.bowl.opening();
+    for (let i = 0; i < n; i++) {
+      const d = this.scene.add.image(from.x + Phaser.Math.Between(-25, 25) * this.k, from.y, key).setScale(0.36 * this.k).setDepth(BOWL_DEPTH.front + 0.4);
+      this.scene.tweens.add({
+        targets: d,
+        y: o.y + Phaser.Math.FloatBetween(-0.2, 0.4) * o.ry,
+        duration: Phaser.Math.Between(320, 460),
+        delay: i * 90,
+        ease: 'Quad.easeIn',
+        onComplete: () => this.scene.tweens.add({ targets: d, alpha: 0, scale: 0.2 * this.k, duration: 140, onComplete: () => d.destroy() }),
+      });
+    }
+  }
+
   private ensureDentTexture() {
+    if (!this.params.dent) return;
     if (this.scene.textures.exists(this.params.dent) || this.scene.textures.exists(DENT_FALLBACK)) return;
     const g = this.scene.make.graphics({}, false);
     for (let i = 6; i >= 1; i--) g.fillStyle(0x5b3a29, 0.07).fillEllipse(130, 70, 40 + i * 36, 20 + i * 18);
@@ -92,7 +153,8 @@ export class PressStep extends Step<PressParams> {
   }
 
   private get dentKey() {
-    return this.scene.textures.exists(this.params.dent) ? this.params.dent : DENT_FALLBACK;
+    const dent = this.params.dent;
+    return dent && this.scene.textures.exists(dent) ? dent : DENT_FALLBACK;
   }
 
   /** One press: squash and spring back, a dent, bits flying, a squish; every few presses the next state. */
@@ -101,9 +163,10 @@ export class PressStep extends Step<PressParams> {
     this.hit();
     this.squash();
     const d = this.dentPoint(x, y);
-    this.showDent(d.x, d.y);
+    if (this.params.dent) this.showDent(d.x, d.y);
     sfx(this.scene, this.params.sound, { minGapMs: 90 });
-    if (this.bowl) burst(this.scene, d.x, d.y, { tint: this.params.splash, count: 6, size: 20 * this.k, speed: 380 * this.k, gravityY: 1100, lifespan: 600, depth: 8 });
+    if (this.over) this.drip(3);
+    else if (this.bowl) burst(this.scene, d.x, d.y, { tint: this.params.splash, count: 6, size: 20 * this.k, speed: 380 * this.k, gravityY: 1100, lifespan: 600, depth: 8 });
     else puff(this.scene, d.x, d.y + 20 * this.k, this.params.splash, 3, 70 * this.k);
     this.presses++;
     if (this.presses >= this.params.pressesPerStage) {
@@ -135,10 +198,10 @@ export class PressStep extends Step<PressParams> {
     if (this.stage >= stages.length - 1) return;
     this.stage++;
     const key = stages[this.stage];
-    if (this.bowl) this.bowl.crossfade(key, 260);
+    if (this.bowl && !this.over) this.bowl.crossfade(key, 260);
     else {
       this.next?.destroy();
-      const n = this.scene.add.image(this.food.x, this.food.y, key).setScale(this.scale).setDepth(2).setAlpha(0);
+      const n = this.scene.add.image(this.food.x, this.food.y, key).setScale(this.scale).setAngle(this.food.angle).setDepth(this.food.depth).setAlpha(0);
       this.next = n;
       this.scene.tweens.add({
         targets: n,
@@ -152,7 +215,8 @@ export class PressStep extends Step<PressParams> {
         },
       });
     }
-    boing(this.scene, this.bowl ? this.bowl.front : this.food, 0.06);
+    boing(this.scene, this.bowl && !this.over ? this.bowl.front : this.food, 0.06);
+    if (this.over) this.drip(5);
     puff(this.scene, this.at.x, this.at.y, this.params.splash === 0xfff6e6 ? 0xfff6e6 : 0xffffff, 6, 110 * this.k);
     if (this.stage >= stages.length - 1) this.finish();
   }
@@ -162,10 +226,24 @@ export class PressStep extends Step<PressParams> {
     this.setIdle(false);
     this.hand.stop();
     this.scene.time.delayedCall(420, () => {
+      if (this.over) {
+        // The squeezed-out food goes; the bowl stays for the next step.
+        this.bowl!.keep();
+        return this.complete();
+      }
       if (this.bowl) {
         // The bowl stays in the middle for the next step (stir).
         this.bowl.keep();
         return this.complete();
+      }
+      // The result waits in the left column (or off screen) for a later step, like a filled bin.
+      if (this.params.handoff && this.params.park) {
+        const food = this.food;
+        const index = binsWaiting(this.ctx);
+        this.handOff(this.params.handoff, food);
+        food.setDepth(20);
+        // (sized like a full bin: the drawing has wide empty margins)
+        return parkBin(this.ctx, food, index, () => this.complete(), (1.6 * 240) / food.frame.realWidth);
       }
       // The result is left for the next step (e.g. the dough ball for rolling), shrinking to its size there.
       if (this.params.handoff) {
@@ -186,7 +264,7 @@ export class PressStep extends Step<PressParams> {
       [-0.02, 0.08],
     ];
     const [sx, sy] = spots[i % spots.length];
-    const b = this.bowl ? this.bowl.opening() : { x: this.at.x, y: this.at.y - 40 * this.k, rx: 180 * this.k, ry: 110 * this.k };
+    const b = this.bowl && !this.over ? this.bowl.opening() : { x: this.at.x, y: this.at.y - 40 * this.k, rx: 180 * this.k, ry: 110 * this.k };
     return { x: b.x + sx * b.rx * 2, y: b.y + sy * b.ry * 2 };
   }
 
@@ -206,7 +284,8 @@ export class PressStep extends Step<PressParams> {
     keys.unshift({ ...keys[0], t: 0 });
     keys.push({ ...keys[keys.length - 1], t: keys[keys.length - 1].t + 250 });
     // (The dent is drawn centred on its hollow: ART.prep.dentCentre is the middle of its frame, less 4.)
-    return { kind: 'press', keys, mark: { key: this.dentKey, scale: 1.3 * k }, glow: this.bowl ? this.bowl.opening() : this.at };
+    const mark = this.params.dent ? { key: this.dentKey, scale: 1.3 * k } : undefined;
+    return { kind: 'press', keys, mark, glow: this.bowl && !this.over ? this.bowl.opening() : this.at };
   }
 
   protected demo(): HandMotion {

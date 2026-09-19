@@ -6,9 +6,9 @@ import { tapMotion, type HandMotion } from '../core/hand';
 import { sfx } from '../core/sfx';
 import { TUNING } from '../core/tuning';
 import type { OpenPourParams } from '../recipes/types';
-import { BOWL_DEPTH } from './PrepBowl';
+import { BOWL_DEPTH, PrepBowl } from './PrepBowl';
 import { Step } from './Step';
-import { binKey, binsWaiting, fillBin, makeBin, parkBin } from './ToppingBin';
+import { binIcon, binKey, binsWaiting, fillBin, makeBin, parkBin } from './ToppingBin';
 
 type Phase = 'open' | 'pour' | 'done';
 
@@ -19,6 +19,20 @@ const MAX_IN_BOWL = 26;
 /** A piece in the bowl, and one in the air (x k). */
 const PIECE = 0.55;
 const FALLING = 0.45;
+/** A bin's mouth (its opening, in the 240x240 topping-bin frame). */
+const BIN_MOUTH = { x: 120, y: 70 };
+
+/** One thing to pour: the can or jar, the oil bottle, a filled bin, the torn lettuce. */
+interface Source {
+  img: Phaser.GameObjects.Image;
+  piece: ImageKey;
+  /** Its mouth in its own frame, and how far it tips over the bowl. */
+  mouth: { x: number; y: number };
+  tilt: number;
+  rest: { x: number; y: number };
+  poured: number;
+  done: boolean;
+}
 
 /**
  * Open and pour (reusable: a can of corn, a jar of olives, a bag of flour, a carton of milk...). Two phases:
@@ -29,11 +43,17 @@ const FALLING = 0.45;
  *   the bowl, between the bowl's back and front layers, with the pour sound, for as long as she holds it there
  *   (TUNING.pour.ms in total; moving away stops it, coming back goes on). Let go anywhere: it goes back upright.
  * Then the contents go into the topping's bin, which waits for decorating.
+ * `kind: 'open'` has only the pouring (an oil bottle). With `keep` the bowl is the big one that stays across steps (the
+ * salad bowl) and its contents rise through `fills`; with `sources` several things wait on its left (the filled bins
+ * and the torn lettuce) and each is poured in, in any order.
  */
 export class OpenPourStep extends Step<OpenPourParams> {
-  private box!: Phaser.GameObjects.Image;
+  private sources: Source[] = [];
+  /** The source being opened, held or poured. */
+  private cur!: Source;
   private back!: Phaser.GameObjects.Image;
   private front!: Phaser.GameObjects.Image;
+  private bowl?: PrepBowl;
   private lid?: Phaser.GameObjects.Image;
   private phase: Phase = 'open';
   private taps = 0;
@@ -43,30 +63,48 @@ export class OpenPourStep extends Step<OpenPourParams> {
   private start0 = { x: 0, y: 0 };
   private last = { x: 0, y: 0 };
   private over = false;
-  private poured = 0;
   private sinceDrop = 0;
   private inBowl: Phaser.GameObjects.Image[] = [];
   private helping = false;
   private k = 1;
 
+  /** The can or jar (the first source). */
+  private get box() {
+    return this.cur.img;
+  }
+
   start() {
     const p = this.params;
-    this.stepLine = p.openLine;
+    const opening = p.kind !== 'open';
+    this.stepLine = opening ? p.openLine! : p.pourLine;
     const S = this.ctx.stage;
     const k = (this.k = this.layout.k);
-    this.workspace(S.prepWide ? 'aside' : 'none');
-    const b = S.pourBowl;
-    this.back = this.own(this.scene.add.image(b.x, b.y, p.bowl.back).setScale(b.scale).setDepth(BOWL_DEPTH.back));
-    this.front = this.own(this.scene.add.image(b.x, b.y, p.bowl.front).setScale(b.scale).setDepth(BOWL_DEPTH.front));
-    const r = S.pourRest;
-    this.box = this.own(this.scene.add.image(r.x, r.y, p.closed).setScale(r.scale).setDepth(6));
-    for (const o of [this.back, this.front, this.box]) {
+    if (p.keep) {
+      // The big bowl the step before left (or a new, empty one).
+      this.workspace('none');
+      this.bowl = PrepBowl.take(this.ctx) ?? new PrepBowl(this.ctx, p.bowl, null);
+      this.back = this.bowl.back;
+      this.front = this.bowl.front;
+    } else {
+      this.workspace(S.prepWide ? 'aside' : 'none');
+      const b = S.pourBowl;
+      this.back = this.own(this.scene.add.image(b.x, b.y, p.bowl.back).setScale(b.scale).setDepth(BOWL_DEPTH.back));
+      this.front = this.own(this.scene.add.image(b.x, b.y, p.bowl.front).setScale(b.scale).setDepth(BOWL_DEPTH.front));
+    }
+    this.buildSources();
+    this.cur = this.sources[0];
+    this.phase = opening ? 'open' : 'pour';
+    const entering = [...(p.keep ? [] : [this.back, this.front]), ...this.sources.filter((s) => !s.img.getData('adopted')).map((s) => s.img)];
+    for (const o of entering) {
       o.setAlpha(0).setY(o.y + 100 * k);
       this.scene.tweens.add({ targets: o, alpha: 1, y: o.y - 100 * k, duration: 450, ease: 'Back.easeOut' });
     }
 
     this.onDown((q) => {
-      if (this.phase === 'done' || !this.onBox(q.worldX, q.worldY)) return;
+      if (this.phase === 'done') return;
+      const s = this.phase === 'open' ? (this.onBox(this.cur, q.worldX, q.worldY) ? this.cur : null) : this.sourceAt(q.worldX, q.worldY);
+      if (!s) return;
+      this.cur = s;
       this.held = true;
       this.start0 = this.last = { x: q.worldX, y: q.worldY };
       this.poke();
@@ -108,28 +146,112 @@ export class OpenPourStep extends Step<OpenPourParams> {
     this.setIdle(true);
   }
 
+  /** The things to pour, standing left of the bowl: the can or jar (or bottle), or what the steps before left. */
+  private buildSources() {
+    const p = this.params;
+    const S = this.ctx.stage;
+    if (!p.sources) {
+      const r = S.pourRest;
+      const kindTop = p.kind === 'jar' ? ART.prep.jarTop : ART.prep.canTop;
+      const spot = this.restSpots(1)[0];
+      const at = p.keep ? spot : r;
+      const scale = p.keep ? this.fitScale(p.closed, spot.w, spot.h) : r.scale;
+      const img = this.own(this.scene.add.image(at.x, at.y, p.closed).setScale(scale).setDepth(6));
+      this.sources.push({ img, piece: p.piece, mouth: p.mouth ?? kindTop, tilt: p.tilt ?? TILT, rest: { x: at.x, y: at.y }, poured: 0, done: false });
+      return;
+    }
+    const list = p.sources.flatMap((s) =>
+      s === 'chosen' ? this.ctx.run.chosen.map((o) => ({ handoff: binKey(o.topping), image: 'topping-bin' as ImageKey, piece: o.topping, tilt: undefined })) : [s],
+    );
+    const spots = this.restSpots(list.length);
+    list.forEach((s, i) => {
+      const at = spots[i];
+      const isBin = s.handoff.startsWith('bin:') && s.image === 'topping-bin';
+      const scale = this.fitScale(s.image, at.w, at.h);
+      let img = this.adopt(s.handoff);
+      if (img) {
+        img.setData('adopted', true);
+        const icon = binIcon(img);
+        img.setVisible(true);
+        icon?.setVisible(true);
+        this.scene.tweens.killTweensOf([img, icon].filter((o) => !!o));
+        this.scene.tweens.add({ targets: img, x: at.x, y: at.y, scale, duration: 550, ease: 'Sine.easeInOut' });
+        img.setData({ restScaleX: scale, restScaleY: scale });
+      } else {
+        // (nothing was left for it, e.g. a dev jump straight to this step: a fresh one)
+        img = this.own(isBin ? makeBin(this.scene, s.image, s.piece, at.x, at.y, scale) : this.scene.add.image(at.x, at.y, s.image).setScale(scale));
+      }
+      img.setDepth(6);
+      binIcon(img)?.setDepth(6.1);
+      const mouth = isBin ? BIN_MOUTH : { x: IMAGES[s.image].size[0] / 2, y: IMAGES[s.image].size[1] * 0.4 };
+      this.sources.push({ img, piece: s.piece, mouth, tilt: s.tilt ?? (isBin ? TILT : 0), rest: { x: at.x, y: at.y }, poured: 0, done: false });
+    });
+  }
+
+  /** Spots for n things in `stage.pourFrom` (two columns from three on), each with its room. */
+  private restSpots(n: number) {
+    const a = this.ctx.stage.pourFrom;
+    const cols = n > 2 ? 2 : 1;
+    const rows = Math.ceil(n / cols);
+    const w = (a.x1 - a.x0) / cols;
+    const h = (a.y1 - a.y0) / rows;
+    return Array.from({ length: n }, (_, i) => ({ x: a.x0 + w * ((i % cols) + 0.5), y: a.y0 + h * (Math.floor(i / cols) + 0.5), w, h }));
+  }
+
+  /** As big as its room allows (with air), at most 0.8 (the size the bins are made at). */
+  private fitScale(key: ImageKey, w: number, h: number) {
+    const [iw, ih] = IMAGES[key].size;
+    return Math.min(0.8 * this.k, (w * 0.82) / iw, (h * 0.82) / ih);
+  }
+
   update(delta: number) {
     super.update(delta);
+    for (const s of this.sources) this.syncIcon(s.img);
     if (this.phase !== 'pour' || !this.over) return;
-    this.poured += delta;
+    const s = this.cur;
+    s.poured += delta;
     this.sinceDrop += delta;
     while (this.sinceDrop > 85) {
       this.sinceDrop -= 85;
       this.dropPiece();
     }
     if (!this.helping) this.poke();
-    if (this.poured >= this.params.pourMs) this.pourDone();
+    if (s.poured >= this.params.pourMs) this.sourceDone(s);
+  }
+
+  /** A bin's topping rides on it (turned with it). */
+  private syncIcon(img: Phaser.GameObjects.Image) {
+    const icon = binIcon(img);
+    if (!icon || !img.active) return;
+    const v = new Phaser.Math.Vector2(0, -8 * img.scaleX).rotate(Phaser.Math.DegToRad(img.angle));
+    icon.setPosition(img.x + v.x, img.y + v.y).setAngle(img.angle).setScale(img.scaleX * 1.1, img.scaleY * 1.1).setDepth(img.depth + 0.1).setAlpha(img.alpha);
+  }
+
+  /** A thing to pour under the finger (with a generous margin), the nearest if several. */
+  private sourceAt(x: number, y: number) {
+    let best: Source | null = null;
+    let bestD = Infinity;
+    for (const s of this.sources) {
+      if (s.done || !this.onBox(s, x, y)) continue;
+      const d = Phaser.Math.Distance.Between(x, y, s.img.x, s.img.y);
+      if (d < bestD) {
+        bestD = d;
+        best = s;
+      }
+    }
+    return best;
   }
 
   /** The can or jar, with a generous margin. */
-  private onBox(x: number, y: number) {
-    const b = this.box.getBounds();
+  private onBox(s: Source, x: number, y: number) {
+    const b = s.img.getBounds();
     const pad = 45 * this.k;
     return x > b.x - pad && x < b.right + pad && y > b.y - pad && y < b.bottom + pad;
   }
 
   /** The bowl's opening (an ellipse; the same art as the prep bowl). */
   opening() {
+    if (this.bowl) return this.bowl.opening();
     const o = ART.prep.bowlOpening;
     const [w, h] = IMAGES['prep-bowl-back'].size;
     const s = this.back.scaleX;
@@ -139,6 +261,7 @@ export class OpenPourStep extends Step<OpenPourParams> {
   /** Where the can or jar is held to pour: up and to the left of the bowl's opening (as in the art agent's scene). */
   pourPoint() {
     const o = this.opening();
+    if (this.bowl) return { x: o.x - o.rx * 0.6, y: o.y - 250 * this.k };
     return { x: o.x - o.rx * 0.95, y: o.y - 250 * this.back.scaleX };
   }
 
@@ -146,7 +269,7 @@ export class OpenPourStep extends Step<OpenPourParams> {
   private isOver(x: number, y: number) {
     const o = this.opening();
     const pp = this.pourPoint();
-    const near = Phaser.Math.Distance.Between(x, y, pp.x, pp.y) < 300 * this.back.scaleX;
+    const near = Phaser.Math.Distance.Between(x, y, pp.x, pp.y) < 300 * (this.bowl ? this.k : this.back.scaleX);
     const above = x > o.x - o.rx - 180 * this.k && x < o.x + o.rx && y < o.y + 30 * this.k && y > o.y - 600 * this.k;
     return near || above;
   }
@@ -171,29 +294,31 @@ export class OpenPourStep extends Step<OpenPourParams> {
     this.hand.stop();
     this.box.setAngle(0).setTexture(p.open);
     boing(this.scene, this.box, 0.12);
-    sfx(this.scene, p.sound);
+    if (p.sound) sfx(this.scene, p.sound);
     const top = p.kind === 'can' ? ART.prep.canTop : ART.prep.jarTop;
     const [w, h] = IMAGES[p.closed].size;
     const s = this.box.scaleX;
     const at = { x: this.box.x + (top.x - w / 2) * s, y: this.box.y + (top.y - h / 2) * s };
     burst(this.scene, at.x, at.y, { count: 10, size: 18 * this.k, tint: [0xffffff, 0xffe066], speed: 380 * this.k, gravityY: 500 });
-    this.lid = this.own(this.scene.add.image(at.x, at.y, p.lid).setScale(0.62 * this.k).setDepth(7));
-    const to = this.ctx.stage.lidRest;
-    if (p.kind === 'can') {
-      // It flies up and aside in an arc, spinning, and lands flat on the counter.
-      this.scene.tweens.add({ targets: this.lid, x: to.x, duration: 650, ease: 'Sine.easeOut' });
-      this.scene.tweens.add({ targets: this.lid, y: at.y - 160 * this.k, duration: 280, ease: 'Quad.easeOut', yoyo: false, onComplete: () => this.lid && this.scene.tweens.add({ targets: this.lid, y: to.y, duration: 370, ease: 'Bounce.easeOut' }) });
-      this.scene.tweens.add({ targets: this.lid, angle: 540, duration: 650 });
-    } else {
-      // A little lift, then down beside the jar.
-      this.scene.tweens.add({
-        targets: this.lid,
-        y: at.y - 50 * this.k,
-        angle: -20,
-        duration: 250,
-        ease: 'Quad.easeOut',
-        onComplete: () => this.lid && this.scene.tweens.add({ targets: this.lid, x: to.x, y: to.y, angle: 0, duration: 450, ease: 'Bounce.easeOut' }),
-      });
+    if (p.lid) {
+      this.lid = this.own(this.scene.add.image(at.x, at.y, p.lid).setScale(0.62 * this.k).setDepth(7));
+      const to = this.ctx.stage.lidRest;
+      if (p.kind === 'can') {
+        // It flies up and aside in an arc, spinning, and lands flat on the counter.
+        this.scene.tweens.add({ targets: this.lid, x: to.x, duration: 650, ease: 'Sine.easeOut' });
+        this.scene.tweens.add({ targets: this.lid, y: at.y - 160 * this.k, duration: 280, ease: 'Quad.easeOut', yoyo: false, onComplete: () => this.lid && this.scene.tweens.add({ targets: this.lid, y: to.y, duration: 370, ease: 'Bounce.easeOut' }) });
+        this.scene.tweens.add({ targets: this.lid, angle: 540, duration: 650 });
+      } else {
+        // A little lift, then down beside the jar.
+        this.scene.tweens.add({
+          targets: this.lid,
+          y: at.y - 50 * this.k,
+          angle: -20,
+          duration: 250,
+          ease: 'Quad.easeOut',
+          onComplete: () => this.lid && this.scene.tweens.add({ targets: this.lid, x: to.x, y: to.y, angle: 0, duration: 450, ease: 'Bounce.easeOut' }),
+        });
+      }
     }
     voice.say(p.pourLine, { valid: () => this.phase === 'pour', ttlMs: 4000 });
   }
@@ -202,23 +327,24 @@ export class OpenPourStep extends Step<OpenPourParams> {
     if (on === this.over) return;
     this.over = on;
     const dir = this.box.x < this.opening().x ? 1 : -1;
-    this.scene.tweens.add({ targets: this.box, angle: on ? TILT * dir : 0, duration: on ? 320 : 250, ease: 'Sine.easeInOut' });
+    this.scene.tweens.add({ targets: this.box, angle: on ? this.cur.tilt * dir : 0, duration: on ? 320 : 250, ease: 'Sine.easeInOut' });
   }
 
   private putBack() {
     this.setOver(false);
-    const r = this.ctx.stage.pourRest;
+    const r = this.cur.rest;
     sfx(this.scene, 'whoosh', { volume: 0.35 });
     this.scene.tweens.add({ targets: this.box, x: r.x, y: r.y, angle: 0, duration: 380, ease: 'Sine.easeOut', onComplete: () => this.box.setDepth(6) });
   }
 
   /** The mouth of the tipped can or jar (its top centre, turned with it). */
   private mouth() {
-    const top = this.params.kind === 'can' ? ART.prep.canTop : ART.prep.jarTop;
-    const [w, h] = IMAGES[this.params.open].size;
-    const s = this.box.scaleX;
-    const v = new Phaser.Math.Vector2((top.x - w / 2) * s, (top.y + 20 - h / 2) * s).rotate(Phaser.Math.DegToRad(this.box.angle));
-    return { x: this.box.x + v.x, y: this.box.y + v.y };
+    const s = this.cur;
+    const top = s.mouth;
+    const [w, h] = [s.img.frame.realWidth, s.img.frame.realHeight];
+    const sc = s.img.scaleX;
+    const v = new Phaser.Math.Vector2((top.x - w / 2) * sc, (top.y + 20 - h / 2) * sc).rotate(Phaser.Math.DegToRad(s.img.angle));
+    return { x: s.img.x + v.x, y: s.img.y + v.y };
   }
 
   /** One piece falls from the mouth into the bowl (always into it: nothing is spilled). */
@@ -229,10 +355,11 @@ export class OpenPourStep extends Step<OpenPourParams> {
     const a = Math.random() * Math.PI * 2;
     const rr = Math.sqrt(Math.random()) * 0.75;
     const to = { x: o.x + Math.cos(a) * o.rx * rr, y: o.y + 12 * k + Math.sin(a) * o.ry * rr };
-    const keep = this.inBowl.length < MAX_IN_BOWL;
-    const piece = this.scene.add.image(m.x, m.y, this.params.piece).setScale(FALLING * k).setAngle(Phaser.Math.Between(0, 359)).setDepth(keep ? BOWL_DEPTH.contents : BOWL_DEPTH.contents + 0.01);
+    // (in the kept bowl every piece melts into the contents, which rise instead)
+    const keep = !this.bowl && this.inBowl.length < MAX_IN_BOWL;
+    const piece = this.scene.add.image(m.x, m.y, this.cur.piece).setScale(FALLING * k).setAngle(Phaser.Math.Between(0, 359)).setDepth(keep ? BOWL_DEPTH.contents : BOWL_DEPTH.contents + 0.01);
     if (keep) this.inBowl.push(this.own(piece));
-    sfx(this.scene, 'pour', { minGapMs: 1700, volume: 0.8, vary: false });
+    sfx(this.scene, this.params.pourSound ?? 'pour', { minGapMs: 1700, volume: 0.8, vary: false });
     this.scene.tweens.add({
       targets: piece,
       x: to.x,
@@ -244,6 +371,41 @@ export class OpenPourStep extends Step<OpenPourParams> {
       onComplete: () => {
         if (!keep) this.scene.tweens.add({ targets: piece, alpha: 0, duration: 150, onComplete: () => piece.destroy() });
       },
+    });
+  }
+
+  /** One thing is poured: upright again, back to its place (emptied ones fade); the bowl's contents rise. */
+  private sourceDone(s: Source) {
+    if (s.done) return;
+    if (!this.params.keep) return this.pourDone();
+    s.done = true;
+    this.held = false;
+    this.over = false;
+    this.helping = false;
+    this.hand.stop();
+    this.poke();
+    this.hit();
+    this.scene.tweens.killTweensOf(s.img);
+    this.scene.tweens.add({ targets: s.img, x: s.rest.x, y: s.rest.y, angle: 0, duration: 420, ease: 'Sine.easeInOut' });
+    // (a bottle stays; emptied bins and the lettuce's board fade away)
+    if (this.params.sources) this.scene.tweens.add({ targets: s.img, alpha: 0, delay: 350, duration: 300 });
+    const fills = this.params.keep?.fills ?? [];
+    const done = this.sources.filter((x) => x.done).length;
+    if (fills.length && this.bowl) {
+      const i = Phaser.Math.Clamp(Math.round((done / this.sources.length) * fills.length) - 1, 0, fills.length - 1);
+      if (this.bowl.contents.texture.key !== fills[i] || !this.bowl.contents.visible) this.bowl.crossfade(fills[i], 350);
+      boing(this.scene, this.bowl.front, 0.05);
+      sfx(this.scene, 'pop', { volume: 0.6 });
+    }
+    if (done < this.sources.length) {
+      this.cur = this.sources.find((x) => !x.done)!;
+      return;
+    }
+    this.phase = 'done';
+    this.setIdle(false);
+    this.scene.time.delayedCall(650, () => {
+      this.bowl!.keep();
+      this.complete();
     });
   }
 
@@ -262,7 +424,7 @@ export class OpenPourStep extends Step<OpenPourParams> {
     this.scene.time.delayedCall(700, () => {
       const p = this.params;
       const o = this.opening();
-      const bin = makeBin(this.scene, p.bin, p.topping, o.x, o.y + 260 * this.back.scaleX, 0);
+      const bin = makeBin(this.scene, p.bin!, p.topping!, o.x, o.y + 260 * this.back.scaleX, 0);
       const bs = 0.8 * this.k;
       this.scene.tweens.add({ targets: [bin], scale: bs, duration: 300, ease: 'Back.easeOut' });
       this.scene.tweens.add({ targets: [bin.getData('icon')], scale: bs * 1.1, duration: 300, ease: 'Back.easeOut' });
@@ -270,7 +432,7 @@ export class OpenPourStep extends Step<OpenPourParams> {
       this.inBowl.forEach((q) => q.setDepth(21));
       this.scene.time.delayedCall(320, () =>
         fillBin(this.scene, bin, this.inBowl.splice(0), () => {
-          this.handOff(binKey(p.topping), bin);
+          this.handOff(binKey(p.topping!), bin);
           parkBin(this.ctx, bin, index, () => this.complete());
         }),
       );
@@ -280,11 +442,11 @@ export class OpenPourStep extends Step<OpenPourParams> {
   /** Open: Mom's finger taps the can's lid, or her hand turns the jar's lid. Pour: she carries a see-through copy over the bowl, tipping it. */
   protected demo(): HandMotion | null {
     const k = this.k;
-    const top = this.params.kind === 'can' ? ART.prep.canTop : ART.prep.jarTop;
-    const [w, h] = IMAGES[this.params.closed].size;
-    const s = this.box.scaleX;
-    const lid = { x: this.box.x + (top.x - w / 2) * s, y: this.box.y + (top.y - h / 2) * s };
     if (this.phase === 'open') {
+      const top = this.params.kind === 'can' ? ART.prep.canTop : ART.prep.jarTop;
+      const [w, h] = IMAGES[this.params.closed].size;
+      const s = this.box.scaleX;
+      const lid = { x: this.box.x + (top.x - w / 2) * s, y: this.box.y + (top.y - h / 2) * s };
       if (this.params.kind === 'can') {
         const m = tapMotion(lid, k);
         // ...and the swipe up.
@@ -297,24 +459,28 @@ export class OpenPourStep extends Step<OpenPourParams> {
       return { kind: 'grab', keys, glow: lid };
     }
     if (this.phase !== 'pour') return null;
+    const src = this.sources.find((x) => !x.done && x === this.cur) ?? this.sources.find((x) => !x.done);
+    if (!src) return null;
+    const box = src.img;
     const pp = this.pourPoint();
-    const dir = this.box.x < this.opening().x ? 1 : -1;
-    const key = this.box.texture.key as ImageKey;
+    const dir = box.x < this.opening().x ? 1 : -1;
+    const key = box.texture.key as ImageKey;
     return {
       kind: 'grab',
       keys: [
-        { x: this.box.x, y: this.box.y, t: 0 },
-        { x: this.box.x, y: this.box.y, t: 350, press: true },
+        { x: box.x, y: box.y, t: 0 },
+        { x: box.x, y: box.y, t: 350, press: true },
         { x: pp.x, y: pp.y, t: 1500 },
         { x: pp.x, y: pp.y, t: 2400 },
       ],
-      props: [{ key, scale: s, alpha: 0.55, angle: 0, endAngle: TILT * dir, turnFrom: 1300 }],
-      glow: { x: this.box.x, y: this.box.y },
+      props: [{ key, scale: box.scaleX, alpha: 0.55, angle: 0, endAngle: src.tilt * dir, turnFrom: 1300 }],
+      glow: { x: box.x, y: box.y },
     };
   }
 
-  /** Mom helps: she opens it, then her hand carries it over the bowl and pours. */
+  /** Mom helps: she opens it, then her hand carries it (each one left) over the bowl and pours. */
   protected autoFinish() {
+    if (this.held) this.putBack();
     this.held = false;
     if (this.phase === 'open') {
       const m = this.demo();
@@ -326,19 +492,31 @@ export class OpenPourStep extends Step<OpenPourParams> {
   }
 
   private helpPour() {
-    if (this.phase !== 'pour') return;
+    if (this.phase !== 'pour' || this.aborted) return;
+    const s = this.sources.find((x) => !x.done);
+    if (!s) return;
+    this.cur = s;
     this.helping = true;
     const pp = this.pourPoint();
-    this.hand.follow('grab', () => ({ x: this.box.x, y: this.box.y }));
-    this.scene.tweens.killTweensOf(this.box);
-    this.box.setDepth(12);
+    this.hand.follow('grab', () => ({ x: s.img.x, y: s.img.y }));
+    this.scene.tweens.killTweensOf(s.img);
+    s.img.setDepth(12);
     this.scene.tweens.add({
-      targets: this.box,
+      targets: s.img,
       x: pp.x,
       y: pp.y,
       duration: TUNING.help.openMs / 2,
       ease: 'Sine.easeInOut',
       onComplete: () => this.setOver(true),
     });
+    // The next one after this one is poured.
+    if (this.params.keep && this.sources.filter((x) => !x.done).length > 1) {
+      const wait = () => {
+        if (this.aborted || this.phase !== 'pour') return;
+        if (s.done) return this.scene.time.delayedCall(450, () => this.helpPour());
+        this.scene.time.delayedCall(150, wait);
+      };
+      wait();
+    }
   }
 }

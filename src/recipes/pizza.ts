@@ -8,7 +8,7 @@ const TOMATO = 0xe4523b;
 const FLOUR = 0xfff6e6;
 
 /** Cutting one vegetable (the chop step type): its pictures, and the colour of its juice drops. */
-const chop = (veg: VegName, juice: number): StepDef => ({
+const chop = (veg: Exclude<VegName, 'cucumber' | 'carrot'>, juice: number): StepDef => ({
   type: 'chop',
   params: {
     veg,
@@ -49,6 +49,7 @@ const openPour = (kind: 'can' | 'jar', closed: ImageKey, open: ImageKey, topping
 export const pizza: Recipe = {
   id: 'pizza',
   card: 'card-pizza',
+  pickLine: 'vo-pick-pizza',
   board: 'pizza-board',
   character: {
     body: 'character-body',
@@ -138,12 +139,12 @@ export const pizza: Recipe = {
       type: 'choose',
       params: {
         options: [
-          { id: 'tomato', image: 'veg-tomato-whole', topping: 'topping-tomato', prep: chop('tomato', TOMATO) },
-          { id: 'mushroom', image: 'veg-mushroom-whole', topping: 'topping-mushroom', prep: chop('mushroom', 0xeadcc4) },
-          { id: 'pepper', image: 'veg-pepper-whole', topping: 'topping-pepper', prep: chop('pepper', 0x7cc25a) },
-          { id: 'onion', image: 'veg-onion-whole', topping: 'topping-onion', prep: chop('onion', 0xe9bde0) },
-          { id: 'corn', image: 'can-corn-closed', topping: 'topping-corn', prep: openPour('can', 'can-corn-closed', 'can-corn-open', 'corn') },
-          { id: 'olive', image: 'jar-olives-closed', topping: 'topping-olive', prep: openPour('jar', 'jar-olives-closed', 'jar-olives-open', 'olive') },
+          { id: 'tomato', name: 'name-tomato', image: 'veg-tomato-whole', topping: 'topping-tomato', prep: chop('tomato', TOMATO) },
+          { id: 'mushroom', name: 'name-mushroom', image: 'veg-mushroom-whole', topping: 'topping-mushroom', prep: chop('mushroom', 0xeadcc4) },
+          { id: 'pepper', name: 'name-pepper', image: 'veg-pepper-whole', topping: 'topping-pepper', prep: chop('pepper', 0x7cc25a) },
+          { id: 'onion', name: 'name-onion', image: 'veg-onion-whole', topping: 'topping-onion', prep: chop('onion', 0xe9bde0) },
+          { id: 'corn', name: 'name-corn', image: 'can-corn-closed', topping: 'topping-corn', prep: openPour('can', 'can-corn-closed', 'can-corn-open', 'corn') },
+          { id: 'olive', name: 'name-olives', image: 'jar-olives-closed', topping: 'topping-olive', prep: openPour('jar', 'jar-olives-closed', 'jar-olives-open', 'olive') },
         ],
         pick: TUNING.choose.pick,
         pauseMs: TUNING.choose.pauseMs,

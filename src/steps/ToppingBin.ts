@@ -72,12 +72,13 @@ export function fillBin(scene: Phaser.Scene, bin: Phaser.GameObjects.Image, piec
 
 /**
  * The filled bin goes to wait: to its spot in the left column on wide screens, else it slides off to the left and
- * hides until decorating. `index` = how many bins were waiting before it.
+ * hides until decorating. `index` = how many bins were waiting before it. `fit` resizes something that is not a
+ * 240-wide bin (the torn lettuce) to a bin's size.
  */
-export function parkBin(ctx: StepContext, bin: Phaser.GameObjects.Image, index: number, onDone: () => void) {
+export function parkBin(ctx: StepContext, bin: Phaser.GameObjects.Image, index: number, onDone: () => void, fit = 1) {
   const spot = ctx.stage.binWait(index);
   const s = ctx.scene;
-  if (spot) return moveBin(s, bin, spot.x, spot.y, spot.scale, 600, onDone);
+  if (spot) return moveBin(s, bin, spot.x, spot.y, spot.scale * fit, 600, onDone);
   moveBin(s, bin, -200 * ctx.layout.k, bin.y, bin.scale * 0.6, 600, () => {
     setBinVisible(bin, false);
     onDone();
