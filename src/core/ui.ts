@@ -11,7 +11,7 @@ export function otherPointerDown(scene: Phaser.Scene, p: Phaser.Input.Pointer) {
 export const CONFIRM_MS = 2000;
 
 /**
- * Big icon button. Touch area: a circle reaching `hitPad` world units beyond the art
+ * Big icon button. It never moves by itself (child wellbeing rules): it only reacts to a touch. Touch area: a circle reaching `hitPad` world units beyond the art
  * (default 60), minus the no-touch zones. It reacts instantly on touch (squash + tap sound).
  * It fires on press by default (fastest feedback). `fireOn: 'up'` fires on release instead,
  * which the browser requires for fullscreen / audio unlock / wake lock; a release
@@ -28,7 +28,7 @@ export function iconButton(
   x: number,
   y: number,
   onTap: () => void,
-  opts: { pulse?: boolean; fireOn?: 'down' | 'up'; hitPad?: number; confirm?: boolean; scale?: number } = {},
+  opts: { fireOn?: 'down' | 'up'; hitPad?: number; confirm?: boolean; scale?: number } = {},
 ) {
   const img = art(scene.add.image(x, y, key), layout);
   if (opts.scale) img.setScale(opts.scale);
@@ -42,10 +42,6 @@ export function iconButton(
   const fireOn = opts.fireOn ?? 'down';
   let pressed: Phaser.Input.Pointer | null = null;
   let enabled = true;
-  let pulse: Phaser.Tweens.Tween | undefined;
-  if (opts.pulse) {
-    pulse = scene.tweens.add({ targets: img, scale: rest * 1.08, duration: 700, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-  }
 
   // Confirm mode: armed after the first tap, until the timer runs out.
   let armed: { timer: Phaser.Time.TimerEvent; wobble: Phaser.Tweens.Tween } | null = null;
@@ -70,7 +66,6 @@ export function iconButton(
     onTap();
     scene.time.delayedCall(400, () => {
       enabled = true;
-      pulse?.resume();
     });
   };
 
@@ -79,7 +74,6 @@ export function iconButton(
     // Presses that start where the palm or the thumbs rest, or while another finger is down, never count.
     if (inNoTouchZone(scene, p.x, p.y)) return;
     if (otherPointerDown(scene, p)) return;
-    pulse?.pause();
     sfx(scene, 'tap');
     if (opts.confirm) {
       if (!armed) return arm();
@@ -97,14 +91,12 @@ export function iconButton(
     if (!pressed || p !== pressed) return;
     pressed = null;
     if (!p.wasCanceled) fire();
-    else pulse?.resume();
   };
   scene.input.on(Phaser.Input.Events.POINTER_UP, release);
   scene.input.on(Phaser.Input.Events.POINTER_UP_OUTSIDE, release);
   img.once(Phaser.GameObjects.Events.DESTROY, () => {
     scene.input.off(Phaser.Input.Events.POINTER_UP, release);
     scene.input.off(Phaser.Input.Events.POINTER_UP_OUTSIDE, release);
-    pulse?.destroy();
   });
   return img;
 }

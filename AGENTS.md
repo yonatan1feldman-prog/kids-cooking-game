@@ -50,6 +50,25 @@ DynamicTexture needs `.render()`).
 9. **Home button** (top-left, the only button on the recipe screen besides done): the first tap makes it
    grow and wobble, a second tap within 2 s goes home, otherwise it shrinks back. No long press.
 
+## Child wellbeing rules (permanent, must hold for every change)
+1. **No character is ever sad, disappointed or pleading** when she leaves or stops. No reminders to come back, no
+   daily streaks, no rewards for returning, no counters, no points, no scores.
+2. **Every recipe ends with a clear, warm finale** (Mom: "We made a pizza together!", a cheer, "That was fun! Bye bye!")
+   and then goes quietly back to the home screen. The game never starts another recipe by itself.
+3. **No time pressure. She can't fail. Leaving is always easy** (the home button is always there; two taps only so a
+   stray palm can't end her work; the device's own home/back always works).
+4. **Praise is for effort and process, never for a trait** ("You worked so hard!", "I love how you did that!",
+   or about the pizza: "Beautiful!", "Yummy!"). Never "you're so smart / talented / good".
+5. **Every animation, sound and effect answers something she did** (or helps her after she stopped: the hint, Mom's
+   help). Nothing sparkles, bobs, pulses or wiggles by itself to pull her attention. Allowed exceptions, because they
+   are life, not lures: Mom breathing and blinking, Pipa blinking, the soft background music, the loading spinner,
+   and the text-free rotate animation. The oven's glow and steam while baking are the result of her putting the
+   pizza in. (Round 4 removed: the play button's endless pulse, the recipe card's endless bobbing, the bins' endless
+   wiggle, the done button's endless pulse, the oven's endless "tap me" hop, stars around Pipa's head at every step.)
+6. **No ads, no purchases, no links out, no data collection.** Nothing is sent anywhere. The only thing stored is a
+   local run counter per recipe (`localStorage`, `cooking.runs.<id>`), used only to stop Mom's automatic demos after
+   the first two runs; it is never shown.
+
 ## Landscape layout
 - **World:** always **1080 units high**. The width follows the screen: 1440 at 4:3, 1920 at 16:9, 2400 at 20:9
   (the main device). `main.ts`: Scale `EXPAND` on a 1440x1080 base (`BASE_W/BASE_H` in `layout.ts`).
