@@ -21,7 +21,16 @@ export type VoiceKey =
   | 'vo-welcome' | 'vo-pick-pizza' | 'vo-watch-me' | 'vo-your-turn' | 'vo-roll' | 'vo-sauce' | 'vo-cheese' | 'vo-toppings'
   | 'vo-done-hint' | 'vo-oven' | 'vo-baking' | 'vo-ready' | 'vo-feed' | 'vo-help' | 'vo-finale' | 'vo-bye'
   | 'vo-praise-1' | 'vo-praise-2' | 'vo-praise-3' | 'vo-praise-4' | 'vo-praise-5' | 'vo-praise-6' | 'vo-praise-7'
-  | 'vo-hello' | 'vo-what-make' | 'vo-wash' | 'vo-wash-rub' | 'vo-wash-done' | 'vo-knead' | 'vo-crush' | 'vo-stir' | 'vo-grate';
+  | 'vo-hello' | 'vo-what-make' | 'vo-wash' | 'vo-wash-rub' | 'vo-wash-done' | 'vo-knead' | 'vo-crush' | 'vo-stir' | 'vo-grate'
+  // part B (round 5)
+  | 'vo-choose' | 'vo-cut' | 'vo-cut-careful' | 'vo-open-can' | 'vo-open-jar' | 'vo-pour' | 'vo-temp' | 'vo-temp-more'
+  | 'vo-temp-hot' | 'vo-temp-done' | 'vo-mitts' | 'vo-share' | 'vo-slice-mom' | 'vo-mom-yum' | 'vo-slice-pipa' | 'vo-photo'
+  | CountKey | TempKey;
+
+/** Mom counting (count-1..10) and saying the oven temperature (temp-50..250). */
+export type CountKey = `count-${1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10}`;
+export type TempKey = `temp-${50 | 100 | 150 | 200 | 250}`;
+export const countKey = (n: number): CountKey => `count-${Math.max(1, Math.min(10, Math.round(n)))}` as CountKey;
 
 const PRAISE: VoiceKey[] = ['vo-praise-1', 'vo-praise-2', 'vo-praise-3', 'vo-praise-4', 'vo-praise-5', 'vo-praise-6', 'vo-praise-7'];
 
@@ -195,6 +204,12 @@ export interface SayOpts {
   valid?: () => boolean;
   /** Called when the line ends, or right away if it is dropped or can't play. */
   done?: () => void;
+  /**
+   * The one exception to "a line is never cut": a line of a group ('count', 'temp') may cut the line of the SAME
+   * group that is playing (and replaces one of that group still waiting), so quick counting or quick taps on the
+   * temperature buttons follow her, instead of piling up. Other lines are never cut by it: it waits behind them.
+   */
+  group?: string;
 }
 
 interface Pending extends SayOpts {
@@ -204,10 +219,14 @@ interface Pending extends SayOpts {
 
 export interface VoiceLogEntry {
   key: string;
-  /** performance.now() when it started / ended (real time, also under the test harness's virtual clock). */
+  /** When it started / ended, ms on the voice clock (real time; the game clock in test mode, `Voice.simulate`). */
   start: number;
   end?: number;
   cut?: boolean;
+  /** The line's group, if any (a same-group cut is the allowed exception). */
+  group?: string;
+  /** What cut it (a line key, or 'stop' for the rotate screen / background / home). */
+  cutBy?: string;
 }
 
 /**
@@ -216,7 +235,14 @@ export interface VoiceLogEntry {
  * the loudness of the line playing (`level()`), which drives Mom's mouth.
  */
 class Voice {
-  private cur: { src: AudioBufferSourceNode; gain: GainNode; entry: VoiceLogEntry; done?: () => void } | null = null;
+  private cur: { src: AudioBufferSourceNode | null; gain: GainNode | null; entry: VoiceLogEntry; done?: () => void; end: () => void; endAt: number } | null = null;
+  /**
+   * Test mode (the harness's `__voSim(true)`): a line "ends" exactly after its file's real length on the game's own
+   * clock (game.loop.time, virtual under the harness), without playing any sound. So the voice timing can be
+   * checked in the hidden automated Chrome, where the audio context never runs and timers are throttled.
+   */
+  private sim = false;
+  private simHooked = false;
   private queue: Pending[] = [];
   private analyser: AnalyserNode | null = null;
   private data: Uint8Array<ArrayBuffer> | null = null;
@@ -235,12 +261,38 @@ class Voice {
     return this.cur?.entry.key ?? null;
   }
 
+  /** Test mode on/off (see `sim`). */
+  simulate(on: boolean) {
+    this.stop();
+    this.sim = on;
+    if (on && game && !this.simHooked) {
+      this.simHooked = true;
+      game.events.on(Phaser.Core.Events.POST_STEP, () => {
+        if (this.sim && this.cur && this.now() >= this.cur.endAt) this.cur.end();
+      });
+    }
+  }
+
+  get simulating() {
+    return this.sim;
+  }
+
+  /** The voice clock: real time, or the game's clock in test mode. */
+  now() {
+    return this.sim && game ? game.loop.time : performance.now();
+  }
+
   say(key: VoiceKey, opts: SayOpts = {}) {
     if (!game || audioHeld()) return opts.done?.();
-    const p: Pending = { ...opts, key, at: performance.now() };
+    const p: Pending = { ...opts, key, at: this.now() };
     if (this.cur && opts.queue === false) {
       this.queue = [];
-      this.cut();
+      this.cut(key);
+    }
+    if (opts.group) {
+      // The newest count / temperature replaces an older one of its group, waiting or playing.
+      this.queue = this.queue.filter((q) => (q.group === opts.group ? (q.done?.(), false) : true));
+      if (this.cur?.entry.group === opts.group) this.cut(key);
     }
     if (this.cur) {
       this.queue.push(p);
@@ -271,7 +323,7 @@ class Voice {
     const q = this.queue;
     this.queue = [];
     q.forEach((p) => p.done?.());
-    this.cut();
+    this.cut('stop');
   }
 
   /** Drops every queued line (the one playing finishes). */
@@ -283,6 +335,7 @@ class Voice {
 
   /** Loudness 0..1 of the line playing now (0 when silent). */
   level() {
+    if (this.cur && this.sim) return 0.3;
     if (!this.cur || !this.analyser || !this.data) return 0;
     this.analyser.getByteTimeDomainData(this.data);
     let sum = 0;
@@ -293,14 +346,15 @@ class Voice {
     return Math.min(1, Math.sqrt(sum / this.data.length) * 4);
   }
 
-  private cut() {
+  private cut(by = 'stop') {
     const c = ctx();
     const cur = this.cur;
     if (!cur) return;
     this.cur = null;
-    cur.entry.end = performance.now();
+    cur.entry.end = this.now();
     cur.entry.cut = true;
-    if (c) {
+    cur.entry.cutBy = by;
+    if (c && cur.src && cur.gain) {
       ramp(cur.gain, 0, 0.05);
       try {
         cur.src.onended = null;
@@ -320,6 +374,22 @@ class Voice {
       p.done?.();
       return this.next();
     }
+    const entry: VoiceLogEntry = { key: p.key, start: this.now(), group: p.group };
+    this.log.push(entry);
+    const ended = () => {
+      if (this.cur?.entry !== entry) return;
+      this.cur = null;
+      entry.end = this.now();
+      p.done?.();
+      this.next();
+      if (!this.cur) music.duck(false);
+    };
+    const endAt = entry.start + buf.duration * 1000;
+    if (this.sim) {
+      // Test mode: no sound; POST_STEP ends it at endAt on the game clock.
+      this.cur = { src: null, gain: null, entry, done: p.done, end: ended, endAt };
+      return;
+    }
     if (!this.analyser) {
       this.analyser = c.createAnalyser();
       this.analyser.fftSize = 512;
@@ -332,18 +402,8 @@ class Voice {
     const src = c.createBufferSource();
     src.buffer = buf;
     src.connect(gain);
-    const entry: VoiceLogEntry = { key: p.key, start: performance.now() };
-    this.log.push(entry);
-    this.cur = { src, gain, entry, done: p.done };
+    this.cur = { src, gain, entry, done: p.done, end: ended, endAt };
     music.duck(true);
-    const ended = () => {
-      if (this.cur?.src !== src) return;
-      this.cur = null;
-      entry.end = performance.now();
-      p.done?.();
-      this.next();
-      if (!this.cur) music.duck(false);
-    };
     src.onended = ended;
     src.start();
     // Safety net: if the context can't run (audio still locked by the browser), the line still "ends"
@@ -356,7 +416,7 @@ class Voice {
   private next(): void {
     while (this.queue.length) {
       const p = this.queue.shift()!;
-      const expired = performance.now() - p.at > (p.ttlMs ?? 2500);
+      const expired = this.now() - p.at > (p.ttlMs ?? 2500);
       if (expired || (p.valid && !p.valid())) {
         p.done?.();
         continue;
@@ -368,6 +428,8 @@ class Voice {
 
 export const voice = new Voice();
 (window as unknown as { __voLog: VoiceLogEntry[] }).__voLog = voice.log;
+// For the test harness (dev and tests only; nothing is sent anywhere): `__voice.simulate(true)`.
+(window as unknown as { __voice: Voice }).__voice = voice;
 
 /** Duration of a voice line in ms (0 if not loaded). */
 export const lineMs = (key: VoiceKey) => (buffers.get(key)?.duration ?? 0) * 1000;

@@ -513,3 +513,20 @@ window.__tour5 = async (w, h, tag) => {
   await __run(2200); await shot('finale');
   return out;
 };
+
+// Round 5 part B: the simulated voice clock (lines end after their file's real length on the game clock).
+/** Voice test mode on/off: no sound, each line ends after its real length in virtual time (`Voice.simulate`). */
+window.__voSim = (on = true) => __voice.simulate(on);
+/**
+ * vo-your-turn check: demos on, simulated voice, the child does not touch anything after the card.
+ * Returns the voice log (key, start, end in virtual ms from the card tap) for the first `ms` of the recipe.
+ */
+window.__yourTurnTest = async (w = 900, h = 405, ms = 12000) => {
+  __demos(true); await __setup(w, h); __voSim(true);
+  const b = game.scene.getScene('Title').children.list.find((o) => o.texture?.key === 'btn-play');
+  __tap(b.x, b.y); await __run(1300);
+  const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-pizza');
+  __voLog.length = 0; const t0 = __voice.now();
+  __tap(c.x, c.y); await __run(ms);
+  return __voLog.map((e) => [e.key, Math.round(e.start - t0), e.end === undefined ? null : Math.round(e.end - t0), e.cut ? 'cut:' + e.cutBy : '']);
+};
