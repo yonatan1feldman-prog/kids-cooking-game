@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
+import { voice } from '../core/audio';
 import { boing, burst, stars } from '../core/fx';
+import type { HandMotion } from '../core/hand';
 import { art } from '../core/layout';
 import { sfx } from '../core/sfx';
 import { iconButton } from '../core/ui';
@@ -34,13 +36,16 @@ const LIFT_UP = 90;
  * The done button ends the step; the finished pizza is then captured as one image.
  */
 export class DecorateStep extends Step<DecorateParams> {
+  protected stepLine = 'vo-toppings' as const;
   private bins: Bin[] = [];
   private held?: { img: Phaser.GameObjects.Image; key: string };
   private placed = 0;
   private done?: Phaser.GameObjects.Image;
   private k = 1;
   private finishing = false;
-  private donePulsing = false;
+  private donePulsed = false;
+  /** The topping Mom is carrying while she helps (her hand follows it). */
+  private helpCarry?: Phaser.GameObjects.Image;
 
   start() {
     const L = this.layout;
@@ -60,8 +65,6 @@ export class DecorateStep extends Step<DecorateParams> {
         o.setScale(0);
         this.scene.tweens.add({ targets: o, scale: s, duration: 400, delay: i * 70, ease: 'Back.easeOut' });
       }
-      // Gentle idle wiggle: these are the things you can grab.
-      this.scene.tweens.add({ targets: icon, angle: { from: -6, to: 6 }, duration: 900 + i * 60, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     });
 
     const to = this.ctx.stage.decorateDish;
@@ -158,9 +161,10 @@ export class DecorateStep extends Step<DecorateParams> {
         sfx(this.scene, 'pop');
         burst(this.scene, w.x, w.y, { count: 8, size: 18 * this.k, tint: [0xffffff, 0xffcb47], speed: 350 * this.k, gravityY: 400 });
         this.placed++;
-        if (this.placed >= 3 && !this.donePulsing && this.done?.active) {
-          this.donePulsing = true;
-          this.scene.tweens.add({ targets: this.done, scale: this.k * 1.12, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+        // After her third topping the done button grows twice, once (an answer to what she did, not a lure).
+        if (this.placed >= 3 && !this.donePulsed && this.done?.active) {
+          this.donePulsed = true;
+          this.scene.tweens.add({ targets: this.done, scale: this.k * 1.12, duration: 380, yoyo: true, repeat: 1, ease: 'Sine.easeInOut' });
         }
       },
     });
@@ -202,39 +206,82 @@ export class DecorateStep extends Step<DecorateParams> {
     });
   }
 
-  protected showHint() {
-    if (this.placed === 0) {
-      // Nothing on the pizza yet: show how to drag a topping first.
-      const b = this.bins[1] ?? this.bins[0];
-      this.hand.drag({ x: b.x, y: b.y }, { x: this.dish.x, y: this.dish.y });
-    } else if (this.done) {
-      this.hand.tap({ x: this.done.x, y: this.done.y });
-    }
+  /** Mom carries a topping from a bin to the pizza; it melts away there (the pizza stays hers to fill). */
+  protected demo(): HandMotion {
+    const b = this.bins[1] ?? this.bins[0];
+    const k = this.k;
+    const to = { x: this.dish.x + this.dish.R * 0.2, y: this.dish.y - this.dish.R * 0.25 };
+    return {
+      kind: 'grab',
+      keys: [
+        { x: b.x, y: b.y, t: 0 },
+        { x: b.x, y: b.y, t: 350, press: true },
+        { x: to.x, y: to.y, t: 1650 },
+        { x: to.x, y: to.y, t: 1950, press: true },
+        { x: to.x + 40 * k, y: to.y + 30 * k, t: 2350 },
+      ],
+      props: [{ key: b.key, scale: k * LIFT, fadeFrom: 1750 }],
+      glow: { x: b.x, y: b.y },
+    };
   }
 
+  /** Mom's finger taps the done button, twice. */
+  private doneTap(): HandMotion {
+    const d = this.done!;
+    return {
+      kind: 'point',
+      keys: [
+        { x: d.x + 30 * this.k, y: d.y + 40 * this.k, t: 0 },
+        { x: d.x, y: d.y, t: 400 },
+        { x: d.x, y: d.y, t: 600, press: true },
+        { x: d.x, y: d.y, t: 800 },
+        { x: d.x, y: d.y, t: 1000, press: true },
+        { x: d.x + 30 * this.k, y: d.y + 40 * this.k, t: 1500 },
+      ],
+      glow: { x: d.x, y: d.y },
+    };
+  }
+
+  protected showHint() {
+    if (this.placed === 0 || !this.done?.active) return super.showHint();
+    // Something is on the pizza: Mom points at the done button and says so.
+    voice.say('vo-done-hint', { valid: () => !this.finishing });
+    this.hand.play(this.doneTap(), { loop: true, gapMs: 1200 });
+  }
+
+  /** Mom helps: if the pizza is still bare she carries a few toppings over, then she taps done. */
   protected autoFinish() {
     this.held?.img.destroy();
     this.held = undefined;
-    const picks = this.placed > 0 ? [] : Phaser.Utils.Array.Shuffle([...this.bins]).slice(0, 5);
+    const picks = this.placed > 0 ? [] : Phaser.Utils.Array.Shuffle([...this.bins]).slice(0, 4);
+    this.hand.follow('grab', () => (this.helpCarry?.active ? { x: this.helpCarry.x, y: this.helpCarry.y } : null));
+    const each = 650;
     picks.forEach((b, i) => {
-      this.scene.time.delayedCall(i * 260, () => {
+      this.scene.time.delayedCall(i * each, () => {
         const img = art(this.scene.add.image(b.x, b.y, b.key), this.layout, LIFT).setDepth(40);
+        this.helpCarry = img;
         const a = Phaser.Math.FloatBetween(0, Math.PI * 2);
         const r = this.dish.R * this.dish.scaleX * Phaser.Math.FloatBetween(0.2, 0.7);
         this.scene.tweens.add({
           targets: img,
           x: this.dish.x + Math.cos(a) * r,
           y: this.dish.y + Math.sin(a) * r,
-          duration: 380,
+          duration: 480,
           ease: 'Sine.easeInOut',
           onComplete: () => this.place(img, b.key),
         });
       });
     });
-    this.scene.time.delayedCall(picks.length * 260 + 500, () => {
-      this.finishing = false;
-      this.resumeAfterAuto();
-      this.finish();
+    this.scene.time.delayedCall(picks.length * each + 300, () => {
+      if (!this.done?.active) return this.finishByHelp();
+      this.hand.play(this.doneTap(), { onDone: () => this.finishByHelp() });
+      this.scene.time.delayedCall(1000, () => this.done?.active && boing(this.scene, this.done, 0.15));
     });
+  }
+
+  private finishByHelp() {
+    this.finishing = false;
+    this.resumeAfterAuto();
+    this.finish();
   }
 }

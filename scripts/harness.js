@@ -140,6 +140,8 @@
     return { x0: b.x + f.x0 * b.width, y0: b.y + f.y0 * b.height, x1: b.x + f.x1 * b.width, y1: b.y + f.y1 * b.height };
   };
   const charBox = (c) => box(c.list[0]); // a child's bounds already include the container
+  // Mom without her arms (the pointing arm reaches over the board by design): body, head, hair layers.
+  const momBox = (m) => [1, 2, 3].map((i) => box(m.box.list[i])).reduce((a, b) => ({ x0: Math.min(a.x0, b.x0), y0: Math.min(a.y0, b.y0), x1: Math.max(a.x1, b.x1), y1: Math.max(a.y1, b.y1) }));
   const circ = (x, y, r) => ({ x0: x - r, y0: y - r, x1: x + r, y1: y + r });
   const hitOf = (img) => { const s = img.input?.hitArea; return s ? circ(img.x, img.y, s.radius * img.scaleX) : box(img); };
   window.__audit = () => {
@@ -148,7 +150,7 @@
     const vis = [], hits = [];
     const home = sc.children.list.find((o) => o.texture?.key === 'btn-home');
     vis.push(['home', box(home)]); hits.push(['home', hitOf(home)]);
-    vis.push(['character', charBox(sc.ctx.character.box)]);
+    vis.push(['mom', momBox(sc.ctx.mom)]);
     vis.push(['board', box(sc.ctx.board)]);
     const d = sc.ctx.dish; hits.push(['dish', circ(d.x, d.y, d.R * d.scaleX)]);
     if (name === 'RollStep') { vis.push(['pin', box(st.pin)]); hits.push(['pin', box(st.pin)]); }
@@ -170,11 +172,27 @@
     }
     const ov = (a, b) => Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0) > 2 && Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0) > 2;
     for (let i = 0; i < vis.length; i++) for (let j = i + 1; j < vis.length; j++) if (ov(vis[i][1], vis[j][1])) out.push(`overlap: ${vis[i][0]} / ${vis[j][0]}`);
+    const pet = sc.ctx.character;
     const hs = hits.filter(([n]) => n !== 'dish' && !n.startsWith('slice'));
     for (let i = 0; i < hs.length; i++) for (let j = i + 1; j < hs.length; j++) if (ov(hs[i][1], hs[j][1]) && !(hs[i][0].startsWith('bin') && hs[j][0].startsWith('bin'))) out.push(`hit overlap: ${hs[i][0]} / ${hs[j][0]}`);
     const dishHit = hits.find(([n]) => n === 'dish')[1];
     for (const [n, b] of hs) if (n !== 'home' && ov(b, dishHit) && !n.startsWith('pin')) out.push(`hit overlaps dish: ${n}`);
-    return { step: name, W, H, k: +L.k.toFixed(3), charScale: +sc.ctx.stage.charScale.toFixed(3), problems: out };
+    // Pipa: never over the pizza itself (before feeding), never over Mom's face, never in the no-touch strips.
+    if (pet.box.visible) {
+      const pb = charBox(pet.box);
+      const S = sc.ctx.stage;
+      if (pb.x0 < forbid.x0 - 1 || pb.x1 > forbid.x1 + 1 || pb.y1 > forbid.y1 + 1) out.push(`pet in a no-touch strip [${r(pb.x0)},${r(pb.y0)},${r(pb.x1)},${r(pb.y1)}]`);
+      const sh = name === 'FeedStep' ? S.feedMomShift : 0;
+      if (ov(pb, { ...S.momFace, x0: S.momFace.x0 + sh, x1: S.momFace.x1 + sh })) out.push('pet covers mom face');
+      if (name !== 'FeedStep') {
+        // The pizza disc: the nearest point of Pipa's box to its centre must be outside the dough radius.
+        const R = d.R * d.scaleX * 0.95, nx = Math.max(pb.x0, Math.min(d.x, pb.x1)), ny = Math.max(pb.y0, Math.min(d.y, pb.y1));
+        if (Math.hypot(nx - d.x, ny - d.y) < R) out.push(`pet over pizza by ${r(R - Math.hypot(nx - d.x, ny - d.y))}`);
+        for (const [n, b] of vis) if (n !== 'board' && n !== 'mom' && ov(pb, b)) out.push(`overlap: pet / ${n}`);
+      }
+      vis.push(['pet', pb]);
+    }
+    return { step: name, W, H, k: +L.k.toFixed(3), charScale: +sc.ctx.stage.charScale.toFixed(3), pet: pet.box.visible, problems: out };
   };
 })();
 
@@ -231,4 +249,56 @@ window.__shotAt = async (w, h, what) => {
     const st = __R().step, s = st.slices.find((x) => !x.eaten), c = st.sliceCenter(s);
     await __drag([[c.x, c.y], [(c.x + st.mouthAt.x) / 2, st.mouthAt.y - 60]], { hold: true }); return __run(200);
   }
+};
+
+// Round 4: demos, Mom's voice, real-time runs.
+(() => {
+  /** Demos on (the first two runs of a recipe) or off (later runs), by setting the run counter. */
+  window.__demos = (on) => localStorage.setItem('cooking.runs.pizza', on ? '0' : '5');
+  /** Steps virtual time until Mom's demo (if any) has finished. */
+  window.__waitDemo = async () => {
+    for (let i = 0; i < 60 && __R().step?.inDemo; i++) await __run(100);
+  };
+  /**
+   * Real-time stepping: like __run, but paced by the real clock, so voice lines (which play in real
+   * time on the audio context) and the game's virtual time stay together. Needed to check the voice log.
+   */
+  window.__real = async (ms) => {
+    const end = performance.now() + ms;
+    let last = performance.now();
+    while (performance.now() < end) {
+      await new Promise((r) => setTimeout(r, 16));
+      const now = performance.now();
+      __tick(Math.min(100, now - last));
+      last = now;
+    }
+  };
+  /** The voice log: [key, start ms, end ms] relative to the first line, plus problems found (overlaps, repeats). */
+  window.__voReport = () => {
+    const log = window.__voLog || [];
+    const t0 = log[0]?.start ?? 0;
+    const rows = log.map((e) => [e.key, Math.round(e.start - t0), e.end === undefined ? null : Math.round(e.end - t0), e.cut ? 'cut' : '']);
+    const problems = [];
+    for (let i = 1; i < log.length; i++) {
+      if (log[i - 1].end === undefined || log[i].start < log[i - 1].end - 1) problems.push(`overlap: ${log[i - 1].key} / ${log[i].key}`);
+    }
+    const praise = log.filter((e) => e.key.startsWith('vo-praise')).map((e) => e.key);
+    for (let i = 1; i < praise.length; i++) if (praise[i] === praise[i - 1]) problems.push(`praise twice in a row: ${praise[i]}`);
+    return { rows, problems };
+  };
+})();
+
+/** Demo tour: 'RollStep' starts a fresh recipe with demos on; later names play on to that step. Stops `ms` into its demo. */
+window.__demoAt = async (w, h, stepName, ms = 1100) => {
+  if (stepName === 'RollStep') { __demos(true); await __setup(w, h); await __start(); }
+  else {
+    await __waitDemo();
+    // Play the current step; once it is finished, only let time pass (a stray touch would end the next demo).
+    for (let g = 0; g < 300 && __step() !== stepName; g++) {
+      if (__R().step.finished) await __run(50);
+      else await __gesture();
+    }
+  }
+  await __run(ms);
+  return { step: __step(), demo: __R().step.inDemo, hand: __R().ctx.hand.active };
 };

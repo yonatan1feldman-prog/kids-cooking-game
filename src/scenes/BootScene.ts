@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import manifest from 'virtual:asset-manifest';
-import { IMAGE_KEYS, SOUND_KEYS, textureSize, type ImageKey } from '../core/assets';
+import { IMAGE_KEYS, textureSize, type ImageKey } from '../core/assets';
+import { loadSounds } from '../core/audio';
 import { ensurePlaceholders, makeFxTextures, makeUiTextures } from '../core/placeholders';
 import { loadSvgTexture, loadWebpTexture } from '../core/svgRaster';
 
@@ -20,22 +21,12 @@ export function assetsReady(): Promise<void> {
 /**
  * Loads whatever assets exist on disk, then fills every gap with a code-drawn
  * placeholder. A missing or broken file never stops the game.
- * The title starts as soon as its own few images are in; the rest keep
+ * The title starts as soon as its own few images are in; the rest (and all sounds) keep
  * loading in the background while the child looks at the title and home screens.
  */
 export class BootScene extends Phaser.Scene {
   constructor() {
     super('Boot');
-  }
-
-  preload() {
-    this.load.on(Phaser.Loader.Events.FILE_LOAD_ERROR, (file: Phaser.Loader.File) => {
-      console.warn(`[assets] sound "${file.key}" failed to load; it will stay silent`);
-    });
-    for (const key of SOUND_KEYS) {
-      const urls = manifest.sounds[key];
-      if (urls?.length) this.load.audio(key, urls.map(url));
-    }
   }
 
   create() {
@@ -75,6 +66,7 @@ export class BootScene extends Phaser.Scene {
       timing.images = Math.round(t1 - t0);
       timing.total = Math.round(t1);
       console.info(`[assets] title images ready in ${timing.images} ms, title at ${timing.total} ms after page start`);
+      loadSounds(this.game, (key) => url(key));
       this.scene.start('Title');
     });
   }

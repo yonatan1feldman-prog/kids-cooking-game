@@ -1,8 +1,11 @@
 import Phaser from 'phaser';
 import { ART, IMAGES } from '../core/assets';
+import { bakeLoop, voice } from '../core/audio';
 import { boing, puff, stars } from '../core/fx';
+import type { HandMotion } from '../core/hand';
 import { sfx } from '../core/sfx';
 import type { BakeParams } from '../recipes/types';
+import { MADE_KEY } from './Dish';
 import { Step } from './Step';
 
 type Phase = 'toOven' | 'baking' | 'ready' | 'out';
@@ -75,6 +78,13 @@ export class BakeStep extends Step<BakeParams> {
       }
     });
 
+    // Where Pipa is not on screen (4:3) Mom points her arm at the oven; on the phone that aim would
+    // pass over Pipa's head, so there she keeps her default pose and her demo hand points instead.
+    if (!this.ctx.stage.pet) {
+      const win = this.ovenPoint(ART.ovenPizza.x, ART.ovenPizza.y - 15);
+      this.ctx.mom.aimArmAt(win.x, win.y);
+    }
+
     this.setIdle(true);
   }
 
@@ -109,6 +119,8 @@ export class BakeStep extends Step<BakeParams> {
         this.dish.setDepth(6);
         boing(this.scene, this.closed, 0.06);
         sfx(this.scene, 'pop', { volume: 0.5 });
+        this.hand.stop();
+        voice.say('vo-oven', { queue: false });
         this.bake();
       },
     });
@@ -116,6 +128,8 @@ export class BakeStep extends Step<BakeParams> {
 
   /** The pizza visibly turns golden through the window; the cavity glows; steam rises. */
   private bake() {
+    bakeLoop.start();
+    this.scene.time.delayedCall(this.params.bakeMs / 2, () => voice.say('vo-baking', { valid: () => this.phase === 'baking' }));
     const raw = Phaser.Display.Color.ValueToColor(0xffffff);
     const baked = Phaser.Display.Color.ValueToColor(this.params.bakedTint);
     const glowFrom = Phaser.Display.Color.ValueToColor(0xffffff);
@@ -152,22 +166,27 @@ export class BakeStep extends Step<BakeParams> {
     );
     this.scene.time.delayedCall(this.params.bakeMs, () => {
       this.stopLoops();
+      bakeLoop.stop();
       this.closed.setAngle(0);
       this.inside.clearTint();
       this.dish.tintAll(this.params.bakedTint);
       sfx(this.scene, 'oven-ding', { vary: false });
+      voice.say('vo-ready', { queue: false });
       boing(this.scene, this.closed, 0.12);
       stars(this.scene, this.closed.x, this.closed.y - 380 * this.os, 6, 60 * this.k);
       this.phase = 'ready';
-      // Gentle "tap me" hop of the whole oven (pizza included, so it stays behind the window).
+      // The ding makes the oven hop three times (pizza included, so it stays behind the window), then it rests.
       this.loops.push(
-        this.scene.tweens.add({ targets: [this.closed, this.inside, this.dish], y: `-=${14 * this.k}`, duration: 380, yoyo: true, repeat: -1, repeatDelay: 250, ease: 'Sine.easeOut' }),
+        this.scene.tweens.add({ targets: [this.closed, this.inside, this.dish], y: `-=${14 * this.k}`, duration: 380, yoyo: true, repeat: 2, repeatDelay: 250, ease: 'Sine.easeOut' }),
       );
       this.setIdle(true);
     });
   }
 
   private stopLoops() {
+    // Put the oven back on its spot if a hop was cut short.
+    const o = this.ctx.stage.oven;
+    for (const img of [this.closed, this.inside]) img.y = o.y;
     this.loops.forEach((l) => (l instanceof Phaser.Time.TimerEvent ? l.remove() : l.destroy()));
     this.loops = [];
   }
@@ -175,6 +194,8 @@ export class BakeStep extends Step<BakeParams> {
   private openOven() {
     if (this.phase !== 'ready') return;
     this.phase = 'out';
+    this.hand.stop();
+    this.ctx.mom.armTo(0);
     this.setIdle(false);
     this.stopLoops();
     this.inside.setVisible(false);
@@ -198,20 +219,72 @@ export class BakeStep extends Step<BakeParams> {
     });
   }
 
-  protected showHint() {
-    if (this.phase === 'toOven') this.hand.drag({ x: this.dish.x, y: this.dish.y }, { x: this.open.x, y: this.open.y });
-    else if (this.phase === 'ready') this.hand.tap({ x: this.closed.x, y: this.closed.y });
+  /** Mom's hand at the window of the closed oven (tap it). */
+  private ovenTap(): HandMotion {
+    const w = this.ovenPoint(460, 430);
+    const k = this.k;
+    return {
+      kind: 'point',
+      keys: [
+        { x: w.x + 60 * k, y: w.y + 60 * k, t: 0 },
+        { x: w.x, y: w.y, t: 400 },
+        { x: w.x, y: w.y, t: 600, press: true },
+        { x: w.x, y: w.y, t: 800 },
+        { x: w.x, y: w.y, t: 1000, press: true },
+        { x: w.x + 60 * k, y: w.y + 60 * k, t: 1500 },
+      ],
+      glow: this.ovenPoint(350, 465),
+    };
   }
 
+  /**
+   * Before baking: Mom carries a see-through copy of the pizza into the open oven (the real one stays).
+   * When it's ready: her finger taps the oven.
+   */
+  protected demo(): HandMotion | null {
+    if (this.phase === 'ready') return this.ovenTap();
+    if (this.phase !== 'toOven') return null;
+    const d = { x: this.dish.x, y: this.dish.y };
+    const to = this.ovenPoint(ART.ovenPizza.x, ART.ovenPizza.y);
+    const grip = { x: this.dish.R * 0.55, y: -this.dish.R * 0.35 };
+    const small = ((ART.ovenPizza.diameter / 2) * this.os) / this.dish.R;
+    // Her own pizza as a ghost (the capture is in game pixels; the stock dough needs the content scale).
+    const made = this.scene.textures.exists(MADE_KEY);
+    const key = made ? MADE_KEY : 'dough-flat';
+    return {
+      kind: 'grab',
+      keys: [
+        { x: d.x + grip.x, y: d.y + grip.y, t: 0 },
+        { x: d.x + grip.x, y: d.y + grip.y, t: 350, press: true },
+        { x: to.x + grip.x * small, y: to.y + grip.y * small, t: 1800 },
+        { x: to.x + grip.x * small, y: to.y + grip.y * small, t: 2350 },
+      ],
+      props: [{ key, scale: made ? 1 : this.k, endScale: small * (made ? 1 : this.k), alpha: 0.55, dx: -grip.x, dy: -grip.y, fadeFrom: 1700 }],
+      glow: d,
+    };
+  }
+
+  /** Mom helps: into the oven with her hand on the pizza, or (when ready) her finger taps the oven. */
   protected autoFinish() {
     if (this.phase === 'toOven') {
       this.dragging = false;
+      const grip = { x: this.dish.R * 0.55, y: -this.dish.R * 0.35 };
+      this.hand.follow('grab', () => ({ x: this.dish.x + grip.x * this.dish.scaleX, y: this.dish.y + grip.y * this.dish.scaleY }));
       // The oven bakes on its own; after the ding the child gets a fresh chance to tap.
       this.resumeAfterAuto();
       this.intoOven();
     } else if (this.phase === 'ready') {
-      this.resumeAfterAuto();
-      this.openOven();
+      this.hand.play(this.ovenTap(), {
+        onDone: () => {
+          this.resumeAfterAuto();
+          this.openOven();
+        },
+      });
     }
+  }
+
+  abort() {
+    bakeLoop.stop();
+    super.abort();
   }
 }

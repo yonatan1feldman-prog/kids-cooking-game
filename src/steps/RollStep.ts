@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { puff } from '../core/fx';
+import type { HandMotion } from '../core/hand';
 import { art } from '../core/layout';
 import { sfx } from '../core/sfx';
 import type { RollParams } from '../recipes/types';
@@ -10,7 +11,11 @@ import { Step } from './Step';
  * Any rubbing near the dough counts; the rolling pin follows the finger (lying across it).
  * At rest the pin stands upright in the left column; touching it starts rolling too.
  */
+/** Where Mom's palm (the roll hand's anchor) presses, relative to the pin's centre (scenes.js: hand at +110, -10). */
+const PALM = { x: 110, y: -10 };
+
 export class RollStep extends Step<RollParams> {
+  protected stepLine = 'vo-roll' as const;
   private ball!: Phaser.GameObjects.Image;
   private flat!: Phaser.GameObjects.Image;
   private pin!: Phaser.GameObjects.Image;
@@ -113,11 +118,41 @@ export class RollStep extends Step<RollParams> {
     this.complete();
   }
 
-  protected showHint() {
-    this.hand.rub({ x: this.dish.x, y: this.dish.y }, this.dish.R * 1.2);
+  /** Mom rolls across the dough with a pin (a prop: the real pin rests hidden meanwhile), twice back and forth. */
+  protected demo(): HandMotion {
+    const { x, y } = this.dish;
+    const k = this.k;
+    const w = this.dish.R * 0.45;
+    const keys = [0, 1, 2, 3, 4].map((i) => ({ x: x + (i % 2 ? w : -w) + PALM.x * k, y: y + 20 * k + PALM.y * k, t: 250 + i * 450 }));
+    keys.unshift({ ...keys[0], t: 0 });
+    keys.push({ ...keys[keys.length - 1], t: 2350 });
+    return {
+      kind: 'roll',
+      keys,
+      props: [{ key: this.params.tool, scale: k, angle: -4, dx: -PALM.x * k, dy: -PALM.y * k }],
+      glow: this.dish,
+      onStop: () => this.pin.active && this.pin.setVisible(true),
+    };
   }
 
+  protected showHint() {
+    this.pin.setVisible(false);
+    super.showHint();
+  }
+
+  protected onDemoEnd() {
+    this.pin.setVisible(true);
+  }
+
+  intro(withDemo: boolean) {
+    if (withDemo) this.pin.setVisible(false);
+    super.intro(withDemo);
+  }
+
+  /** Mom helps: her hand on the pin rolls the rest. */
   protected autoFinish() {
+    this.pin.setVisible(true);
+    this.hand.follow('roll', () => ({ x: this.pin.x + PALM.x * this.k, y: this.pin.y + PALM.y * this.k }));
     this.scene.tweens.addCounter({
       from: this.progress,
       to: 1,

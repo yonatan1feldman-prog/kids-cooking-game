@@ -1,6 +1,9 @@
 import Phaser from 'phaser';
-import { boing, burst, stars } from '../core/fx';
+import { voice } from '../core/audio';
+import { boing, burst } from '../core/fx';
+import type { HandMotion } from '../core/hand';
 import { sfx, sfxThen } from '../core/sfx';
+import type { Box } from '../core/stage';
 import type { FeedParams } from '../recipes/types';
 import type { Mood } from './Character';
 import { cutSlices, stockSlices, type SliceDef } from './slices';
@@ -18,13 +21,20 @@ const LIFT = 1.08;
 /** Slices spread apart a little so the cuts show. */
 const EXPLODE = 12;
 
+/** Pipa's face in her 600x700 frame (eyes to mouth, with the cheeks): stars keep off it. */
+const PET_FACE = { x0: 140, y0: 150, x1: 460, y1: 500 };
+/** Minimum time of the finale, even if a sound is missing. */
+const PARTY_MIN_MS = 3800;
+
 /**
- * Feeding: the child's own pizza is cut into slices on the board; drag each slice to
- * the character's mouth (she stands on the right, core of RecipeScene). When a slice comes
- * near it looks surprised and opens wide; it chews for about a second, happy. It always
- * eats everything. After the last slice: jingle, cheer, a star party, then home.
+ * Feeding: the child's own pizza is cut into slices on the board; Pipa comes to the middle, big,
+ * on the board's right rim (Mom stands beside her, smiling, her face clear). Drag each slice to
+ * Pipa's mouth. When a slice comes near she looks surprised and opens wide; she chews for about
+ * a second, happy. She always eats everything. After the last slice: "We made a pizza together!",
+ * a cheer and a shower of stars (never over Mom's or Pipa's face), "That was fun! Bye bye!", home.
  */
 export class FeedStep extends Step<FeedParams> {
+  protected stepLine = 'vo-feed' as const;
   private slices: Slice[] = [];
   private held?: { s: Slice };
   private chewing = 0;
@@ -35,6 +45,10 @@ export class FeedStep extends Step<FeedParams> {
 
   start() {
     this.k = this.layout.k;
+    this.ctx.character.moveTo(this.ctx.stage.feedPet);
+    // Mom's pointing arm lifts a little so it tucks behind Pipa (the art agent's checked pose).
+    this.ctx.mom.armTo(-18);
+    this.ctx.mom.stepAside(this.ctx.stage.feedMomShift);
     this.buildSlices();
 
     this.onDown((p) => {
@@ -137,10 +151,10 @@ export class FeedStep extends Step<FeedParams> {
     return best && bestD < 260 * this.k ? best : undefined;
   }
 
-  /** Very forgiving: near the mouth, or anywhere over the character. */
+  /** Very forgiving: near the mouth, or anywhere over Pipa or to her right. */
   private nearMouth(x: number, y: number) {
     if (Phaser.Math.Distance.Between(x, y, this.mouthAt.x, this.mouthAt.y) < 380 * this.k) return true;
-    return x > this.ctx.stage.charLeft;
+    return x > this.ctx.stage.feedPetLeft;
   }
 
   private get char() {
@@ -228,8 +242,7 @@ export class FeedStep extends Step<FeedParams> {
 
   /** Over-the-top happiness, a different gag each time. */
   private react() {
-    const k = this.k;
-    stars(this.scene, this.char.x, this.char.y - 250 * k, 5, 55 * k);
+    const k = this.k * (this.ctx.character.scale / 0.62);
     switch (this.slices.filter((x) => x.eaten).length % 3) {
       case 1: // jump
         this.scene.tweens.add({ targets: this.char, y: this.charRest.y - 120 * k, duration: 220, yoyo: true, ease: 'Quad.easeOut' });
@@ -247,29 +260,126 @@ export class FeedStep extends Step<FeedParams> {
     this.partyStarted = true;
     this.setIdle(false);
     this.setMood('party');
-    const { W, H, k } = this.layout;
-    // Jingle first, then the cheer right after it.
-    sfxThen(this.scene, 'cheer-jingle', () => sfx(this.scene, 'cheer', { vary: false, minGapMs: 0 }));
-    for (let i = 0; i < 6; i++) {
-      this.scene.time.delayedCall(i * 350, () => stars(this.scene, Phaser.Math.Between(W * 0.2, W * 0.8), Phaser.Math.Between(H * 0.15, H * 0.6), 14, 80 * k));
-    }
-    this.scene.tweens.add({ targets: this.char, y: this.charRest.y - 110 * k, duration: 260, yoyo: true, repeat: 5, ease: 'Quad.easeOut' });
+    this.ctx.mom.celebrate();
+    const k = this.k;
+    const t0 = this.scene.time.now;
+    // "We made a pizza together!", then the cheer, then "That was fun! Bye bye!", then home (quietly).
+    const bye = () =>
+      voice.say('vo-bye', {
+        queue: false,
+        done: () => this.scene.time.delayedCall(Math.max(300, PARTY_MIN_MS - (this.scene.time.now - t0)), () => this.complete()),
+      });
+    voice.say('vo-finale', { queue: false, done: () => sfxThen(this.scene, 'cheer', bye) });
+    this.showerStars();
+    const hop = 110 * k * (this.ctx.character.scale / (0.62 * k));
+    this.scene.tweens.add({ targets: this.char, y: this.charRest.y - hop, duration: 260, yoyo: true, repeat: 5, ease: 'Quad.easeOut' });
     this.scene.tweens.add({ targets: this.char, angle: { from: -8, to: 8 }, duration: 260, yoyo: true, repeat: 5, onComplete: () => this.char.setAngle(0) });
-    this.scene.time.delayedCall(3800, () => this.complete());
   }
 
-  protected showHint() {
+  /**
+   * The finale's stars: they pop in one after another over the top of the kitchen and around the board,
+   * drift down a little and fade. Never over Mom's face or Pipa's face (or the home button).
+   */
+  private showerStars() {
+    const { W, m, k } = this.layout;
+    const st = this.ctx.stage;
+    const pet = this.ctx.character;
+    const petFace: Box = {
+      x0: pet.rest.x + (PET_FACE.x0 - 300) * pet.scale,
+      y0: pet.rest.y + (PET_FACE.y0 - 350) * pet.scale,
+      x1: pet.rest.x + (PET_FACE.x1 - 300) * pet.scale,
+      y1: pet.rest.y + (PET_FACE.y1 - 350) * pet.scale,
+    };
+    const DRIFT = 80 * k;
+    // Mom stepped aside for this step.
+    const sh = st.feedMomShift;
+    const momFace: Box = { ...st.momFace, x0: st.momFace.x0 + sh, x1: st.momFace.x1 + sh };
+    const clear = (x: number, y: number, r: number) => {
+      const hits = (b: Box) => x + r > b.x0 && x - r < b.x1 && y + r + DRIFT > b.y0 && y - r < b.y1;
+      if (hits(momFace) || hits(petFace)) return false;
+      return Phaser.Math.Distance.Between(x, y, st.home.x, st.home.y) > 150 * k + r;
+    };
+    const spots: { x: number; y: number; s: number }[] = [];
+    // Three big ones at the top centre, then smaller ones anywhere clear.
+    for (const [dx, y, s] of [[-190, 150, 0.9], [0, 120, 1.15], [190, 150, 0.9]] as const) {
+      const x = W / 2 + dx * k;
+      if (clear(x, y, 100 * s * k)) spots.push({ x, y, s });
+    }
+    const rnd = new Phaser.Math.RandomDataGenerator(['party']);
+    for (let guard = 0; spots.length < 17 && guard < 600; guard++) {
+      const x = rnd.between(m + 60 * k, W - m - 60 * k);
+      const y = rnd.between(60, 420);
+      const s = rnd.realInRange(0.35, 0.8);
+      if (!clear(x, y, 100 * s * k)) continue;
+      if (spots.some((o) => Phaser.Math.Distance.Between(o.x, o.y, x, y) < 150 * k)) continue;
+      spots.push({ x, y, s });
+    }
+    this.starSpots = spots.map((p) => ({ ...p, r: 100 * p.s * k }));
+    spots.forEach((p, i) => {
+      this.scene.time.delayedCall(120 + i * 140, () => {
+        const star = this.scene.add.image(p.x, p.y, 'star').setDepth(80).setScale(0).setAngle(rnd.between(-30, 30));
+        if (i < 3) sfx(this.scene, 'star', { minGapMs: 120, vary: false });
+        this.scene.tweens.add({ targets: star, scale: p.s * k, duration: 320, ease: 'Back.easeOut' });
+        this.scene.tweens.add({ targets: star, y: p.y + DRIFT, alpha: 0, delay: 1500, duration: 1200, ease: 'Sine.easeIn', onComplete: () => star.destroy() });
+      });
+    });
+  }
+
+  /** Where the finale's stars were placed (for the test harness's face check). */
+  starSpots: { x: number; y: number; s: number; r: number }[] = [];
+
+  /** Mom carries a see-through copy of a slice to Pipa's mouth (the real slices stay on the board). */
+  protected demo(): HandMotion | null {
     const s = this.slices.find((x) => !x.eaten);
-    if (s) this.hand.drag(this.sliceCenter(s), this.mouthAt);
+    if (!s) return null;
+    const c = this.sliceCenter(s);
+    const pose = this.carryPose(s, c.x, c.y);
+    // It stops with the slice's tip just at her mouth (her face stays visible), then melts away.
+    const back = s.def.centerDist * LIFT + 40 * this.k;
+    const dir = Phaser.Math.Angle.Between(c.x, c.y, this.mouthAt.x, this.mouthAt.y);
+    const to = { x: this.mouthAt.x - Math.cos(dir) * back, y: this.mouthAt.y - Math.sin(dir) * back };
+    return {
+      kind: 'grab',
+      keys: [
+        { x: c.x, y: c.y, t: 0 },
+        { x: c.x, y: c.y, t: 350, press: true },
+        { x: to.x, y: to.y, t: 1700 },
+        { x: to.x, y: to.y, t: 2300 },
+      ],
+      props: [
+        {
+          key: s.def.key,
+          scale: this.sliceScale * LIFT,
+          angle: pose.angle,
+          alpha: 0.6,
+          originX: s.def.originX,
+          originY: s.def.originY,
+          dx: pose.x - c.x,
+          dy: pose.y - c.y,
+          fadeFrom: 1650,
+          tint: s.img.tintTopLeft,
+        },
+      ],
+      glow: c,
+    };
   }
 
+  /** Mom helps: her hand carries each slice left to Pipa's mouth. */
   protected autoFinish() {
+    let carried: Phaser.GameObjects.Image | null = null;
+    this.hand.follow('grab', () => (carried?.visible ? { x: carried.x - 40 * this.k, y: carried.y } : null));
     if (this.held) {
       const { s } = this.held;
       this.held = undefined;
+      carried = s.img;
       this.eat(s);
     }
     const left = this.slices.filter((x) => !x.eaten);
-    left.forEach((s, i) => this.scene.time.delayedCall(300 + i * 750, () => this.eat(s)));
+    left.forEach((s, i) =>
+      this.scene.time.delayedCall(300 + i * 750, () => {
+        carried = s.img;
+        this.eat(s);
+      }),
+    );
   }
 }

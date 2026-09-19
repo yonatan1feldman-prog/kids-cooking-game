@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { holdAudio } from './audio';
 import { ORIENTATION_PAUSE, ORIENTATION_RESUME } from './layout';
 
 /**
@@ -30,6 +31,7 @@ export function installOrientationGuard(game: Phaser.Game) {
       paused = game.scene.getScenes(true).filter(pausable);
       paused.forEach((s) => s.scene.pause());
       game.sound.pauseAll();
+      holdAudio('rotate', true);
       overlay.classList.add('show');
     } else if (!portrait && paused) {
       overlay.classList.remove('show');
@@ -37,6 +39,7 @@ export function installOrientationGuard(game: Phaser.Game) {
       paused = null;
       list.forEach((s) => s.scene.isPaused() && s.scene.resume());
       game.sound.resumeAll();
+      holdAudio('rotate', false);
       game.events.emit(ORIENTATION_RESUME);
     }
   };

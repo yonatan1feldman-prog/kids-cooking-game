@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { boing } from '../core/fx';
+import type { HandMotion } from '../core/hand';
 import { art } from '../core/layout';
 import { sfx } from '../core/sfx';
 import type { SprinkleParams } from '../recipes/types';
@@ -15,6 +16,7 @@ import { Step } from './Step';
 export const TOOL_REACH = 225;
 
 export class SprinkleStep extends Step<SprinkleParams> {
+  protected stepLine = 'vo-cheese' as const;
   private tool!: Phaser.GameObjects.Image;
   private toolRest = { x: 0, y: 0 };
   private landed = 0;
@@ -120,11 +122,25 @@ export class SprinkleStep extends Step<SprinkleParams> {
     this.scene.time.delayedCall(300, () => this.complete());
   }
 
-  protected showHint() {
-    this.hand.tap({ x: this.dish.x - this.dish.R * 0.3, y: this.dish.y });
+  /** Mom's pinch moves over the pizza, dipping at each spot (the falling cheese is in the hand's art). */
+  protected demo(): HandMotion {
+    const { x, y } = this.dish;
+    const R = this.dish.R;
+    const spots = [[-0.45, -0.2], [-0.1, 0.25], [0.25, -0.25], [0.45, 0.2]];
+    const keys: { x: number; y: number; t: number; press?: boolean }[] = [];
+    spots.forEach(([sx, sy], i) => {
+      const t = 200 + i * 520;
+      keys.push({ x: x + sx * R, y: y + sy * R - 60 * this.k, t });
+      keys.push({ x: x + sx * R, y: y + sy * R - 40 * this.k, t: t + 200, press: true });
+    });
+    keys.unshift({ ...keys[0], t: 0 });
+    keys.push({ ...keys[keys.length - 1], press: false, t: 2400 });
+    return { kind: 'sprinkle', keys, glow: this.dish };
   }
 
+  /** Mom helps: her hand holds the shaker while it showers the rest. */
   protected autoFinish() {
+    this.hand.follow('grab', () => ({ x: this.tool.x, y: this.tool.y }));
     const remaining = Math.max(0, this.params.count - this.thrown);
     const n = Math.max(1, Math.ceil(remaining / 3));
     for (let i = 0; i < n; i++) {

@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { audioHeld, holdAudio } from './audio';
 
 /**
  * Real-device hardening: no browser gestures, screen stays on, sound comes back.
@@ -46,8 +47,9 @@ function audioContext(game: Phaser.Game): AudioContext | undefined {
   return (game.sound as Phaser.Sound.WebAudioSoundManager).context;
 }
 
-/** Resumes the audio context if the browser suspended it. Safe to call often. */
+/** Resumes the audio context if the browser suspended it (not while the rotate screen or the background holds it). Safe to call often. */
 export function resumeAudio(game: Phaser.Game) {
+  if (audioHeld()) return;
   try {
     const ctx = audioContext(game);
     if (ctx && ctx.state !== 'running') ctx.resume().catch(() => {});
@@ -62,8 +64,11 @@ export function resumeAudio(game: Phaser.Game) {
  * only allows resuming from a gesture.
  */
 export function installLifecycle(game: Phaser.Game) {
+  // In the background every sound stops (the voice line is dropped); it all comes back on return.
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState !== 'visible') return;
+    const hidden = document.visibilityState !== 'visible';
+    holdAudio('hidden', hidden);
+    if (hidden) return;
     resumeAudio(game);
     if (wantWakeLock) requestWakeLock();
   });

@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { SAUCE_RED } from '../core/assets';
 import { burst } from '../core/fx';
+import type { HandMotion } from '../core/hand';
 import { art } from '../core/layout';
 import { sfx } from '../core/sfx';
 import type { SpreadParams } from '../recipes/types';
@@ -13,6 +14,7 @@ import { Step } from './Step';
  * every stroke paints. The crust rim stays visible around the sauce.
  */
 export class SpreadStep extends Step<SpreadParams> {
+  protected stepLine = 'vo-sauce' as const;
   private cells: { x: number; y: number; covered: boolean }[] = [];
   private covered = 0;
   private painting = false;
@@ -127,12 +129,30 @@ export class SpreadStep extends Step<SpreadParams> {
     });
   }
 
-  protected showHint() {
-    this.hand.circle({ x: this.dish.x, y: this.dish.y }, this.dish.R * 0.5);
+  /** Mom's spoon circles over the dough (nothing is painted: that is the child's job). */
+  protected demo(): HandMotion {
+    const { x, y } = this.dish;
+    const r = this.dish.R * 0.45;
+    const keys = [];
+    for (let i = 0; i <= 10; i++) {
+      const a = -Math.PI / 2 + (i / 10) * Math.PI * 2 * 1.25;
+      const rr = r * (0.55 + 0.45 * Math.sin(i * 0.9));
+      keys.push({ x: x + Math.cos(a) * rr, y: y + Math.sin(a) * rr, t: 150 + i * 210 });
+    }
+    keys.unshift({ ...keys[0], t: 0 });
+    keys.push({ ...keys[keys.length - 1], t: 2450 });
+    return { kind: 'spread', keys, glow: this.dish };
   }
 
+  /** Mom helps: her spoon circles while the rest of the sauce fills in. */
   protected autoFinish() {
     sfx(this.scene, 'squish');
+    const t0 = this.scene.time.now;
+    const r = this.dish.R * 0.4;
+    this.hand.follow('spread', () => {
+      const a = (this.scene.time.now - t0) / 220;
+      return { x: this.dish.x + Math.cos(a) * r, y: this.dish.y + Math.sin(a) * r };
+    });
     this.finish(1300);
   }
 }

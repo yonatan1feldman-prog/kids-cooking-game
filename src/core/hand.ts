@@ -1,125 +1,192 @@
 import Phaser from 'phaser';
-import { ART, FX_SOFT, IMAGES } from './assets';
-import { art, type Layout } from './layout';
+import { ART, FX_SOFT, IMAGES, type ImageKey, type MomHand } from './assets';
+import type { Layout } from './layout';
 
 type P = { x: number; y: number };
 
-/**
- * The guiding hand. Demonstrates a gesture in a loop until stopped.
- * The image origin is the fingertip (ART.handTip), so every target point is where the finger touches.
- */
-export class HandHint {
-  private img: Phaser.GameObjects.Image;
-  /** Soft glow under the object the hint is about. */
-  private glow: Phaser.GameObjects.Image;
-  private tweens: (Phaser.Tweens.Tween | Phaser.Tweens.TweenChain)[] = [];
-  private restScale: number;
+/** One keyframe of a hand motion: where the anchor is at time t (ms). `press` shrinks it a little (a tap). */
+export interface HandKey extends P {
+  t: number;
+  press?: boolean;
+}
 
-  constructor(private scene: Phaser.Scene, layout: Layout) {
-    const [w, h] = IMAGES['hand-hint'].size;
-    this.img = scene.add.image(0, 0, 'hand-hint').setOrigin(ART.handTip.x / w, ART.handTip.y / h).setDepth(1000).setVisible(false);
-    art(this.img, layout);
-    this.restScale = this.img.scale;
+/** Something Mom holds while she shows it (a rolling pin, a topping, the pizza, a slice). Never the real item. */
+export interface HandProp {
+  key: string;
+  /** Offset of the prop's centre from the hand's anchor, world units. */
+  dx?: number;
+  dy?: number;
+  scale: number;
+  /** Scale at the end of the motion (it shrinks or grows along the way; its offset scales with it). */
+  endScale?: number;
+  angle?: number;
+  alpha?: number;
+  /** Origin of the prop (default centre). */
+  originX?: number;
+  originY?: number;
+  /** Fade the prop out from this time on (ms), e.g. it "melts" into the pizza instead of landing. */
+  fadeFrom?: number;
+  tint?: number;
+}
+
+export interface HandMotion {
+  kind: MomHand;
+  keys: HandKey[];
+  props?: HandProp[];
+  /** Soft glow on this point (hints only: where to touch first). */
+  glow?: P;
+  /** Runs when the motion ends for any reason (done, interrupted, progress): undo anything it hid. */
+  onStop?: () => void;
+}
+
+/** Display scale of each demo hand (x k), from the art agent's checked scenes (images-b/scenes.js, CRITIQUE.md). */
+export const HAND_SCALE: Record<MomHand, number> = { point: 0.62, roll: 0.66, spread: 0.66, sprinkle: 1.1, grab: 0.66 };
+
+const FADE = 200;
+
+/**
+ * Mom's demo hand: one of the five mom-hand-* images, placed by its anchor (the fingertip, the palm,
+ * the spoon bowl, the pinch, the carry point: ART.momHands). It plays a keyframed motion once (the demo
+ * before a step, at most 2.5 s), in a loop with a pause (the hint after 5 s idle), or follows a point
+ * every frame (Mom helping: `follow`). It never touches the real dish: anything it carries is a prop.
+ */
+export class MomHandView {
+  private img: Phaser.GameObjects.Image;
+  private glow: Phaser.GameObjects.Image;
+  private props: Phaser.GameObjects.Image[] = [];
+  private tween?: Phaser.Tweens.Tween;
+  private glowTween?: Phaser.Tweens.Tween;
+  private followFn?: () => P | null;
+  private kind: MomHand = 'point';
+  private onStop?: () => void;
+
+  constructor(private scene: Phaser.Scene, private layout: Layout) {
+    this.img = scene.add.image(0, 0, 'mom-hand-point').setDepth(1000).setVisible(false);
     this.glow = scene.add.image(0, 0, FX_SOFT).setDepth(999).setVisible(false).setTint(0xffe066).setBlendMode(Phaser.BlendModes.ADD);
     this.glow.setScale((360 * layout.k) / this.glow.frame.realWidth);
+    scene.events.on(Phaser.Scenes.Events.UPDATE, this.onUpdate, this);
+    this.img.once(Phaser.GameObjects.Events.DESTROY, () => scene.events.off(Phaser.Scenes.Events.UPDATE, this.onUpdate, this));
   }
 
   get active() {
     return this.img.visible;
   }
 
-  /** Where the fingertip is while a demo runs (null when hidden). */
+  /** Where the anchor is while the hand shows (null when hidden): Mom and Pipa watch it. */
   get position(): P | null {
     return this.img.visible ? { x: this.img.x, y: this.img.y } : null;
   }
 
+  private setKind(kind: MomHand, scale?: number) {
+    this.kind = kind;
+    const key = `mom-hand-${kind}` as ImageKey;
+    const [w, h] = IMAGES[key].size;
+    const a = ART.momHands[kind];
+    this.img.setTexture(key).setOrigin(a.x / w, a.y / h);
+    this.img.setScale((scale ?? HAND_SCALE[kind]) * this.layout.k);
+  }
+
+  private makeProps(list: HandProp[] = []) {
+    this.props = list.map((p) => {
+      const img = this.scene.add.image(0, 0, p.key).setDepth(998).setScale(p.scale).setAngle(p.angle ?? 0).setAlpha(p.alpha ?? 1);
+      img.setOrigin(p.originX ?? 0.5, p.originY ?? 0.5);
+      if (p.tint !== undefined) img.setTint(p.tint);
+      img.setData('prop', p);
+      return img;
+    });
+  }
+
+  private place(x: number, y: number, alpha: number, t: number, press = 0, total = 1) {
+    const base = HAND_SCALE[this.kind] * this.layout.k;
+    this.img.setPosition(x, y).setAlpha(alpha).setScale(base * (1 - 0.1 * press));
+    for (const img of this.props) {
+      const p = img.getData('prop') as HandProp;
+      let a = alpha * (p.alpha ?? 1);
+      if (p.fadeFrom !== undefined && t > p.fadeFrom) a *= Math.max(0, 1 - (t - p.fadeFrom) / 250);
+      const sc = p.endScale === undefined ? p.scale : Phaser.Math.Linear(p.scale, p.endScale, Phaser.Math.Clamp(t / total, 0, 1));
+      const f = sc / p.scale;
+      img.setScale(sc).setPosition(x + (p.dx ?? 0) * f, y + (p.dy ?? 0) * f).setAlpha(a);
+    }
+  }
+
+  /**
+   * Plays a motion. Once: fades in, moves through the keyframes, fades out, then `onDone`.
+   * With `loop`, it repeats after `gapMs` until stopped (the idle hint).
+   */
+  play(m: HandMotion, opts: { loop?: boolean; gapMs?: number; onDone?: () => void } = {}) {
+    this.stop();
+    this.setKind(m.kind);
+    this.makeProps(m.props);
+    this.onStop = m.onStop;
+    const keys = m.keys;
+    const total = keys[keys.length - 1].t;
+    this.img.setVisible(true);
+    this.place(keys[0].x, keys[0].y, 0, 0);
+    if (m.glow) {
+      this.glow.setPosition(m.glow.x, m.glow.y).setAlpha(0).setVisible(true);
+      this.glowTween = this.scene.tweens.add({ targets: this.glow, alpha: { from: 0.15, to: 0.7 }, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    }
+    this.tween = this.scene.tweens.addCounter({
+      from: 0,
+      to: total,
+      duration: total,
+      repeat: opts.loop ? -1 : 0,
+      repeatDelay: opts.gapMs ?? 900,
+      onRepeat: () => {
+        // Props that faded out come back for the next round.
+        this.props.forEach((p) => p.setAlpha((p.getData('prop') as HandProp).alpha ?? 1));
+      },
+      onUpdate: (tw) => {
+        const t = tw.getValue() ?? 0;
+        let i = 0;
+        while (i < keys.length - 2 && t > keys[i + 1].t) i++;
+        const a = keys[i];
+        const b = keys[Math.min(i + 1, keys.length - 1)];
+        const span = Math.max(1, b.t - a.t);
+        const f = Phaser.Math.Easing.Sine.InOut(Phaser.Math.Clamp((t - a.t) / span, 0, 1));
+        const press = (a.press ? 1 - f : 0) + (b.press ? f : 0);
+        const alpha = Math.min(1, t / FADE, (total - t) / FADE);
+        this.place(Phaser.Math.Linear(a.x, b.x, f), Phaser.Math.Linear(a.y, b.y, f), Math.max(0, alpha), t, press, total);
+      },
+      onComplete: () => {
+        this.stop();
+        opts.onDone?.();
+      },
+    });
+  }
+
+  /** Mom helping: the hand shows and follows `at()` every frame (null = hide it for now) until stopped. */
+  follow(kind: MomHand, at: () => P | null) {
+    this.stop();
+    this.setKind(kind);
+    this.followFn = at;
+    this.img.setAlpha(0).setVisible(true);
+    this.scene.tweens.add({ targets: this.img, alpha: 1, duration: FADE });
+    this.onUpdate();
+  }
+
+  private onUpdate() {
+    if (!this.followFn) return;
+    const p = this.followFn();
+    if (!p) return this.img.setAlpha(0);
+    if (this.img.alpha === 0) this.img.setAlpha(1);
+    this.img.setPosition(p.x, p.y);
+  }
+
   stop() {
-    this.tweens.forEach((t) => t.destroy());
-    this.tweens = [];
+    const undo = this.onStop;
+    this.onStop = undefined;
+    undo?.();
+    this.tween?.destroy();
+    this.tween = undefined;
+    this.glowTween?.destroy();
+    this.glowTween = undefined;
+    this.followFn = undefined;
+    this.scene.tweens.killTweensOf(this.img);
+    this.props.forEach((p) => p.destroy());
+    this.props = [];
     this.img.setVisible(false);
     this.glow.setVisible(false);
-  }
-
-  private begin(at: P) {
-    this.stop();
-    this.img.setPosition(at.x, at.y).setScale(this.restScale).setAlpha(0).setVisible(true);
-    // Glow on the thing to touch first.
-    this.glow.setPosition(at.x, at.y).setAlpha(0).setVisible(true);
-    this.tweens.push(this.scene.tweens.add({ targets: this.glow, alpha: { from: 0.15, to: 0.7 }, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' }));
-  }
-
-  /** Repeated taps on a point. */
-  tap(at: P) {
-    this.begin(at);
-    const s = this.restScale;
-    this.tweens.push(
-      this.scene.tweens.chain({
-        targets: this.img,
-        loop: -1,
-        tweens: [
-          { alpha: 1, duration: 250 },
-          { scale: s * 0.8, duration: 180, yoyo: true, repeat: 1, repeatDelay: 120 },
-          { alpha: 0.9, duration: 500 },
-        ],
-      }),
-    );
-  }
-
-  /** Press at `from`, carry to `to`, release, repeat. */
-  drag(from: P, to: P) {
-    this.begin(from);
-    const s = this.restScale;
-    this.tweens.push(
-      this.scene.tweens.chain({
-        targets: this.img,
-        loop: -1,
-        loopDelay: 300,
-        tweens: [
-          { alpha: 1, x: from.x, y: from.y, duration: 250 },
-          { scale: s * 0.85, duration: 180 },
-          { x: to.x, y: to.y, duration: 1100, ease: 'Sine.easeInOut' },
-          { scale: s, duration: 180 },
-          { alpha: 0, duration: 250 },
-        ],
-      }),
-    );
-  }
-
-  /** Rub back and forth across a point. */
-  rub(at: P, width: number) {
-    this.begin(at);
-    this.img.setScale(this.restScale * 0.85);
-    this.tweens.push(this.scene.tweens.add({ targets: this.img, alpha: 1, duration: 250 }));
-    this.tweens.push(
-      this.scene.tweens.add({
-        targets: this.img,
-        x: { from: at.x - width / 2, to: at.x + width / 2 },
-        duration: 450,
-        yoyo: true,
-        repeat: -1,
-        ease: 'Sine.easeInOut',
-      }),
-    );
-  }
-
-  /** Paint-like circling over an area. */
-  circle(at: P, radius: number) {
-    this.begin(at);
-    this.img.setScale(this.restScale * 0.85);
-    this.tweens.push(this.scene.tweens.add({ targets: this.img, alpha: 1, duration: 250 }));
-    this.tweens.push(
-      this.scene.tweens.addCounter({
-        from: 0,
-        to: Math.PI * 2,
-        duration: 1400,
-        repeat: -1,
-        onUpdate: (tw) => {
-          const a = tw.getValue() ?? 0;
-          const r = radius * (0.55 + 0.45 * Math.sin(a * 1.5));
-          this.img.setPosition(at.x + Math.cos(a) * r, at.y + Math.sin(a) * r);
-        },
-      }),
-    );
   }
 
   destroy() {

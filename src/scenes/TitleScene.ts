@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { music, voice } from '../core/audio';
 import { requestWakeLock, resumeAudio } from '../core/device';
 import { stars } from '../core/fx';
 import { addBackground, getLayout, keepLayoutOnResize } from '../core/layout';
@@ -22,7 +23,8 @@ export class TitleScene extends Phaser.Scene {
     addBackground(this, L);
 
     const at = getStage(L).play;
-    const btn = iconButton(this, L, 'btn-play', at.x, at.y, () => this.go(btn.x, btn.y), { pulse: true, fireOn: 'up', hitPad: 130 });
+    // (Its texture is rasterized at 1.4x, see `raster` in assets.ts: at scale k it shows 1.4x big.)
+    const btn = iconButton(this, L, 'btn-play', at.x, at.y, () => this.go(btn.x, btn.y), { fireOn: 'up', hitPad: 130 });
     this.tweens.add({ targets: btn, alpha: { from: 0, to: 1 }, duration: 400 });
   }
 
@@ -33,6 +35,9 @@ export class TitleScene extends Phaser.Scene {
     requestWakeLock();
     stars(this, x, y, 16, 80 * getLayout(this).k);
     sfx(this, 'pop');
+    // The music starts with her tap and then runs on, softly, through every screen. Mom says hello.
+    music.start();
+    voice.say('vo-welcome', { queue: false });
     this.time.delayedCall(450, () => this.scene.start('Home'));
   }
 }

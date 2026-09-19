@@ -1,11 +1,17 @@
 import Phaser from 'phaser';
 import type { SoundKey } from './assets';
+import { LEVEL } from './audio';
+
+/** Per-effect gain on top of LEVEL.sfx (MIXING.md: munch is 5 dB quieter in the file, so it plays at 1.0). */
+const KEY_GAIN: Partial<Record<SoundKey, number>> = { munch: 1 / LEVEL.sfx, star: 0.6 / LEVEL.sfx, complete: 0.7 / LEVEL.sfx };
+const gainOf = (key: SoundKey, rel = 1) => Math.min(1, rel * LEVEL.sfx * (KEY_GAIN[key] ?? 1));
 
 const lastPlayed = new Map<string, number>();
 
 /**
  * Plays a contract sound if it was loaded. A missing sound is silently skipped.
  * Same-key calls closer than `minGapMs` are dropped so rapid rubbing doesn't turn into noise.
+ * `volume` is relative (1 = the normal effect level, LEVEL.sfx ~0.65 of Mom's voice).
  */
 export function sfx(scene: Phaser.Scene, key: SoundKey, opts: { volume?: number; minGapMs?: number; vary?: boolean } = {}) {
   if (!scene.cache.audio.exists(key)) return;
@@ -16,7 +22,7 @@ export function sfx(scene: Phaser.Scene, key: SoundKey, opts: { volume?: number;
   try {
     const vary = opts.vary ?? true;
     scene.sound.play(key, {
-      volume: opts.volume ?? 0.8,
+      volume: gainOf(key, opts.volume),
       rate: vary ? Phaser.Math.FloatBetween(0.92, 1.1) : 1,
     });
   } catch (err) {
@@ -25,7 +31,7 @@ export function sfx(scene: Phaser.Scene, key: SoundKey, opts: { volume?: number;
 }
 
 /** Plays `key`, then calls `then` when it ends (right away if the sound is missing or fails). */
-export function sfxThen(scene: Phaser.Scene, key: SoundKey, then: () => void, volume = 0.9) {
+export function sfxThen(scene: Phaser.Scene, key: SoundKey, then: () => void, volume = 1) {
   let called = false;
   const next = () => {
     if (called) return;
@@ -34,7 +40,7 @@ export function sfxThen(scene: Phaser.Scene, key: SoundKey, then: () => void, vo
   };
   if (!scene.cache.audio.exists(key)) return next();
   try {
-    const snd = scene.sound.add(key, { volume });
+    const snd = scene.sound.add(key, { volume: gainOf(key, volume) });
     snd.once(Phaser.Sound.Events.COMPLETE, () => {
       snd.destroy();
       next();

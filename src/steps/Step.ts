@@ -1,14 +1,18 @@
 import Phaser from 'phaser';
-import type { HandHint } from '../core/hand';
+import { voice, type VoiceKey } from '../core/audio';
+import type { HandMotion, MomHandView } from '../core/hand';
 import { inNoTouchZone, type Layout } from '../core/layout';
 import type { Stage } from '../core/stage';
 import type { Character } from './Character';
 import type { Dish } from './Dish';
+import type { Mom } from './Mom';
 
-/** Default: seconds of no progress before the guiding hand shows the gesture. */
+/** Default: seconds of no progress before Mom's hand shows the gesture again (the hint). */
 export const HINT_AFTER_MS = 5000;
-/** Default: further seconds of no progress before the step finishes itself. */
+/** Default: further seconds of no progress before Mom helps (vo-help, and her hand does it). */
 export const AUTO_AFTER_HINT_MS = 10000;
+/** A demo never runs longer than this. */
+export const DEMO_MAX_MS = 2500;
 
 export interface StepContext {
   scene: Phaser.Scene;
@@ -18,9 +22,12 @@ export interface StepContext {
   dish: Dish;
   /** The round board the dish sits on. */
   board: Phaser.GameObjects.Image;
-  /** Stands on the right for the whole recipe. */
+  /** Mom, at the counter on the right for the whole recipe. */
+  mom: Mom;
+  /** Pipa the hedgehog (the kitchen pet): beside Mom on phones, and the one who tastes the pizza. */
   character: Character;
-  hand: HandHint;
+  /** Mom's demo hand. */
+  hand: MomHandView;
   /** Where the dish rests by default during a step (game coordinates). */
   dishHome: { x: number; y: number };
 }
@@ -32,10 +39,14 @@ export type UpFn = (p: Phaser.Input.Pointer, cancelled: boolean) => void;
 /**
  * Base for every reusable step type.
  *
+ * Cooking with Mom: before the step, Mom may show it once (`intro(true)`: her hand does the gesture
+ * over the dish for at most 2.5 s, "Watch me first!" + the step's line, then "Now you try!"). A touch
+ * during the demo ends it at once and the touch counts. Without a demo she only says the step's line.
+ *
  * Never-stuck contract: `poke()` is called on every bit of real progress. With no
- * progress for `hintAfterMs` the hand demonstrates (`showHint`), and after another
- * `autoAfterHintMs` the step finishes itself (`autoFinish`). Phases where the child
- * only watches (e.g. baking) turn the idle clock off with `setIdle(false)`.
+ * progress for `hintAfterMs` Mom's hand shows the gesture (`showHint`, looping), and after another
+ * `autoAfterHintMs` Mom helps: "Let me help you!" and her hand does it (`autoFinish`). Phases where
+ * the child only watches (e.g. baking) turn the idle clock off with `setIdle(false)`.
  *
  * One-finger contract: the first finger that touches down owns the step until it is
  * lifted. Other fingers and a resting palm are ignored and can't interrupt or steal it.
@@ -44,7 +55,7 @@ export abstract class Step<P> {
   protected readonly scene: Phaser.Scene;
   protected readonly layout: Layout;
   protected readonly dish: Dish;
-  protected readonly hand: HandHint;
+  protected readonly hand: MomHandView;
   /** Idle timings; a step may change them in start(). */
   protected hintAfterMs = HINT_AFTER_MS;
   protected autoAfterHintMs = AUTO_AFTER_HINT_MS;
@@ -68,10 +79,69 @@ export abstract class Step<P> {
 
   /** Build the step's objects and start listening. */
   abstract start(): void;
-  /** Demonstrate the expected gesture with the hand. */
-  protected abstract showHint(): void;
-  /** Finish the step without the child (animated), ending with `complete()`. */
+  /** Mom's hand doing the gesture this phase expects (at most DEMO_MAX_MS, it must not change the dish). */
+  protected abstract demo(): HandMotion | null;
+  /** Mom finishes the step with the child watching (her hand visibly does it), ending with `complete()`. */
   protected abstract autoFinish(): void;
+  /** What Mom says as the step begins ("Let's roll the dough!"), if anything. */
+  protected stepLine: VoiceKey | null = null;
+
+  /** The idle hint: Mom's hand shows the gesture again, looping until there is progress. */
+  protected showHint() {
+    const m = this.demo();
+    if (m) this.hand.play(m, { loop: true, gapMs: 900 });
+  }
+
+  private demoing = false;
+  private demoOff?: () => void;
+  /** Called when the demo ends (finished or interrupted), e.g. to put a hidden tool back. */
+  protected onDemoEnd() {}
+
+  /** True while Mom's demo runs. */
+  protected get inDemo() {
+    return this.demoing;
+  }
+
+  /**
+   * Starts the step's talk (and demo). Called by RecipeScene right after start().
+   * The demo plays once; any touch ends it at once (the touch still counts, it is not swallowed).
+   */
+  intro(withDemo: boolean) {
+    const m = withDemo ? this.demo() : null;
+    const stillHere = () => !this.finished;
+    if (!m) {
+      if (this.stepLine) voice.say(this.stepLine, { valid: stillHere });
+      return;
+    }
+    this.demoing = true;
+    voice.say('vo-watch-me', { valid: () => this.demoing });
+    if (this.stepLine) voice.say(this.stepLine, { valid: stillHere, ttlMs: 3500 });
+    const onTouch = () => this.endDemo(true);
+    this.scene.input.on(Phaser.Input.Events.POINTER_DOWN, onTouch);
+    this.demoOff = () => this.scene.input.off(Phaser.Input.Events.POINTER_DOWN, onTouch);
+    const keys = m.keys;
+    if (keys[keys.length - 1].t > DEMO_MAX_MS) console.warn('[step] demo longer than 2.5 s');
+    // (No glow in the demo: that is for the hint, when she needs to find where to touch.)
+    this.hand.play({ ...m, glow: undefined }, { onDone: () => this.endDemo(false) });
+  }
+
+  private endDemo(interrupted: boolean) {
+    if (!this.demoing) return;
+    this.demoing = false;
+    this.demoOff?.();
+    this.demoOff = undefined;
+    this.hand.stop();
+    this.onDemoEnd();
+    this.idleMs = 0;
+    // "Now you try!" only if she hasn't started already.
+    if (!interrupted && !this.finished) voice.say('vo-your-turn', { valid: () => !this.finished && !this.owner && this.idleMs < 3000, ttlMs: 3500 });
+  }
+
+  /** Mom helps: she says so, and the step's own help animation (with her hand) finishes it. */
+  private help() {
+    voice.say('vo-help', { queue: false });
+    this.autoFinish();
+  }
 
   /** True once the step is finishing itself; ignore input then. */
   protected get isAuto() {
@@ -79,7 +149,7 @@ export abstract class Step<P> {
   }
 
   update(delta: number) {
-    if (!this.idleOn || this.finished || this.auto) return;
+    if (!this.idleOn || this.finished || this.auto || this.demoing) return;
     // A finger resting on the screen is not "stuck": hold the hint back.
     if (this.owner && !this.hinting) return;
     this.idleMs += delta;
@@ -92,7 +162,7 @@ export abstract class Step<P> {
       this.hinting = false;
       this.hand.stop();
       this.owner = null;
-      this.autoFinish();
+      this.help();
     }
   }
 
@@ -217,6 +287,7 @@ export abstract class Step<P> {
   /** Ends the step: stops input and the hand, fades out owned objects, then advances. */
   protected complete() {
     if (this.finished) return;
+    this.endDemo(true);
     this.finished = true;
     this.idleOn = false;
     this.owner = null;
@@ -238,6 +309,7 @@ export abstract class Step<P> {
 
   /** Called if the scene leaves mid-step (e.g. home button). */
   abort() {
+    this.endDemo(true);
     this.finished = true;
     this.hand.stop();
     for (const l of this.listeners) this.scene.input.off(l.event, l.fn);
