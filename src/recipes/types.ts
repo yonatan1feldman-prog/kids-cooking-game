@@ -156,6 +156,8 @@ export interface CharacterDef {
 export type StepDef =
   | { type: 'wash'; params: WashParams }
   | { type: 'knead'; params: PressParams }
+  | { type: 'crush'; params: PressParams }
+  | { type: 'stir'; params: StirParams }
   | { type: 'roll'; params: RollParams }
   | { type: 'spread'; params: SpreadParams }
   | { type: 'sprinkle'; params: SprinkleParams }

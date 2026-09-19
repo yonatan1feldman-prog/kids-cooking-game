@@ -1,7 +1,8 @@
 import { TUNING } from '../core/tuning';
 import type { Recipe } from './types';
 
-/** Flour white for the dough. */
+/** Tomato red of the crushed tomatoes and the sauce (juice drops); flour white for the dough. */
+const TOMATO = 0xe4523b;
 const FLOUR = 0xfff6e6;
 
 export const pizza: Recipe = {
@@ -48,6 +49,32 @@ export const pizza: Recipe = {
       },
     },
     { type: 'roll', params: { ball: 'dough-ball', flat: 'dough-flat', tool: 'rolling-pin', rubWidths: TUNING.roll.rubWidths } },
+    {
+      type: 'crush',
+      params: {
+        stages: ['sauce-stage-0', 'sauce-stage-1', 'sauce-stage-2'],
+        pressesPerStage: TUNING.crush.pressesPerStage,
+        place: 'bowl',
+        bowl: { back: 'prep-bowl-back', front: 'prep-bowl-front' },
+        dent: 'press-dent',
+        splash: TOMATO,
+        sound: 'squish',
+        line: 'vo-crush',
+      },
+    },
+    {
+      type: 'stir',
+      params: {
+        bowl: { back: 'prep-bowl-back', front: 'prep-bowl-front' },
+        from: 'sauce-stage-2',
+        to: 'sauce-stage-3',
+        tool: 'spoon-wood',
+        distance: TUNING.stir.distance,
+        splash: TOMATO,
+        line: 'vo-stir',
+        handoffAs: 'sauce-bowl',
+      },
+    },
     { type: 'spread', params: { source: 'sauce-bowl', blob: 'sauce-blob', coverage: TUNING.spread.coverage } },
     { type: 'sprinkle', params: { tool: 'cheese-shaker', piece: 'cheese-shred', count: TUNING.sprinkle.count } },
     {

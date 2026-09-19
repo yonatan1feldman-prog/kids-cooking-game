@@ -31,9 +31,12 @@ export class SpreadStep extends Step<SpreadParams> {
     this.brush = R * 0.42;
 
     const bowlAt = this.ctx.stage.bowl;
-    const bowl = this.own(art(this.scene.add.image(bowlAt.x, bowlAt.y, this.params.source), L));
-    bowl.setScale(0);
-    this.scene.tweens.add({ targets: bowl, scale: L.k, duration: 450, ease: 'Back.easeOut' });
+    // The sauce she stirred, if the step before left its bowl here; else the bowl pops in.
+    if (!this.adopt(this.params.source)) {
+      const bowl = this.own(art(this.scene.add.image(bowlAt.x, bowlAt.y, this.params.source), L));
+      bowl.setScale(0);
+      this.scene.tweens.add({ targets: bowl, scale: L.k, duration: 450, ease: 'Back.easeOut' });
+    }
 
     // Coverage grid over the paintable disc.
     const step = R / 9;

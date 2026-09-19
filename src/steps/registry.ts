@@ -6,6 +6,7 @@ import { PressStep } from './PressStep';
 import { RollStep } from './RollStep';
 import { SprinkleStep } from './SprinkleStep';
 import { SpreadStep } from './SpreadStep';
+import { StirStep } from './StirStep';
 import { WashStep } from './WashStep';
 import type { Step, StepContext } from './Step';
 
@@ -16,6 +17,8 @@ const STEP_TYPES: Record<StepType, Factory> = {
   wash: (c, p, d) => new WashStep(c, p, d),
   // knead and crush are the same reusable press step (on the board / in the bowl)
   knead: (c, p, d) => new PressStep(c, p, d),
+  crush: (c, p, d) => new PressStep(c, p, d),
+  stir: (c, p, d) => new StirStep(c, p, d),
   roll: (c, p, d) => new RollStep(c, p, d),
   spread: (c, p, d) => new SpreadStep(c, p, d),
   sprinkle: (c, p, d) => new SprinkleStep(c, p, d),
