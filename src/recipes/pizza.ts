@@ -191,5 +191,6 @@ export const pizza: Recipe = {
       type: 'share',
       params: { slice: 'pizza-slice', slices: TUNING.share.slices, line: 'vo-share', forMom: 'vo-slice-mom', momYum: 'vo-mom-yum', forPet: 'vo-slice-pipa' },
     },
+    { type: 'photo', params: { frame: 'photo-frame', backdrop: 'bg-kitchen-landscape', line: 'vo-photo', finale: 'vo-finale', bye: 'vo-bye' } },
   ],
 };

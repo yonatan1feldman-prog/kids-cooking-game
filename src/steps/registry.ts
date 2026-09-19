@@ -6,6 +6,7 @@ import { DecorateStep } from './DecorateStep';
 import { FeedStep } from './FeedStep';
 import { GrateStep } from './GrateStep';
 import { OpenPourStep } from './OpenPourStep';
+import { PhotoStep } from './PhotoStep';
 import { PressStep } from './PressStep';
 import { RollStep } from './RollStep';
 import { ShareStep } from './ShareStep';
@@ -35,6 +36,7 @@ const STEP_TYPES: Record<StepType, Factory> = {
   chop: (c, p, d) => new ChopStep(c, p, d),
   'open-pour': (c, p, d) => new OpenPourStep(c, p, d),
   share: (c, p, d) => new ShareStep(c, p, d),
+  photo: (c, p, d) => new PhotoStep(c, p, d),
 };
 
 export function createStep(def: StepDef, ctx: StepContext, onDone: () => void): Step<unknown> {

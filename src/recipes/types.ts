@@ -308,7 +308,8 @@ export type StepDef =
   | { type: 'choose'; params: ChooseParams }
   | { type: 'chop'; params: ChopParams }
   | { type: 'open-pour'; params: OpenPourParams }
-  | { type: 'share'; params: ShareParams };
+  | { type: 'share'; params: ShareParams }
+  | { type: 'photo'; params: PhotoParams };
 
 export type StepType = StepDef['type'];
 
