@@ -131,6 +131,16 @@
         await __drag([[x, z.y0 + 60], [x, z.y1 - 40], [x, z.y0 + 60]]);
         await __run(250);
       }
+    } else if (name === 'CandlesStep') {
+      // Round 9: drag each candle onto the cake, then tap every flame out.
+      if (st.phase === 'place') {
+        const c = st.waiting[0];
+        if (c) { const a = st.placed.length * 1.9, rr = d.R * d.scaleX * 0.45; await __drag([[c.x, c.y], [d.x + Math.cos(a) * rr, d.y + Math.sin(a) * rr]]); await __run(500); }
+        else await __run(400);
+      } else if (st.phase === 'blow') {
+        const c = st.placed.find((o) => o.lit && o.flame);
+        if (c) { __tap(c.flame.x, c.flame.y); await __run(350); } else await __run(400);
+      } else await __run(400);
     } else if (name === 'PeelStep') {
       // Round 9: strokes along the vegetable (any direction), each one takes a strip off.
       const z = st.peelZone(), y = (z.y0 + z.y1) / 2, pts = [];
@@ -1148,6 +1158,11 @@ window.__soupMoments = () => [
   ['peel (the peeler held mid-stroke)', 'peel', async (st) => { const z = st.peelZone(), y = (z.y0 + z.y1) / 2; await __drag([[z.x0 + 80, y], [z.x0 + 150, y]], { hold: true }); await __run(300); }, (st) => st.done + ':' + st.bands.filter((b) => b.active).length, (st) => st.held],
   ['stir (the soup on the stove, spoon held)', 'stir', async (st) => { if (st.phase === 'knob') { __tap(st.knob.x, st.knob.y); await __run(900); } const o = st.bowl.opening(); await __drag([[o.x, o.y], [o.x + o.rx * 0.4, o.y]], { hold: true }); await __run(300); }, (st) => st.phase + ':' + Math.round(st.progress * 100), (st) => st.stirring],
   ['share (a ladle held mid-drag)', 'share', async (st) => { const s = st.slices.find((x) => !x.eaten), c = st.sliceCenter(s); await __drag([[c.x, c.y], [c.x + 150, c.y - 80]], { hold: true }); }, (st) => st.slices.filter((x) => x.eaten).length, (st) => !!st.held],
+];
+/** Round 9: the cake's moments for __robust8 (a candle held mid-drag, and the flames half blown out). */
+window.__cakeMoments = () => [
+  ['candles (a candle held mid-drag)', 'candles', async (st) => { const c = st.waiting[0]; await __drag([[c.x, c.y], [c.x + 200, c.y - 100]], { hold: true }); await __run(300); }, (st) => st.phase + ':' + st.placed.length, (st) => !!st.held],
+  ['share (a wedge held mid-drag)', 'share', async (st) => { const s = st.slices.find((x) => !x.eaten), c = st.sliceCenter(s); await __drag([[c.x, c.y], [c.x + 150, c.y - 80]], { hold: true }); }, (st) => st.slices.filter((x) => x.eaten).length, (st) => !!st.held],
 ];
 window.__pancakeMoments = () => [
   ['flip (the ladle held over the pan, pouring)', 'flip', async (st) => { if (st.phase === 'knob') { __tap(st.knob.x, st.knob.y); await __run(800); } const hp = st.holdPoint(); await __drag([[st.ladle.x, st.ladle.y], [hp.x, hp.y]], { hold: true }); await __run(700); }, (st) => st.phase + ':' + st.made + ':' + Math.round(st.poured / 100), (st) => st.held],

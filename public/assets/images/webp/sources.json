@@ -139,6 +139,46 @@
   "w": 140,
   "h": 140
  },
+ "cake-baked": {
+  "sha1": "a341d2258f0cf8575c70b476f22f0760c29dcf65",
+  "w": 720,
+  "h": 720
+ },
+ "cake-batter-0": {
+  "sha1": "de23d802c60bc35217d7ad486594f7e47beaf981",
+  "w": 640,
+  "h": 520
+ },
+ "cake-batter-1": {
+  "sha1": "8e19fb090a5fb45b31614e86cc611245a2a965a4",
+  "w": 640,
+  "h": 520
+ },
+ "cake-batter-2": {
+  "sha1": "6bd825d2322307a1ceeb3a141102aec0300a1e13",
+  "w": 640,
+  "h": 520
+ },
+ "cake-batter-3": {
+  "sha1": "5b3f1bbbf2c1cbe751b6767da1e53794d39f50a2",
+  "w": 640,
+  "h": 520
+ },
+ "cake-pan": {
+  "sha1": "c009ff0a3e23035a63885960f2555702bc32084c",
+  "w": 800,
+  "h": 800
+ },
+ "cake-pan-full": {
+  "sha1": "a9e990cf185b991aae31dd5bf5f213ecc92c2353",
+  "w": 800,
+  "h": 800
+ },
+ "cake-plate": {
+  "sha1": "e4f53edc9515456b4c96f0700265b34da60ac892",
+  "w": 820,
+  "h": 830
+ },
  "can-corn-closed": {
   "sha1": "c92c1153e5023b9f636b326125abf9e9d676eea0",
   "w": 340,
@@ -154,10 +194,20 @@
   "w": 300,
   "h": 260
  },
+ "candle": {
+  "sha1": "efa6f19f66405edd87a1446ff3d39dc0e74e0678",
+  "w": 260,
+  "h": 460
+ },
  "candy-dot": {
   "sha1": "452967685355daf95382de8262af3772ddc5314d",
   "w": 140,
   "h": 140
+ },
+ "card-cake": {
+  "sha1": "432d6a2b5cbcacbb184dbb77324291cb7ad99b5a",
+  "w": 400,
+  "h": 520
  },
  "card-cookies": {
   "sha1": "624a63f5260ee3d96126d005b9839ceca57cd6fd",
@@ -263,6 +313,11 @@
   "sha1": "06ed665d8bc1584ad58ee410521831095570efb1",
   "w": 80,
   "h": 44
+ },
+ "choc-chip": {
+  "sha1": "ec78edf620c70fdcfcdcc4f24735eed34848fe16",
+  "w": 140,
+  "h": 140
  },
  "colander": {
   "sha1": "1cdcf416045858709ed3bfa65c8529ba5e71eb43",
@@ -394,10 +449,35 @@
   "w": 1000,
   "h": 1000
  },
+ "flame-candle": {
+  "sha1": "a690a204996faf84380939b1f836a20b129e75de",
+  "w": 200,
+  "h": 280
+ },
  "flour-bag": {
   "sha1": "65195daf2cfca3f56d5d0b223082867e1f035195",
   "w": 400,
   "h": 520
+ },
+ "frosting-blob": {
+  "sha1": "77c51ed92df92710d25854696fba4c89d0ee0036",
+  "w": 200,
+  "h": 200
+ },
+ "frosting-tub-choc": {
+  "sha1": "3c58cff88a357fb30d3d5cdca138b01454530a13",
+  "w": 320,
+  "h": 360
+ },
+ "frosting-tub-pink": {
+  "sha1": "8cf191bf6c31da15eabce6603374253275ebf10f",
+  "w": 320,
+  "h": 360
+ },
+ "frosting-tub-white": {
+  "sha1": "b7900fffc57bc0ca92c22af217f550b3538a7731",
+  "w": 320,
+  "h": 360
  },
  "fruit-banana-inside": {
   "sha1": "fa399af3e29f3d5373ad201218d87137ec354fa2",
@@ -819,6 +899,11 @@
   "w": 700,
   "h": 780
  },
+ "photo-frame-cake": {
+  "sha1": "47da1899730389e0a42b27b2441608d501dc929a",
+  "w": 700,
+  "h": 780
+ },
  "photo-frame-cookies": {
   "sha1": "9b80f295810b0251c49e6eb00e10ae447e429528",
   "w": 700,
@@ -1003,6 +1088,11 @@
   "sha1": "c6e01019a91381128867862947834864620d79f1",
   "w": 900,
   "h": 560
+ },
+ "smoke-puff": {
+  "sha1": "8110d13b66dc3fa57d25db4ee248cb94477b4ed1",
+  "w": 240,
+  "h": 360
  },
  "soup-bowl-empty": {
   "sha1": "d15b55944870187b39aedd92eb07ec675f7d9ecd",

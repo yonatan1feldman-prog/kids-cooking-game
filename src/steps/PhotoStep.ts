@@ -116,9 +116,11 @@ export class PhotoStep extends Step<PhotoParams> {
         return PHOTO_KEY;
       }
       if (this.params.made) {
-        // Her whole dish as decorated (the cookies on their tray), 92% of the square, a little low.
-        if (tex.exists(MADE_KEY)) {
-          const made = new Phaser.GameObjects.Image(this.scene, 0, 0, MADE_KEY);
+        // Her whole dish as decorated (the cookies on their tray; the cake with its candles still lit), 92% of the
+        // square, a little low.
+        const madeKey = this.params.madeKey && tex.exists(this.params.madeKey) ? this.params.madeKey : MADE_KEY;
+        if (tex.exists(madeKey)) {
+          const made = new Phaser.GameObjects.Image(this.scene, 0, 0, madeKey);
           made.setScale((size * 0.92) / made.frame.realWidth);
           dt.draw(made, size / 2, size / 2 + 50 * (size / 540));
           temp.push(made);

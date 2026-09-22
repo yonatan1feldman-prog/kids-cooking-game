@@ -293,10 +293,18 @@ export function makeFxTextures(game: Phaser.Game) {
 
 /** Style-matched UI textures made in code: the solid sauce brush. */
 export function makeUiTextures(game: Phaser.Game) {
+  makeBrush(game, 'sauce-blob', SAUCE_RED, SAUCE_BRUSH);
+}
+
+/**
+ * A paint brush from a blob's silhouette, filled with one flat colour (no outlines): the pizza's sauce, and since
+ * round 9 the cake's frosting in the colour she picked. Returns the texture key.
+ */
+export function makeBrush(game: Phaser.Game, blob: string, colour: number, key: string) {
   const scene = { textures: game.textures };
-  if (scene.textures.exists(SAUCE_BRUSH)) scene.textures.remove(SAUCE_BRUSH);
-  // Silhouette of sauce-blob filled with sauce red: paint without outlines.
-  const src = scene.textures.get('sauce-blob').getSourceImage() as CanvasImageSource & { width: number; height: number };
+  if (scene.textures.exists(key)) scene.textures.remove(key);
+  if (!scene.textures.exists(blob)) return key;
+  const src = scene.textures.get(blob).getSourceImage() as CanvasImageSource & { width: number; height: number };
   const canvas = document.createElement('canvas');
   canvas.width = src.width;
   canvas.height = src.height;
@@ -304,10 +312,11 @@ export function makeUiTextures(game: Phaser.Game) {
   if (ctx) {
     ctx.drawImage(src, 0, 0);
     ctx.globalCompositeOperation = 'source-in';
-    ctx.fillStyle = '#' + SAUCE_RED.toString(16).padStart(6, '0');
+    ctx.fillStyle = '#' + colour.toString(16).padStart(6, '0');
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
-  scene.textures.addCanvas(SAUCE_BRUSH, canvas);
+  scene.textures.addCanvas(key, canvas);
+  return key;
 }
 
 /** Opaque bounds of a texture (from its source canvas), used to find e.g. the mouth. */

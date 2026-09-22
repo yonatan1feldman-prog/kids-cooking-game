@@ -45,13 +45,16 @@ export type VoiceKey =
   | 'vo-album' | 'vo-pick-soup' | 'vo-peel' | 'vo-peel-done' | 'vo-into-pot' | 'vo-water' | 'vo-stir-soup'
   | 'vo-soup-ready' | 'vo-serve-soup' | 'vo-soup-mom' | 'vo-soup-pipa' | 'vo-soup-yum' | 'vo-photo-soup'
   | 'vo-finale-soup'
+  | 'vo-pick-cake' | 'vo-stir-cake' | 'vo-pour-pan' | 'vo-pick-frosting' | 'vo-frost' | 'vo-decorate-cake'
+  | 'vo-candles' | 'vo-wish' | 'vo-blow-more' | 'vo-blown' | 'vo-share-cake' | 'vo-cake-mom' | 'vo-cake-pipa'
+  | 'vo-cake-yum' | 'vo-photo-cake' | 'vo-finale-cake'
   | CountKey | TempKey | NameKey;
 
 /** Mom counting (count-1..10) and saying the oven temperature (temp-50..250). */
 export type CountKey = `count-${1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10}`;
 export type TempKey = `temp-${50 | 100 | 150 | 200 | 250}`;
 /** Mom naming what she picked (the choose step: a new name may cut the name playing, never another line). */
-export type NameKey = `name-${'tomato' | 'mushroom' | 'pepper' | 'onion' | 'corn' | 'olives' | 'cucumber' | 'carrot' | 'lemon' | 'lettuce' | 'star' | 'heart' | 'circle' | 'flower' | 'banana' | 'strawberry' | 'mango' | 'kiwi' | 'potato' | 'zucchini'}`;
+export type NameKey = `name-${'tomato' | 'mushroom' | 'pepper' | 'onion' | 'corn' | 'olives' | 'cucumber' | 'carrot' | 'lemon' | 'lettuce' | 'star' | 'heart' | 'circle' | 'flower' | 'banana' | 'strawberry' | 'mango' | 'kiwi' | 'potato' | 'zucchini' | 'pink' | 'white' | 'chocolate'}`;
 export const countKey = (n: number): CountKey => `count-${Math.max(1, Math.min(10, Math.round(n)))}` as CountKey;
 
 const PRAISE: VoiceKey[] = ['vo-praise-1', 'vo-praise-2', 'vo-praise-3', 'vo-praise-4', 'vo-praise-5', 'vo-praise-6', 'vo-praise-7'];

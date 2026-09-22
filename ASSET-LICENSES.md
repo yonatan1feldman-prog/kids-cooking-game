@@ -107,6 +107,12 @@ thick drink poured was found); lid-click is a plastic container lid.
 |---|---|---|---|---|---|
 | sfx/peel.ogg | Peeling a Carrot | Erbsland-Music | https://freesound.org/people/Erbsland-Music/sounds/634142/ | CC0 1.0 (read live on the sound's page, 2026-09-20) | one Y-peeler stroke cut at 2.05-2.52 s, high-pass 80 Hz, 2 ms / 60 ms fades, -1.0 dBFS cap, -22.9 LUFS; played at gain 1.0 (the munch / tear convention) |
 
+### New in round 9 (the birthday cake)
+
+| File | Title | Author | Source page | License | Processing |
+|---|---|---|---|---|---|
+| sfx/blow.ogg | blowing out candle.wav | Reitanna | https://freesound.org/people/Reitanna/sounds/242867/ | CC0 1.0 (read live on the sound's page, 2026-09-20) | cut 0.20-0.60 s, high-pass 80 Hz, -18 LUFS, -1.0 dBFS cap, 60 ms fade-out; 0.344 s, played at the normal effect level |
+
 ## Sounds: music (`sounds/music/`)
 
 | File | Title | Author | Source page | License | Processing |
@@ -234,6 +240,20 @@ peak cap, OGG q3). `name-potato` and `name-zucchini` join the `name-*` family Mo
 | vo-serve-soup · vo-soup-mom · vo-soup-pipa · vo-soup-yum | Let's serve the soup! · A bowl for me? Thank you! · A bowl for Pipa! · Mmm, warm and cozy! |
 | vo-photo-soup · vo-finale-soup | Let's take a picture of your soup! · We made soup together! |
 
+### New in round 9 (the birthday cake, 19 lines)
+
+Same engine, voice and processing as every line above. `name-pink`, `name-white` and `name-chocolate` join the
+`name-*` family Mom says when something is picked.
+
+| Key | Line |
+|---|---|
+| vo-pick-cake · vo-stir-cake · vo-pour-pan | Let's bake a birthday cake! · Stir the cake batter! · Pour it into the pan! |
+| vo-pick-frosting · name-pink · name-white · name-chocolate | Pick a frosting color! · Pink! · White! · Chocolate! |
+| vo-frost · vo-decorate-cake | Spread the frosting all over! · Decorate your cake! |
+| vo-candles · vo-wish · vo-blow-more · vo-blown | Put on the candles! · Make a wish and blow out the candles! · Keep blowing! · Yay! Happy birthday! |
+| vo-share-cake · vo-cake-mom · vo-cake-pipa · vo-cake-yum | Let's share the cake! · A slice for me? Thank you! · A slice for Pipa! · Mmm, so soft and sweet! |
+| vo-photo-cake · vo-finale-cake | Let's take a picture of your cake! · We made a birthday cake together! |
+
 ## Graphics (`images/`)
 
 All SVG files in `images/` were drawn for this project by the art agent (style B, paper cut-out; generators in
@@ -250,5 +270,9 @@ glasses, the smoothie card and photo frame) come from `cooking-game-assets/image
 `tools/`); the pouring stream is drawn in code. The 23 pancake files of round 8 (the batter stages, the stove top, knob
 and flame, the pan, the ladle, the puddles, bubbles and golden pancake, the big plate, the syrup and toppings, the pancake
 card and photo frame) come from `cooking-game-assets/images-b-pancakes` (same kit, generators in its `tools/`). The egg's yolk in the bowl and the flour
-and sugar specks are drawn in code. No third-party art, fonts or images.
+and sugar specks are drawn in code. The 24 soup files of round 9 (potato and zucchini, the peel skins, peeler and strip,
+the pot, its heaps and soup stages, the jug, the bowls, the ladle, the soup card and photo frame) come from
+`cooking-game-assets/images-b-soup` and the 18 cake files (batter stages, pan, cake and plate, frosting tubs and blob,
+choc chip, candle, flame, smoke, the cake card and photo frame) from `cooking-game-assets/images-b-cake` (same kit,
+generators in their `tools/`); the memory book's button and arrows are drawn in code. No third-party art, fonts or images.
 `images/webp/` holds WebP renderings of those same SVGs, made by `scripts/bake-webp.js`.

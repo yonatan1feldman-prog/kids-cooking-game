@@ -1,6 +1,7 @@
 import type { StepDef, StepType } from '../recipes/types';
 import { BakeStep } from './BakeStep';
 import { ChooseStep } from './ChooseStep';
+import { CandlesStep } from './CandlesStep';
 import { ChopStep } from './ChopStep';
 import { BlendStep } from './BlendStep';
 import { CuttersStep } from './CuttersStep';
@@ -39,6 +40,7 @@ const STEP_TYPES: Record<StepType, Factory> = {
   choose: (c, p, d) => new ChooseStep(c, p, d),
   chop: (c, p, d) => new ChopStep(c, p, d),
   peel: (c, p, d) => new PeelStep(c, p, d),
+  candles: (c, p, d) => new CandlesStep(c, p, d),
   'open-pour': (c, p, d) => new OpenPourStep(c, p, d),
   share: (c, p, d) => new ShareStep(c, p, d),
   photo: (c, p, d) => new PhotoStep(c, p, d),

@@ -199,6 +199,11 @@ export interface SpreadParams {
   blob: ImageKey;
   /** 0..1 share of the dish that must be covered. */
   coverage: number;
+  /**
+   * Round 9 (the cake's frosting): the blob is drawn white and tinted with the colour she chose (`tint` on the
+   * picked option of the `choose` step before this one), so one blob serves pink, white and chocolate.
+   */
+  tintFrom?: 'chosen';
 }
 
 export interface SprinkleParams {
@@ -242,6 +247,8 @@ export interface ChooseOption {
   prep?: StepDef | StepDef[];
   /** Mom says its name when it is picked (a newer name may cut the one playing). Without it she counts. */
   name?: VoiceKey;
+  /** Round 9 (the cake's frosting): the colour this pick stands for, for a later step that is tinted by it. */
+  tint?: number;
 }
 
 export interface ChooseParams {
@@ -436,6 +443,32 @@ export interface DecorateParams {
   onto?: 'dish' | 'cookies';
 }
 
+/**
+ * Candles (round 9, `CandlesStep`): `count` candles wait in the left column; she drags each onto the cake and stands
+ * it wherever she likes (Mom counts). When they are all up Mom lights them at once (`lightSound`, `wishLine`), and a
+ * tap on a flame, or a finger drawn over the flames, puts them out one by one (`blowSound`, a wisp of smoke). All
+ * out: `doneLine`, the jingle and stars. She cannot fail at any part. Counts: TUNING.<recipe>.candles.
+ */
+export interface CandlesParams {
+  candle: ImageKey;
+  /** The candle art's frame, for its base anchor (ART.cake.candleBase) and flame point. */
+  candleFrame: readonly [number, number];
+  flame: ImageKey;
+  smoke: ImageKey;
+  count: number;
+  /** The candle's size on top of its bin-column scale. */
+  size: number;
+  line: VoiceKey;
+  wishLine: VoiceKey;
+  doneLine: VoiceKey;
+  /** Said once, half way through blowing, only if she has stopped ("Keep blowing!"). */
+  moreLine?: VoiceKey;
+  lightSound: SoundKey;
+  blowSound: SoundKey;
+  /** Texture key to keep the cake WITH its burning candles in, for the finale's photo (`PhotoParams.madeKey`). */
+  capture?: string;
+}
+
 export interface BakeParams {
   /** Oven layers sharing one frame: cavity, closed door with a see-through window, open door. */
   inside: ImageKey;
@@ -457,6 +490,17 @@ export interface BakeParams {
   tray?: { x: number; y: number; scale: number };
   /** Put on the oven mitts before taking it out (optional): after the ding the mitts lie on the counter; a tap puts them on. */
   mitts?: { pair: ImageKey; single: ImageKey; line: VoiceKey };
+  /**
+   * Round 9 (the cake): what went in is not what comes out. Once it is on the counter the dish's base becomes `base`
+   * (the baked cake instead of the pan of batter) and, with `board`, it is standing on that (its plate). The steps
+   * after it (spread, decorate, candles, share, photo) then work on it exactly as they do on the pizza.
+   */
+  becomes?: { base: ImageKey; board?: ImageKey; size?: number };
+  /**
+   * Round 9 (the cake): what goes IN. The step before poured the batter into the pan and left the pan as a picture,
+   * not as the dish, so the bake step makes it the dish's base before carrying it to the oven.
+   */
+  startsAs?: { base: ImageKey; size?: number };
 }
 
 export interface TempPanel {
@@ -531,6 +575,8 @@ export interface PhotoParams {
   bye: VoiceKey;
   /** The photo shows this bowl (back, contents, front: the salad) instead of her pizza on its board. */
   bowl?: { back: ImageKey; fill: ImageKey; front: ImageKey };
+  /** With `made`, show this texture instead of MADE_KEY (the cake with its candles still lit, kept by `candles`). */
+  madeKey?: string;
   /** The photo shows her whole dish as decorated (MADE_KEY: the cookies on their tray), no board. */
   made?: boolean;
 }
@@ -564,6 +610,7 @@ export type StepDef =
   | { type: 'open-pour'; params: OpenPourParams }
   | { type: 'share'; params: ShareParams }
   | { type: 'peel'; params: PeelParams }
+  | { type: 'candles'; params: CandlesParams }
   | { type: 'photo'; params: PhotoParams }
   | { type: 'cutters'; params: CutterParams }
   | { type: 'blend'; params: BlendParams }

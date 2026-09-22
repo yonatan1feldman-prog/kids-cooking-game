@@ -140,6 +140,25 @@ export const TUNING = {
     stir: { distance: 4200 },
     serve: { bowls: 2 },
   },
+  /**
+   * The birthday cake (round 9; aim: 4-5 minutes from the card to home). Into the bowl: ms of pouring the flour, the
+   * sugar and the milk; egg: taps per stage. Stir: finger travel through the four batter stages. Pour into the pan:
+   * ms of pouring. Oven: the target on the panel (vo-temp says "two hundred"). Frosting: how far it is smeared.
+   * Decorate: things on the cake. Candles: how many. Share: wedges.
+   */
+  cake: {
+    flour: { ms: 2400 },
+    sugar: { ms: 2000 },
+    milk: { ms: 2400 },
+    egg: { pressesPerStage: 3 },
+    stir: { distance: 4200 },
+    pan: { ms: 2600 },
+    oven: { target: 200 },
+    frost: { rubWidths: 4 },
+    decorate: { items: 4 },
+    candles: { count: 5 },
+    share: { slices: 6 },
+  },
   /** Mom's help (after the idle hint): the pace of her own presses, rubs and strokes. */
-  help: { pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150, chopEveryMs: 950, openMs: 1500, tempEveryMs: 1100, peelEveryMs: 900 },
+  help: { pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150, chopEveryMs: 950, openMs: 1500, tempEveryMs: 1100, peelEveryMs: 900, candleEveryMs: 700 },
 } as const;

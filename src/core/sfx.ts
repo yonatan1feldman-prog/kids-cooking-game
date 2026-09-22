@@ -17,6 +17,7 @@ const KEY_GAIN: Partial<Record<SoundKey, number>> = {
   drizzle: 0.8 / LEVEL.sfx,
   // the soup: peel is about 5 dB quieter in its file (the munch / tear convention), so it plays at 1.0
   peel: 1 / LEVEL.sfx,
+  // the cake: a soft breath out, played at the normal effect level (MIXING.md: -18 LUFS, gain 0.65)
 };
 const gainOf = (key: SoundKey, rel = 1) => Math.min(1, rel * LEVEL.sfx * (KEY_GAIN[key] ?? 1));
 

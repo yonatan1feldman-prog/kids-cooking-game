@@ -69,8 +69,15 @@ export class Dish extends Phaser.GameObjects.Container {
   }
 
   /** Paints one brush stamp centered at local (x, y). Call flushSauce() after a batch. */
+  /** The brush the spread step paints with (the pizza's sauce by default; the cake sets its frosting's). */
+  private brushKey: string = SAUCE_BRUSH;
+
+  setBrush(key: string) {
+    this.brushKey = key;
+  }
+
   stampSauce(x: number, y: number, diameter: number) {
-    const frame = this.scene.textures.getFrame(SAUCE_BRUSH);
+    const frame = this.scene.textures.getFrame(this.brushKey);
     const s: SauceStamp = {
       x,
       y,
@@ -84,7 +91,7 @@ export class Dish extends Phaser.GameObjects.Container {
   }
 
   private drawStamp(rt: Phaser.GameObjects.RenderTexture, s: SauceStamp) {
-    rt.stamp(SAUCE_BRUSH, undefined, s.x + rt.width / 2, s.y + rt.height / 2, { scale: s.scale, angle: s.angle, tint: s.tint });
+    rt.stamp(this.brushKey, undefined, s.x + rt.width / 2, s.y + rt.height / 2, { scale: s.scale, angle: s.angle, tint: s.tint });
   }
 
   flushSauce() {

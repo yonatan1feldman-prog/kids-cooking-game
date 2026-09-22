@@ -6,6 +6,7 @@ import { art } from '../core/layout';
 import { sfx } from '../core/sfx';
 import type { SpreadParams } from '../recipes/types';
 import { clampToRadius } from './Dish';
+import { makeBrush } from '../core/placeholders';
 import { Step } from './Step';
 
 /**
@@ -32,6 +33,12 @@ export class SpreadStep extends Step<SpreadParams> {
 
     const bowlAt = this.ctx.stage.bowl;
     // The sauce she stirred, if the step before left its bowl here; else the bowl pops in.
+    // The paint: this step's own blob, filled flat. With `tintFrom` it takes the colour she just chose, so one white
+    // frosting blob serves pink, white and chocolate.
+    if (this.params.tintFrom === 'chosen' || this.params.blob !== 'sauce-blob') {
+      const colour = (this.params.tintFrom === 'chosen' ? this.ctx.run.chosen[0]?.tint : undefined) ?? 0xffffff;
+      this.dish.setBrush(makeBrush(this.scene.game, this.params.blob, colour, `brush-${this.params.blob}`));
+    }
     if (!this.adopt(this.params.source)) {
       const bowl = this.own(art(this.scene.add.image(bowlAt.x, bowlAt.y, this.params.source), L));
       bowl.setScale(0);

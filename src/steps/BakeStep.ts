@@ -62,6 +62,9 @@ export class BakeStep extends Step<BakeParams> {
   private wearing = false;
 
   start() {
+    // The cake: the pan of batter the step before filled becomes the dish, so it is what goes into the oven.
+    const s0 = this.params.startsAs;
+    if (s0) this.dish.setBase(s0.base, s0.size ?? 1);
     const L = this.layout;
     this.k = L.k;
     this.os = this.ctx.stage.ovenScale;
@@ -436,9 +439,25 @@ export class BakeStep extends Step<BakeParams> {
         sfx(this.scene, 'pop');
         stars(this.scene, this.dish.x, this.dish.y, 12, 70 * this.k);
         if (mitt) this.scene.tweens.add({ targets: mitt, alpha: 0, x: mitt.x - 60 * this.k, delay: 250, duration: 350 });
+        this.becomes();
         this.scene.time.delayedCall(500, () => this.complete());
       },
     });
+  }
+
+  /**
+   * Round 9 (the cake): what came out is not what went in. The dish's base becomes the baked cake (standing on its
+   * plate, if one is given), so every step after this one works on it as they do on the pizza.
+   */
+  private becomes() {
+    const b = this.params.becomes;
+    if (!b) return;
+    this.dish.tintAll(0xffffff);
+    this.dish.setBase(b.base, b.size ?? 1);
+    if (b.board) {
+      this.ctx.board.setTexture(b.board).setVisible(true).setAlpha(0);
+      this.scene.tweens.add({ targets: this.ctx.board, alpha: 1, duration: 300 });
+    }
   }
 
   /** Mom's hand at the window of the closed oven: her finger taps it, or (mitts on) her mitt pulls it open. */

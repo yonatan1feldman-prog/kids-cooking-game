@@ -311,6 +311,26 @@ export const IMAGES = {
   'soup-bowl-full': { size: [560, 360] },
   'soup-portion': { size: [360, 420] },
   'photo-frame-soup': { size: [700, 780] },
+
+  // ---- The birthday cake (round 9; images-b-cake, README-cake.md)
+  'card-cake': { size: [400, 520] },
+  'cake-batter-0': { size: [640, 520] },
+  'cake-batter-1': { size: [640, 520] },
+  'cake-batter-2': { size: [640, 520] },
+  'cake-batter-3': { size: [640, 520] },
+  'cake-pan': { size: [800, 800] },
+  'cake-pan-full': { size: [800, 800] },
+  'cake-baked': { size: [720, 720] },
+  'cake-plate': { size: [820, 830] },
+  'frosting-tub-pink': { size: [320, 360] },
+  'frosting-tub-white': { size: [320, 360] },
+  'frosting-tub-choc': { size: [320, 360] },
+  'frosting-blob': { size: [200, 200] },
+  'choc-chip': { size: [140, 140] },
+  candle: { size: [260, 460] },
+  'flame-candle': { size: [200, 280] },
+  'smoke-puff': { size: [240, 360] },
+  'photo-frame-cake': { size: [700, 780] },
 } as const satisfies Record<string, { size: readonly [number, number]; raster?: number }>;
 
 /** Texture size of an image: its native size, times its `raster` factor if it is shown bigger than native. */
@@ -345,7 +365,7 @@ export const LOADED_KEYS = IMAGE_KEYS.filter((k) => !NOT_LOADED.has(k));
  */
 export const CORE_IMAGES: readonly ImageKey[] = [
   'bg-kitchen-landscape', 'logo-cooking-with-mom', 'star', 'btn-play', 'btn-home', 'btn-done', 'hand-hint',
-  'card-pizza', 'card-salad', 'card-cookies', 'card-smoothie', 'card-pancakes', 'card-soup',
+  'card-pizza', 'card-salad', 'card-cookies', 'card-smoothie', 'card-pancakes', 'card-soup', 'card-cake',
   'character-body', 'character-eyes-open', 'character-eyes-blink', 'character-eyes-surprised', 'character-eyes-happy',
   'character-mouth-closed', 'character-mouth-open', 'character-mouth-chew',
   'mom-arm-right', 'mom-body', 'mom-head', 'mom-hair', 'mom-eyes-open', 'mom-eyes-blink', 'mom-eyes-happy',
@@ -464,6 +484,23 @@ RECIPE_ASSETS.soup = {
   ],
 };
 
+RECIPE_ASSETS.cake = {
+  images: [
+    ...WASH, ...PREP_BOWL, ...OVEN, 'topping-bin', 'btn-done', 'flour-bag', 'batter-stage-0', 'sugar-jar', 'milk-carton',
+    'milk-drop', 'egg-1', 'egg-2', 'egg-3',
+    'cake-batter-0', 'cake-batter-1', 'cake-batter-2', 'cake-batter-3', 'cake-pan', 'cake-pan-full',
+    'cake-baked', 'cake-plate', 'frosting-tub-pink', 'frosting-tub-white', 'frosting-tub-choc', 'frosting-blob',
+    'sprinkles-cluster', 'candy-dot', 'berry', 'choc-chip',
+    'candle', 'flame-candle', 'smoke-puff', 'photo-frame-cake',
+  ],
+  sounds: [
+    'blow', 'egg-crack', 'flour-poof', 'glass-pour', 'vo-flour', 'vo-sugar', 'vo-milk', 'vo-egg',
+    'vo-stir-cake', 'vo-pour-pan', 'vo-pick-frosting', 'name-pink', 'name-white', 'name-chocolate',
+    'vo-frost', 'vo-decorate-cake', 'vo-candles', 'vo-wish', 'vo-blow-more', 'vo-blown',
+    'vo-share-cake', 'vo-cake-mom', 'vo-cake-pipa', 'vo-cake-yum', 'vo-photo-cake', 'vo-finale-cake',
+  ],
+};
+
 export const RECIPE_SOUNDS: ReadonlySet<string> = new Set(Object.values(RECIPE_ASSETS).flatMap((r) => r.sounds));
 /** Contract images in neither the core nor any recipe (a new key someone forgot to list): reported at boot. */
 export const unlistedImages = () => {
@@ -482,8 +519,8 @@ export const SOUND_KEYS = [
   'egg-crack', 'flour-poof', 'stamp', 'icing', 'cookie-crunch',
   // the smoothie (round 8; the blender is a loop, audio.ts `blenderLoop`)
   'lid-click', 'slurp', 'glass-pour',
-  // the vegetable soup (round 9; the pot cooks on the oven's own `bake` loop)
-  'peel',
+  // the vegetable soup and the birthday cake (round 9; the pot cooks on the oven's own `bake` loop)
+  'peel', 'blow',
 ] as const;
 export type SoundKey = (typeof SOUND_KEYS)[number];
 
@@ -591,6 +628,21 @@ export const ART = {
    * The soup (round 9), from README-soup.md. The pot's layers share an 800x700 frame; the stove top (1200x920, from
    * the pancakes) is drawn under it, and the knob and the flame sit on the stove, given here in the pot's frame.
    */
+  /** The birthday cake (round 9), from README-cake.md: the candle's base (where it stands) and its flame point. */
+  cake: {
+    /**
+     * candle (260x460, README-cake.md): the base that lands where she puts it down, and the wick tip where the flame
+     * (or the wisp of smoke) stands. Each of those two is placed by its own foot, not by its centre.
+     */
+    candleSize: [260, 460] as const,
+    candleBase: { x: 130, y: 414 },
+    candleFlame: { x: 130, y: 90 },
+    /** cake-baked (720x720): the baked cake's radius in its own frame (= the pizza's), the candles are sized from it. */
+    cakeRadius: 334,
+    /** flame-candle (200x280) and smoke-puff (240x360): the foot that sits on the candle's flame point. */
+    flameFoot: { x: 100, y: 236 },
+    smokeFoot: { x: 120, y: 340 },
+  },
   soup: {
     /** pot-back / pot-front / pot-heap-* / soup-stage-* (1000x760): the contents window inside the rim. */
     potOpening: { x: 500, y: 258, rx: 368, ry: 92 },

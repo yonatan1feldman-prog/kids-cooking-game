@@ -3,8 +3,8 @@
 ## Quick start (read this, then only the sections your task needs)
 - **What:** a text-free, English-speaking cooking game for a 5-year-old (Android phone, landscape): she cooks with
   Mom, Pipa the hedgehog watches and eats. Phaser 4 + Vite + TypeScript PWA, deployed to GitHub Pages from `master`.
-  Six recipes: pizza, salad, cookies, smoothie, pancakes and vegetable soup (`src/recipes/<name>.ts`), cards in a grid
-  on the home screen, with the memory book's button in one more cell once there is a photo in it.
+  Seven recipes: pizza, salad, cookies, smoothie, pancakes, vegetable soup and birthday cake (`src/recipes/<name>.ts`),
+  cards in a grid on the home screen, with the memory book's button in one more cell once there is a photo in it.
 - **Where things are:** `src/recipes/` recipes as pure data (`types.ts` = every step type's params); `src/steps/` one
   reusable class per step type (`registry.ts` maps names to classes); `src/core/tuning.ts` every count and threshold;
   `src/core/stage.ts` every position; `src/core/assets.ts` the asset contract (image keys, sizes, art anchors `ART`);
@@ -213,7 +213,7 @@ src/scenes/
 ## Recipes are data
 A recipe is `{ id, card, board, character, steps: StepDef[] }`. Each step names a reusable type and its params.
 Step types: `wash`, `knead`, `crush`, `stir`, `grate`, `roll`, `spread`, `sprinkle`, `choose`, `chop`, `peel`, `open-pour`,
-`decorate`, `bake`, `share`, `photo`, `cutters`, `blend`, `flip` (and `feed`, the older single-eater ending with its own finale, no longer used).
+`decorate`, `bake`, `candles`, `share`, `photo`, `cutters`, `blend`, `flip` (and `feed`, the older single-eater ending with its own finale, no longer used).
 The salad (`salad.ts`) is the second worked example: see Handoff notes 0000.
 The pizza: wash, knead, roll, crush, stir, spread, grate, sprinkle, choose, then the prep step of each of the three
 chosen toppings in the order she picked them (chop, or open-pour), decorate, bake (with the panel and the mitts),
@@ -562,7 +562,8 @@ fallback if the capture fails.
 
 ## Handoff notes (written for the next agent; round 9 on top, rounds 2-8 below still hold)
 ### 0000000. Round 9 (the memory book; the soup and the birthday cake)
-State: `rollback-pre-album` = master before the round; branch `round-9-album` merged and tagged `v0.10-album`.
+State: `rollback-pre-album` = master before the round; `round-9-album` merged and tagged `v0.10-album`;
+`rollback-pre-soup`, `round-9-soup` -> `v0.11-soup`; `rollback-pre-cake`, `round-9-cake` -> `v0.12-cake`.
 - **The memory book** (`src/core/album.ts`, `src/scenes/AlbumScene.ts`): at every finale `PhotoStep` snapshots the photo
   it has just shown (`PHOTO_KEY`), shrinks it to 420 px, encodes it as WebP (~20 KB) and files it in IndexedDB
   (`cooking-album` / `photos`) with the recipe's id and the date. At most `ALBUM_MAX` = 40; the oldest goes quietly.
@@ -613,6 +614,33 @@ State: `rollback-pre-album` = master before the round; branch `round-9-album` me
   frame down to the bin's 140) instead of two icons that were never drawn.
 - **Needs a real finger:** the peeling stroke (is any direction really enough? `TUNING.soup.peel.minSwipe`), picking
   up a waiting bin (124 units wide) and carrying it over the pot, and the stove knob in the bottom-right corner.
+
+- **The birthday cake is data** (`src/recipes/cake.ts`, tag `v0.12-cake`, `rollback-pre-cake` before): wash hands ·
+  flour, sugar and milk into the prep bowl · the egg · stir through cake-batter-0..3 · the bowl tipped into the pan
+  (open-pour `glasses`, count 1: `cake-pan` -> `cake-pan-full`) · bake at 200 with the mitts (`startsAs` the full pan,
+  `becomes` the baked cake on its plate) · choose 1 of 3 frostings (each pick carries a `tint`) · spread `frosting-blob`
+  tinted by it (`tintFrom: 'chosen'`, `makeBrush`) · decorate (sprinkles, candy, berry, choc-chip) · candles (new type)
+  · share in 6 wedges like the pizza · photo of the cake with its candles alight (`madeKey`). Counts: `TUNING.cake`.
+  Reference shots: `../cooking-game-assets/images-b-cake/shots/`.
+- **New step type `candles`** (`steps/CandlesStep.ts`, `CandlesParams`): `count` candles wait in the left column; she
+  drags each onto the cake and stands it wherever she likes inside the frosting field (`PLACE_R`), Mom counts. All up:
+  Mom lights them at once (whoosh, `wishLine`); a tap on a flame or a finger drawn across them puts them out one by one
+  (`blow`, a wisp of smoke); the last one: `doneLine`, the jingle, stars. It keeps the lit cake in `capture` (the
+  photo's picture) before they go out. Sized from the cake (`ART.cake.cakeRadius`, `size` 0.62), the flame and the smoke
+  stand on the wick by their own foot (`ART.cake`). Cupcakes, a cake for Pipa: the same type with other pictures.
+- **Round 9 also generalised (the cake), each optional:** `bake` `startsAs` / `becomes`; `choose` option `tint`;
+  `spread` `tintFrom` (its own `blob` becomes a flat brush in that colour, `makeBrush` in placeholders.ts, `Dish.setBrush`);
+  `photo` `madeKey`; `open-pour` `glasses` keeps a wide vessel and the poured bowl's picture out of the palm strip.
+- **Checked:** 189 s at child pace with demos, voice in order, no help; audits at 20:9 and 4:3 clean but Mom's known
+  finale sway; rotate and background with a candle and a wedge held: dropped, kept, finished; pizza regression clean;
+  the lit cake reaches the memory book in `photo-frame-cake`. No placeholders, no silent sounds, no console errors.
+- **Found and fixed (the cake):** the pan poured into became a "piece" and nothing went into the oven (`startsAs`);
+  the candles were sized from the bin column and stood taller than the cake; Mom's help at the knob (soup) and the
+  candles' celebrate sway (cut at the right edge on 20:9: `Mom.happy` instead); the poured bowl's 800-square snapshot and
+  the cake pan reached into the palm strip.
+- **Needs a real finger:** blowing by sweeping across the flames vs tapping each (`FLAME_TOUCH`), dropping a candle near
+  the cake's rim (it is pulled inside), the frosting tubs' taps.
+- Precache: 17.8 MB after the soup (461 files); see the cake's commit for the final count.
 
 ### 000000. Round 8 (loading by recipe; the smoothie, the fourth recipe)
 State: `rollback-pre-round8` = master before the round; `v0.7-infra` = loading by recipe + the background fix (see

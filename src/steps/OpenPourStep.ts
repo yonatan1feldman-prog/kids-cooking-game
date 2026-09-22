@@ -522,6 +522,14 @@ export class OpenPourStep extends Step<OpenPourParams> {
       [bowl.back, bowl.contents, bowl.front, ...bowl.extras].forEach((o) => o.setVisible(false));
       // (its lip in the 800 square: the 600-wide jar sits in the middle)
       this.sources[0].mouth = { x: ART.smoothie.jarLip.x + (ok ? 100 : 0), y: ART.smoothie.jarLip.y - 20 };
+      // The one picture is squarer than the bowl it replaces: keep it out of the palm strip (the cake's prep bowl).
+      // (its entering tween was aimed at the old spot before this snapshot came back: it is finished here)
+      const maxY = this.layout.Y(985) - img.displayHeight / 2;
+      if (img.y > maxY || this.sources[0].rest.y > maxY) {
+        this.scene.tweens.killTweensOf(img);
+        img.setY(maxY).setAlpha(1);
+        this.sources[0].rest.y = maxY;
+      }
     });
     // The glasses: side by side on the counter left of the blender (at most 0.8, never past the prep area's left edge).
     const [gw, gh] = IMAGES[g.empty].size;
@@ -529,7 +537,9 @@ export class OpenPourStep extends Step<OpenPourParams> {
     // (nothing waits in the left column now: the glasses may use it, up to the home button's column)
     const room = baseLeft - 380 * k - Math.min(S.prepArea.x0, S.home.x);
     const gs = Math.min(0.8 * k, room / (gw * 1.15 * g.count));
-    const bottom = S.blenderBase.y + (520 / 2 - 30) * S.blenderBase.scale;
+    // The glasses stand on the counter beside the jar; a wide, shallow vessel (the cake's pan) would otherwise reach
+    // into the palm strip, where nothing interactive may be.
+    const bottom = Math.min(S.blenderBase.y + (520 / 2 - 30) * S.blenderBase.scale, this.layout.Y(985));
     for (let i = 0; i < g.count; i++) {
       const x = baseLeft - 380 * k - gw * gs * (0.5 + 1.15 * (g.count - 1 - i));
       const y = bottom - (gh / 2) * gs;
