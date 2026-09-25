@@ -105,7 +105,8 @@ export function screenHint(scene: Phaser.Scene, layout: Layout, target: () => P 
     scene.input.off(Phaser.Input.Events.POINTER_DOWN, reset);
   };
   scene.events.once(Phaser.Scenes.Events.SHUTDOWN, stop);
-  return { stop };
+  // `active`: the hand is showing (Mom's arm reaches down meanwhile, `Mom.followHand`).
+  return { stop, active: () => showing };
 }
 
 /**
