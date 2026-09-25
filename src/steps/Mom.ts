@@ -10,6 +10,10 @@ type Mouth = 'smile' | 'talk' | 'open' | 'chew';
 const LOOK_MAX = 10;
 /** Pointing-arm rotation limits (README-mom.md: ±20° around the shoulder shows no gap). */
 const ARM_MAX = 20;
+/** How long a pose change takes (a cross-fade between two drawings of the arm on the same pivot). */
+const POSE_MS = 160;
+/** The demo hand must be gone this long before the pointing arm comes back up (a looping hint pauses between loops). */
+const REACH_HOLD_MS = 700;
 
 /**
  * Mom, standing at the counter on the right for the whole recipe. Twelve layers share one 800x800
@@ -18,6 +22,9 @@ const ARM_MAX = 20;
  * the finger (or her own demo hand, or the dish). While a voice line plays her mouth moves with its
  * loudness (smile / talk / open) and goes back to the smile when it ends. At the end of every step
  * she has happy eyes and a short happy bounce with a wave.
+ * Round 11: each arm has two drawings on the same pivot. The right arm rests (hand on the hip) and only waves for
+ * hello, a step done and the finale; the pointing arm reaches down to the counter while her demo hand is on screen
+ * (`followHand`), so that hand reads as hers and she never shows three hands.
  */
 export class Mom {
   readonly box: Phaser.GameObjects.Container;
@@ -25,6 +32,12 @@ export class Mom {
   private mouth: Phaser.GameObjects.Image;
   private armL: Phaser.GameObjects.Image;
   private armR: Phaser.GameObjects.Image;
+  private armRRest: Phaser.GameObjects.Image;
+  private armLReach: Phaser.GameObjects.Image;
+  private waving = false;
+  private reaching = false;
+  private handGone = 0;
+  private handActive?: () => boolean;
   private eyesKey: Eyes = 'open';
   private mouthKey: Mouth = 'smile';
   /** Eyes set by a mood (happy, surprised) win over blinking until `rest()`. */
@@ -44,12 +57,16 @@ export class Mom {
     const layer = (key: ImageKey) => new Phaser.GameObjects.Image(scene, 0, 0, key).setOrigin(cx / w, 1).setScale(this.s);
     const arm = (key: ImageKey, pivot: { x: number; y: number }) =>
       new Phaser.GameObjects.Image(scene, (pivot.x - cx) * this.s, (pivot.y - h) * this.s, key).setOrigin(pivot.x / w, pivot.y / h).setScale(this.s);
-    this.armR = arm('mom-arm-right', pivotR);
+    this.armR = arm('mom-arm-right', pivotR).setAlpha(0);
+    this.armRRest = arm('mom-arm-right-rest', pivotR);
     this.eyes = layer('mom-eyes-open');
     this.mouth = layer('mom-mouth-smile');
     this.armL = arm('mom-arm-left', pivotL);
+    this.armLReach = arm('mom-arm-left-reach', pivotL).setAlpha(0);
     this.box = scene.add
-      .container(at.x, at.y, [this.armR, layer('mom-body'), layer('mom-head'), layer('mom-hair'), this.eyes, this.mouth, this.armL])
+      .container(at.x, at.y, [
+        this.armR, this.armRRest, layer('mom-body'), layer('mom-head'), layer('mom-hair'), this.eyes, this.mouth, this.armL, this.armLReach,
+      ])
       .setDepth(4);
     this.scheduleBlink();
     // Gentle breathing (a very slow rise of the shoulders), the only thing she does on her own.
@@ -92,8 +109,41 @@ export class Mom {
     });
   }
 
+  /** Cross-fades between two drawings of one arm (same pivot, same frame). */
+  private swap(from: Phaser.GameObjects.Image, to: Phaser.GameObjects.Image) {
+    this.scene.tweens.add({ targets: from, alpha: 0, duration: POSE_MS });
+    this.scene.tweens.add({ targets: to, alpha: 1, duration: POSE_MS });
+  }
+
+  /** The right arm: raised and waving, or resting with the hand on the hip. */
+  private setWave(on: boolean) {
+    if (this.waving === on) return;
+    this.waving = on;
+    if (on) this.swap(this.armRRest, this.armR);
+    else this.swap(this.armR, this.armRRest);
+  }
+
+  /** The pointing arm, or the arm reaching down to the counter (while her demo hand is on screen). */
+  private setReach(on: boolean) {
+    if (this.reaching === on) return;
+    this.reaching = on;
+    if (on) this.swap(this.armL, this.armLReach);
+    else this.swap(this.armLReach, this.armL);
+  }
+
+  /** Her demo hand (the recipe's MomHandView): while it shows, her pointing arm reaches down to the counter. */
+  followHand(active: () => boolean) {
+    this.handActive = active;
+  }
+
   /** Mouth follows the voice line's loudness, each shape held at least 90 ms so it reads as speech. */
   private update(_t: number, delta: number) {
+    if (this.handActive) {
+      if (this.handActive()) {
+        this.handGone = 0;
+        this.setReach(true);
+      } else if (this.reaching && (this.handGone += delta) >= REACH_HOLD_MS) this.setReach(false);
+    }
     if (this.mouthHeld) return this.setMouth(this.mouthHeld);
     this.mouthHold -= delta;
     if (this.mouthHold > 0) return;
@@ -123,7 +173,9 @@ export class Mom {
     this.mood = 'happy';
     this.setEyes('happy');
     this.joy(1);
+    this.setWave(true);
     this.scene.tweens.add({ targets: this.armR, angle: { from: -12, to: 12 }, duration: 150, yoyo: true, repeat: 2, onComplete: () => this.armR.setAngle(0) });
+    this.scene.time.delayedCall(1100, () => this.box.active && this.setWave(false));
     this.scene.time.delayedCall(1100, () => this.box.active && this.mood === 'happy' && this.rest());
   }
 
@@ -152,7 +204,9 @@ export class Mom {
   wave() {
     this.mood = 'happy';
     this.setEyes('happy');
+    this.setWave(true);
     this.scene.tweens.add({ targets: this.armR, angle: { from: -14, to: 14 }, duration: 180, yoyo: true, repeat: 3, onComplete: () => this.armR.setAngle(0) });
+    this.scene.time.delayedCall(1700, () => this.box.active && this.setWave(false));
     this.scene.time.delayedCall(1500, () => this.box.active && this.mood === 'happy' && this.rest());
   }
 
@@ -235,10 +289,16 @@ export class Mom {
     this.scene.tweens.add({ targets: this.armL, angle, duration: ms, ease: 'Sine.easeInOut' });
   }
 
-  /** The finale: the pointing arm goes up (a raised finger, "we did it!"), happy face, a few bounces. */
+  /**
+   * The finale: she points at what they made (a little up, at the photo), waves with the other hand, happy face, a few
+   * bounces. (Round 11: the arm used to swing +55° down, off the bottom of the screen, and she looked one-armed.)
+   */
   celebrate() {
     this.happy();
-    this.armTo(55, 350);
+    this.setReach(false);
+    this.handActive = undefined;
+    this.armTo(-12, 350);
+    this.setWave(true);
     this.joy(3);
     this.scene.tweens.add({ targets: this.armR, angle: { from: -14, to: 14 }, duration: 200, yoyo: true, repeat: 5, onComplete: () => this.armR.setAngle(0) });
   }

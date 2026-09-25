@@ -303,7 +303,8 @@ export function getStage(L: Layout): Stage {
   // small in the left column meanwhile.
   const sinkY = Y(700);
   const faucetScale = 0.95 * k;
-  const graterAt = { x: dishHome.x - 60 * k, y: Y(640) };
+  // Round 11: 50 higher (was Y(640)): the pile it grows lay on the counter's bottom edge, over the cupboards.
+  const graterAt = { x: dishHome.x - 60 * k, y: Y(590) };
 
   // The prep bowl at 1.25 (the art agent's scene), but never reaching Pipa (16:9 is narrow): its 640 frame
   // stays 12 units left of her opaque left edge.
@@ -456,7 +457,7 @@ export function getStage(L: Layout): Stage {
     kneadDough: { x: dishHome.x, y: dishHome.y + 10 * k, scale: 1.6 * k },
     prepBowl: { x: dishHome.x, y: Y(640), scale: bowlScale },
     grater: { ...graterAt, scale: (1.05 * k) / 1.15 },
-    graterBlock: { x: graterAt.x - 20 * k, y: graterAt.y + 20 * k, scale: 0.8 * k },
+    graterBlock: { x: graterAt.x - 20 * k, y: graterAt.y + 20 * k, scale: 0.95 * k },   // round 11: 0.8 looked tiny beside the grater
     graterPile: { x: graterAt.x + 10 * k, y: graterAt.y + 260 * k, scale: 1.15 * k },
     work,
     choice,

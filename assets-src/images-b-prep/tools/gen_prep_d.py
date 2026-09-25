@@ -24,9 +24,9 @@ def kid_hand(c, kp):
     g += "".join(P(wrect(-62, y, 124, 12, 5, .5, 3 + i), sl_l, ' opacity="0.85"') for i, y in enumerate((120, 156, 192)))
     g += P(wrect(-72, 58, 144, 34, 16, .8, 7), sl_d) + P(wrect(-70, 54, 140, 30, 14, .8, 8), sl_l)       # rolled-up cuff
     g += P(wrect(-36, 18, 72, 52, 24, .6, 9), sh) + P(wrect(-33, 16, 66, 48, 22, .6, 10), s)             # wrist
-    g += tube(c, [(40, 14), (60, -12), (70, -38)], 30)                                                     # thumb (behind the palm edge)
+    g += tube(c, [(40, 16), (56, -4), (63, -26)], 27)                                                      # thumb (round 11: shorter, so the two thumbs no longer meet)
     g += P(wob(2, 3, 54, 50, .03, 11), sh) + P(wob(0, 0, 52, 48, .03, 12), s)                              # back of hand
-    fing = (((30, -24), (36, -58), (38, -84), 29), ((9, -30), (10, -66), (10, -94), 30), ((-13, -28), (-16, -62), (-18, -88), 29), ((-34, -22), (-40, -50), (-44, -70), 26))
+    fing = (((30, -24), (36, -62), (39, -92), 28), ((9, -30), (10, -70), (10, -103), 29), ((-13, -28), (-16, -66), (-18, -96), 28), ((-34, -22), (-40, -52), (-45, -76), 25))   # round 11: a little longer and slimmer
     for a, b, t, w in fing:
         g += tube(c, [a, b, t], w, nail=False)
         (ax, ay), (bx, by) = b, t
@@ -71,8 +71,7 @@ def hand_press(c):
                        ((13, -40), (18, -90), (22, -120), 30), ((36, -32), (46, -70), (52, -96), 27)):
         g += tube(c, [a, b, t], w)
     g += P("M-48,-24 Q0,-36 48,-20 Q0,-28 -48,-24Z", sh, ' opacity="0.5"')                    # knuckle fold
-    for x in (-36, -12, 13, 36):
-        g += E(x, -30, 7, 4.5, lt, ' opacity="0.7"')
+    # (round 11: no row of knuckle highlights: they read as beads, a paw rather than a hand)
     g += P(wob(-8, 8, 30, 22, .05, 16), lt, ' opacity="0.35"')
     ax, ay = MOM_ANCHORS["press"]
     return hand_file("mh-pr-", f'<g transform="translate({ax} {ay}) rotate(-40) scale(1 .9)">{g}</g>', 53)
