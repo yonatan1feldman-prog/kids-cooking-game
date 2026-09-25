@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { addKitchenPieces } from './kitchen';
 
 /**
  * Landscape world. The height is always 1080 world units. The width follows the screen:
@@ -102,5 +103,8 @@ export function addBackground(scene: Phaser.Scene, layout: Layout) {
   scene.cameras.main.setBackgroundColor('#f8ddae');
   const bg = scene.add.image(layout.cx, layout.H, 'bg-kitchen-landscape').setOrigin(0.5, 1);
   bg.setScale(Math.max(layout.H / bg.frame.realHeight, layout.W / bg.frame.realWidth));
+  // The things on the kitchen wall she can tap are their own pictures, laid over it (core/kitchen.ts); `liveKitchen`
+  // makes them answer taps where a scene wants that (the recipe).
+  bg.setData('kitchen', addKitchenPieces(scene, bg));
   return bg.setDepth(-100);
 }

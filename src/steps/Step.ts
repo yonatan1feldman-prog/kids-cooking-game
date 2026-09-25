@@ -49,6 +49,10 @@ export interface StepContext {
     once: Set<string>;
     /** Her decorated pieces (the cookies), each its own picture, where it lies on the dish (local); for sharing. */
     pieces?: { key: string; x: number; y: number; scale: number; tint: number }[];
+    /** How many times this recipe was played on this device before this run (0 = the first): Pipa's wishes grow with it. */
+    runNo: number;
+    /** What Pipa wished for in this run (topping / placed image keys): a piece holding one of them is her favourite. */
+    wishes: string[];
   };
 }
 

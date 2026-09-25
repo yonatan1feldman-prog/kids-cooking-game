@@ -11,6 +11,22 @@
 export const IMAGES = {
   /** Landscape kitchen, 2400x1080 (fits 20:9 exactly): anchored bottom-center, cropped only at the sides. */
   'bg-kitchen-landscape': { size: [2400, 1080] },
+  /**
+   * The living kitchen (gameplay round): the things on the wall she can tap, each its own picture in the background's
+   * frame (core/kitchen.ts has where each lies); the background no longer has them.
+   */
+  'kitchen-jar-flour': { size: [124, 134] },
+  'kitchen-jar-pasta': { size: [112, 118] },
+  'kitchen-jar-jam': { size: [86, 92] },
+  'kitchen-basil': { size: [102, 128] },
+  'kitchen-ladle': { size: [72, 178] },
+  'kitchen-whisk': { size: [48, 166] },
+  'kitchen-spatula': { size: [70, 170] },
+  'kitchen-pan': { size: [102, 170] },
+  'kitchen-pot-1': { size: [104, 116] },
+  'kitchen-pot-2': { size: [96, 112] },
+  'kitchen-pot-3': { size: [88, 108] },
+  'kitchen-sun': { size: [88, 88] },
   'dough-ball': { size: [360, 300] },
   'dough-flat': { size: [720, 720] },
   'rolling-pin': { size: [640, 200] },
@@ -374,8 +390,14 @@ export const LOADED_KEYS = IMAGE_KEYS.filter((k) => !NOT_LOADED.has(k));
  * A recipe's images and sounds are loaded when its card is tapped (BootScene `recipeAssets`) and released again on the
  * home screen (`releaseRecipe`). A new recipe adds its entry here; a key in no list is reported in the console.
  */
+/** The living kitchen's pieces (core/kitchen.ts): loaded early with the background, as they are part of it. */
+export const KITCHEN_KEYS: readonly ImageKey[] = [
+  'kitchen-jar-flour', 'kitchen-jar-pasta', 'kitchen-jar-jam', 'kitchen-basil', 'kitchen-ladle', 'kitchen-whisk',
+  'kitchen-spatula', 'kitchen-pan', 'kitchen-pot-1', 'kitchen-pot-2', 'kitchen-pot-3', 'kitchen-sun',
+];
+
 export const CORE_IMAGES: readonly ImageKey[] = [
-  'bg-kitchen-landscape', 'logo-cooking-with-mom', 'star', 'btn-play', 'btn-home', 'btn-done', 'hand-hint',
+  'bg-kitchen-landscape', ...KITCHEN_KEYS, 'logo-cooking-with-mom', 'star', 'btn-play', 'btn-home', 'btn-done', 'hand-hint',
   'card-pizza', 'card-salad', 'card-cookies', 'card-smoothie', 'card-pancakes', 'card-soup', 'card-cake',
   'card-skewers',
   'character-body', 'character-eyes-open', 'character-eyes-blink', 'character-eyes-surprised', 'character-eyes-happy',
@@ -546,6 +568,8 @@ export const SOUND_KEYS = [
   'lid-click', 'slurp', 'glass-pour',
   // the vegetable soup and the birthday cake (round 9; the pot cooks on the oven's own `bake` loop)
   'peel', 'blow',
+  // the gameplay round: Pipa's own voice when she tastes (wordless; audio-src/character, CHARACTER-NOTES.md) and her sneeze
+  'char-yay', 'char-giggle', 'char-wow', 'pipa-sneeze',
 ] as const;
 export type SoundKey = (typeof SOUND_KEYS)[number];
 

@@ -30,6 +30,11 @@ export class Dish extends Phaser.GameObjects.Container {
   readonly cookies: Phaser.GameObjects.Container;
   readonly sprinkles: Phaser.GameObjects.Container;
   readonly toppings: Phaser.GameObjects.Container;
+  /**
+   * What was put on the dish and where (local), with the cookie it is on (`on`), as it was when captured: sharing
+   * reads it to know what is on each slice (Pipa's tastes). Kept after the capture flattens the toppings.
+   */
+  placed: { key: string; x: number; y: number; on?: number }[] = [];
   /** The captured pizza image (HTMLImageElement), if capture succeeded. */
   madeImage: HTMLImageElement | null = null;
   private stamps: SauceStamp[] = [];
@@ -155,6 +160,7 @@ export class Dish extends Phaser.GameObjects.Container {
    * Resolves false (dish left untouched) if the capture fails for any reason.
    */
   capture(replace = true): Promise<boolean> {
+    this.placed = (this.toppings.list as Phaser.GameObjects.Image[]).map((t) => ({ key: t.texture.key, x: t.x, y: t.y, on: t.getData('on') as number | undefined }));
     return new Promise((resolve) => {
       // (the pizza: its disc; a tray of cookies: the whole tray)
       const size = Math.ceil((this.cookies.length ? this.halfWidth : this.R) * 2 + 24 * this.k);
