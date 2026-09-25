@@ -505,8 +505,6 @@ def hand_roll(c):
     for x, t in tips:
         g += E(x, t + 13, 6.5, 7.5, lt, ' opacity="0.75"')
     g += P("M-44,-18 Q0,-30 44,-16 Q0,-22 -44,-18Z", sh, ' opacity="0.5"')                   # knuckle fold
-    for x in (-36, -12, 12, 36):
-        g += E(x, -28, 7, 4.5, lt, ' opacity="0.7"')
     g += P(wob(-8, 8, 30, 22, .05, 16), lt, ' opacity="0.35"')                                # back-of-hand light
     ax, ay = HAND_ANCHORS["roll"]
     return hand_file("mh-ro-", f'<g transform="translate({ax} {ay}) rotate(-45) scale(1.06 .9)">{g}</g>', 43)   # squashed: pressing down
