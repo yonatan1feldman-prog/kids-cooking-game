@@ -457,12 +457,12 @@ def bg_kitchen():
         while x < 2420:
             w = r.uniform(560, 980)
             planks += P(wrect(x, y, w + 6, h + 4, 8, 1.4, 200 + i * 20 + k, step=90), r.choice(PT))
-            joints += P(wrect(x + w + 1, y + 6, 4, h - 10, 2, .5, 400 + i * 20 + k, step=90), BG_WOOD_D, ' opacity="0.4"')
+            joints += P(wrect(x + w + 1, y + 6, 4, h - 10, 2, .5, 400 + i * 20 + k, step=90), BG_WOOD_D, ' opacity="0.14"')
             x += w; k += 1
     L.append(G(planks, p + "sh"))
     L.append(joints)
     # plank seams
-    L.append("".join(P(wrect(-20, y - 3, 2440, 5, 2.5, .8, 220 + i, step=120), BG_WOOD_D, ' opacity="0.5"') for i, y in enumerate(ys[1:])))
+    L.append("".join(P(wrect(-20, y - 2, 2440, 3, 1.5, .8, 220 + i, step=120), BG_WOOD_D, ' opacity="0.16"') for i, y in enumerate(ys[1:])))
     gr = ""
     for i in range(30):
         y = r.uniform(440, 990); x = r.uniform(-100, 2300); w = r.uniform(200, 520)
@@ -477,16 +477,22 @@ def bg_kitchen():
     defs += (f'<linearGradient id="{p}vt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{SH}" stop-opacity="0.16"/>'
              f'<stop offset="1" stop-color="{SH}" stop-opacity="0"/></linearGradient>'
              f'<linearGradient id="{p}vg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{SH}" stop-opacity="0"/>'
-             f'<stop offset="0.6" stop-color="{SH}" stop-opacity="0.1"/><stop offset="1" stop-color="{SH}" stop-opacity="0.24"/></linearGradient>')
+             f'<stop offset="0.6" stop-color="{SH}" stop-opacity="0.04"/><stop offset="1" stop-color="{SH}" stop-opacity="0.1"/></linearGradient>'
+             f'<linearGradient id="{p}lt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF6E6" stop-opacity="0"/>'
+             f'<stop offset="0.35" stop-color="#FFF6E6" stop-opacity="0.22"/><stop offset="1" stop-color="#FFF6E6" stop-opacity="0"/></linearGradient>')
     L.append(rect(0, 414, 2400, 46, f"url(#{p}vt)"))
     L.append(rect(0, 700, 2400, 304, f"url(#{p}vg)"))
+    L.append(rect(0, 440, 2400, 420, f"url(#{p}lt)"))                     # light falling on the worktop
     # front lip + lower cabinets
-    L.append(G(P("M-10,1000 L2410,1000 L2410,1026 L-10,1026Z", BG_WOOD_L), p + "sh"))
+    L.append(G(P("M-10,994 L2410,994 L2410,1030 L-10,1030Z", BG_WOOD_D), p + "sh2"))           # the edge's face
+    L.append(P("M-10,994 L2410,994 L2410,1004 L-10,1004Z", BG_WOOD_L, ' opacity="0.9"'))      # the rounded top of the edge
+    L.append(P("M-10,996 L2410,996 L2410,999 L-10,999Z", "#FFF6E6", ' opacity="0.55"'))       # its highlight
     cab = P("M-10,1024 L2410,1024 L2410,1090 L-10,1090Z", BG_SAGE)
     for i in range(12):
         x = i * 210 - 20
         cab += P(wrect(x + 10, 1036, 190, 60, 10, 1, 300 + i), BG_SAGE_L, ' opacity="0.5"') + C(x + 105, 1056, 7, mix(MUSTARD, BG_WALL, .3))
     L.append(G(cab, p + "sh2"))
+    L.append(rect(0, 1030, 2400, 14, SH, 0, ' opacity="0.18"'))                     # the worktop's shadow on the doors
     # tea towel (far left, crops at 4:3)
     tw = "M236,990 L336,990 L342,1080 L230,1080Z"
     defs += f'<clipPath id="{p}tw"><path d="{tw}"/></clipPath>'

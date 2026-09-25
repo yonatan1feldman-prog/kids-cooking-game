@@ -54,6 +54,7 @@ export class TitleScene extends Phaser.Scene {
         fadeIn(this.add.image(S.titleLogo.x, S.titleLogo.y, 'logo-cooking-with-mom').setScale(L.k));
       }
       this.mom = new Mom(this, S.mom);
+      this.mom.followHand(hint.active);
       fadeIn(this.mom.box);
       if (S.pet) fadeIn(new Character(this, RECIPES[0].character, S.pet, S.feedPet).box);
       this.events.on(Phaser.Scenes.Events.UPDATE, () => {
@@ -63,7 +64,7 @@ export class TitleScene extends Phaser.Scene {
     });
 
     // Idle 5 s: Mom's pointing hand taps the play button.
-    screenHint(this, L, () => (this.leaving ? null : { x: btn.x, y: btn.y }), titleArtLoaded);
+    const hint = screenHint(this, L, () => (this.leaving ? null : { x: btn.x, y: btn.y }), titleArtLoaded);
   }
 
   private go(x: number, y: number) {
