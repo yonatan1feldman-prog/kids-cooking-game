@@ -5,7 +5,7 @@
 import argparse, math, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from prepkit import *  # noqa: F401,F403
-from gen_mom import palette, tube, wrist_cuff, cuff_band, fist_on_stick, hand_file, layer, shift, MY, PARAMS as MOM_PARAMS  # noqa: E402
+from gen_mom import palette, tube, wrist_cuff, cuff_band, fist_on_stick, hand_file, layer, shift, hx, around, LOOK, MY, PARAMS as MOM_PARAMS  # noqa: E402
 import gen_prep_b  # noqa: E402
 
 # ---- change one line to restyle the child's hands ----
@@ -96,7 +96,7 @@ def mouth_chew(c):
     wave = smooth_open([(272, MY), (286, MY + 9), (300, MY + 3), (314, MY + 9), (328, MY)], .2)
     L.append(G(stroke(wave, c["mouth"], 10), p + "sh"))
     L.append(G(P(wob(340, MY + 16, 7, 6, .15, 70, 9), CRUST) + P(wob(339, MY + 15, 4, 3.4, .15, 71, 8), CRUST_L), p + "sh"))
-    return layer(p, shift("".join(L)), "smooth", 29)
+    return layer(p, shift(hx(around(300, MY, LOOK["mouth"], "".join(L)))), "smooth", 29)   # sized like her other mouths
 
 
 def build(out, kp, mp):

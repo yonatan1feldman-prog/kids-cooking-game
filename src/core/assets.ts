@@ -583,7 +583,7 @@ export const ART = {
   /** Radius of the dough disc drawn inside dough-flat. */
   doughRadius: 350,
   /** Mom's frame: body centre line, shoulder pivots of the arms, and the drawn pointing fingertip. */
-  mom: { w: 800, h: 800, cx: 500, pivotL: { x: 350, y: 505 }, pivotR: { x: 650, y: 505 }, fingertipL: { x: 37, y: 378 }, mouth: { x: 500, y: 350 } },
+  mom: { w: 800, h: 800, cx: 500, pivotL: { x: 350, y: 505 }, pivotR: { x: 650, y: 505 }, fingertipL: { x: 37, y: 378 }, mouth: { x: 500, y: 357 } },
   /** Demo-hand anchors in their 400x400 frames (README-mom.md). */
   momHands: {
     point: { x: 100, y: 100 },
