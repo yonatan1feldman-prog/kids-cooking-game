@@ -101,7 +101,7 @@ DynamicTexture needs `.render()`).
    or about the pizza: "Beautiful!", "Yummy!"). Never "you're so smart / talented / good".
 5. **Every animation, sound and effect answers something she did** (or helps her after she stopped: the hint, Mom's
    help). Nothing sparkles, bobs, pulses or wiggles by itself to pull her attention. Allowed exceptions, because they
-   are life, not lures: Mom breathing and blinking, Pipa blinking, the soft background music, the loading spinner,
+   are life, not lures: Mom breathing and blinking, Pipa breathing (round 13) and blinking, the soft background music, the loading spinner,
    and the text-free rotate animation. Pipa's thought bubble (her wish) pops in once when a step starts and then stays
    still; the kitchen's jars, utensils, pots and sun move only when she taps them. The oven's glow and steam while baking are the result of her putting the
    pizza in. (Round 4 removed: the play button's endless pulse, the recipe card's endless bobbing, the bins' endless
@@ -186,6 +186,7 @@ src/core/
   stage.ts                 THE LAYOUT TABLE: every position and per-item scale, relative to margins and center
   orientation.ts           landscape guard: rotate screen, pause/resume
   fx.ts                    burst / puff / stars particles, boing squash
+  juice.ts                 the polish round: touch ripples, paper confetti, sway of a held thing, Mom and Pipa tickles
   hand.ts                  MomHandView: Mom's 5 demo hands, keyframed motions (demo / looping hint), follow (help), props
   ui.ts                    iconButton (padded hit circle, fires on press, optional two-tap confirm)
   tuning.ts                THE TUNING TABLE: every count, threshold and idle timing (and Pipa's wishes: `wish`, `taste`)
@@ -651,7 +652,27 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; round 13, the fruit skewers, on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; round 14, the polish round, and round 13, the fruit skewers, on top; rounds 2-12 below still hold)
+### 0000000000. Round 14, the polish round ("juice", all recipes)
+State: branch `claude/project-thread-k5x3u3`; `rollback-pre-juice` = master before it (see PROJECT-KNOWLEDGE.md's
+pending tags). No new art or sound: everything is drawn in code (`fx-ring`, `fx-paper` in `makeFxTextures`, kept by
+`releaseRecipe`). Every effect answers a touch (wellbeing rule 5):
+- **Touch ripple** (`touchRipples`, recipe and home): a cream paper ring grows and fades where the first finger lands
+  (not in the no-touch strips). One image per touch; never a miss or progress.
+- **Mom and Pipa answer a tap on them** (`tickles`, `Mom.hit/tickle`, `Character.hit/tickle`; recipe and home; not in
+  `share` / `feed`, where they are what she feeds, and not on a button). Mom: happy eyes, open smile, one sway from the
+  waist, two or three hearts, a soft pop; not while she chews, demos, holds a mouth or has a mood (1.2 s gap).
+  Pipa: happy face, a vertical squish-hop, `char-giggle`, hearts; only at rest (0.7 s gap). Mom's shapes are not
+  assumed: `hit` is a box in her 800 frame (x 300-700, y 30-620), so her redesign keeps working if the frame does.
+- **Pipa breathes** like Mom: her three layers hang from her feet (origin at `FOOT`) and rise 1.8% slowly, no inner container (the audit
+  measures her as before).
+- **A step done**: fewer stars (10) plus paper confetti (18 strips that flip as they fall, `confetti`).
+- **A held thing swings like paper** (`sway` / `settle`): decorating's toppings and the cake's candles tilt toward
+  where the finger moves them and settle when it stops.
+- Considered and left out: a page-turn between steps (it would hide her dish for a moment and slow the pace), a
+  squash on every ingredient (most steps already answer their own touch with a boing or bits).
+- **Needs a real child:** does she find tickling Mom and Pipa (nothing points at it), and does it pull her away from
+  the step for too long? Is the ripple visible under her finger on the phone?
 ### 000000000. Round 13 (the fruit skewers, the eighth recipe; the `thread` step type)
 State: `rollback-pre-skewers` = master before the round; branch `claude/project-thread-pgpwe5`, PR to master. Research
 and spec: `/mnt/project-files/research/new-stage-spec.md` (patterning: copy, then extend, then create is the order a
