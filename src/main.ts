@@ -11,6 +11,10 @@ import { TitleScene } from './scenes/TitleScene';
 
 const game = new Phaser.Game({
   type: Phaser.AUTO,
+  // At most 8 textures per draw batch (Phaser uses up to 16 by default). With 16, the finale lost pieces of Mom's
+  // body and arm in WebGL (a crowded screen: the kitchen's pieces, the photo, the stars); with 8 it draws whole. The
+  // cost is a few more draw calls, nothing this game notices.
+  render: { maxTextures: 8 },
   parent: 'game',
   backgroundColor: '#ffe4b5',
   disableContextMenu: true,

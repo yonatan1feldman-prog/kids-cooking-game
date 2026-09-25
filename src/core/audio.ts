@@ -48,6 +48,9 @@ export type VoiceKey =
   | 'vo-pick-cake' | 'vo-stir-cake' | 'vo-pour-pan' | 'vo-pick-frosting' | 'vo-frost' | 'vo-decorate-cake'
   | 'vo-candles' | 'vo-wish' | 'vo-blow-more' | 'vo-blown' | 'vo-share-cake' | 'vo-cake-mom' | 'vo-cake-pipa'
   | 'vo-cake-yum' | 'vo-photo-cake' | 'vo-finale-cake'
+  // the fruit skewers (round 13: the thread step)
+  | 'vo-pick-skewers' | 'vo-thread' | 'vo-copy' | 'vo-same' | 'vo-next' | 'vo-pattern' | 'vo-new-pattern' | 'vo-own'
+  | 'vo-share-skewers' | 'vo-skewer-mom' | 'vo-skewer-pipa' | 'vo-skewer-yum' | 'vo-photo-skewers' | 'vo-finale-skewers'
   // the gameplay round: Pipa's wishes and tastes
   | 'vo-pipa-wants' | 'vo-pipa-got-it' | 'vo-pipa-loves' | 'vo-bless-you'
   | CountKey | TempKey | NameKey;

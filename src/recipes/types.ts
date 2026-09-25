@@ -469,6 +469,39 @@ export interface CandlesParams {
   capture?: string;
 }
 
+/**
+ * Thread (round 13, the fruit skewers): pieces from the bins of what she chose (and cut) slide onto sticks lying on the
+ * recipe's tray, one skewer per round. A tap on a bin (or a drag from it to the stick) threads the next piece; Mom says
+ * its name, so the sequence is heard. Each round is one rung of patterning: 'copy' (Mom's own skewer lies above hers:
+ * a matching piece makes Mom's piece light up), 'extend' (Mom threads the first `given`, "What comes next?"), 'free'
+ * (her own). Any fruit anywhere is fine: a skewer that follows the pattern gets `sameLine` / `patternLine`, any other one
+ * `newLine` ("A brand new pattern!"). Nothing is ever wrong, taken off or counted. At the end every skewer becomes its own
+ * picture (`run.pieces`, for `share` with `pieces`) and the tray with them the photo's (MADE_KEY). Anything threaded or
+ * stacked in an order (a pasta necklace, a vegetable kebab, a sandwich) is the same type with other pictures.
+ */
+export interface ThreadParams {
+  stick: ImageKey;
+  /** Bins with these pieces when nothing was chosen before (a dev jump); otherwise the chosen options' bins. */
+  fallback: { topping: ImageKey; name?: VoiceKey }[];
+  bin: ImageKey;
+  /** One skewer per round, in order. */
+  rounds: ('copy' | 'extend' | 'free')[];
+  pieces: number;
+  /** How many Mom threads herself on the 'extend' skewer. */
+  given: number;
+  /** How far from the stick a dragged piece still lands (x k). */
+  reach: number;
+  pauseMs: number;
+  line: VoiceKey;
+  copyLine: VoiceKey;
+  nextLine: VoiceKey;
+  ownLine: VoiceKey;
+  sameLine: VoiceKey;
+  patternLine: VoiceKey;
+  newLine: VoiceKey;
+  sound: SoundKey;
+}
+
 export interface BakeParams {
   /** Oven layers sharing one frame: cavity, closed door with a see-through window, open door. */
   inside: ImageKey;
@@ -614,7 +647,8 @@ export type StepDef =
   | { type: 'photo'; params: PhotoParams }
   | { type: 'cutters'; params: CutterParams }
   | { type: 'blend'; params: BlendParams }
-  | { type: 'flip'; params: FlipParams };
+  | { type: 'flip'; params: FlipParams }
+  | { type: 'thread'; params: ThreadParams };
 
 export type StepType = StepDef['type'];
 

@@ -229,6 +229,11 @@
   "w": 400,
   "h": 520
  },
+ "card-skewers": {
+  "sha1": "1fb25d6c8521f282e5be5fe039109d9e43bd2034",
+  "w": 400,
+  "h": 520
+ },
  "card-smoothie": {
   "sha1": "8c1896e8b59735b60f74679d96ff48b05688917a",
   "w": 400,
@@ -989,6 +994,11 @@
   "w": 700,
   "h": 780
  },
+ "photo-frame-skewers": {
+  "sha1": "b74febb698cc04d6627fdcf9060aa2d78005318f",
+  "w": 700,
+  "h": 780
+ },
  "photo-frame-smoothie": {
   "sha1": "9f1fb704d8f90c7b72e3779c22b8eba53a8f5eee",
   "w": 700,
@@ -1158,6 +1168,16 @@
   "sha1": "c6e01019a91381128867862947834864620d79f1",
   "w": 900,
   "h": 560
+ },
+ "skewer-stick": {
+  "sha1": "652091955db97af7d6a2d6196a0583c1a304cbf7",
+  "w": 60,
+  "h": 720
+ },
+ "skewer-tray": {
+  "sha1": "73db4e2f886f9af06b8f7a2abf73b5a92e09a5a5",
+  "w": 800,
+  "h": 600
  },
  "smoke-puff": {
   "sha1": "8110d13b66dc3fa57d25db4ee248cb94477b4ed1",
