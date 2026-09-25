@@ -651,7 +651,31 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; round 12, the gameplay round, on top; rounds 2-11 below still hold)
+## Handoff notes (written for the next agent; round 13, the fruit skewers, on top; rounds 2-12 below still hold)
+### 000000000. Round 13 (the fruit skewers, the eighth recipe; the `thread` step type)
+State: `rollback-pre-skewers` = master before the round; branch `claude/project-thread-pgpwe5`, PR to master. Research
+and spec: `/mnt/project-files/research/new-stage-spec.md` (patterning: copy, then extend, then create is the order a
+4-5-year-old learns it in; one new mechanic, built on the smoothie's fruit, colander, cutting and names).
+- **The recipe** (`src/recipes/skewers.ts`): wash hands · wash the fruit (the smoothie's colander) · choose 3 of 4 fruits
+  (Pipa's wish bubble as in every `choose`) · chop each · thread (copy Mom's AB skewer, extend ABC, make her own) · share
+  the three skewers (`pieces`; each piece carries what is on it, `run.pieces[].contents`, so Pipa tastes the real fruit:
+  her wished fruit = love, kiwi / mango = wow) · photo of the tray (`made`). Counts: `TUNING.skewers`, help pace
+  `TUNING.help.threadEveryMs`. Art: `assets-src/images-b-skewers` (`tools/gen_skewers.py`: stick, tray, card, frame);
+  anchors `ART.skewers`. Voice: 14 lines (`make_vo.py`, three soft-limited by `fix_vo_skewers.py`).
+- **Checked (virtual clock, simulated voice):** layout audit on every step at 20:9 and 4:3: clean but Mom's known finale
+  sway (and at 4:3 her known step aside while sharing); a child-pace run with demos: voice in order, no overlap, no forbidden
+  cut, vo-watch-me / vo-your-turn / vo-cut-careful once, vo-copy, vo-same, vo-next, vo-pattern, vo-own, then Pipa loves
+  her wished strawberry; a no-touch run (Mom helped 10 times) ends at home; the three thread paths (pattern taps, a drag,
+  one fruit only; her own free skewer gets a line only when it is a real pattern, the step's praise follows anyway);
+  rotate and background with a fruit and a skewer held mid-drag: dropped, kept, finished (background's idle clock is
+  the harness artefact of round 7); smoothie and pizza regression runs: home, no voice problems. Screenshots:
+  `/mnt/project-files/research/screens-skewers/`.
+- **Harness speed in the cloud:** with SwiftShader every rendered frame is slow (a whole audited recipe took ~25 min).
+  For runs that need no pixels, `game.loop.callback = game.headlessStep.bind(game)` first makes them take seconds; the
+  step times it logs are then inflated (captures and image decodes wait in real time while the virtual clock runs), so
+  measure a recipe's length with rendering on.
+- **Needs a real child:** does she copy Mom's skewer or just tap? Is "What comes next?" clear? Tapping vs dragging a fruit.
+
 ### 00000000. Round 12, the gameplay round (after she played: "too simple, too short")
 State: `rollback-pre-gameplay` = master before the round; branch `claude/project-thread-dsv460`, PR to master. Research
 behind it: `/mnt/project-files/research/gameplay-research.md` (Toca Kitchen, Dr. Panda, Sago Mini: what keeps 4-5-year-olds
