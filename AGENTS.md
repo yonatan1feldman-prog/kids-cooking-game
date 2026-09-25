@@ -3,7 +3,7 @@
 ## Quick start (read this, then only the sections your task needs)
 - **What:** a text-free, English-speaking cooking game for a 5-year-old (Android phone, landscape): she cooks with
   Mom, Pipa the hedgehog watches and eats. Phaser 4 + Vite + TypeScript PWA, deployed to GitHub Pages from `master`.
-  Seven recipes: pizza, salad, cookies, smoothie, pancakes, vegetable soup and birthday cake (`src/recipes/<name>.ts`),
+  Eight recipes: pizza, salad, cookies, smoothie, pancakes, vegetable soup, birthday cake and fruit skewers (`src/recipes/<name>.ts`),
   cards in a grid on the home screen, with the memory book's button in one more cell once there is a photo in it.
 - **Where things are:** `src/recipes/` recipes as pure data (`types.ts` = every step type's params); `src/steps/` one
   reusable class per step type (`registry.ts` maps names to classes); `src/core/tuning.ts` every count and threshold;
@@ -214,7 +214,7 @@ src/scenes/
 ## Recipes are data
 A recipe is `{ id, card, board, character, steps: StepDef[] }`. Each step names a reusable type and its params.
 Step types: `wash`, `knead`, `crush`, `stir`, `grate`, `roll`, `spread`, `sprinkle`, `choose`, `chop`, `peel`, `open-pour`,
-`decorate`, `bake`, `candles`, `share`, `photo`, `cutters`, `blend`, `flip` (and `feed`, the older single-eater ending with its own finale, no longer used).
+`decorate`, `bake`, `candles`, `share`, `photo`, `cutters`, `blend`, `flip`, `thread` (and `feed`, the older single-eater ending with its own finale, no longer used).
 The salad (`salad.ts`) is the second worked example: see Handoff notes 0000.
 The pizza: wash, knead, roll, crush, stir, spread, grate, sprinkle, choose, then the prep step of each of the three
 chosen toppings in the order she picked them (chop, or open-pour), decorate, bake (with the panel and the mitts),
@@ -332,6 +332,21 @@ Reusable step type of round 8 (the smoothie; params in `recipes/types.ts`):
   glasses become `run.pieces` for `share` with `pieces`, and MADE_KEY for `photo` with `made`); a tall kept bowl's pour
   point stays on screen; chop's vegetables include the fruit (`FruitName` in vegArt.ts); a bin's icon from a bigger frame
   (a 240 fruit slice) shows at the topping size (`iconScale`).
+
+Reusable step type of round 11 (the fruit skewers; params in `recipes/types.ts`):
+- `thread` (`ThreadStep`, `ThreadParams`): patterning, the one "slightly harder" mechanic. The recipe's board is a tray
+  (`skewer-tray`); the bins of what she chose and cut stand where decorating puts them (`stage.bin(i, n)`). One skewer per
+  round, each on its own row of the tray (`ART.skewers.rows`, row 0 = Mom's model): `copy` (Mom's AB AB A lies above hers;
+  a matching piece makes Mom's piece hop and sparkle), `extend` (Mom's hand threads the first `given`, ABC, then "What
+  comes next?"), `free` ("Now make your very own!"). A tap on a bin threads its fruit (it flies to the stick's point and
+  slides to the next place); a drag from a bin let go near the stick (`reach`) does the same, elsewhere it floats back (a
+  miss). Mom says each fruit's name as it lands (`name-*`, group 'name'), so the sequence is heard. Whatever she makes is
+  fine: a skewer that follows the pattern gets `sameLine` / `patternLine` (`isPattern` for her own: a unit of 2+ things
+  repeated), any other one `newLine` ("Ooh! A brand new pattern!"); nothing is taken off or counted. Hint and demo: the
+  grab hand carries a see-through piece from the bin the pattern needs; help fills the current skewer with the pattern and
+  gives the next one back. At the end every skewer becomes a picture (`skewer-made-N`, `run.pieces` for `share` with
+  `pieces`) and the tray with all of them MADE_KEY (`photo` with `made`). A pasta necklace, a vegetable kebab, a sandwich
+  in layers: the same type with other pictures.
 
 **What every future recipe must provide** (data only, unless it needs a new step type):
 1. `src/recipes/<name>.ts` with `id`, `card`, `board`, `character` and its `steps`, added to `RECIPES`.

@@ -220,6 +220,21 @@ MOM_LINES = {
     "vo-cake-yum": "Mmm, so soft and sweet!",
     "vo-photo-cake": "Let's take a picture of your cake!",
     "vo-finale-cake": "We made a birthday cake together!",
+    # Fruit skewers (eighth recipe, added 2026-09-25; the thread step: copy, extend, create a pattern)
+    "vo-pick-skewers": "Fruit skewers! Yummy!",
+    "vo-thread": "Let's slide the fruit onto the stick!",
+    "vo-copy": "Look at mine! Can you make one just like it?",
+    "vo-same": "Just like mine!",
+    "vo-next": "What comes next?",
+    "vo-pattern": "You found the pattern!",
+    "vo-new-pattern": "Ooh! A brand new pattern!",
+    "vo-own": "Now make your very own!",
+    "vo-share-skewers": "Let's share our fruit skewers!",
+    "vo-skewer-mom": "A skewer for me? Thank you!",
+    "vo-skewer-pipa": "One for Pipa!",
+    "vo-skewer-yum": "Mmm, so juicy!",
+    "vo-photo-skewers": "Let's take a picture of our fruit skewers!",
+    "vo-finale-skewers": "We made fruit skewers together!",
 }
 SUFFIX = ""
 if len(sys.argv) > 1 and sys.argv[1] in ("mom", "mom-a"):

@@ -119,7 +119,7 @@ thick drink poured was found); lid-click is a plastic container lid.
 |---|---|---|---|---|---|
 | music/music-main.ogg | Cozy Puzzle In-Game 1 | MintoDog | https://opengameart.org/content/cozy-puzzle-in-game-1 | CC0 1.0 | none to the loop (exactly 256 beats at 118 BPM, gapless); gain -7.9 dB to -20 LUFS; Vorbis q2 |
 
-## Sounds: Mom's voice (`sounds/voice/`, 89 lines, English)
+## Sounds: Mom's voice (`sounds/voice/`, English)
 
 - Generated locally with **Kokoro-82M** v1.0 (https://huggingface.co/hexgrad/Kokoro-82M), ONNX build from
   https://github.com/thewh1teagle/kokoro-onnx/releases/tag/model-files-v1.0. The model weights are **Apache-2.0**;
@@ -254,6 +254,20 @@ Same engine, voice and processing as every line above. `name-pink`, `name-white`
 | vo-share-cake · vo-cake-mom · vo-cake-pipa · vo-cake-yum | Let's share the cake! · A slice for me? Thank you! · A slice for Pipa! · Mmm, so soft and sweet! |
 | vo-photo-cake · vo-finale-cake | Let's take a picture of your cake! · We made a birthday cake together! |
 
+### New in round 11 (the fruit skewers, 14 lines)
+
+Same engine, voice and processing as every line above (made in the cloud session with the same pinned packages).
+vo-skewer-mom, vo-skewer-yum and vo-photo-skewers got the gentle soft limiter of vo-temp-more (0.45-1.56 dB), then
+-18 LUFS (`audio-src/scripts/fix_vo_skewers.py`). The fruit names are the smoothie's.
+
+| Key | Line |
+|---|---|
+| vo-pick-skewers · vo-thread | Fruit skewers! Yummy! · Let's slide the fruit onto the stick! |
+| vo-copy · vo-same | Look at mine! Can you make one just like it? · Just like mine! |
+| vo-next · vo-pattern · vo-new-pattern · vo-own | What comes next? · You found the pattern! · Ooh! A brand new pattern! · Now make your very own! |
+| vo-share-skewers · vo-skewer-mom · vo-skewer-pipa · vo-skewer-yum | Let's share our fruit skewers! · A skewer for me? Thank you! · One for Pipa! · Mmm, so juicy! |
+| vo-photo-skewers · vo-finale-skewers | Let's take a picture of our fruit skewers! · We made fruit skewers together! |
+
 ## Graphics (`images/`)
 
 All SVG files in `images/` were drawn for this project by the art agent (style B, paper cut-out; generators in
@@ -274,5 +288,7 @@ and sugar specks are drawn in code. The 24 soup files of round 9 (potato and zuc
 the pot, its heaps and soup stages, the jug, the bowls, the ladle, the soup card and photo frame) come from
 `cooking-game-assets/images-b-soup` and the 18 cake files (batter stages, pan, cake and plate, frosting tubs and blob,
 choc chip, candle, flame, smoke, the cake card and photo frame) from `cooking-game-assets/images-b-cake` (same kit,
-generators in their `tools/`); the memory book's button and arrows are drawn in code. No third-party art, fonts or images.
+generators in their `tools/`); the memory book's button and arrows are drawn in code. The 4 fruit-skewer files of round 11
+(the stick, the tray, the skewer card and photo frame) come from `assets-src/images-b-skewers` (the same kit, generator
+`tools/gen_skewers.py`; the fruit is the smoothie's). No third-party art, fonts or images.
 `images/webp/` holds WebP renderings of those same SVGs, made by `scripts/bake-webp.js`.
