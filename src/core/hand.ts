@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { ART, FX_SOFT, IMAGES, type ImageKey, type MomHand } from './assets';
 import type { Layout } from './layout';
-import { HINT_AFTER_MS } from './tuning';
+import { SCREEN_HINT_MS } from './tuning';
 
 type P = { x: number; y: number };
 
@@ -72,7 +72,7 @@ export function tapMotion(at: P, k: number): HandMotion {
 }
 
 /**
- * The hint on screens without steps (title, home): after HINT_AFTER_MS without a touch, Mom's pointing
+ * The hint on screens without steps (title, home): after SCREEN_HINT_MS without a touch, Mom's pointing
  * hand taps the target, looping, until the next touch. Nothing else moves by itself. The clock only
  * runs while the scene updates (paused on the rotate screen). `ready()` false = the art is not in yet.
  */
@@ -89,7 +89,7 @@ export function screenHint(scene: Phaser.Scene, layout: Layout, target: () => P 
   const tick = (_t: number, delta: number) => {
     if (off || showing || !ready()) return;
     idle += delta;
-    if (idle < HINT_AFTER_MS) return;
+    if (idle < SCREEN_HINT_MS) return;
     const at = target();
     if (!at) return;
     hand ??= new MomHandView(scene, layout);

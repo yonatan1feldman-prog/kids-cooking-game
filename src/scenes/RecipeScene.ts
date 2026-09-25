@@ -15,8 +15,8 @@ import { createStep } from '../steps/registry';
 import { recipeAssets, recipeLoaded } from './BootScene';
 import type { Step, StepContext } from '../steps/Step';
 
-/** Mom shows each step by herself only the first times a recipe is played. */
-const DEMO_RUNS = 2;
+/** Mom shows each step by herself only the first time a recipe is played (two times before the gameplay round). */
+const DEMO_RUNS = 1;
 
 /**
  * How many times each recipe has been started, on this device only (localStorage, nothing is sent anywhere).

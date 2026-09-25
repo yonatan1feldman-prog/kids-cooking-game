@@ -9,10 +9,15 @@
  * the pizza is 700 across and a relaxed child's rub moves the finger about 600-900 units a second.
  */
 
-/** Ms of no progress before Mom's hand shows the gesture again (the hint), on every screen and step. */
-export const HINT_AFTER_MS = 5000;
-/** Further ms of no progress before Mom helps ("Let me help you!", and her hand does it). */
-export const AUTO_AFTER_HINT_MS = 10000;
+/**
+ * Ms of no progress before Mom's hand shows the gesture again (the hint), in every step. 8 s since the gameplay round
+ * (was 5 s): she tries by herself first. The title and home screens keep a quicker hint (SCREEN_HINT_MS).
+ */
+export const HINT_AFTER_MS = 8000;
+/** The title and home screens: ms without a touch before Mom's hand points at the play button / a card. */
+export const SCREEN_HINT_MS = 5000;
+/** Further ms of no progress before Mom helps ("Let me help you!", and her hand does it). 20 s since the gameplay round. */
+export const AUTO_AFTER_HINT_MS = 20000;
 /** A demo never runs longer than this. */
 export const DEMO_MAX_MS = 2500;
 /** Before a demo, Mom finishes the line she is saying, waiting at most this long. */
