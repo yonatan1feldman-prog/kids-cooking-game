@@ -151,7 +151,7 @@ export class RecipeScene extends Phaser.Scene {
     const { dish, layout, mom, character } = this.ctx;
     sfx(this, 'pop');
     stars(this, dish.x, dish.y, 10, 80 * layout.k);
-    confetti(this, dish.x, dish.y, 18, 30 * layout.k);
+    confetti(this, dish.x, dish.y, 22, 48 * layout.k);
     boing(this, this.ctx.board, 0.06);
     voice.praise({ ttlMs: 3000 });
     mom.cheer();

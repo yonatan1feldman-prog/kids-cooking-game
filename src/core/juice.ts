@@ -19,10 +19,10 @@ export function touchRipples(scene: Phaser.Scene, L: Layout) {
     if (scene.input.manager.pointers.some((o) => o !== p && o.isDown)) return;
     if (inNoTouchZone(scene, p.x, p.y)) return;
     if (!scene.textures.exists('fx-ring')) return;
-    const r = scene.add.image(p.worldX, p.worldY, 'fx-ring').setDepth(950).setTint(0xfff6e0).setAlpha(0.75);
-    const s = (70 * L.k) / 64;
-    r.setScale(s * 0.4);
-    scene.tweens.add({ targets: r, scale: s * 1.6, alpha: 0, duration: 420, ease: 'Quad.easeOut', onComplete: () => r.destroy() });
+    const r = scene.add.image(p.worldX, p.worldY, 'fx-ring').setDepth(950).setTint(0xffb347).setAlpha(0.85);
+    const s = (110 * L.k) / 64;
+    r.setScale(s * 0.35);
+    scene.tweens.add({ targets: r, scale: s * 1.5, alpha: 0, duration: 450, ease: 'Quad.easeOut', onComplete: () => r.destroy() });
   };
   scene.input.on(Phaser.Input.Events.POINTER_DOWN, onDown);
   scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => scene.input.off(Phaser.Input.Events.POINTER_DOWN, onDown));
