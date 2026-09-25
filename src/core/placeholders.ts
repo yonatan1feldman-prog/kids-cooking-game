@@ -295,6 +295,9 @@ export function makeFxTextures(game: Phaser.Game) {
       g.fillStyle(0xffffff).fillCircle(19, 20, 17).fillCircle(45, 20, 17);
       g.fillTriangle(3, 26, 61, 26, 32, 58);
     });
+  // (the polish round, core/juice.ts: the touch ring and a strip of confetti paper)
+  if (!game.textures.exists('fx-ring')) bake(game, 'fx-ring', 64, 64, (g) => g.lineStyle(8, 0xffffff).strokeCircle(32, 32, 28));
+  if (!game.textures.exists('fx-paper')) bake(game, 'fx-paper', 28, 16, (g) => g.fillStyle(0xffffff).fillRect(0, 0, 28, 16));
 }
 
 /** Style-matched UI textures made in code: the solid sauce brush. */
