@@ -338,7 +338,7 @@ Reusable step type of round 8 (the smoothie; params in `recipes/types.ts`):
   point stays on screen; chop's vegetables include the fruit (`FruitName` in vegArt.ts); a bin's icon from a bigger frame
   (a 240 fruit slice) shows at the topping size (`iconScale`).
 
-Reusable step type of round 11 (the fruit skewers; params in `recipes/types.ts`):
+Reusable step type of round 13 (the fruit skewers; params in `recipes/types.ts`):
 - `thread` (`ThreadStep`, `ThreadParams`): patterning, the one "slightly harder" mechanic. The recipe's board is a tray
   (`skewer-tray`); the bins of what she chose and cut stand where decorating puts them (`stage.bin(i, n)`). One skewer per
   round, each on its own row of the tray (`ART.skewers.rows`, row 0 = Mom's model): `copy` (Mom's AB AB A lies above hers;

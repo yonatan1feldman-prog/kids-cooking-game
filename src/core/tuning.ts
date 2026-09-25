@@ -165,7 +165,7 @@ export const TUNING = {
     share: { slices: 6 },
   },
   /**
-   * The fruit skewers (round 11; aim: about 4 minutes from the card to home). Wash and chop: as the smoothie. Thread:
+   * The fruit skewers (round 13; aim: about 4 minutes from the card to home). Wash and chop: as the smoothie. Thread:
    * pieces on each skewer, how many Mom threads herself on the "what comes next?" skewer, how far from the stick a
    * dragged piece still lands (x k), the pause between skewers (ms). Share: the three skewers.
    */

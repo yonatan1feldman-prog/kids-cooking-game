@@ -266,7 +266,7 @@ Same engine, voice and processing as every line above. `name-pink`, `name-white`
 | vo-share-cake · vo-cake-mom · vo-cake-pipa · vo-cake-yum | Let's share the cake! · A slice for me? Thank you! · A slice for Pipa! · Mmm, so soft and sweet! |
 | vo-photo-cake · vo-finale-cake | Let's take a picture of your cake! · We made a birthday cake together! |
 
-### New in round 11 (the fruit skewers, 14 lines)
+### New in round 13 (the fruit skewers, 14 lines)
 
 Same engine, voice and processing as every line above (made in the cloud session with the same pinned packages).
 vo-skewer-mom, vo-skewer-yum and vo-photo-skewers got the gentle soft limiter of vo-temp-more (0.45-1.56 dB), then
@@ -312,7 +312,7 @@ choc chip, candle, flame, smoke, the cake card and photo frame) from `cooking-ga
 generators in their `tools/`); the memory book's button and arrows are drawn in code. The living kitchen's 12 pieces
 (`kitchen-*`: the jars, the basil, the utensils, the copper pots, the sun) and the background without them are drawn by
 `assets-src/images-b/tools/gen_kitchen_live.py` with the same code as the background; Pipa's thought bubble and the
-hearts are drawn in code. The 4 fruit-skewer files of round 11 (the stick, the tray, the skewer card and photo frame)
+hearts are drawn in code. The 4 fruit-skewer files of round 13 (the stick, the tray, the skewer card and photo frame)
 come from `assets-src/images-b-skewers` (the same kit, generator `tools/gen_skewers.py`; the fruit is the smoothie's).
 No third-party art, fonts or images.
 `images/webp/` holds WebP renderings of those same SVGs, made by `scripts/bake-webp.js`.

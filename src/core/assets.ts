@@ -351,7 +351,7 @@ export const IMAGES = {
   'flame-candle': { size: [200, 280] },
   'smoke-puff': { size: [240, 360] },
   'photo-frame-cake': { size: [700, 780] },
-  // ---- The fruit skewers (round 11, assets-src/images-b-skewers, tools/gen_skewers.py). Anchors: ART.skewers.
+  // ---- The fruit skewers (round 13, assets-src/images-b-skewers, tools/gen_skewers.py). Anchors: ART.skewers.
   'card-skewers': { size: [400, 520] },
   /** The stick, drawn standing (point at the top); the game lays it down, point to the right. */
   'skewer-stick': { size: [60, 720] },

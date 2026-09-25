@@ -1,4 +1,4 @@
-# images-b-skewers (round 11: the fruit skewers)
+# images-b-skewers (round 13: the fruit skewers)
 
 Style B, the same kit as every batch (it wraps `images-b-smoothie/tools/smoothiekit.py` read-only). Generator:
 `python tools/gen_skewers.py [names...]` writes into this folder only; copy the SVGs to `public/assets/images/` and bake

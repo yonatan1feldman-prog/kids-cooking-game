@@ -470,7 +470,7 @@ export interface CandlesParams {
 }
 
 /**
- * Thread (round 11, the fruit skewers): pieces from the bins of what she chose (and cut) slide onto sticks lying on the
+ * Thread (round 13, the fruit skewers): pieces from the bins of what she chose (and cut) slide onto sticks lying on the
  * recipe's tray, one skewer per round. A tap on a bin (or a drag from it to the stick) threads the next piece; Mom says
  * its name, so the sequence is heard. Each round is one rung of patterning: 'copy' (Mom's own skewer lies above hers:
  * a matching piece makes Mom's piece light up), 'extend' (Mom threads the first `given`, "What comes next?"), 'free'
