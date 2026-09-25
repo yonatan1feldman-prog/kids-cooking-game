@@ -266,6 +266,20 @@ Same engine, voice and processing as every line above. `name-pink`, `name-white`
 | vo-share-cake · vo-cake-mom · vo-cake-pipa · vo-cake-yum | Let's share the cake! · A slice for me? Thank you! · A slice for Pipa! · Mmm, so soft and sweet! |
 | vo-photo-cake · vo-finale-cake | Let's take a picture of your cake! · We made a birthday cake together! |
 
+### New in round 13 (the fruit skewers, 14 lines)
+
+Same engine, voice and processing as every line above (made in the cloud session with the same pinned packages).
+vo-skewer-mom, vo-skewer-yum and vo-photo-skewers got the gentle soft limiter of vo-temp-more (0.45-1.56 dB), then
+-18 LUFS (`audio-src/scripts/fix_vo_skewers.py`). The fruit names are the smoothie's.
+
+| Key | Line |
+|---|---|
+| vo-pick-skewers · vo-thread | Fruit skewers! Yummy! · Let's slide the fruit onto the stick! |
+| vo-copy · vo-same | Look at mine! Can you make one just like it? · Just like mine! |
+| vo-next · vo-pattern · vo-new-pattern · vo-own | What comes next? · You found the pattern! · Ooh! A brand new pattern! · Now make your very own! |
+| vo-share-skewers · vo-skewer-mom · vo-skewer-pipa · vo-skewer-yum | Let's share our fruit skewers! · A skewer for me? Thank you! · One for Pipa! · Mmm, so juicy! |
+| vo-photo-skewers · vo-finale-skewers | Let's take a picture of our fruit skewers! · We made fruit skewers together! |
+
 ### New in the gameplay round (Pipa's wishes and tastes, 4 lines)
 
 Same engine, voice and processing as every line above.
@@ -299,5 +313,7 @@ choc chip, candle, flame, smoke, the cake card and photo frame) from `cooking-ga
 generators in their `tools/`); the memory book's button and arrows are drawn in code. The living kitchen's 12 pieces
 (`kitchen-*`: the jars, the basil, the utensils, the copper pots, the sun) and the background without them are drawn by
 `assets-src/images-b/tools/gen_kitchen_live.py` with the same code as the background; Pipa's thought bubble and the
-hearts are drawn in code. No third-party art, fonts or images.
+hearts are drawn in code. The 4 fruit-skewer files of round 13 (the stick, the tray, the skewer card and photo frame)
+come from `assets-src/images-b-skewers` (the same kit, generator `tools/gen_skewers.py`; the fruit is the smoothie's).
+No third-party art, fonts or images.
 `images/webp/` holds WebP renderings of those same SVGs, made by `scripts/bake-webp.js`.

@@ -351,6 +351,13 @@ export const IMAGES = {
   'flame-candle': { size: [200, 280] },
   'smoke-puff': { size: [240, 360] },
   'photo-frame-cake': { size: [700, 780] },
+  // ---- The fruit skewers (round 13, assets-src/images-b-skewers, tools/gen_skewers.py). Anchors: ART.skewers.
+  'card-skewers': { size: [400, 520] },
+  /** The stick, drawn standing (point at the top); the game lays it down, point to the right. */
+  'skewer-stick': { size: [60, 720] },
+  /** The recipe's board: a wooden tray with a napkin; Mom's model and her three skewers lie on it in rows. */
+  'skewer-tray': { size: [800, 600] },
+  'photo-frame-skewers': { size: [700, 780] },
 } as const satisfies Record<string, { size: readonly [number, number]; raster?: number }>;
 
 /** Texture size of an image: its native size, times its `raster` factor if it is shown bigger than native. */
@@ -392,6 +399,7 @@ export const KITCHEN_KEYS: readonly ImageKey[] = [
 export const CORE_IMAGES: readonly ImageKey[] = [
   'bg-kitchen-landscape', ...KITCHEN_KEYS, 'logo-cooking-with-mom', 'star', 'btn-play', 'btn-home', 'btn-done', 'hand-hint',
   'card-pizza', 'card-salad', 'card-cookies', 'card-smoothie', 'card-pancakes', 'card-soup', 'card-cake',
+  'card-skewers',
   'character-body', 'character-eyes-open', 'character-eyes-blink', 'character-eyes-surprised', 'character-eyes-happy',
   'character-mouth-closed', 'character-mouth-open', 'character-mouth-chew',
   'mom-arm-right', 'mom-body', 'mom-head', 'mom-hair', 'mom-eyes-open', 'mom-eyes-blink', 'mom-eyes-happy',
@@ -528,6 +536,18 @@ RECIPE_ASSETS.cake = {
   ],
 };
 
+RECIPE_ASSETS.skewers = {
+  images: [
+    ...WASH, ...CHOP, ...fruit('banana', 'strawberry', 'mango', 'kiwi'),
+    'colander-fruit', 'water-drop', 'skewer-stick', 'skewer-tray', 'photo-frame-skewers',
+  ],
+  sounds: [
+    'name-banana', 'name-strawberry', 'name-mango', 'name-kiwi', 'vo-wash-fruit', 'vo-wash-veg-done', 'vo-choose-fruit',
+    'vo-cut', 'vo-cut-careful', 'vo-thread', 'vo-copy', 'vo-same', 'vo-next', 'vo-pattern', 'vo-new-pattern', 'vo-own',
+    'vo-share-skewers', 'vo-skewer-mom', 'vo-skewer-pipa', 'vo-skewer-yum', 'vo-photo-skewers', 'vo-finale-skewers',
+  ],
+};
+
 export const RECIPE_SOUNDS: ReadonlySet<string> = new Set(Object.values(RECIPE_ASSETS).flatMap((r) => r.sounds));
 /** Contract images in neither the core nor any recipe (a new key someone forgot to list): reported at boot. */
 export const unlistedImages = () => {
@@ -658,6 +678,21 @@ export const ART = {
    * the pancakes) is drawn under it, and the knob and the flame sit on the stove, given here in the pot's frame.
    */
   /** The birthday cake (round 9), from README-cake.md: the candle's base (where it stands) and its flame point. */
+  /**
+   * The fruit skewers (tools/gen_skewers.py). On `skewer-tray` (800x600, from its centre): the rows' centre lines (row 0 is
+   * Mom's model); on a row the stick's foot end, the first slot and the slot pitch, and a piece's scale (fruit slices,
+   * 240 frames). `skewer-stick` (60x720, standing): its tip and its foot, in its own frame.
+   */
+  skewers: {
+    rows: [-187, -62, 62, 187],
+    foot: -345,
+    slot0: -250,
+    pitch: 116,
+    piece: 0.55,
+    stickScale: 0.96,
+    stickTip: 10,
+    stickFoot: 712,
+  },
   cake: {
     /**
      * candle (260x460, README-cake.md): the base that lands where she puts it down, and the wick tip where the flame
