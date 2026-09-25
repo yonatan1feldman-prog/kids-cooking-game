@@ -34,20 +34,22 @@ export class Character {
   /** The mouth in frame coordinates, measured from the art. */
   private mouthLocal: { x: number; y: number };
   /** The layers, hung from her feet so she can breathe (a slow rise, like Mom's) without floating. */
-  private inner: Phaser.GameObjects.Container;
+  private layers: Phaser.GameObjects.Image[];
   private tickledAt = -Infinity;
 
   constructor(private scene: Phaser.Scene, private def: CharacterDef, at: Spot | null, hiddenAt: Spot) {
     const spot = at ?? hiddenAt;
     this.rest = { x: spot.x, y: spot.y };
     this.scale = spot.scale;
-    const body = new Phaser.GameObjects.Image(scene, 0, -FOOT, def.body);
-    this.eyes = new Phaser.GameObjects.Image(scene, 0, -FOOT, def.eyesOpen);
-    this.mouth = new Phaser.GameObjects.Image(scene, 0, -FOOT, def.mouthClosed);
-    this.inner = new Phaser.GameObjects.Container(scene, 0, FOOT, [body, this.eyes, this.mouth]);
-    this.box = scene.add.container(spot.x, spot.y, [this.inner]).setDepth(5).setScale(spot.scale);
+    // (every layer hangs from her feet, so she breathes without floating)
+    const layer = (key: string) => new Phaser.GameObjects.Image(scene, 0, FOOT, key).setOrigin(0.5, 0.5 + FOOT / 700);
+    const body = layer(def.body);
+    this.eyes = layer(def.eyesOpen);
+    this.mouth = layer(def.mouthClosed);
+    this.layers = [body, this.eyes, this.mouth];
+    this.box = scene.add.container(spot.x, spot.y, this.layers).setDepth(5).setScale(spot.scale);
     // Breathing, the one thing she does on her own besides blinking (life, not a lure: wellbeing rule 5).
-    scene.tweens.add({ targets: this.inner, scaleY: 1.018, scaleX: 0.994, duration: 2100, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    scene.tweens.add({ targets: this.layers, scaleY: 1.018, scaleX: 0.994, duration: 2100, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     this.box.setVisible(!!at);
 
     const [fw, fh] = IMAGES['character-mouth-open'].size;
@@ -318,7 +320,7 @@ export class Character {
     const ty = (dy / d) * LOOK_MAX * 0.6 * reach;
     this.look.x += (tx - this.look.x) * 0.15;
     this.look.y += (ty - this.look.y) * 0.15;
-    this.eyes.setPosition(this.look.x, this.look.y - FOOT);
+    this.eyes.setPosition(this.look.x, this.look.y + FOOT);
   }
 
   /** A world point on her (her frame, a little wider than her drawing, so a small Pipa is still easy to tap). */
