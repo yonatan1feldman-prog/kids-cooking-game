@@ -393,7 +393,7 @@ export class ThreadStep extends Step<ThreadParams> {
     for (const [i, r] of this.rows.entries()) {
       const key = `skewer-made-${i}`;
       const ok = await snapshotTexture(this.scene, key, len, rowObjs(r, 0));
-      if (ok) pieces.push({ key, x: tx - home.x, y: r.y - home.y, scale: 1, tint: 0xffffff });
+      if (ok) pieces.push({ key, x: tx - home.x, y: r.y - home.y, scale: 1, tint: 0xffffff, contents: [...r.keys] });
     }
     this.ctx.run.pieces = pieces;
     // The photo: the tray with Mom's skewer and hers.
