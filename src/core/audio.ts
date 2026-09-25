@@ -50,6 +50,7 @@ export type VoiceKey =
   | 'vo-cake-yum' | 'vo-photo-cake' | 'vo-finale-cake'
   // the gameplay round: Pipa's wishes and tastes
   | 'vo-pipa-wants' | 'vo-pipa-got-it' | 'vo-pipa-loves' | 'vo-bless-you'
+  | 'vo-pull-out' | 'vo-cut-slices'
   | CountKey | TempKey | NameKey;
 
 /** Mom counting (count-1..10) and saying the oven temperature (temp-50..250). */

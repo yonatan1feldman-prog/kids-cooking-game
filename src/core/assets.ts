@@ -476,7 +476,7 @@ RECIPE_ASSETS.smoothie = {
 
 RECIPE_ASSETS.pancakes = {
   images: [
-    ...WASH, ...PREP_BOWL, 'topping-bin', 'flour-bag', 'batter-stage-0', 'milk-carton', 'milk-drop', 'egg-1', 'egg-2', 'egg-3',
+    ...WASH, ...PREP_BOWL, 'topping-bin', 'knife', 'flour-bag', 'batter-stage-0', 'milk-carton', 'milk-drop', 'egg-1', 'egg-2', 'egg-3',
     'pancake-batter-0', 'pancake-batter-1', 'pancake-batter-2', 'pancake-batter-3', 'stove-top', 'stove-knob-off',
     'stove-knob-on', 'flame', 'pan', 'ladle', 'batter-puddle-1', 'batter-puddle-2', 'batter-puddle-3', 'pancake-bubbles',
     'pancake-golden', 'plate-big', 'syrup-bottle', 'syrup-blob', 'berry', 'banana-coin', 'butter-pat',
@@ -513,7 +513,7 @@ RECIPE_ASSETS.soup = {
 
 RECIPE_ASSETS.cake = {
   images: [
-    ...WASH, ...PREP_BOWL, ...OVEN, 'topping-bin', 'btn-done', 'flour-bag', 'batter-stage-0', 'sugar-jar', 'milk-carton',
+    ...WASH, ...PREP_BOWL, ...OVEN, 'topping-bin', 'knife', 'btn-done', 'flour-bag', 'batter-stage-0', 'sugar-jar', 'milk-carton',
     'milk-drop', 'egg-1', 'egg-2', 'egg-3',
     'cake-batter-0', 'cake-batter-1', 'cake-batter-2', 'cake-batter-3', 'cake-pan', 'cake-pan-full',
     'cake-baked', 'cake-plate', 'frosting-tub-pink', 'frosting-tub-white', 'frosting-tub-choc', 'frosting-blob',

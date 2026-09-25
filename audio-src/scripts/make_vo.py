@@ -225,6 +225,8 @@ MOM_LINES = {
     "vo-pipa-got-it": "Just what Pipa wanted!",
     "vo-pipa-loves": "Pipa loves it!",
     "vo-bless-you": "Bless you, Pipa!",
+    "vo-pull-out": "Now pull it out, nice and slow!",
+    "vo-cut-slices": "Let's cut it into slices!",
 }
 SUFFIX = ""
 if len(sys.argv) > 1 and sys.argv[1] in ("mom", "mom-a"):

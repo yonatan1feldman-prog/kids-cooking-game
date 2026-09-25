@@ -117,7 +117,12 @@
       else if (st.phase === 'temp') {
         const P = st.params.panel, b = st.temp === P.target ? st.btnStart : st.temp > P.target ? st.btnDown : st.btnUp;
         __tap(b.x, b.y); await __run(b === st.btnStart ? 5900 : 450);
-      } else if (st.phase === 'mitts') { __tap(st.mitts.x, st.mitts.y); await __run(700); }
+      } else if (st.phase === 'mitts') {
+        // Gameplay round 2: the mitts are dragged to the oven, then the dish is pulled out onto the board.
+        await __drag([[st.mitts.x, st.mitts.y], [(st.mitts.x + st.open.x) / 2, st.mitts.y - 60], [st.open.x, st.open.y]]); await __run(900);
+      } else if (st.phase === 'pull') {
+        await __drag([[d.x, d.y], [(d.x + st.rest.x) / 2, (d.y + st.rest.y) / 2], [st.rest.x, st.rest.y]]); await __run(1300);
+      }
       else if (st.phase === 'ready') { __tap(st.closed.x, st.closed.y); await __run(1400); }
       else await __run(300);
     } else if (name === 'ChooseStep') {
@@ -156,6 +161,12 @@
         const pp = st.pourPoint(); await __drag([[b.x, b.y], [pp.x, pp.y]], { hold: true }); await __run(st.params.pourMs + 400); __touch('end', 1, pp.x, pp.y); await __run(300);
       }
     } else if (name === 'ShareStep') {
+      // Gameplay round 2: first she cuts (a stroke across the dish, anywhere), then shares.
+      if (st.cutting) {
+        const r = d.R * d.scaleX * 0.7;
+        await __drag([[d.x - r, d.y + 30], [d.x, d.y + 10], [d.x + r, d.y - 10]]); await __run(450);
+        return;
+      }
       // Alternates Mom and Pipa (window.__shareTo: 'mom' | 'pet' | 'alt').
       const s = st.slices.find((x) => !x.eaten);
       if (s) {
