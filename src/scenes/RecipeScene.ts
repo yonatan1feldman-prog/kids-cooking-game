@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { voice } from '../core/audio';
 import { boing, stars } from '../core/fx';
 import { MomHandView } from '../core/hand';
+import { confetti, tickles, touchRipples } from '../core/juice';
 import { addBackground, art, getLayout, keepLayoutOnResize, ORIENTATION_PAUSE } from '../core/layout';
 import { sfx } from '../core/sfx';
 import { liveKitchen } from '../core/kitchen';
@@ -104,6 +105,9 @@ export class RecipeScene extends Phaser.Scene {
     });
     // The kitchen answers her taps (a jar hops, a pot swings): never a miss, never progress.
     liveKitchen(this, bg.getData('kitchen') ?? []);
+    // The polish round: a paper ring answers every touch; Mom and Pipa answer a tap on them (not while she feeds them).
+    touchRipples(this, L);
+    tickles(this, () => [mom, S.pet ? character : null], () => this.stepDef?.type !== 'share' && this.stepDef?.type !== 'feed');
     this.built = true;
     this.runStep(this.devStart());
   }
@@ -146,7 +150,8 @@ export class RecipeScene extends Phaser.Scene {
     }
     const { dish, layout, mom, character } = this.ctx;
     sfx(this, 'pop');
-    stars(this, dish.x, dish.y, 18, 80 * layout.k);
+    stars(this, dish.x, dish.y, 10, 80 * layout.k);
+    confetti(this, dish.x, dish.y, 18, 30 * layout.k);
     boing(this, this.ctx.board, 0.06);
     voice.praise({ ttlMs: 3000 });
     mom.cheer();

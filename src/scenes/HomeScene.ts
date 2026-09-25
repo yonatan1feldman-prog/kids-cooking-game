@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { tickles, touchRipples } from '../core/juice';
 import { albumCount } from '../core/album';
 import { voice } from '../core/audio';
 import { stars } from '../core/fx';
@@ -43,6 +44,7 @@ export class HomeScene extends Phaser.Scene {
     keepLayoutOnResize(this, L, { relayout: true });
     addBackground(this, L);
     const S = getStage(L);
+    touchRipples(this, L);
 
     // Mom and Pipa come in as soon as their art is loaded (normally before this screen shows).
     assetsReady().then(() => {
@@ -50,7 +52,9 @@ export class HomeScene extends Phaser.Scene {
       const m = (mom = new Mom(this, S.mom));
       m.box.setAlpha(0);
       this.tweens.add({ targets: m.box, alpha: 1, duration: 300 });
-      if (S.pet) new Character(this, RECIPES[0].character, S.pet, S.feedPet).enter(150);
+      const pet = S.pet ? new Character(this, RECIPES[0].character, S.pet, S.feedPet) : null;
+      pet?.enter(150);
+      tickles(this, () => [m, pet], () => !going);
       this.events.on(Phaser.Scenes.Events.UPDATE, () => {
         const p = this.input.manager.pointers.find((q) => q.isDown);
         m.lookAt(p ? p.worldX : L.cx, p ? p.worldY : L.cy);

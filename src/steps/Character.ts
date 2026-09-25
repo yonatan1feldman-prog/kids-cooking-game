@@ -11,6 +11,8 @@ export type Mood = 'rest' | 'expect' | 'chew' | 'happy' | 'party' | 'react';
 
 /** How far the eyes layer shifts toward what she is watching, in frame units (600x700 frame). */
 const LOOK_MAX = 14;
+/** Her feet in the frame, from its centre (feet at y 684 of 700): she breathes from there. */
+const FOOT = 334;
 
 /**
  * Pipa the hedgehog, the kitchen pet, who tastes the pizza at the end. Layers share one frame and are
@@ -31,15 +33,21 @@ export class Character {
   private look = { x: 0, y: 0 };
   /** The mouth in frame coordinates, measured from the art. */
   private mouthLocal: { x: number; y: number };
+  /** The layers, hung from her feet so she can breathe (a slow rise, like Mom's) without floating. */
+  private inner: Phaser.GameObjects.Container;
+  private tickledAt = -Infinity;
 
   constructor(private scene: Phaser.Scene, private def: CharacterDef, at: Spot | null, hiddenAt: Spot) {
     const spot = at ?? hiddenAt;
     this.rest = { x: spot.x, y: spot.y };
     this.scale = spot.scale;
-    const body = new Phaser.GameObjects.Image(scene, 0, 0, def.body);
-    this.eyes = new Phaser.GameObjects.Image(scene, 0, 0, def.eyesOpen);
-    this.mouth = new Phaser.GameObjects.Image(scene, 0, 0, def.mouthClosed);
-    this.box = scene.add.container(spot.x, spot.y, [body, this.eyes, this.mouth]).setDepth(5).setScale(spot.scale);
+    const body = new Phaser.GameObjects.Image(scene, 0, -FOOT, def.body);
+    this.eyes = new Phaser.GameObjects.Image(scene, 0, -FOOT, def.eyesOpen);
+    this.mouth = new Phaser.GameObjects.Image(scene, 0, -FOOT, def.mouthClosed);
+    this.inner = new Phaser.GameObjects.Container(scene, 0, FOOT, [body, this.eyes, this.mouth]);
+    this.box = scene.add.container(spot.x, spot.y, [this.inner]).setDepth(5).setScale(spot.scale);
+    // Breathing, the one thing she does on her own besides blinking (life, not a lure: wellbeing rule 5).
+    scene.tweens.add({ targets: this.inner, scaleY: 1.018, scaleX: 0.994, duration: 2100, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     this.box.setVisible(!!at);
 
     const [fw, fh] = IMAGES['character-mouth-open'].size;
@@ -310,7 +318,41 @@ export class Character {
     const ty = (dy / d) * LOOK_MAX * 0.6 * reach;
     this.look.x += (tx - this.look.x) * 0.15;
     this.look.y += (ty - this.look.y) * 0.15;
-    this.eyes.setPosition(this.look.x, this.look.y);
+    this.eyes.setPosition(this.look.x, this.look.y - FOOT);
+  }
+
+  /** A world point on her (her frame, a little wider than her drawing, so a small Pipa is still easy to tap). */
+  hit(x: number, y: number) {
+    if (!this.box.visible) return false;
+    const s = this.scale;
+    const r = Math.max(270 * s, 110);
+    return Math.abs(x - this.rest.x) < r && y > this.rest.y - 340 * s && y < this.rest.y + FOOT * s;
+  }
+
+  /** A tap on her: she giggles and squishes up and down (never sideways: Mom's face is close). */
+  tickle() {
+    const now = this.scene.time.now;
+    if (this._mood !== 'rest' || !this.box.visible || now - this.tickledAt < 700 || this.scene.tweens.isTweening(this.box)) return;
+    this.tickledAt = now;
+    const d = this.def;
+    this.eyes.setTexture(d.eyesHappy);
+    this.mouth.setTexture(d.mouthOpen);
+    sfx(this.scene, 'char-giggle', { volume: 0.8, minGapMs: 600 });
+    const s = this.scale;
+    this.scene.tweens.chain({
+      targets: this.box,
+      tweens: [
+        { scaleY: s * 0.86, scaleX: s * 1.06, duration: 90, ease: 'Quad.easeOut' },
+        { scaleY: s * 1.06, scaleX: s * 0.97, y: this.rest.y - 36 * s, duration: 160, ease: 'Quad.easeOut' },
+        { scaleY: s, scaleX: s, y: this.rest.y, duration: 200, ease: 'Bounce.easeOut' },
+      ],
+    });
+    burst(this.scene, this.rest.x, this.rest.y - 260 * s, { texture: 'fx-heart', count: 3, tint: [0xf06a8a, 0xf5a3b5], size: 30 * (s / 0.4), speed: 220, gravityY: -160, lifespan: 800, depth: 60 });
+    this.scene.time.delayedCall(650, () => {
+      if (this._mood !== 'rest' || !this.eyes.active) return;
+      this.eyes.setTexture(d.eyesOpen);
+      this.mouth.setTexture(d.mouthClosed);
+    });
   }
 
   /** A short burst of joy at the end of a step: happy face and a little hop. */
