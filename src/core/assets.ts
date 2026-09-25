@@ -9,7 +9,7 @@
  * Placeholders are drawn at the same size.
  */
 /** The guests' layers are made at this fraction of their native size (they are never shown bigger). */
-export const GUEST_RASTER = 0.62;
+export const GUEST_RASTER = 0.75;
 
 export const IMAGES = {
   /** Landscape kitchen, 2400x1080 (fits 20:9 exactly): anchored bottom-center, cropped only at the sides. */

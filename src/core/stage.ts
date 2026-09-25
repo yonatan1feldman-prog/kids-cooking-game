@@ -201,8 +201,8 @@ const PET_OPAQUE_Y0 = 44;
 const PET_SMALL = 0.4;
 const PET_BIG = 0.62;
 const DOUGH_R = 336; // the pizza's opaque radius on the board (dough-flat opaque x 22-694)
-// A guest (600x700 frame like Pipa's; the widest, the turtle's shell, is opaque over about 484 of it) at most 0.62, Pipa's big size.
-const GUEST_SCALE = 0.62;
+// A guest (600x700 frame like Pipa's; the widest, the turtle's shell, is opaque over about 484 of it) at most 0.75, a little bigger than Pipa at the board (she stands further back).
+const GUEST_SCALE = 0.75;
 const GUEST_OPAQUE_W = 500;
 /** Pipa beside Mom only where the screen is wide enough (16:9 and wider). */
 const PET_MIN_W = 1700;
@@ -427,7 +427,7 @@ export function getStage(L: Layout): Stage {
   // A guest (the guests round): in the left column, left of the board and clear of the thumb strip.
   const boardLeft = dishHome.x - (BOARD_W / 2) * k;
   const guestScale = Math.min(GUEST_SCALE * k, (boardLeft - gap - m) / GUEST_OPAQUE_W);
-  const guestX = Math.max(m + (GUEST_OPAQUE_W / 2) * guestScale, (m + boardLeft) / 2 - 20 * k);
+  const guestX = Math.max(m + (GUEST_OPAQUE_W / 2) * guestScale, boardLeft - gap - (GUEST_OPAQUE_W / 2) * guestScale);
   const guest = { x: guestX, y: Y(984) - (PET_FOOT - PET_H / 2) * guestScale, scale: guestScale };
   // (her neck, x 238-382 of the frame, starts to the right of the home button's touch circle)
   const neckX = Math.max(guestX, home.x + homeR + (300 - 238) * guestScale + 10 * k);
