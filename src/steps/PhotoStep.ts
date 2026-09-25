@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { drawKitchenPieces } from '../core/kitchen';
 import { keepPhoto } from '../core/album';
 import { ART, IMAGES } from '../core/assets';
 import { voice } from '../core/audio';
@@ -101,7 +102,7 @@ export class PhotoStep extends Step<PhotoParams> {
       const sc = size / bg.frame.realHeight;
       bg.setScale(sc).setCrop(BACKDROP_X0, 0, bg.frame.realHeight, bg.frame.realHeight);
       dt.draw(bg, -BACKDROP_X0 * sc, 0);
-      const temp = [bg];
+      const temp = [bg, ...drawKitchenPieces(this.scene, dt, BACKDROP_X0, sc)];
       if (this.params.bowl) {
         // The salad: its bowl (back, contents, front) at 92% of the square, standing a little low (scenes-salad.js).
         const b = this.params.bowl;

@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import manifest from 'virtual:asset-manifest';
 import { refreshAlbumCount } from '../core/album';
-import { CORE_IMAGES, FX_DOT, FX_SOFT, IMAGES, RECIPE_ASSETS, textureSize, unlistedImages, type ImageKey } from '../core/assets';
+import { CORE_IMAGES, FX_DOT, KITCHEN_KEYS, FX_SOFT, IMAGES, RECIPE_ASSETS, textureSize, unlistedImages, type ImageKey } from '../core/assets';
 import { loadRecipeSounds, loadSounds, releaseSounds } from '../core/audio';
 import { ensurePlaceholders, makeFxTextures, makeUiTextures } from '../core/placeholders';
 import { loadSvgTexture, loadWebpTexture } from '../core/svgRaster';
@@ -10,7 +10,7 @@ import { loadSvgTexture, loadWebpTexture } from '../core/svgRaster';
 const url = (p: string) => import.meta.env.BASE_URL + p;
 
 /** What the title and home screens show: loaded first, so the title appears quickly (with its play button). */
-const EARLY: ImageKey[] = ['bg-kitchen-landscape', 'btn-play', 'star', ...CORE_IMAGES.filter((k) => k.startsWith('card-'))];
+const EARLY: ImageKey[] = ['bg-kitchen-landscape', ...KITCHEN_KEYS, 'btn-play', 'star', ...CORE_IMAGES.filter((k) => k.startsWith('card-'))];
 /** Loaded right after: the title's logo, Mom, Pipa and Mom's pointing hand. They fade in on the title when ready. */
 const TITLE_ART: ImageKey[] = [
   'logo-cooking-with-mom',
@@ -83,7 +83,7 @@ export function releaseRecipe(game: Phaser.Game) {
   if (!current) return;
   const own = RECIPE_ASSETS[current.id];
   current = null;
-  const keep = new Set<string>([...CORE_IMAGES, FX_DOT, FX_SOFT]);
+  const keep = new Set<string>([...CORE_IMAGES, FX_DOT, FX_SOFT, 'fx-heart']);
   for (const key of game.textures.getTextureKeys()) if (!keep.has(key)) game.textures.remove(key);
   if (own) releaseSounds(own.sounds);
 }

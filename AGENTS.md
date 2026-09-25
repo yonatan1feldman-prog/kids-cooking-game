@@ -58,12 +58,13 @@ DynamicTexture needs `.render()`).
 1. **Zero text to read.** Icons, motion and sound only. No words, letters or digits on screen. (One exception, asked
    for by the owner: the oven's temperature panel shows its printed numbers 50-250, part of the art; she doesn't have
    to read them: Mom says each value, the needle, the colour band and the oven's glow show it, and 200 glows.)
-2. **You can't fail and you can't get stuck.** Each step: the first two times a recipe is played, Mom shows it once
-   before it starts (her demo hand, at most 2.5 s, the dish unchanged; a touch ends it at once and counts). After 5 s
-   without progress her hand shows the gesture again (the hint, with a glow on the target), and after 10 more seconds
+2. **You can't fail and you can't get stuck.** Each step: the first time a recipe is played, Mom shows it once
+   before it starts (her demo hand, at most 2.5 s, the dish unchanged; a touch ends it at once and counts). After 8 s
+   without progress her hand shows the gesture again (the hint, with a glow on the target), and after 20 more seconds
    Mom helps: "Let me help you!" and her hand visibly does it (the timings are in the tuning table,
    `src/core/tuning.ts`: `HINT_AFTER_MS`, `AUTO_AFTER_HINT_MS`, `DEMO_MAX_MS`, `DEMO_WAIT_MS`). The title and home
-   screens have the same 5 s hint (Mom's pointing hand taps the play button / the card; `screenHint` in core/hand.ts). Exception: free decorating waits 15 s for the hint (once something is on the
+   screens keep a 5 s hint (`SCREEN_HINT_MS`; Mom's pointing hand taps the play button / the card; `screenHint` in core/hand.ts).
+   (The gameplay round, after watching her play, gave her more room to try by herself: it was 5 s / 10 s and two demo runs.) Exception: free decorating waits 15 s for the hint (once something is on the
    pizza she points at the done button: "Tap here when you're done!") and 15 more to help. 3 missed drops in a row
    show the hint right away (`Step.miss()`). There is no wrong answer and no losing.
 3. **One finger only:** tap, drag, rub. No double-tap gestures, no long-press, no multi-touch, no time limits.
@@ -101,12 +102,14 @@ DynamicTexture needs `.render()`).
 5. **Every animation, sound and effect answers something she did** (or helps her after she stopped: the hint, Mom's
    help). Nothing sparkles, bobs, pulses or wiggles by itself to pull her attention. Allowed exceptions, because they
    are life, not lures: Mom breathing and blinking, Pipa blinking, the soft background music, the loading spinner,
-   and the text-free rotate animation. The oven's glow and steam while baking are the result of her putting the
+   and the text-free rotate animation. Pipa's thought bubble (her wish) pops in once when a step starts and then stays
+   still; the kitchen's jars, utensils, pots and sun move only when she taps them. The oven's glow and steam while baking are the result of her putting the
    pizza in. (Round 4 removed: the play button's endless pulse, the recipe card's endless bobbing, the bins' endless
    wiggle, the done button's endless pulse, the oven's endless "tap me" hop, stars around Pipa's head at every step.)
 6. **No ads, no purchases, no links out, no data collection.** Nothing is sent anywhere. The only thing stored is a
    local run counter per recipe (`localStorage`, `cooking.runs.<id>`), used only to stop Mom's automatic demos after
-   the first two runs; it is never shown.
+   the first run and to let Pipa's wishes grow a little (one thing to find, then two; three to count, up to five); it is
+   never shown (and the memory book's photos, see Round 9).
 
 ## Landscape layout
 - **World:** always **1080 units high**. The width follows the screen: 1440 at 4:3, 1920 at 16:9, 2400 at 20:9
@@ -185,7 +188,9 @@ src/core/
   fx.ts                    burst / puff / stars particles, boing squash
   hand.ts                  MomHandView: Mom's 5 demo hands, keyframed motions (demo / looping hint), follow (help), props
   ui.ts                    iconButton (padded hit circle, fires on press, optional two-tap confirm)
-  tuning.ts                THE TUNING TABLE: every count, threshold and idle timing
+  tuning.ts                THE TUNING TABLE: every count, threshold and idle timing (and Pipa's wishes: `wish`, `taste`)
+  kitchen.ts               the living kitchen: the wall's tappable pieces over the background, and their answers
+  tastes.ts                Pipa's tastes: love (her wish) / sneeze / wow / giggle / plain, from what is on a piece
   update.ts                service worker registration and the safe update (only at the title, see "Deployment")
 src/recipes/
   types.ts                 Recipe + StepDef + CharacterDef types (one params type per step type)
@@ -631,8 +636,37 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; round 9 on top, rounds 2-8 below still hold)
-### 00000000. Round 11 (visual polish, part 1)
+## Handoff notes (written for the next agent; round 12, the gameplay round, on top; rounds 2-11 below still hold)
+### 00000000. Round 12, the gameplay round (after she played: "too simple, too short")
+State: `rollback-pre-gameplay` = master before the round; branch `claude/project-thread-dsv460`, PR to master. Research
+behind it: `/mnt/project-files/research/gameplay-research.md` (Toca Kitchen, Dr. Panda, Sago Mini: what keeps 4-5-year-olds
+playing is funny answers to what they did, choice, and a result that differs; not more presses).
+- **Less help:** hint 8 s (was 5), help 20 s later (was 10), Mom's demos only on the first run (was two). Title and
+  home keep 5 s (`SCREEN_HINT_MS`).
+- **The living kitchen** (`core/kitchen.ts`): 12 pieces of the wall (3 jars, the basil, ladle, whisk, spatula, pan, 3
+  copper pots, the sun) are their own SVGs (`assets-src/images-b/tools/gen_kitchen_live.py`, same code and seeds as
+  `gen_kitchen.py`, viewBox = their box in the 2400x1080 frame), and `bg-kitchen-landscape` no longer has them;
+  `addBackground` lays them over it everywhere (the photo too: `drawKitchenPieces`). In a recipe a tap makes one answer
+  (a jar hops and puffs, the basil wiggles, a utensil or pot swings, the sun spins): first finger only, not in the
+  no-touch strips, not where a button is, never a miss or progress. A new background must keep those spots or update
+  `KITCHEN_PIECES` (box, pivot).
+- **Pipa's tastes** (`core/tastes.ts`, `Character.react`): after chewing, what was on the piece decides her answer:
+  her wish = love (hop, hearts, `char-yay`, Mom "Pipa loves it!" once), onion/pepper = a sneeze that ends in a giggle
+  (`pipa-sneeze`, Mom "Bless you, Pipa!" once; at most `TUNING.taste.maxSneezes`), mushroom/olive/chocolate/syrup/icing/
+  kiwi/mango = wow, anything else = giggle, nothing on it = the old munch. What is on each slice: `Dish.placed` (recorded
+  at the capture) by wedge angle; cookies by `on`; portions and glasses: the chosen things in turn.
+- **Pipa's wishes** (the small challenge, `Character.showWish`): a thought bubble over her head. `choose`: 1 option (2
+  from the third run) to find; Mom "Look! Pipa wants..." + its name; found = the bubble bursts, Pipa overjoyed, "Just
+  what Pipa wanted!"; Mom's hint and help go to it first. `decorate`: N of one thing (3, 3, 4, 4, 5 by run), Mom says the
+  number (and the name if there is one), counts each one put on, at N the wish comes true. Not doing it changes nothing:
+  the bubble goes quietly when the step ends. Not shown where Pipa is off screen (4:3). Tuning: `TUNING.wish`.
+- **Voice:** vo-pipa-wants, vo-pipa-got-it, vo-pipa-loves, vo-bless-you (Kokoro, `make_vo.py mom-a`); Pipa's
+  char-yay / char-giggle / char-wow (the sound agent's candidates) and pipa-sneeze (`make_pipa_sneeze.py`). None heard
+  by an agent: the owner's ear decides.
+- **Needs a real child:** does she notice the bubble and look for the thing? Is counting to 5 on the pizza fun or a chore?
+  Does she laugh at the sneeze? Does she discover the kitchen (nothing points at it, on purpose)?
+
+### 0000000b. Round 11 (visual polish, part 1)
 From a visual audit (20:9 screenshots of the pizza and the salad). All art changes were made in the cloud with the
 generators in `assets-src/*/tools` (they reproduce the delivered SVGs byte for byte), then baked (`__bakeWebp(keys)`).
 - **Mom's pointing hand** (`point_hand` in `images-b/tools/gen_mom.py`; the old `pointing_hand` stays for Pipa): a

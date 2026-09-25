@@ -220,6 +220,11 @@ MOM_LINES = {
     "vo-cake-yum": "Mmm, so soft and sweet!",
     "vo-photo-cake": "Let's take a picture of your cake!",
     "vo-finale-cake": "We made a birthday cake together!",
+    # Gameplay round (added 2026-09-25; Voice A only: python make_vo.py mom-a <names>): Pipa's wishes and tastes
+    "vo-pipa-wants": "Look! Pipa wants...",
+    "vo-pipa-got-it": "Just what Pipa wanted!",
+    "vo-pipa-loves": "Pipa loves it!",
+    "vo-bless-you": "Bless you, Pipa!",
 }
 SUFFIX = ""
 if len(sys.argv) > 1 and sys.argv[1] in ("mom", "mom-a"):

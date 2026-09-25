@@ -4,6 +4,8 @@ import { voice } from '../core/audio';
 import { boing, burst } from '../core/fx';
 import type { HandMotion } from '../core/hand';
 import { sfx } from '../core/sfx';
+import { tasteOf } from '../core/tastes';
+import { TUNING } from '../core/tuning';
 import type { ShareParams } from '../recipes/types';
 import { PrepBowl } from './PrepBowl';
 import { cutSlices, stockSlices, type SliceDef } from './slices';
@@ -14,6 +16,8 @@ interface Slice {
   def: SliceDef;
   home: { x: number; y: number };
   eaten: boolean;
+  /** What is on it (image keys): Pipa's taste of it (core/tastes.ts). */
+  contents: string[];
 }
 
 type Who = 'mom' | 'pet';
@@ -139,7 +143,12 @@ export class ShareStep extends Step<ShareParams> {
       const s = this.own(this.scene.add.image(center.x, center.y, def.key));
       s.setOrigin(def.originX, def.originY).setAngle(def.restAngle).setDepth(20).setScale(this.sliceScale).setTint(tint);
       this.scene.tweens.add({ targets: s, x: home.x, y: home.y, duration: 350, delay: 150, ease: 'Back.easeOut' });
-      this.slices.push({ img: s, def, home, eaten: false });
+      // (what she put on this wedge: the things whose angle from the centre falls inside it)
+      const half = 180 / n;
+      const contents = this.dish.placed
+        .filter((t) => Math.abs(Phaser.Math.Angle.WrapDegrees(Phaser.Math.RadToDeg(Math.atan2(t.y, t.x)) - def.midAngle)) <= half)
+        .map((t) => t.key);
+      this.slices.push({ img: s, def, home, eaten: false, contents });
     }
     this.dish.setVisible(false);
     sfx(this.scene, 'whoosh', { volume: 0.6 });
@@ -161,8 +170,18 @@ export class ShareStep extends Step<ShareParams> {
       const img = this.own(this.scene.add.image(home.x, home.y, pc.key).setScale(this.sliceScale).setTint(pc.tint).setDepth(20));
       this.scene.tweens.add({ targets: img, y: home.y - 14 * this.k, duration: 200, delay: 450 + i * 60, yoyo: true, ease: 'Quad.easeOut' });
       const def: SliceDef = { key: pc.key, originX: 0.5, originY: 0.5, restAngle: 0, midAngle: 0, centerDist: 0 };
-      this.slices.push({ img, def, home, eaten: false });
+      this.slices.push({ img, def, home, eaten: false, contents: this.contentsOf(i, (t) => t.on === i) });
     });
+  }
+
+  /**
+   * What is on piece `i`: what she put on it (`on`), or, where nothing was put on the dish at all (the smoothie's
+   * glasses, the salad's portions), one of the things she chose, in turn.
+   */
+  private contentsOf(i: number, mine: (t: { key: string; on?: number }) => boolean) {
+    if (this.dish.placed.length) return this.dish.placed.filter(mine).map((t) => t.key);
+    const ch = this.ctx.run.chosen;
+    return ch.length ? [ch[i % ch.length].topping as string] : [];
   }
 
   /**
@@ -201,7 +220,7 @@ export class ShareStep extends Step<ShareParams> {
       const img = this.own(this.scene.add.image(home.x, home.y - 80 * k, P.image).setOrigin(P.anchor.x / pw, P.anchor.y / ph).setScale(ps).setDepth(20).setAlpha(0));
       this.scene.tweens.add({ targets: img, y: home.y, alpha: 1, delay: 450 + i * 90, duration: 300, ease: 'Back.easeOut' });
       const def: SliceDef = { key: P.image, originX: P.anchor.x / pw, originY: P.anchor.y / ph, restAngle: 0, midAngle: 0, centerDist: 0 };
-      this.slices.push({ img, def, home, eaten: false });
+      this.slices.push({ img, def, home, eaten: false, contents: this.contentsOf(i, () => true) });
     }
     this.sliceScale = ps;
     // The serving bowls on the counter: in front of Mom (where she stands after stepping aside) and of Pipa.
@@ -333,9 +352,10 @@ export class ShareStep extends Step<ShareParams> {
           sfx(this.scene, 'pop', { volume: 0.5 });
           burst(this.scene, m.x, m.y, { tint: [0x7cc25a, 0xe4523b, 0xf28c28], count: 8, size: 16 * this.k, speed: 300 * this.k });
         } else burst(this.scene, m.x, m.y, { tint: [0xe3a869, 0xffcb47, 0xe4523b], count: 12, size: 20 * this.k, speed: 450 * this.k });
+        let after = 0;
         if (who === 'mom') this.momEats(first);
-        else this.petEats(first);
-        this.scene.time.delayedCall(CHEW_MS + 50, () => {
+        else after = this.petEats(first, s);
+        this.scene.time.delayedCall(CHEW_MS + after + 50, () => {
           this.busy--;
           if (this.slices.every((x) => x.eaten) && this.busy === 0) this.finish();
         });
@@ -359,8 +379,15 @@ export class ShareStep extends Step<ShareParams> {
     }
   }
 
-  /** Pipa: about one second of happy chewing with munch sounds, and one of her happy gags. */
-  private petEats(first: boolean) {
+  private sneezes = 0;
+  private said = new Set<string>();
+
+  /**
+   * Pipa: about one second of happy chewing with munch sounds, then how she answers what was on it (core/tastes.ts:
+   * her wish, a sneeze, a wow, a giggle), or, on a bare piece, one of her happy gags. Returns how much longer than the
+   * chewing her answer takes (ms).
+   */
+  private petEats(first: boolean, sl: Slice): number {
     const pet = this.ctx.character;
     pet.setMood('chew');
     sfx(this.scene, this.eat, { minGapMs: 0 });
@@ -375,13 +402,29 @@ export class ShareStep extends Step<ShareParams> {
       },
     });
     this.scene.time.delayedCall(480, () => sfx(this.scene, this.eat, { minGapMs: 0, volume: 0.6 }));
+    if (first) voice.say(this.params.forPet, { ttlMs: 4000 });
+    const taste = tasteOf(sl.contents, this.ctx.run.wishes, this.sneezes < TUNING.taste.maxSneezes);
+    if (taste !== 'plain') {
+      if (taste === 'sneeze') this.sneezes++;
+      this.scene.time.delayedCall(CHEW_MS - 150, () => {
+        if (this.aborted) return;
+        pet.react(taste);
+        // Mom answers the first sneeze and the first favourite, once each.
+        const line = taste === 'sneeze' ? 'vo-bless-you' : taste === 'love' ? 'vo-pipa-loves' : null;
+        if (line && !this.said.has(line)) {
+          this.said.add(line);
+          this.scene.time.delayedCall(taste === 'sneeze' ? 900 : 300, () => !this.aborted && voice.say(line, { ttlMs: 3000 }));
+        }
+      });
+      return taste === 'sneeze' ? 1400 : taste === 'giggle' ? 700 : 1100;
+    }
     this.scene.time.delayedCall(CHEW_MS, () => pet.mood === 'chew' && pet.setMood('rest'));
     const k = this.k * (pet.scale / 0.62);
     const box = pet.box;
     // A little jump or a happy up-and-down squish, in turn (nothing sideways: beside Mom's face there is no room for it).
     if (this.fed.pet % 2) this.scene.tweens.add({ targets: box, y: pet.rest.y - 120 * k, duration: 220, yoyo: true, ease: 'Quad.easeOut' });
     else this.scene.tweens.add({ targets: box, scaleY: pet.scale * 0.84, duration: 120, yoyo: true, repeat: 1, ease: 'Sine.easeInOut', onComplete: () => box.setScale(pet.scale) });
-    if (first) voice.say(this.params.forPet, { ttlMs: 4000 });
+    return 0;
   }
 
   private finish() {

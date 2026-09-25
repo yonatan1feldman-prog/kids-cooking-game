@@ -9,10 +9,15 @@
  * the pizza is 700 across and a relaxed child's rub moves the finger about 600-900 units a second.
  */
 
-/** Ms of no progress before Mom's hand shows the gesture again (the hint), on every screen and step. */
-export const HINT_AFTER_MS = 5000;
-/** Further ms of no progress before Mom helps ("Let me help you!", and her hand does it). */
-export const AUTO_AFTER_HINT_MS = 10000;
+/**
+ * Ms of no progress before Mom's hand shows the gesture again (the hint), in every step. 8 s since the gameplay round
+ * (was 5 s): she tries by herself first. The title and home screens keep a quicker hint (SCREEN_HINT_MS).
+ */
+export const HINT_AFTER_MS = 8000;
+/** The title and home screens: ms without a touch before Mom's hand points at the play button / a card. */
+export const SCREEN_HINT_MS = 5000;
+/** Further ms of no progress before Mom helps ("Let me help you!", and her hand does it). 20 s since the gameplay round. */
+export const AUTO_AFTER_HINT_MS = 20000;
 /** A demo never runs longer than this. */
 export const DEMO_MAX_MS = 2500;
 /** Before a demo, Mom finishes the line she is saying, waiting at most this long. */
@@ -160,5 +165,14 @@ export const TUNING = {
     share: { slices: 6 },
   },
   /** Mom's help (after the idle hint): the pace of her own presses, rubs and strokes. */
+  /**
+   * Pipa's wishes (the gameplay round: a small challenge for a 4-5-year-old, never a test). Her thought bubble shows
+   * what she would like: in choosing, `chooseItems` things to find among the options; in decorating, `decorateCount`
+   * of one thing to put on (Mom says the number). Both grow with how often this recipe has been played on this device
+   * (the run's number: index 0 = the first run; past the end, the last value). Nothing happens if she does otherwise.
+   */
+  wish: { chooseItems: [1, 1, 2], decorateCount: [3, 3, 4, 4, 5], sayAfterMs: 900 },
+  /** Pipa's tastes when she eats: at most this many sneezes in one sharing (then she just giggles). */
+  taste: { maxSneezes: 2 },
   help: { pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150, chopEveryMs: 950, openMs: 1500, tempEveryMs: 1100, peelEveryMs: 900, candleEveryMs: 700 },
 } as const;
