@@ -37,6 +37,7 @@ export class HomeScene extends Phaser.Scene {
     // Back home: the last recipe's art and sounds are released (the recipe scene has already shut down).
     releaseRecipe(this.game);
     let mom: Mom | null = null;
+    let hint: ReturnType<typeof screenHint> | undefined;
     if ((data.from === 'title' || data.from === 'recipe') && !data.asked) {
       data.asked = true;
       voice.say('vo-what-make', { ttlMs: 4000, valid: () => this.scene.isActive() && !going });
@@ -50,6 +51,7 @@ export class HomeScene extends Phaser.Scene {
     assetsReady().then(() => {
       if (!this.scene.isActive()) return;
       const m = (mom = new Mom(this, S.mom));
+      m.followHand(() => hint?.active() ?? false);
       m.box.setAlpha(0);
       this.tweens.add({ targets: m.box, alpha: 1, duration: 300 });
       const pet = S.pet ? new Character(this, RECIPES[0].character, S.pet, S.feedPet) : null;
@@ -71,7 +73,7 @@ export class HomeScene extends Phaser.Scene {
       const card = iconButton(this, L, recipe.card, at.x, at.y, () => {
         if (going) return;
         going = true;
-        hint.stop();
+        hint?.stop();
         stars(this, card.x, card.y, 14, 70 * L.k);
         voice.say(recipe.pickLine, { ttlMs: 3000 });
         // The recipe's own art and sounds load now: Mom waves, a small spinner turns over the card (only if it takes a
@@ -93,7 +95,7 @@ export class HomeScene extends Phaser.Scene {
       const btn = iconButton(this, L, ALBUM_ICON, at.x, at.y, () => {
         if (going) return;
         going = true;
-        hint.stop();
+        hint?.stop();
         this.scene.start('Album');
       }, { hitPad: 30, scale: S.cardScale(cells) });
       this.tweens.add({ targets: btn, alpha: { from: 0, to: 1 }, duration: 400 });
@@ -106,6 +108,6 @@ export class HomeScene extends Phaser.Scene {
       const arc = this.add.arc(x, y, r, 0, 270, false).setStrokeStyle(12 * L.k, 0xff8c42).setClosePath(false).setDepth(51);
       this.tweens.add({ targets: arc, angle: 360, duration: 900, repeat: -1 });
     };
-    const hint = screenHint(this, L, () => (going || !cards[0] ? null : { x: cards[0].x, y: cards[0].y }), () => true);
+    hint = screenHint(this, L, () => (going || !cards[0] ? null : { x: cards[0].x, y: cards[0].y }), () => true);
   }
 }
