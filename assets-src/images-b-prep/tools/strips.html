@@ -1,0 +1,23 @@
+<!doctype html><html><head><meta charset="utf-8"><title>strips</title>
+<style>html,body{margin:0;background:#D8AB7C;overflow:hidden}</style></head><body><div id="host" style="width:100vw"></div>
+<script>window.IMAGES_B_DIR = "../../images-b/";</script>
+<script src="../../images-b/scenes.js"></script>
+<script>window.PREP_BASE = "../";</script>
+<script src="../scenes-prep.js"></script>
+<script>
+// Alignment test: each whole vegetable cropped at 4 cut positions (20/40/60/80 % of its span) with veg-*-inside placed by
+// ScenesPrep.insideStrip(), drawn img -> canvas like the game. 2400x1080 world, shoot at 800x360 dpr 3.
+const host = document.getElementById("host"), W = 2400;
+host.style.position = "relative";
+const world = document.createElement("div"); Object.assign(world.style, { position: "absolute", left: 0, top: 0, width: W + "px", height: "1080px", transformOrigin: "0 0", transform: `scale(${host.clientWidth / W})` });
+host.appendChild(world);
+const P = ScenesPrep.PREP, [VW, VH] = P.veg, vs = 0.42;
+["tomato", "mushroom", "pepper", "onion"].forEach((veg, r) => [0.2, 0.4, 0.6, 0.8].forEach((f, c) => {
+  const vx = 300 + c * 600, vy = 140 + r * 265, [a, b] = P.vegSpan[veg], cut = a + (b - a) * f;
+  const im = document.createElement("img"); im.src = "../veg-" + veg + "-whole.svg";
+  Object.assign(im.style, { position: "absolute", left: (vx - VW * vs / 2) + "px", top: (vy - VH * vs / 2) + "px", width: VW * vs + "px", height: VH * vs + "px" });
+  im.dataset.crop = [0, 0, cut / VW, 1].join(","); world.appendChild(im);
+  ScenesPrep.insideStrip(world, veg, vx, vy, vs, cut);
+}));
+ScenesPrep.toCanvasPrep(host, world, W).then(() => document.title = "DONE");
+</script></body></html>

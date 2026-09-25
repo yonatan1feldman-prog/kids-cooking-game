@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cooking Game Sounds</title>
+<style>
+  :root {
+    --bg: #fff8f0; --card: #ffffff; --ink: #3b2a20; --muted: #8a7566;
+    --a: #e8664f; --b: #4f8fe8; --m: #3fae7a; --s: #b068d8; --c: #f0a020;
+    --line: #f0e2d4;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { padding: 18px 16px 8px; }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  header p { margin: 0; color: var(--muted); font-size: 14px; }
+  nav { position: sticky; top: 0; z-index: 5; background: var(--bg); display: flex; gap: 6px;
+    overflow-x: auto; padding: 8px 16px; border-bottom: 1px solid var(--line); }
+  nav a { flex: none; text-decoration: none; color: var(--ink); background: var(--card);
+    border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: 14px; }
+  section { padding: 12px 16px 4px; }
+  h2 { font-size: 20px; margin: 14px 0 4px; }
+  .hint { color: var(--muted); font-size: 13px; margin: 0 0 10px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+    padding: 12px; margin-bottom: 10px; }
+  .card h3 { margin: 0 0 8px; font-size: 16px; }
+  .card h3 small { color: var(--muted); font-weight: normal; }
+  .row { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+  .row.two { grid-template-columns: 1fr 1fr; }
+  button.play { min-height: 60px; border: 0; border-radius: 14px; color: #fff; font-size: 17px;
+    font-weight: 600; padding: 8px 10px; cursor: pointer; background: var(--s);
+    display: flex; align-items: center; justify-content: center; gap: 8px; text-align: center;
+    -webkit-tap-highlight-color: transparent; }
+  button.play::before { content: "▶"; font-size: 14px; }
+  button.play.playing::before { content: "■"; }
+  button.play.playing { outline: 4px solid rgba(0,0,0,.18); }
+  button.play:disabled { background: #ccc; }
+  .va { background: var(--a); } .vb { background: var(--b); }
+  .mu { background: var(--m); } .ch { background: var(--c); }
+  .cur { background: #7d6a5e; }
+  .missing { color: var(--muted); font-style: italic; font-size: 14px; }
+  .seq label { display: block; font-size: 14px; margin: 8px 0 4px; }
+  .seq select { width: 100%; font-size: 16px; padding: 8px; border-radius: 10px; border: 1px solid var(--line); background: #fff; }
+  .seq input[type=range] { width: 100%; }
+  .seq .big { width: 100%; min-height: 72px; font-size: 20px; margin-top: 12px; background: #d9534f; }
+  #seqlog { font-size: 14px; color: var(--muted); min-height: 1.4em; margin-top: 8px; }
+  footer { padding: 16px; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🍕 Cooking Game Sounds</h1>
+  <p>Tap a button to play. Tap again to stop. Only one sound plays at a time.</p>
+</header>
+<nav>
+  <a href="#salad">Salad</a><a href="#prep">Prep steps</a><a href="#mom">Mom script</a><a href="#seq">▶ Try a stage</a><a href="#vo">Narration (old)</a><a href="#music">Music</a><a href="#sfx">Sound effects</a><a href="#char">Character</a>
+</nav>
+
+<section id="salad">
+  <h2>Salad</h2>
+  <p class="hint">The second recipe: new Mom lines (Voice A), the ingredient names Mom says when the child picks one, and new sound effects. For effects, <b>1</b> is the one in the game; 2 is the alternative.</p>
+  <p class="hint">Fixed: “Carrot”, “Pepper”, “Onion” and “Corn” no longer have a short sound before the word; “Pour a little olive oil!” and “Put it all in the bowl!” are now as loud as the other lines.</p>
+  <div class="card"><h3>Quick picks <small>names cut each other off, as in the game</small></h3>
+    <div class="row two"><button class="play va" id="namesRun">One after another</button><button class="play va" id="namesFast">Fast taps</button></div>
+  </div>
+  <div id="saladVo"></div>
+  <h2>Salad sound effects</h2>
+  <div id="saladSfx"></div>
+</section>
+
+<section id="prep">
+  <h2>Prep steps</h2>
+  <p class="hint">New Mom lines (Voice A) and new sound effects for washing, preparing, cutting, the oven and sharing. For effects, <b>1</b> is the one in the game; 2 is the alternative.</p>
+  <p class="hint">Fixed: “A little more!” is now as loud as the other lines; “Two”, “Five”, “Six”, “Seven” and “Fifty” no longer have a short “uh”, and all numbers are equally loud.</p>
+  <div class="card"><h3>Counting while cutting <small>played quickly one after another</small></h3>
+    <div class="row two"><button class="play va" id="countRun">One … Ten</button><button class="play va" id="tempRun">50 … 250</button></div>
+  </div>
+  <div id="prepVo"></div>
+  <h2>New sound effects</h2>
+  <div id="prepSfx"></div>
+</section>
+
+<section id="mom">
+  <h2>Mom script</h2>
+  <p class="hint">Mom cooks next to her daughter; Pipa the hedgehog tastes at the end. <span style="color:var(--a)">■</span> Voice A &nbsp; <span style="color:var(--b)">■</span> Voice B</p>
+  <div id="momList"></div>
+</section>
+
+<section id="seq">
+  <h2>Try a stage</h2>
+  <p class="hint">Quiet music, then Mom: “Watch me first!” → “Now spread the sauce!” → squish → “Now you try!” → short pause → “Great job!”.</p>
+  <div class="card seq">
+    <label>Voice <select id="seqVoice"><option value="voice-a-mom">Voice A</option><option value="voice-b-mom">Voice B</option></select></label>
+    <label>Music <select id="seqMusic"></select></label>
+    <label>Squish sound <select id="seqSquish"></select></label>
+    <label>Music volume: <b id="mvLabel"></b><input id="seqMusicVol" type="range" min="0" max="100" value="25"></label>
+    <label>Sound effect volume: <b id="svLabel"></b><input id="seqSfxVol" type="range" min="0" max="100" value="70"></label>
+    <button class="play big" id="seqBtn">Play the stage</button>
+    <div id="seqlog"></div>
+  </div>
+</section>
+
+<section id="vo">
+  <h2>Narration (first script): Voice A vs Voice B</h2>
+  <p class="hint"><span style="color:var(--a)">■</span> Voice A &nbsp; <span style="color:var(--b)">■</span> Voice B</p>
+  <div id="voList"></div>
+</section>
+
+<section id="music">
+  <h2>Background music</h2>
+  <p class="hint">These loop forever. Listen for a jump when a loop restarts.</p>
+  <div class="card"><div class="row" id="musicList"></div></div>
+</section>
+
+<section id="sfx">
+  <h2>Sound effect candidates</h2>
+  <p class="hint">Grey button = the sound the game uses today. Coloured buttons = new options.</p>
+  <div id="sfxList"></div>
+</section>
+
+<section id="char">
+  <h2>Character sounds (no words)</h2>
+  <div class="card"><div class="row" id="charList"></div></div>
+</section>
+
+<footer>All files: CC0 or free licenses — see LICENSES.md.</footer>
+
+<script>
+const DATA = {"mom": [{"id": "vo-welcome", "text": "Let's cook together!", "a": true, "b": true}, {"id": "vo-pick-pizza", "text": "Let's make a pizza!", "a": true, "b": true}, {"id": "vo-watch-me", "text": "Watch me first!", "a": true, "b": true}, {"id": "vo-your-turn", "text": "Now you try!", "a": true, "b": true}, {"id": "vo-roll", "text": "Let's roll the dough!", "a": true, "b": true}, {"id": "vo-sauce", "text": "Now spread the sauce!", "a": true, "b": true}, {"id": "vo-cheese", "text": "Sprinkle the cheese!", "a": true, "b": true}, {"id": "vo-toppings", "text": "Put on anything you like!", "a": true, "b": true}, {"id": "vo-done-hint", "text": "Tap here when you're done!", "a": true, "b": true}, {"id": "vo-oven", "text": "Into the oven it goes!", "a": true, "b": true}, {"id": "vo-baking", "text": "Look, it's baking!", "a": true, "b": true}, {"id": "vo-ready", "text": "Ding! It's ready!", "a": true, "b": true}, {"id": "vo-feed", "text": "Let's give Pipa a taste!", "a": true, "b": true}, {"id": "vo-help", "text": "Let me help you!", "a": true, "b": true}, {"id": "vo-praise-1", "text": "Great job!", "a": true, "b": true}, {"id": "vo-praise-2", "text": "Wow!", "a": true, "b": true}, {"id": "vo-praise-3", "text": "Beautiful!", "a": true, "b": true}, {"id": "vo-praise-4", "text": "Yummy!", "a": true, "b": true}, {"id": "vo-praise-5", "text": "I love it!", "a": true, "b": true}, {"id": "vo-praise-6", "text": "You worked so hard!", "a": true, "b": true}, {"id": "vo-praise-7", "text": "I love how you did that!", "a": true, "b": true}, {"id": "vo-finale", "text": "We made a pizza together!", "a": true, "b": true}, {"id": "vo-bye", "text": "That was fun! Bye bye!", "a": true, "b": true}], "vo": [{"id": "vo-welcome", "text": "Let's cook!", "a": true, "b": true}, {"id": "vo-pick-pizza", "text": "Let's make a pizza!", "a": true, "b": true}, {"id": "vo-roll", "text": "Roll the dough!", "a": true, "b": true}, {"id": "vo-sauce", "text": "Spread the sauce!", "a": true, "b": true}, {"id": "vo-cheese", "text": "Sprinkle the cheese!", "a": true, "b": true}, {"id": "vo-toppings", "text": "Add your toppings!", "a": true, "b": true}, {"id": "vo-done-hint", "text": "Tap when you're done!", "a": true, "b": true}, {"id": "vo-oven", "text": "Into the oven!", "a": true, "b": true}, {"id": "vo-baking", "text": "It's baking!", "a": true, "b": true}, {"id": "vo-ready", "text": "Ding! It's ready!", "a": true, "b": true}, {"id": "vo-feed", "text": "Time to eat!", "a": true, "b": true}, {"id": "vo-praise-1", "text": "Great job!", "a": true, "b": true}, {"id": "vo-praise-2", "text": "Wow!", "a": true, "b": true}, {"id": "vo-praise-3", "text": "Beautiful!", "a": true, "b": true}, {"id": "vo-praise-4", "text": "Yummy!", "a": true, "b": true}, {"id": "vo-finale", "text": "You made a pizza!", "a": true, "b": true}], "music": ["music-1.ogg", "music-2.ogg", "music-3.ogg"], "sfx": [{"prefix": "munch", "title": "Munch (eating)", "current": "munch.ogg", "items": ["munch-1.ogg", "munch-2.ogg", "munch-3.ogg"]}, {"prefix": "squish", "title": "Squish (dough / sauce)", "current": "squish.ogg", "items": ["squish-1.ogg", "squish-2.ogg", "squish-3.ogg"]}, {"prefix": "sprinkle", "title": "Sprinkle (cheese)", "current": "sprinkle.ogg", "items": ["sprinkle-1.ogg", "sprinkle-2.ogg", "sprinkle-3.ogg"]}, {"prefix": "whoosh", "title": "Whoosh (slide)", "current": "whoosh.ogg", "items": ["whoosh-1.ogg", "whoosh-2.ogg", "whoosh-3.ogg"]}, {"prefix": "bake", "title": "Baking in the oven (new)", "current": "oven-ding.ogg", "items": ["bake-1.ogg", "bake-2.ogg", "bake-3.ogg"]}, {"prefix": "star", "title": "Star appears (new)", "current": null, "items": ["star-1.ogg", "star-2.ogg", "star-3.ogg"]}, {"prefix": "complete", "title": "Stage complete (new)", "current": "cheer-jingle.ogg", "items": ["complete-1.ogg", "complete-2.ogg", "complete-3.ogg"]}], "character": ["char-ah-surprise.ogg", "char-giggle.ogg", "char-mmm-synth.ogg", "char-whoop.ogg", "char-wow.ogg", "char-yay.ogg"], "prep": {"vo": [{"id": "vo-hello", "text": "Hi! I'm so happy to cook with you today!", "a": true}, {"id": "vo-what-make", "text": "What shall we make today?", "a": true}, {"id": "vo-wash", "text": "First, let's wash our hands!", "a": true}, {"id": "vo-wash-rub", "text": "Rub, rub, rub!", "a": true}, {"id": "vo-wash-done", "text": "All clean!", "a": true}, {"id": "vo-knead", "text": "Let's squish the dough!", "a": true}, {"id": "vo-crush", "text": "Squish the tomatoes!", "a": true}, {"id": "vo-stir", "text": "Now stir it all around!", "a": true}, {"id": "vo-grate", "text": "Let's grate the cheese!", "a": true}, {"id": "vo-choose", "text": "Pick three toppings you like!", "a": true}, {"id": "vo-cut", "text": "Let's cut it together!", "a": true}, {"id": "vo-cut-careful", "text": "Nice and slow. Careful fingers!", "a": true}, {"id": "vo-open-can", "text": "Let's open the can!", "a": true}, {"id": "vo-open-jar", "text": "Let's open the jar!", "a": true}, {"id": "vo-pour", "text": "Pour it into the bowl!", "a": true}, {"id": "vo-temp", "text": "Let's set the oven to two hundred!", "a": true}, {"id": "vo-temp-more", "text": "A little more!", "a": true}, {"id": "vo-temp-hot", "text": "Oops, too hot! Turn it down a little.", "a": true}, {"id": "vo-temp-done", "text": "Perfect! Now press start!", "a": true}, {"id": "vo-mitts", "text": "It's hot! Put on your oven mitts!", "a": true}, {"id": "vo-share", "text": "Let's share the pizza!", "a": true}, {"id": "vo-slice-mom", "text": "One for me? Thank you!", "a": true}, {"id": "vo-mom-yum", "text": "Mmm, delicious!", "a": true}, {"id": "vo-slice-pipa", "text": "One for Pipa!", "a": true}, {"id": "vo-photo", "text": "Let's take a picture of your pizza!", "a": true}, {"id": "count-1", "text": "One!", "a": true}, {"id": "count-2", "text": "Two!", "a": true}, {"id": "count-3", "text": "Three!", "a": true}, {"id": "count-4", "text": "Four!", "a": true}, {"id": "count-5", "text": "Five!", "a": true}, {"id": "count-6", "text": "Six!", "a": true}, {"id": "count-7", "text": "Seven!", "a": true}, {"id": "count-8", "text": "Eight!", "a": true}, {"id": "count-9", "text": "Nine!", "a": true}, {"id": "count-10", "text": "Ten!", "a": true}, {"id": "temp-50", "text": "Fifty!", "a": true}, {"id": "temp-100", "text": "One hundred!", "a": true}, {"id": "temp-150", "text": "One hundred fifty!", "a": true}, {"id": "temp-200", "text": "Two hundred!", "a": true}, {"id": "temp-250", "text": "Two hundred fifty!", "a": true}], "sfx": [{"prefix": "chop", "title": "Chop on the board", "loop": false, "items": ["chop-1.ogg", "chop-2.ogg"]}, {"prefix": "water", "title": "Running water (loop)", "loop": true, "items": ["water-1.ogg", "water-2.ogg"]}, {"prefix": "bubbles", "title": "Soap bubbles", "loop": false, "items": ["bubbles-1.ogg", "bubbles-2.ogg"]}, {"prefix": "can-open", "title": "Open a can", "loop": false, "items": ["can-open-1.ogg", "can-open-2.ogg"]}, {"prefix": "jar-open", "title": "Open a jar", "loop": false, "items": ["jar-open-1.ogg", "jar-open-2.ogg"]}, {"prefix": "pour", "title": "Pour into the bowl", "loop": false, "items": ["pour-1.ogg", "pour-2.ogg"]}, {"prefix": "grate", "title": "Grate", "loop": false, "items": ["grate-1.ogg", "grate-2.ogg"]}, {"prefix": "camera", "title": "Camera", "loop": false, "items": ["camera-1.ogg", "camera-2.ogg"]}, {"prefix": "click", "title": "Oven knob click", "loop": false, "items": ["click-1.ogg", "click-2.ogg"]}, {"prefix": "beep", "title": "Oven start beep", "loop": false, "items": ["beep-1.ogg", "beep-2.ogg"]}]}, "salad": {"vo": [{"id": "vo-pick-salad", "text": "Let's make a salad!", "a": true}, {"id": "vo-wash-veg", "text": "Let's wash the vegetables!", "a": true}, {"id": "vo-wash-veg-done", "text": "Squeaky clean!", "a": true}, {"id": "vo-tear", "text": "Tear the lettuce into little pieces!", "a": true}, {"id": "vo-choose-veg", "text": "Pick three vegetables you like!", "a": true}, {"id": "vo-into-bowl", "text": "Put it all in the bowl!", "a": true}, {"id": "vo-squeeze", "text": "Squeeze the lemon!", "a": true}, {"id": "vo-oil", "text": "Pour a little olive oil!", "a": true}, {"id": "vo-salt", "text": "A tiny pinch of salt!", "a": true}, {"id": "vo-mix", "text": "Now mix it all up!", "a": true}, {"id": "vo-serve", "text": "Let's serve the salad!", "a": true}, {"id": "vo-bowl-mom", "text": "Some for me? Thank you!", "a": true}, {"id": "vo-bowl-pipa", "text": "Some for Pipa!", "a": true}, {"id": "vo-fresh", "text": "Mmm, so fresh and crunchy!", "a": true}, {"id": "vo-photo-salad", "text": "Let's take a picture of your salad!", "a": true}, {"id": "vo-finale-salad", "text": "We made a salad together!", "a": true}, {"id": "name-cucumber", "text": "Cucumber!", "a": true}, {"id": "name-tomato", "text": "Tomato!", "a": true}, {"id": "name-pepper", "text": "Pepper!", "a": true}, {"id": "name-carrot", "text": "Carrot!", "a": true}, {"id": "name-onion", "text": "Onion!", "a": true}, {"id": "name-lettuce", "text": "Lettuce!", "a": true}, {"id": "name-mushroom", "text": "Mushroom!", "a": true}, {"id": "name-corn", "text": "Corn!", "a": true}, {"id": "name-olives", "text": "Olives!", "a": true}, {"id": "name-lemon", "text": "Lemon!", "a": true}], "sfx": [{"prefix": "tear", "title": "Tear the lettuce", "items": ["tear-1.ogg", "tear-2.ogg"]}, {"prefix": "squeeze", "title": "Squeeze the lemon", "items": ["squeeze-1.ogg", "squeeze-2.ogg"]}, {"prefix": "crunch", "title": "Crunchy bite", "items": ["crunch-1.ogg", "crunch-2.ogg"]}, {"prefix": "drizzle", "title": "Drizzle the oil", "items": ["drizzle-1.ogg", "drizzle-2.ogg"]}, {"prefix": "salt", "title": "Salt shaker", "items": ["salt-1.ogg", "salt-2.ogg"]}]}};
+const CURRENT_PRIMARY = "/assets-sounds/";            // live file from cooking-game-assets/sounds
+const CURRENT_FALLBACK = "sfx-candidates/current/";    // local copy, used if the live one can't load
+
+let actx = null; const bufCache = {};
+// Gapless loop via Web Audio (an <audio loop> element can leave a tiny gap at the seam).
+function LoopPlayer(url, vol) {
+  actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+  actx.resume();
+  const gain = actx.createGain(); gain.gain.value = vol; gain.connect(actx.destination);
+  let src = null, stopped = false;
+  const p = { pause() { stopped = true; if (src) try { src.stop(); } catch (e) {} },
+    set volume(v) { gain.gain.value = v; }, get volume() { return gain.gain.value; }, currentTime: 0 };
+  (bufCache[url] = bufCache[url] || fetch(url).then(r => r.arrayBuffer()).then(b => actx.decodeAudioData(b)))
+    .then(buf => { if (stopped) return; src = actx.createBufferSource(); src.buffer = buf; src.loop = true; src.connect(gain); src.start(); });
+  return p;
+}
+let active = null; // {audio, btn}
+function stopActive() {
+  if (!active) return;
+  active.audio.pause(); active.audio.currentTime = 0;
+  active.btn && active.btn.classList.remove("playing");
+  active = null;
+}
+function playUrl(urls, btn, loop = false) {
+  const wasMe = active && active.btn === btn;
+  stopActive(); stopSeq();
+  if (wasMe) return;
+  if (loop) { active = { audio: LoopPlayer(urls[0], 1), btn }; btn.classList.add("playing"); return; }
+  const audio = new Audio();
+  let i = 0;
+  audio.onerror = () => { if (++i < urls.length) { audio.src = urls[i]; audio.play().catch(() => {}); } else btn.classList.remove("playing"); };
+  audio.onended = () => { btn.classList.remove("playing"); if (active && active.audio === audio) active = null; };
+  audio.loop = loop;
+  audio.src = urls[0];
+  active = { audio, btn };
+  btn.classList.add("playing");
+  audio.play().catch(() => {});
+}
+function btn(label, cls, urls, loop) {
+  const b = document.createElement("button");
+  b.className = "play " + cls; b.textContent = label;
+  b.onclick = () => playUrl(urls, b, loop);
+  return b;
+}
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function nice(f) { return f.replace(/\.ogg$/, ""); }
+function currentUrls(f) { return [CURRENT_PRIMARY + f, CURRENT_FALLBACK + f]; }
+
+// Narration cards (mom script + first script)
+function voCards(list, container, dirA, dirB) {
+for (const v of list) {
+  const card = el("div", "card");
+  const h = el("h3"); h.textContent = "“" + v.text + "” "; h.appendChild(el("small", null, v.id)); card.appendChild(h);
+  const row = el("div", "row two");
+  row.appendChild(v.a ? btn("Voice A", "va", [dirA + "/" + v.id + ".ogg"]) : el("div", "missing", "Voice A missing"));
+  row.appendChild(v.b ? btn("Voice B", "vb", [dirB + "/" + v.id + ".ogg"]) : el("div", "missing", "Voice B missing"));
+  card.appendChild(row); container.appendChild(card);
+}
+}
+voCards(DATA.mom, document.getElementById("momList"), "voice-a-mom", "voice-b-mom");
+// Prep steps
+(function () {
+  const vo = DATA.prep.vo, box = document.getElementById("prepVo");
+  const groups = [["Mom's new lines", v => v.id.startsWith("vo-")], ["Counting 1–10", v => v.id.startsWith("count-")], ["Oven temperature", v => v.id.startsWith("temp-")]];
+  for (const [title, f] of groups) {
+    const card = el("div", "card"); card.appendChild(el("h3", null, title));
+    const row = el("div", "row");
+    vo.filter(f).forEach(v => { const b = v.a ? btn(v.text, "va", ["voice-a-mom/" + v.id + ".ogg"]) : el("div", "missing", v.id + " missing"); if (v.a) b.title = v.id; row.appendChild(b); });
+    card.appendChild(row); box.appendChild(card);
+  }
+  const sbox = document.getElementById("prepSfx");
+  for (const g of DATA.prep.sfx) {
+    const card = el("div", "card"); card.appendChild(el("h3", null, g.title));
+    const row = el("div", "row");
+    g.items.forEach(f => row.appendChild(btn(nice(f), "", ["sfx-candidates/" + f], g.loop)));
+    if (!g.items.length) row.appendChild(el("div", "missing", "Missing: no CC0 sound found"));
+    card.appendChild(row); sbox.appendChild(card);
+  }
+  // Quick run: each file starts right after the previous one ends, as in the game
+  function run(button, ids) {
+    const wasMe = active && active.btn === button;
+    stopActive(); stopSeq();
+    if (wasMe) return;
+    const audio = new Audio(); let i = 0;
+    const next = () => { if (i >= ids.length) { button.classList.remove("playing"); if (active && active.audio === audio) active = null; return; }
+      audio.src = "voice-a-mom/" + ids[i++] + ".ogg"; audio.play().catch(() => {}); };
+    audio.onended = next; audio.onerror = next;
+    active = { audio, btn: button }; button.classList.add("playing"); next();
+  }
+  const countIds = vo.filter(v => v.id.startsWith("count-") && v.a).map(v => v.id);
+  const tempIds = vo.filter(v => v.id.startsWith("temp-") && v.a).map(v => v.id);
+  const cr = document.getElementById("countRun"), tr = document.getElementById("tempRun");
+  cr.onclick = () => run(cr, countIds); tr.onclick = () => run(tr, tempIds);
+})();
+// Salad
+(function () {
+  const vo = DATA.salad.vo, box = document.getElementById("saladVo");
+  const groups = [["Mom's salad lines", v => v.id.startsWith("vo-")], ["Ingredient names", v => v.id.startsWith("name-")]];
+  for (const [title, f] of groups) {
+    const card = el("div", "card"); card.appendChild(el("h3", null, title));
+    const row = el("div", "row");
+    vo.filter(f).forEach(v => { const b = v.a ? btn(v.text, "va", ["voice-a-mom/" + v.id + ".ogg"]) : el("div", "missing", v.id + " missing"); if (v.a) b.title = v.id; row.appendChild(b); });
+    card.appendChild(row); box.appendChild(card);
+  }
+  const sbox = document.getElementById("saladSfx");
+  for (const g of DATA.salad.sfx) {
+    const card = el("div", "card"); card.appendChild(el("h3", null, g.title));
+    const row = el("div", "row");
+    g.items.forEach(f => row.appendChild(btn(nice(f), "", ["sfx-candidates/" + f])));
+    if (!g.items.length) row.appendChild(el("div", "missing", "Missing: no CC0 sound found"));
+    card.appendChild(row); sbox.appendChild(card);
+  }
+  // Names: "gap" = start each name when the previous one ends; "fast" = a new tap every 350 ms stops the one still playing
+  const ids = vo.filter(v => v.id.startsWith("name-") && v.a).map(v => v.id);
+  function run(button, fast) {
+    const wasMe = active && active.btn === button;
+    stopActive(); stopSeq();
+    if (wasMe) return;
+    const audio = new Audio(); let i = 0, timer = null;
+    const done = () => { clearTimeout(timer); button.classList.remove("playing"); if (active && active.audio === audio) active = null; };
+    const next = () => { if (i >= ids.length) { if (!fast) done(); return; }
+      audio.src = "voice-a-mom/" + ids[i++] + ".ogg"; audio.play().catch(() => {});
+      if (fast) timer = setTimeout(next, 350); };
+    if (fast) audio.onended = () => { if (i >= ids.length) done(); }; else { audio.onended = next; audio.onerror = next; }
+    const origPause = audio.pause.bind(audio); audio.pause = () => { clearTimeout(timer); origPause(); };
+    active = { audio, btn: button }; button.classList.add("playing"); next();
+  }
+  const nr = document.getElementById("namesRun"), nf = document.getElementById("namesFast");
+  nr.onclick = () => run(nr, false); nf.onclick = () => run(nf, true);
+})();
+voCards(DATA.vo, document.getElementById("voList"), "voice-a", "voice-b");
+// Music
+const musicList = document.getElementById("musicList");
+if (!DATA.music.length) musicList.appendChild(el("div", "missing", "No music found"));
+DATA.music.forEach(f => musicList.appendChild(btn(nice(f), "mu", ["music/" + f], true)));
+// SFX
+const sfxList = document.getElementById("sfxList");
+for (const g of DATA.sfx) {
+  const card = el("div", "card"); card.appendChild(el("h3", null, g.title));
+  const row = el("div", "row");
+  if (g.current) row.appendChild(btn("Today: " + nice(g.current), "cur", currentUrls(g.current)));
+  g.items.forEach(f => row.appendChild(btn(nice(f), "", ["sfx-candidates/" + f])));
+  if (!g.items.length) row.appendChild(el("div", "missing", "No candidates found"));
+  card.appendChild(row); sfxList.appendChild(card);
+}
+// Character
+const charList = document.getElementById("charList");
+if (!DATA.character.length) charList.appendChild(el("div", "missing", "No character sounds found"));
+DATA.character.forEach(f => charList.appendChild(btn(nice(f).replace(/^char-/, ""), "ch", ["character/" + f])));
+
+// Stage sequence
+const seqMusic = document.getElementById("seqMusic"), seqSquish = document.getElementById("seqSquish");
+DATA.music.forEach(f => seqMusic.add(new Option(nice(f), "music/" + f)));
+seqMusic.add(new Option("No music", ""));
+seqSquish.add(new Option("Today's squish", "CURRENT"));
+(DATA.sfx.find(g => g.prefix === "squish") || { items: [] }).items.forEach(f => seqSquish.add(new Option(nice(f), "sfx-candidates/" + f)));
+if (seqSquish.options.length > 1) seqSquish.selectedIndex = 1;
+const mv = document.getElementById("seqMusicVol"), sv = document.getElementById("seqSfxVol");
+const showVol = () => { document.getElementById("mvLabel").textContent = mv.value + "%"; document.getElementById("svLabel").textContent = sv.value + "%"; };
+mv.oninput = () => { showVol(); if (seq && seq.music) seq.music.volume = mv.value / 100; };
+sv.oninput = showVol; showVol();
+
+let seq = null;
+const seqBtn = document.getElementById("seqBtn"), log = document.getElementById("seqlog");
+function stopSeq() {
+  if (!seq) return;
+  seq.cancelled = true;
+  seq.timers.forEach(clearTimeout);
+  seq.all.forEach(a => { a.pause(); });
+  seq = null; seqBtn.classList.remove("playing"); seqBtn.textContent = "Play the stage"; log.textContent = "";
+}
+function wait(ms) { return new Promise(r => seq.timers.push(setTimeout(r, ms))); }
+function playOnce(urls, vol) {
+  return new Promise(resolve => {
+    const a = new Audio(); let i = 0; a.volume = vol; seq.all.push(a);
+    a.onended = resolve;
+    a.onerror = () => { if (++i < urls.length) { a.src = urls[i]; a.play().catch(resolve); } else resolve(); };
+    a.src = urls[0]; a.play().catch(resolve);
+  });
+}
+seqBtn.onclick = async () => {
+  if (seq) { stopSeq(); return; }
+  stopActive();
+  seq = { timers: [], all: [], cancelled: false, music: null };
+  const me = seq;
+  seqBtn.classList.add("playing"); seqBtn.textContent = "Stop";
+  const voice = document.getElementById("seqVoice").value;
+  if (seqMusic.value) {
+    const m = LoopPlayer(seqMusic.value, mv.value / 100); me.all.push(m); me.music = m;
+    log.textContent = "♪ music"; await wait(1500);
+  }
+  const steps = [
+    ["“Watch me first!”", () => playOnce([voice + "/vo-watch-me.ogg"], 1), 400],
+    ["“Now spread the sauce!”", () => playOnce([voice + "/vo-sauce.ogg"], 1), 400],
+    ["squish", () => playOnce(seqSquish.value === "CURRENT" ? currentUrls("squish.ogg") : [seqSquish.value], sv.value / 100), 450],
+    ["“Now you try!”", () => playOnce([voice + "/vo-your-turn.ogg"], 1), 1600],
+    ["“Great job!”", () => playOnce([voice + "/vo-praise-1.ogg"], 1), 1500],
+  ];
+  for (const [label, fn, pause] of steps) {
+    if (me.cancelled) return;
+    log.textContent = "▶ " + label;
+    await fn();
+    if (me.cancelled) return;
+    await wait(pause);
+  }
+  if (me.music) { // gentle fade out
+    for (let v = me.music.volume; v > 0.01 && !me.cancelled; v *= 0.8) { me.music.volume = v; await wait(80); }
+  }
+  if (!me.cancelled) stopSeq();
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Soup items 4:3</title>
+<style>html,body{margin:0;background:#F3E4C6;overflow:hidden}canvas{display:block;width:100vw}</style></head><body><canvas id="c"></canvas>
+<script>
+// All 24 soup items on one 4:3 page (6 x 4 cells), each drawn img -> native canvas -> scaled drawImage (the game's path).
+// Pot contents inside the pot layers; the peel skins over their whole vegetable; the cut-face strips on their cut line.
+const N = ["card-soup","veg-potato-whole","veg-potato-slice","veg-potato-inside","veg-zucchini-whole","veg-zucchini-slice",
+ "veg-zucchini-inside","peel-skin-carrot","peel-skin-potato","peeler","peel-strip","photo-frame-soup",
+ "pot-back","pot-front","pot-heap-1","pot-heap-2","pot-heap-3","water-jug",
+ "soup-stage-1","soup-stage-2","soup-stage-3","soup-bowl-empty","soup-bowl-full","soup-portion"];
+const INPOT = n => /^(pot-heap|soup-stage)-[123]$/.test(n);
+const UNDER = { "peel-skin-carrot": "../../images-b-salad/veg-carrot-whole.svg", "peel-skin-potato": "../veg-potato-whole.svg" };
+const STRIP = { "veg-potato-inside": ["../veg-potato-whole.svg", 335, 231.3, 453.9], "veg-zucchini-inside": ["../veg-zucchini-whole.svg", 340, 267.9, 464.1] };
+const cols = 6, CW = 400, CH = 450, cv = document.getElementById("c"); cv.width = cols * CW; cv.height = 4 * CH;
+const g = cv.getContext("2d"); g.fillStyle = "#F3E4C6"; g.fillRect(0, 0, cv.width, cv.height);
+const load = s => new Promise(r => { const i = new Image(); i.onload = () => r(i); i.onerror = () => r(null); i.src = s; });
+const rast = i => { const t = document.createElement("canvas"); t.width = i.naturalWidth; t.height = i.naturalHeight; t.getContext("2d").drawImage(i, 0, 0); return t; };
+(async () => {
+  const back = await load("../pot-back.svg"), front = await load("../pot-front.svg");
+  for (let k = 0; k < N.length; k++) {
+    const i = await load("../" + N[k] + ".svg"), x = (k % cols) * CW, y = Math.floor(k / cols) * CH;
+    g.fillStyle = "#5B3A29"; g.font = "15px sans-serif"; g.fillText(N[k] + (i ? "" : " MISSING"), x + 8, y + 18);
+    if (!i) continue;
+    if (INPOT(N[k])) {                                   // 1000x760 pot frame: back -> contents -> front
+      const s = Math.min((CW - 20) / 1000, (CH - 36) / 760), w = 1000 * s, h = 760 * s, dx = x + (CW - w) / 2, dy = y + 26;
+      g.drawImage(rast(back), dx, dy, w, h); g.drawImage(rast(i), dx, dy, w, h); g.drawImage(rast(front), dx, dy, w, h); continue;
+    }
+    if (STRIP[N[k]]) {                                   // the cut-face strip on the cut line of its whole vegetable
+      const [u, cut, top, bot] = STRIP[N[k]], wv = await load(u);
+      const s = Math.min((CW - 20) / 672, (CH - 36) / 504), dx = x + (CW - 672 * s) / 2, dy = y + 26;
+      g.save(); g.beginPath(); g.rect(dx, dy, cut * s, 504 * s); g.clip(); g.drawImage(rast(wv), dx, dy, 672 * s, 504 * s); g.restore();
+      g.drawImage(rast(i), dx + (cut - 30) * s, dy + top * s, 60 * s, (bot - top) * s); continue;
+    }
+    const s = Math.min((CW - 20) / i.naturalWidth, (CH - 36) / i.naturalHeight), w = i.naturalWidth * s, h = i.naturalHeight * s;
+    const dx = x + (CW - w) / 2, dy = y + 26 + (CH - 30 - h) / 2;
+    if (UNDER[N[k]]) { const u = await load(UNDER[N[k]]); if (u) g.drawImage(rast(u), dx, dy, w, h); }
+    g.drawImage(rast(i), dx, dy, w, h);
+  }
+  document.title = "DONE";
+})();
+</script></body></html>

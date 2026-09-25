@@ -1,0 +1,15 @@
+<!doctype html><html><head><meta charset="utf-8"><title>pippa hand</title>
+<style>body{margin:0;background:#F3E4C6}canvas{display:block}</style></head><body><canvas id="c"></canvas>
+<script>
+// hand-hint at 1x and 0.5x via img->canvas, blue crosshair at the (53,23) fingertip, on wall and on a red pizza patch
+const i = new Image(); i.onload = () => {
+  const cv = document.getElementById("c"); cv.width = 760; cv.height = 320; const g = cv.getContext("2d");
+  g.fillStyle = "#F3E4C6"; g.fillRect(0, 0, 760, 320); g.fillStyle = "#D8432E"; g.fillRect(250, 0, 260, 320);
+  g.strokeStyle = "rgba(0,0,0,.3)"; const t = document.createElement("canvas"); t.width = 220; t.height = 280; t.getContext("2d").drawImage(i, 0, 0);
+  [[10, 10, 1], [270, 10, 1], [530, 10, .5], [650, 10, .35]].forEach(([x, y, s]) => {
+    g.strokeRect(x, y, 220 * s, 280 * s); g.drawImage(t, x, y, 220 * s, 280 * s);
+    g.strokeStyle = "#00f"; g.beginPath(); const px = x + 53 * s, py = y + 23 * s; g.moveTo(px - 10, py); g.lineTo(px + 10, py); g.moveTo(px, py - 10); g.lineTo(px, py + 10); g.stroke(); g.strokeStyle = "rgba(0,0,0,.3)";
+  });
+  document.title = "DONE";
+}; i.src = "../hand-hint.svg?" + Date.now();
+</script></body></html>

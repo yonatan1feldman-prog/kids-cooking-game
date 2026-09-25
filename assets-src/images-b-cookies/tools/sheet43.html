@@ -1,0 +1,27 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Cookies items 4:3</title>
+<style>html,body{margin:0;background:#F3E4C6;overflow:hidden}canvas{display:block;width:100vw}</style></head><body><canvas id="c"></canvas>
+<script>
+// All 32 cookie items on one 4:3 page (8 x 4 cells), each drawn img -> native canvas -> scaled drawImage (the game's path).
+const N = ["card-cookies","flour-bag","sugar-jar","butter-cube","egg-1","egg-2","egg-3","photo-frame-cookies",
+ "batter-stage-0","batter-stage-1","batter-stage-2","batter-stage-3","cookie-dough-knead-1","cookie-dough-knead-2","cookie-dough-knead-3","cookie-dough-ball",
+ "cookie-dough-flat","baking-tray","cutter-star","cutter-heart","cutter-circle","cutter-flower","icing-tube-pink","icing-tube-choc",
+ "cookie-star","cookie-heart","cookie-circle","cookie-flower","icing-blob-pink","icing-blob-choc","sprinkles-cluster","candy-dot"];
+const BOWL = n => n.startsWith("batter-stage");
+const cols = 8, CW = 300, CH = 450, cv = document.getElementById("c"); cv.width = cols * CW; cv.height = 4 * CH + 0;
+const g = cv.getContext("2d"); g.fillStyle = "#F3E4C6"; g.fillRect(0, 0, cv.width, cv.height);
+const load = s => new Promise(r => { const i = new Image(); i.onload = () => r(i); i.onerror = () => r(null); i.src = s; });
+(async () => {
+  const back = await load("../../images-b-prep/prep-bowl-back.svg"), front = await load("../../images-b-prep/prep-bowl-front.svg");
+  const rast = i => { const t = document.createElement("canvas"); t.width = i.naturalWidth; t.height = i.naturalHeight; t.getContext("2d").drawImage(i, 0, 0); return t; };
+  for (let k = 0; k < N.length; k++) {
+    const i = await load("../" + N[k] + ".svg"), x = (k % cols) * CW, y = Math.floor(k / cols) * CH;
+    g.fillStyle = "#5B3A29"; g.font = "15px sans-serif"; g.fillText(N[k] + (i ? "" : " MISSING"), x + 8, y + 18);
+    if (!i) continue;
+    const s = Math.min((CW - 20) / i.naturalWidth, (CH - 36) / i.naturalHeight), w = i.naturalWidth * s, h = i.naturalHeight * s, dx = x + (CW - w) / 2, dy = y + 26 + (CH - 30 - h) / 2;
+    if (BOWL(N[k])) g.drawImage(rast(back), dx, dy, w, h);
+    g.drawImage(rast(i), dx, dy, w, h);
+    if (BOWL(N[k])) g.drawImage(rast(front), dx, dy, w, h);
+  }
+  document.title = "DONE";
+})();
+</script></body></html>

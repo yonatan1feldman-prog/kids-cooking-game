@@ -1,0 +1,27 @@
+<!doctype html><html><head><meta charset="utf-8"><title>heaps</title>
+<style>html,body{margin:0;background:#D8AB7C;overflow:hidden}</style></head><body><div id="host" style="width:100vw"></div>
+<script>window.IMAGES_B_DIR = "../../images-b/"; window.PREP_BASE = "../../images-b-prep/"; window.SALAD_BASE = "../";</script>
+<script src="../../images-b/scenes.js"></script>
+<script src="../../images-b-prep/scenes-prep.js"></script>
+<script src="../scenes-salad.js"></script>
+<script>
+// Test sheet: salad-bowl-back + salad-heap-N + salad-bowl-front for N = 1..3, then salad-mixed, and both photo frames (old | new).
+// 2400x1080 world drawn img -> canvas like the game; shoot at 800x360 dpr 3.
+const host = document.getElementById("host"), W = 2400;
+host.style.position = "relative";
+const world = document.createElement("div");
+Object.assign(world.style, { position: "absolute", left: 0, top: 0, width: W + "px", height: "1080px", transformOrigin: "0 0", transform: `scale(${host.clientWidth / W})` });
+host.appendChild(world);
+const img = (src, x, y, w, h) => { const i = document.createElement("img"); i.src = src + ".svg"; Object.assign(i.style, { position: "absolute", left: x + "px", top: y + "px", width: w + "px", height: h + "px" }); world.appendChild(i); };
+const s = 0.62, only = new URLSearchParams(location.search).get("only");
+if (only) {                                   // ?only=3 : one bowl, big, centred (close-up)
+  const k = 1.55, x = 1200 - 450 * k, y = 540 - 330 * k;
+  ["../salad-bowl-back", "../salad-heap-" + only, "../salad-bowl-front"].forEach(n => img(n, x, y, 900 * k, 620 * k));
+} else ["salad-heap-1", "salad-heap-2", "salad-heap-3", "salad-mixed"].forEach((n, i) => {
+  const x = 30 + i * 580, y = 40;
+  img("../salad-bowl-back", x, y, 900 * s, 620 * s); img("../" + n, x, y, 900 * s, 620 * s); img("../salad-bowl-front", x, y, 900 * s, 620 * s);
+});
+if (!only) img("../../images-b-prep/photo-frame", 700, 470, 700 * .75, 780 * .75);
+if (!only) img("../photo-frame-salad", 1300, 470, 700 * .75, 780 * .75);
+ScenesSalad.toCanvas(host, world, W).then(() => document.title = "DONE");
+</script></body></html>

@@ -1,0 +1,45 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Cake items 4:3</title>
+<style>html,body{margin:0;background:#F3E4C6;overflow:hidden}canvas{display:block;width:100vw}</style></head><body><canvas id="c"></canvas>
+<script>
+// All 18 cake items on one 4:3 page (5 x 4 cells), each drawn img -> native canvas -> scaled drawImage (the game's path).
+// The batter stages sit inside the images-b-prep bowl layers; the baked cake sits on cake-plate, registered centre on
+// centre; the flame and the smoke sit on the candle's FLAME POINT; the frosting blob is shown NEUTRAL (as shipped).
+const N = ["card-cake","cake-batter-0","cake-batter-1","cake-batter-2","cake-batter-3",
+ "cake-pan","cake-pan-full","cake-baked","cake-plate","photo-frame-cake",
+ "frosting-tub-pink","frosting-tub-white","frosting-tub-choc","frosting-blob","choc-chip",
+ "candle","flame-candle","smoke-puff"];
+const INBOWL = n => /^cake-batter-[0-3]$/.test(n);
+const CAND = { w: 260, h: 460, base: [130, 414], flame: [130, 90] };
+const cols = 5, CW = 480, CH = 450, cv = document.getElementById("c"); cv.width = cols * CW; cv.height = 4 * CH;
+const g = cv.getContext("2d"); g.fillStyle = "#F3E4C6"; g.fillRect(0, 0, cv.width, cv.height);
+const load = s => new Promise(r => { const i = new Image(); i.onload = () => r(i); i.onerror = () => r(null); i.src = s; });
+const rast = i => { const t = document.createElement("canvas"); t.width = i.naturalWidth; t.height = i.naturalHeight; t.getContext("2d").drawImage(i, 0, 0); return t; };
+(async () => {
+  const back = await load("../../images-b-prep/prep-bowl-back.svg"), front = await load("../../images-b-prep/prep-bowl-front.svg");
+  const plate = await load("../cake-plate.svg"), cand = await load("../candle.svg");
+  for (let k = 0; k < N.length; k++) {
+    const i = await load("../" + N[k] + ".svg"), x = (k % cols) * CW, y = Math.floor(k / cols) * CH;
+    g.fillStyle = "#5B3A29"; g.font = "16px sans-serif"; g.fillText(N[k] + (i ? "" : " MISSING"), x + 10, y + 20);
+    if (!i) continue;
+    if (INBOWL(N[k])) {                                   // 640x520 bowl frame: back -> contents -> front
+      const s = Math.min((CW - 24) / 640, (CH - 40) / 520), w = 640 * s, h = 520 * s, dx = x + (CW - w) / 2, dy = y + 30;
+      g.drawImage(rast(back), dx, dy, w, h); g.drawImage(rast(i), dx, dy, w, h); g.drawImage(rast(front), dx, dy, w, h); continue;
+    }
+    if (N[k] === "cake-baked" && plate) {                 // the cake on its plate, centre (410,408) on centre (360,356)
+      const s = Math.min((CW - 24) / 820, (CH - 40) / 830), X = x + CW / 2, Y = y + 30 + 415 * s;
+      g.drawImage(rast(plate), X - 410 * s, Y - 415 * s + 7 * s, 820 * s, 830 * s);
+      g.drawImage(rast(i), X - 360 * s, Y - 360 * s + 4 * s, 720 * s, 720 * s); continue;
+    }
+    if ((N[k] === "flame-candle" || N[k] === "smoke-puff") && cand) {    // put it on the candle's flame point
+      const s = Math.min((CW - 24) / 400, (CH - 46) / 760), X = x + CW / 2, Y = y + CH - 56;
+      g.drawImage(rast(cand), X - CAND.base[0] * s, Y - CAND.base[1] * s, CAND.w * s, CAND.h * s);
+      const fx = X + (CAND.flame[0] - CAND.base[0]) * s, fy = Y + (CAND.flame[1] - CAND.base[1]) * s;
+      const a = N[k] === "flame-candle" ? [200, 280, 100, 236] : [240, 360, 120, 340];
+      g.drawImage(rast(i), fx - a[2] * s, fy - a[3] * s, a[0] * s, a[1] * s); continue;
+    }
+    const s = Math.min((CW - 24) / i.naturalWidth, (CH - 40) / i.naturalHeight), w = i.naturalWidth * s, h = i.naturalHeight * s;
+    g.drawImage(rast(i), x + (CW - w) / 2, y + 30 + (CH - 34 - h) / 2, w, h);
+  }
+  document.title = "DONE";
+})();
+</script></body></html>

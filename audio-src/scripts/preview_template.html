@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cooking Game Sounds</title>
+<style>
+  :root {
+    --bg: #fff8f0; --card: #ffffff; --ink: #3b2a20; --muted: #8a7566;
+    --a: #e8664f; --b: #4f8fe8; --m: #3fae7a; --s: #b068d8; --c: #f0a020;
+    --line: #f0e2d4;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { padding: 18px 16px 8px; }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  header p { margin: 0; color: var(--muted); font-size: 14px; }
+  nav { position: sticky; top: 0; z-index: 5; background: var(--bg); display: flex; gap: 6px;
+    overflow-x: auto; padding: 8px 16px; border-bottom: 1px solid var(--line); }
+  nav a { flex: none; text-decoration: none; color: var(--ink); background: var(--card);
+    border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: 14px; }
+  section { padding: 12px 16px 4px; }
+  h2 { font-size: 20px; margin: 14px 0 4px; }
+  .hint { color: var(--muted); font-size: 13px; margin: 0 0 10px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+    padding: 12px; margin-bottom: 10px; }
+  .card h3 { margin: 0 0 8px; font-size: 16px; }
+  .card h3 small { color: var(--muted); font-weight: normal; }
+  .row { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+  .row.two { grid-template-columns: 1fr 1fr; }
+  button.play { min-height: 60px; border: 0; border-radius: 14px; color: #fff; font-size: 17px;
+    font-weight: 600; padding: 8px 10px; cursor: pointer; background: var(--s);
+    display: flex; align-items: center; justify-content: center; gap: 8px; text-align: center;
+    -webkit-tap-highlight-color: transparent; }
+  button.play::before { content: "▶"; font-size: 14px; }
+  button.play.playing::before { content: "■"; }
+  button.play.playing { outline: 4px solid rgba(0,0,0,.18); }
+  button.play:disabled { background: #ccc; }
+  .va { background: var(--a); } .vb { background: var(--b); }
+  .mu { background: var(--m); } .ch { background: var(--c); }
+  .cur { background: #7d6a5e; }
+  .missing { color: var(--muted); font-style: italic; font-size: 14px; }
+  .seq label { display: block; font-size: 14px; margin: 8px 0 4px; }
+  .seq select { width: 100%; font-size: 16px; padding: 8px; border-radius: 10px; border: 1px solid var(--line); background: #fff; }
+  .seq input[type=range] { width: 100%; }
+  .seq .big { width: 100%; min-height: 72px; font-size: 20px; margin-top: 12px; background: #d9534f; }
+  #seqlog { font-size: 14px; color: var(--muted); min-height: 1.4em; margin-top: 8px; }
+  footer { padding: 16px; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🍕 Cooking Game Sounds</h1>
+  <p>Tap a button to play. Tap again to stop. Only one sound plays at a time.</p>
+</header>
+<nav>
+  <a href="#salad">Salad</a><a href="#prep">Prep steps</a><a href="#mom">Mom script</a><a href="#seq">▶ Try a stage</a><a href="#vo">Narration (old)</a><a href="#music">Music</a><a href="#sfx">Sound effects</a><a href="#char">Character</a>
+</nav>
+
+<section id="salad">
+  <h2>Salad</h2>
+  <p class="hint">The second recipe: new Mom lines (Voice A), the ingredient names Mom says when the child picks one, and new sound effects. For effects, <b>1</b> is the one in the game; 2 is the alternative.</p>
+  <p class="hint">Fixed: “Carrot”, “Pepper”, “Onion” and “Corn” no longer have a short sound before the word; “Pour a little olive oil!” and “Put it all in the bowl!” are now as loud as the other lines.</p>
+  <div class="card"><h3>Quick picks <small>names cut each other off, as in the game</small></h3>
+    <div class="row two"><button class="play va" id="namesRun">One after another</button><button class="play va" id="namesFast">Fast taps</button></div>
+  </div>
+  <div id="saladVo"></div>
+  <h2>Salad sound effects</h2>
+  <div id="saladSfx"></div>
+</section>
+
+<section id="prep">
+  <h2>Prep steps</h2>
+  <p class="hint">New Mom lines (Voice A) and new sound effects for washing, preparing, cutting, the oven and sharing. For effects, <b>1</b> is the one in the game; 2 is the alternative.</p>
+  <p class="hint">Fixed: “A little more!” is now as loud as the other lines; “Two”, “Five”, “Six”, “Seven” and “Fifty” no longer have a short “uh”, and all numbers are equally loud.</p>
+  <div class="card"><h3>Counting while cutting <small>played quickly one after another</small></h3>
+    <div class="row two"><button class="play va" id="countRun">One … Ten</button><button class="play va" id="tempRun">50 … 250</button></div>
+  </div>
+  <div id="prepVo"></div>
+  <h2>New sound effects</h2>
+  <div id="prepSfx"></div>
+</section>
+
+<section id="mom">
+  <h2>Mom script</h2>
+  <p class="hint">Mom cooks next to her daughter; Pipa the hedgehog tastes at the end. <span style="color:var(--a)">■</span> Voice A &nbsp; <span style="color:var(--b)">■</span> Voice B</p>
+  <div id="momList"></div>
+</section>
+
+<section id="seq">
+  <h2>Try a stage</h2>
+  <p class="hint">Quiet music, then Mom: “Watch me first!” → “Now spread the sauce!” → squish → “Now you try!” → short pause → “Great job!”.</p>
+  <div class="card seq">
+    <label>Voice <select id="seqVoice"><option value="voice-a-mom">Voice A</option><option value="voice-b-mom">Voice B</option></select></label>
+    <label>Music <select id="seqMusic"></select></label>
+    <label>Squish sound <select id="seqSquish"></select></label>
+    <label>Music volume: <b id="mvLabel"></b><input id="seqMusicVol" type="range" min="0" max="100" value="25"></label>
+    <label>Sound effect volume: <b id="svLabel"></b><input id="seqSfxVol" type="range" min="0" max="100" value="70"></label>
+    <button class="play big" id="seqBtn">Play the stage</button>
+    <div id="seqlog"></div>
+  </div>
+</section>
+
+<section id="vo">
+  <h2>Narration (first script): Voice A vs Voice B</h2>
+  <p class="hint"><span style="color:var(--a)">■</span> Voice A &nbsp; <span style="color:var(--b)">■</span> Voice B</p>
+  <div id="voList"></div>
+</section>
+
+<section id="music">
+  <h2>Background music</h2>
+  <p class="hint">These loop forever. Listen for a jump when a loop restarts.</p>
+  <div class="card"><div class="row" id="musicList"></div></div>
+</section>
+
+<section id="sfx">
+  <h2>Sound effect candidates</h2>
+  <p class="hint">Grey button = the sound the game uses today. Coloured buttons = new options.</p>
+  <div id="sfxList"></div>
+</section>
+
+<section id="char">
+  <h2>Character sounds (no words)</h2>
+  <div class="card"><div class="row" id="charList"></div></div>
+</section>
+
+<footer>All files: CC0 or free licenses — see LICENSES.md.</footer>
+
+<script>
+const DATA = /*DATA*/null;
+const CURRENT_PRIMARY = "/assets-sounds/";            // live file from cooking-game-assets/sounds
+const CURRENT_FALLBACK = "sfx-candidates/current/";    // local copy, used if the live one can't load
+
+let actx = null; const bufCache = {};
+// Gapless loop via Web Audio (an <audio loop> element can leave a tiny gap at the seam).
+function LoopPlayer(url, vol) {
+  actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+  actx.resume();
+  const gain = actx.createGain(); gain.gain.value = vol; gain.connect(actx.destination);
+  let src = null, stopped = false;
+  const p = { pause() { stopped = true; if (src) try { src.stop(); } catch (e) {} },
+    set volume(v) { gain.gain.value = v; }, get volume() { return gain.gain.value; }, currentTime: 0 };
+  (bufCache[url] = bufCache[url] || fetch(url).then(r => r.arrayBuffer()).then(b => actx.decodeAudioData(b)))
+    .then(buf => { if (stopped) return; src = actx.createBufferSource(); src.buffer = buf; src.loop = true; src.connect(gain); src.start(); });
+  return p;
+}
+let active = null; // {audio, btn}
+function stopActive() {
+  if (!active) return;
+  active.audio.pause(); active.audio.currentTime = 0;
+  active.btn && active.btn.classList.remove("playing");
+  active = null;
+}
+function playUrl(urls, btn, loop = false) {
+  const wasMe = active && active.btn === btn;
+  stopActive(); stopSeq();
+  if (wasMe) return;
+  if (loop) { active = { audio: LoopPlayer(urls[0], 1), btn }; btn.classList.add("playing"); return; }
+  const audio = new Audio();
+  let i = 0;
+  audio.onerror = () => { if (++i < urls.length) { audio.src = urls[i]; audio.play().catch(() => {}); } else btn.classList.remove("playing"); };
+  audio.onended = () => { btn.classList.remove("playing"); if (active && active.audio === audio) active = null; };
+  audio.loop = loop;
+  audio.src = urls[0];
+  active = { audio, btn };
+  btn.classList.add("playing");
+  audio.play().catch(() => {});
+}
+function btn(label, cls, urls, loop) {
+  const b = document.createElement("button");
+  b.className = "play " + cls; b.textContent = label;
+  b.onclick = () => playUrl(urls, b, loop);
+  return b;
+}
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function nice(f) { return f.replace(/\.ogg$/, ""); }
+function currentUrls(f) { return [CURRENT_PRIMARY + f, CURRENT_FALLBACK + f]; }
+
+// Narration cards (mom script + first script)
+function voCards(list, container, dirA, dirB) {
+for (const v of list) {
+  const card = el("div", "card");
+  const h = el("h3"); h.textContent = "“" + v.text + "” "; h.appendChild(el("small", null, v.id)); card.appendChild(h);
+  const row = el("div", "row two");
+  row.appendChild(v.a ? btn("Voice A", "va", [dirA + "/" + v.id + ".ogg"]) : el("div", "missing", "Voice A missing"));
+  row.appendChild(v.b ? btn("Voice B", "vb", [dirB + "/" + v.id + ".ogg"]) : el("div", "missing", "Voice B missing"));
+  card.appendChild(row); container.appendChild(card);
+}
+}
+voCards(DATA.mom, document.getElementById("momList"), "voice-a-mom", "voice-b-mom");
+// Prep steps
+(function () {
+  const vo = DATA.prep.vo, box = document.getElementById("prepVo");
+  const groups = [["Mom's new lines", v => v.id.startsWith("vo-")], ["Counting 1–10", v => v.id.startsWith("count-")], ["Oven temperature", v => v.id.startsWith("temp-")]];
+  for (const [title, f] of groups) {
+    const card = el("div", "card"); card.appendChild(el("h3", null, title));
+    const row = el("div", "row");
+    vo.filter(f).forEach(v => { const b = v.a ? btn(v.text, "va", ["voice-a-mom/" + v.id + ".ogg"]) : el("div", "missing", v.id + " missing"); if (v.a) b.title = v.id; row.appendChild(b); });
+    card.appendChild(row); box.appendChild(card);
+  }
+  const sbox = document.getElementById("prepSfx");
+  for (const g of DATA.prep.sfx) {
+    const card = el("div", "card"); card.appendChild(el("h3", null, g.title));
+    const row = el("div", "row");
+    g.items.forEach(f => row.appendChild(btn(nice(f), "", ["sfx-candidates/" + f], g.loop)));
+    if (!g.items.length) row.appendChild(el("div", "missing", "Missing: no CC0 sound found"));
+    card.appendChild(row); sbox.appendChild(card);
+  }
+  // Quick run: each file starts right after the previous one ends, as in the game
+  function run(button, ids) {
+    const wasMe = active && active.btn === button;
+    stopActive(); stopSeq();
+    if (wasMe) return;
+    const audio = new Audio(); let i = 0;
+    const next = () => { if (i >= ids.length) { button.classList.remove("playing"); if (active && active.audio === audio) active = null; return; }
+      audio.src = "voice-a-mom/" + ids[i++] + ".ogg"; audio.play().catch(() => {}); };
+    audio.onended = next; audio.onerror = next;
+    active = { audio, btn: button }; button.classList.add("playing"); next();
+  }
+  const countIds = vo.filter(v => v.id.startsWith("count-") && v.a).map(v => v.id);
+  const tempIds = vo.filter(v => v.id.startsWith("temp-") && v.a).map(v => v.id);
+  const cr = document.getElementById("countRun"), tr = document.getElementById("tempRun");
+  cr.onclick = () => run(cr, countIds); tr.onclick = () => run(tr, tempIds);
+})();
+// Salad
+(function () {
+  const vo = DATA.salad.vo, box = document.getElementById("saladVo");
+  const groups = [["Mom's salad lines", v => v.id.startsWith("vo-")], ["Ingredient names", v => v.id.startsWith("name-")]];
+  for (const [title, f] of groups) {
+    const card = el("div", "card"); card.appendChild(el("h3", null, title));
+    const row = el("div", "row");
+    vo.filter(f).forEach(v => { const b = v.a ? btn(v.text, "va", ["voice-a-mom/" + v.id + ".ogg"]) : el("div", "missing", v.id + " missing"); if (v.a) b.title = v.id; row.appendChild(b); });
+    card.appendChild(row); box.appendChild(card);
+  }
+  const sbox = document.getElementById("saladSfx");
+  for (const g of DATA.salad.sfx) {
+    const card = el("div", "card"); card.appendChild(el("h3", null, g.title));
+    const row = el("div", "row");
+    g.items.forEach(f => row.appendChild(btn(nice(f), "", ["sfx-candidates/" + f])));
+    if (!g.items.length) row.appendChild(el("div", "missing", "Missing: no CC0 sound found"));
+    card.appendChild(row); sbox.appendChild(card);
+  }
+  // Names: "gap" = start each name when the previous one ends; "fast" = a new tap every 350 ms stops the one still playing
+  const ids = vo.filter(v => v.id.startsWith("name-") && v.a).map(v => v.id);
+  function run(button, fast) {
+    const wasMe = active && active.btn === button;
+    stopActive(); stopSeq();
+    if (wasMe) return;
+    const audio = new Audio(); let i = 0, timer = null;
+    const done = () => { clearTimeout(timer); button.classList.remove("playing"); if (active && active.audio === audio) active = null; };
+    const next = () => { if (i >= ids.length) { if (!fast) done(); return; }
+      audio.src = "voice-a-mom/" + ids[i++] + ".ogg"; audio.play().catch(() => {});
+      if (fast) timer = setTimeout(next, 350); };
+    if (fast) audio.onended = () => { if (i >= ids.length) done(); }; else { audio.onended = next; audio.onerror = next; }
+    const origPause = audio.pause.bind(audio); audio.pause = () => { clearTimeout(timer); origPause(); };
+    active = { audio, btn: button }; button.classList.add("playing"); next();
+  }
+  const nr = document.getElementById("namesRun"), nf = document.getElementById("namesFast");
+  nr.onclick = () => run(nr, false); nf.onclick = () => run(nf, true);
+})();
+voCards(DATA.vo, document.getElementById("voList"), "voice-a", "voice-b");
+// Music
+const musicList = document.getElementById("musicList");
+if (!DATA.music.length) musicList.appendChild(el("div", "missing", "No music found"));
+DATA.music.forEach(f => musicList.appendChild(btn(nice(f), "mu", ["music/" + f], true)));
+// SFX
+const sfxList = document.getElementById("sfxList");
+for (const g of DATA.sfx) {
+  const card = el("div", "card"); card.appendChild(el("h3", null, g.title));
+  const row = el("div", "row");
+  if (g.current) row.appendChild(btn("Today: " + nice(g.current), "cur", currentUrls(g.current)));
+  g.items.forEach(f => row.appendChild(btn(nice(f), "", ["sfx-candidates/" + f])));
+  if (!g.items.length) row.appendChild(el("div", "missing", "No candidates found"));
+  card.appendChild(row); sfxList.appendChild(card);
+}
+// Character
+const charList = document.getElementById("charList");
+if (!DATA.character.length) charList.appendChild(el("div", "missing", "No character sounds found"));
+DATA.character.forEach(f => charList.appendChild(btn(nice(f).replace(/^char-/, ""), "ch", ["character/" + f])));
+
+// Stage sequence
+const seqMusic = document.getElementById("seqMusic"), seqSquish = document.getElementById("seqSquish");
+DATA.music.forEach(f => seqMusic.add(new Option(nice(f), "music/" + f)));
+seqMusic.add(new Option("No music", ""));
+seqSquish.add(new Option("Today's squish", "CURRENT"));
+(DATA.sfx.find(g => g.prefix === "squish") || { items: [] }).items.forEach(f => seqSquish.add(new Option(nice(f), "sfx-candidates/" + f)));
+if (seqSquish.options.length > 1) seqSquish.selectedIndex = 1;
+const mv = document.getElementById("seqMusicVol"), sv = document.getElementById("seqSfxVol");
+const showVol = () => { document.getElementById("mvLabel").textContent = mv.value + "%"; document.getElementById("svLabel").textContent = sv.value + "%"; };
+mv.oninput = () => { showVol(); if (seq && seq.music) seq.music.volume = mv.value / 100; };
+sv.oninput = showVol; showVol();
+
+let seq = null;
+const seqBtn = document.getElementById("seqBtn"), log = document.getElementById("seqlog");
+function stopSeq() {
+  if (!seq) return;
+  seq.cancelled = true;
+  seq.timers.forEach(clearTimeout);
+  seq.all.forEach(a => { a.pause(); });
+  seq = null; seqBtn.classList.remove("playing"); seqBtn.textContent = "Play the stage"; log.textContent = "";
+}
+function wait(ms) { return new Promise(r => seq.timers.push(setTimeout(r, ms))); }
+function playOnce(urls, vol) {
+  return new Promise(resolve => {
+    const a = new Audio(); let i = 0; a.volume = vol; seq.all.push(a);
+    a.onended = resolve;
+    a.onerror = () => { if (++i < urls.length) { a.src = urls[i]; a.play().catch(resolve); } else resolve(); };
+    a.src = urls[0]; a.play().catch(resolve);
+  });
+}
+seqBtn.onclick = async () => {
+  if (seq) { stopSeq(); return; }
+  stopActive();
+  seq = { timers: [], all: [], cancelled: false, music: null };
+  const me = seq;
+  seqBtn.classList.add("playing"); seqBtn.textContent = "Stop";
+  const voice = document.getElementById("seqVoice").value;
+  if (seqMusic.value) {
+    const m = LoopPlayer(seqMusic.value, mv.value / 100); me.all.push(m); me.music = m;
+    log.textContent = "♪ music"; await wait(1500);
+  }
+  const steps = [
+    ["“Watch me first!”", () => playOnce([voice + "/vo-watch-me.ogg"], 1), 400],
+    ["“Now spread the sauce!”", () => playOnce([voice + "/vo-sauce.ogg"], 1), 400],
+    ["squish", () => playOnce(seqSquish.value === "CURRENT" ? currentUrls("squish.ogg") : [seqSquish.value], sv.value / 100), 450],
+    ["“Now you try!”", () => playOnce([voice + "/vo-your-turn.ogg"], 1), 1600],
+    ["“Great job!”", () => playOnce([voice + "/vo-praise-1.ogg"], 1), 1500],
+  ];
+  for (const [label, fn, pause] of steps) {
+    if (me.cancelled) return;
+    log.textContent = "▶ " + label;
+    await fn();
+    if (me.cancelled) return;
+    await wait(pause);
+  }
+  if (me.music) { // gentle fade out
+    for (let v = me.music.volume; v > 0.01 && !me.cancelled; v *= 0.8) { me.music.volume = v; await wait(80); }
+  }
+  if (!me.cancelled) stopSeq();
+};
+</script>
+</body>
+</html>

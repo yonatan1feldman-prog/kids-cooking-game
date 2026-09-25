@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cooking with Mom: vegetable salad</title>
+<style>
+  :root { --bg:#F3E4C6; --ink:#4A2A1C; --card:#FBF0DA; --line:#E0C9A0; --accent:#468A34; }
+  * { box-sizing:border-box }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header { padding:20px 16px 8px; max-width:1500px; margin:auto }
+  h1 { margin:0 0 4px; font-size:24px } h2 { margin:28px 0 10px; font-size:19px }
+  p.sub { margin:0; opacity:.8 }
+  main { max-width:1500px; margin:auto; padding:0 16px 40px }
+  .bar { display:flex; gap:8px; flex-wrap:wrap; margin:10px 0 }
+  .bar button { border:2px solid var(--accent); background:var(--card); color:var(--ink); border-radius:999px; padding:6px 14px; font:inherit; cursor:pointer }
+  .bar button.on { background:var(--accent); color:#fff }
+  .scenes { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,560px),1fr)); gap:16px }
+  figure { margin:0; background:var(--card); border:1px solid var(--line); border-radius:12px; overflow:hidden }
+  figcaption { padding:8px 12px; font-weight:600 }
+  .host { width:100%; background:#222 }
+  .items { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:12px }
+  .item { background:#D8AB7C; border-radius:10px; padding:10px; display:flex; flex-direction:column; align-items:center; gap:6px }
+  .item .box { position:relative; width:100%; height:150px; display:flex; align-items:center; justify-content:center }
+  .item img { max-width:100%; max-height:150px; display:block }
+  .item .wrap { position:relative; display:inline-block; max-width:100%; line-height:0 }
+  .item .x { position:absolute; width:14px; height:14px; margin:-7px 0 0 -7px; pointer-events:none }
+  .item .x::before,.item .x::after { content:""; position:absolute; background:#1A4DFF }
+  .item .x::before { left:6px; top:0; width:2px; height:14px } .item .x::after { top:6px; left:0; height:2px; width:14px }
+  .item span { font:12px/1.3 ui-monospace, Consolas, monospace; text-align:center; word-break:break-all; color:#3A2216 }
+  .grp { grid-column:1/-1; margin:14px 0 0; font-weight:700 }
+</style></head>
+<body>
+<header>
+  <h1>Cooking with Mom: vegetable salad</h1>
+  <p class="sub">The second recipe. Every picture below is loaded through <code>&lt;img&gt;</code>. Scenes are built live by the images-b composer at 20:9 or 4:3. Blue crosses mark anchor points.</p>
+</header>
+<main>
+  <h2>Scenes</h2>
+  <div class="bar" id="ratio"><button data-w="2400" class="on">Phone 20:9</button><button data-w="1440">Tablet 4:3</button></div>
+  <div class="scenes" id="scenes"></div>
+  <h2>All new items</h2>
+  <div class="items" id="items"></div>
+</main>
+<script>window.IMAGES_B_DIR = "../images-b/"; window.PREP_BASE = "../images-b-prep/"; window.SALAD_BASE = "./";</script>
+<script src="../images-b/scenes.js"></script>
+<script src="../images-b-prep/scenes-prep.js"></script>
+<script src="scenes-salad.js"></script>
+<script>
+const SA = ScenesSalad.SALAD;
+function buildScenes(W) {
+  const box = document.getElementById("scenes"); box.innerHTML = "";
+  for (const [name, label] of ScenesSalad.ORDER) {
+    const f = document.createElement("figure"), host = document.createElement("div"), cap = document.createElement("figcaption");
+    host.className = "host"; cap.textContent = label; f.append(host, cap); box.append(f);
+    ScenesB.build(host, name, W);
+  }
+}
+document.getElementById("ratio").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  document.querySelectorAll("#ratio button").forEach(x => x.classList.toggle("on", x === b));
+  try { localStorage.setItem("saladRatio", b.dataset.w); } catch (_) {}
+  buildScenes(+b.dataset.w);
+});
+let startW = 2400; try { startW = +(localStorage.getItem("saladRatio") || 2400); } catch (_) {}
+document.querySelectorAll("#ratio button").forEach(x => x.classList.toggle("on", +x.dataset.w === startW));
+buildScenes(startW);
+
+const GROUPS = {
+  "Recipe card": [["card-salad"]],
+  "Wash": [["colander"], ["water-drop"]],
+  "Lettuce": [["lettuce-head"], ["lettuce-tear-1"], ["lettuce-tear-2"], ["lettuce-tear-3"]],
+  "Cutting (same spec as the prep vegetables)": [["veg-cucumber-whole"], ["veg-cucumber-slice", [120, 120]], ["veg-cucumber-inside"], ["veg-carrot-whole"], ["veg-carrot-slice", [120, 120]], ["veg-carrot-inside"]],
+  "Pieces in the bowl (topping size)": [["piece-cucumber", [70, 70]], ["piece-carrot", [70, 70]], ["piece-lettuce", [70, 70]]],
+  "Salad bowl (back, heaps 1-3 before mixing, mixed, front)": [["salad-bowl-back"], ["salad-heap-1"], ["salad-heap-2"], ["salad-heap-3"], ["salad-mixed"], ["salad-bowl-front"]],
+  "Dressing": [["lemon-half-1"], ["lemon-half-2"], ["lemon-half-3"], ["juice-drop"], ["oil-bottle", SA.oilSpout], ["oil-drop"], ["salt-shaker", SA.saltHoles]],
+  "Mix and serve": [["salad-servers", SA.servers], ["serving-bowl", [240, 122]], ["salad-portion", SA.portion]],
+  "Celebrate": [["photo-frame-salad", [80, 80], [620, 620]]],
+};
+const items = document.getElementById("items");
+for (const [g, list] of Object.entries(GROUPS)) {
+  const h = document.createElement("div"); h.className = "grp"; h.textContent = g; items.append(h);
+  for (const [name, ...pts] of list) {
+    const d = document.createElement("div"); d.className = "item";
+    const box = document.createElement("div"); box.className = "box";
+    const wrap = document.createElement("div"); wrap.className = "wrap";
+    const im = document.createElement("img"); im.src = name + ".svg"; im.alt = name; im.loading = "lazy";
+    wrap.append(im); box.append(wrap);
+    const cap = document.createElement("span"); cap.textContent = name;
+    im.onload = () => {
+      cap.textContent = `${name} · ${im.naturalWidth}×${im.naturalHeight}`;
+      for (const [x, y] of pts) { const c = document.createElement("i"); c.className = "x"; c.style.left = (x / im.naturalWidth * 100) + "%"; c.style.top = (y / im.naturalHeight * 100) + "%"; wrap.append(c); }
+    };
+    d.append(box, cap); items.append(d);
+  }
+}
+</script>
+</body></html>

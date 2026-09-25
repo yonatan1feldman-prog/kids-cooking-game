@@ -1,0 +1,8 @@
+<!doctype html><html><head><meta charset="utf-8"><title>montage</title>
+<style>body{margin:0;background:#fff;display:grid;grid-template-columns:repeat(var(--c),1fr);gap:4px}img{width:100%;display:block}</style></head><body>
+<script>
+// montage.html?files=shots/a.png,shots/b.png&cols=3  (paths relative to images-b-prep/)
+const q = new URLSearchParams(location.search);
+document.body.style.setProperty("--c", q.get("cols") || 3);
+for (const f of (q.get("files") || "").split(",")) { const i = document.createElement("img"); i.src = "../" + f; document.body.appendChild(i); }
+</script></body></html>

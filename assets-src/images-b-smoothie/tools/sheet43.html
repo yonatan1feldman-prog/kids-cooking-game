@@ -1,0 +1,28 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Smoothie items 4:3</title>
+<style>html,body{margin:0;background:#F3E4C6;overflow:hidden}canvas{display:block;width:100vw}</style></head><body><canvas id="c"></canvas>
+<script>
+// All 31 smoothie items on one 4:3 page (8 x 4 cells), each drawn img -> native canvas -> scaled drawImage (the game's path).
+// The jar contents (jar-heap-*, blend-stage-*) are drawn between blender-jar-back and blender-jar-front, as in the game.
+const N = ["card-smoothie","colander-fruit","fruit-banana-whole","fruit-strawberry-whole","fruit-mango-whole","fruit-kiwi-whole","milk-carton","milk-drop",
+ "fruit-banana-slice","fruit-strawberry-slice","fruit-mango-slice","fruit-kiwi-slice","fruit-banana-inside","fruit-strawberry-inside","fruit-mango-inside","fruit-kiwi-inside",
+ "blender-jar-back","blender-jar-front","jar-heap-1","jar-heap-2","jar-heap-3","blend-stage-1","blend-stage-2","blend-stage-3",
+ "blender-base","blender-lid","blender-button-off","blender-button-on","glass-empty","glass-full","photo-frame-smoothie"];
+const JAR = n => n.startsWith("jar-heap") || n.startsWith("blend-stage");
+const cols = 8, CW = 300, CH = 450, cv = document.getElementById("c"); cv.width = cols * CW; cv.height = 4 * CH;
+const g = cv.getContext("2d"); g.fillStyle = "#F3E4C6"; g.fillRect(0, 0, cv.width, cv.height);
+const load = s => new Promise(r => { const i = new Image(); i.onload = () => r(i); i.onerror = () => r(null); i.src = s; });
+(async () => {
+  const back = await load("../blender-jar-back.svg"), front = await load("../blender-jar-front.svg");
+  const rast = i => { const t = document.createElement("canvas"); t.width = i.naturalWidth; t.height = i.naturalHeight; t.getContext("2d").drawImage(i, 0, 0); return t; };
+  for (let k = 0; k < N.length; k++) {
+    const i = await load("../" + N[k] + ".svg"), x = (k % cols) * CW, y = Math.floor(k / cols) * CH;
+    g.fillStyle = "#5B3A29"; g.font = "15px sans-serif"; g.fillText(N[k] + (i ? "" : " MISSING"), x + 8, y + 18);
+    if (!i) continue;
+    const s = Math.min((CW - 20) / i.naturalWidth, (CH - 36) / i.naturalHeight, N[k].endsWith("-inside") || N[k] === "milk-drop" ? 1 : 9), w = i.naturalWidth * s, h = i.naturalHeight * s, dx = x + (CW - w) / 2, dy = y + 26 + (CH - 30 - h) / 2;
+    if (JAR(N[k])) g.drawImage(rast(back), dx, dy, w, h);
+    g.drawImage(rast(i), dx, dy, w, h);
+    if (JAR(N[k])) g.drawImage(rast(front), dx, dy, w, h);
+  }
+  document.title = "DONE";
+})();
+</script></body></html>

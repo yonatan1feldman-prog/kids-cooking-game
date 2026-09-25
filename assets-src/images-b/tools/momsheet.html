@@ -1,0 +1,63 @@
+<!doctype html><html><head><meta charset="utf-8"><title>momsheet</title>
+<style>body{margin:0;background:#F3E4C6;font:12px sans-serif;overflow:hidden}canvas{display:block}</style></head><body>
+<canvas id="c"></canvas>
+<script>
+// momsheet.html?mode=grid|scene|rot|hands&dir=..&scale=0.4
+//  grid : all 12 eye x mouth combinations (layers stacked via img -> canvas, the game's path)
+//  scene: 2400x1080 phone scene (use shot.sh default 800x360 @ dpr 3); Mom frame at scale 1 at the right,
+//         a pizza-sized disc at (1250,590), hedgehog zone box
+//  rot  : arm-left / arm-right rotated -20, 0, +20 deg around their pivots
+//  hands: the 5 demo hands with anchor crosshair, a 140 test disc on grab
+const q = new URLSearchParams(location.search);
+const mode = q.get("mode") || "grid", dir = q.get("dir") || "..", sc = +(q.get("scale") || 0.4);
+const EYES = ["open", "blink", "happy", "surprised"], MOUTHS = ["smile", "open", "talk"];
+const PL = [350, 505], PR = [650, 505];
+const HANDS = { point: [100, 100], roll: [140, 140], spread: [110, 250], sprinkle: [125, 115], grab: [110, 150] };
+const names = ["mom-body", "mom-head", "mom-hair", "mom-arm-left", "mom-arm-right"]
+  .concat(EYES.map(e => "mom-eyes-" + e), MOUTHS.map(m => "mom-mouth-" + m), Object.keys(HANDS).map(h => "mom-hand-" + h));
+const img = {};
+Promise.all(names.map(nm => new Promise(res => {
+  const i = new Image(); i.onload = () => { const t = document.createElement("canvas"); t.width = i.naturalWidth; t.height = i.naturalHeight; t.getContext("2d").drawImage(i, 0, 0); img[nm] = t; res(); };
+  i.onerror = () => { console.log("missing", nm); res(); }; i.src = dir + "/" + nm + ".svg?" + Date.now();
+}))).then(draw);
+const cv = document.getElementById("c"), g = cv.getContext("2d");
+function size(w, h) { cv.width = w; cv.height = h; cv.style.width = (w / devicePixelRatio) + "px"; cv.style.height = (h / devicePixelRatio) + "px"; g.fillStyle = "#F3E4C6"; g.fillRect(0, 0, w, h); }
+function part(nm, x, y, s, rot, piv) {
+  const t = img[nm]; if (!t) return; g.save(); g.translate(x, y); g.scale(s, s);
+  if (rot) { g.translate(piv[0], piv[1]); g.rotate(rot * Math.PI / 180); g.translate(-piv[0], -piv[1]); }
+  g.drawImage(t, 0, 0); g.restore();
+}
+function mom(x, y, s, eye, mouth, rl = 0, rr = 0) {
+  part("mom-arm-right", x, y, s, rr, PR); part("mom-body", x, y, s); part("mom-head", x, y, s); part("mom-hair", x, y, s);
+  part("mom-eyes-" + eye, x, y, s); part("mom-mouth-" + mouth, x, y, s); part("mom-arm-left", x, y, s, rl, PL);
+}
+function label(t, x, y) { g.fillStyle = "#5B3A29"; g.font = (14 * devicePixelRatio) + "px sans-serif"; g.fillText(t, x, y); }
+function cross(x, y, c = "#00f") { g.strokeStyle = c; g.lineWidth = 2; g.beginPath(); g.moveTo(x - 12, y); g.lineTo(x + 12, y); g.moveTo(x, y - 12); g.lineTo(x, y + 12); g.stroke(); }
+function draw() {
+  if (mode === "grid") {
+    const cell = 800 * sc, pad = 10, cols = 4; size(cols * (cell + pad) + pad, 3 * (cell + pad + 20) + pad);
+    MOUTHS.forEach((m, r) => EYES.forEach((e, c) => {
+      const x = pad + c * (cell + pad), y = pad + r * (cell + pad + 20);
+      g.strokeStyle = "rgba(0,0,0,.2)"; g.strokeRect(x, y + 20, cell, cell); label(e + " + " + m, x, y + 14); mom(x, y + 20, sc, e, m);
+    }));
+  } else if (mode === "scene") {
+    size(2400, 1080); cv.style.width = "800px"; cv.style.height = "360px"; g.save();
+    g.fillStyle = "#F3E4C6"; g.fillRect(0, 0, 2400, 414); g.fillStyle = "#B98659"; g.fillRect(0, 380, 2400, 34); g.fillStyle = "#D8AB7C"; g.fillRect(0, 414, 2400, 666);
+    g.fillStyle = "#E0A35C"; g.beginPath(); g.arc(1250, 590, 330, 0, 7); g.fill(); g.fillStyle = "#D8432E"; g.beginPath(); g.arc(1250, 590, 280, 0, 7); g.fill();
+    const s = +(q.get("mscale") || 1), mx = 2400 - 800 * s - 20, my = 1080 - 800 * s;
+    g.strokeStyle = "rgba(0,0,120,.5)"; g.lineWidth = 3; g.strokeRect(mx + 50 * s, my + 420 * s, 240 * s, 280 * s);
+    mom(mx, my, s, q.get("eye") || "open", q.get("mouth") || "smile", +(q.get("rl") || 0), +(q.get("rr") || 0));
+    g.restore();
+  } else if (mode === "rot") {
+    const cell = 800 * sc, pad = 10; size(3 * (cell + pad) + pad, cell + 40);
+    [-20, 0, 20].forEach((r, i) => { const x = pad + i * (cell + pad); label("rot " + r, x, 16); mom(x, 30, sc, "open", "smile", r, r);
+      cross(x + PL[0] * sc, 30 + PL[1] * sc, "#f00"); cross(x + PR[0] * sc, 30 + PR[1] * sc, "#f00"); });
+  } else {
+    const hs = sc, cell = 400 * hs, pad = 12, ks = Object.keys(HANDS); size(ks.length * (cell + pad) + pad, cell + 40);
+    ks.forEach((h, i) => { const x = pad + i * (cell + pad), y = 30; g.fillStyle = "#D8AB7C"; g.fillRect(x, y, cell, cell);
+      if (h === "grab") { g.fillStyle = "rgba(236,90,60,.85)"; g.beginPath(); g.arc(x + HANDS[h][0] * hs, y + HANDS[h][1] * hs, 58 * hs, 0, 7); g.fill(); }
+      part("mom-hand-" + h, x, y, hs); label(h, x, 18); cross(x + HANDS[h][0] * hs, y + HANDS[h][1] * hs); });
+  }
+  document.title = "DONE";
+}
+</script></body></html>

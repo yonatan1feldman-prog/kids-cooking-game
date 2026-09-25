@@ -1,0 +1,32 @@
+<!doctype html><html><head><meta charset="utf-8"><title>pippa faces</title>
+<style>body{margin:0;background:#F3E4C6;font:14px sans-serif}canvas{display:block}</style></head><body>
+<canvas id="c"></canvas>
+<script>
+// pippa-faces.html?scale=0.35&cols=4&bg=%23F3E4C6
+// Composites body + eyes + mouth (img -> native canvas -> scaled drawImage, like the game) for every mood.
+// eyes may carry a look offset: eyes@dx,dy
+const q = new URLSearchParams(location.search);
+const sc = +(q.get("scale") || 1), cols = +(q.get("cols") || 4), bg = q.get("bg") || "#F3E4C6", pad = 12;
+const combos = (q.get("combos") || "open+closed,blink+closed,happy+open,happy+chew,surprised+open,open+chew,open@-14,-8+closed,open@14,8+closed").split(",");
+// combos are split on "," so offsets use ";" in url; default list is rebuilt below
+const list = q.get("combos") ? combos.map(s => s.replace(/;/g, ",")) :
+  ["open+closed", "blink+closed", "happy+open", "happy+chew", "surprised+open", "open+chew", "open@-14,-8+closed", "surprised@14,8+open"];
+const cache = {};
+const load = n => cache[n] || (cache[n] = new Promise(r => { const i = new Image(); i.onload = () => { const t = document.createElement("canvas"); t.width = 600; t.height = 700; t.getContext("2d").drawImage(i, 0, 0); r(t); }; i.onerror = () => r(null); i.src = "../" + n + ".svg?" + Date.now(); }));
+Promise.all(list.map(async s => {
+  const [e, m] = s.split("+"); const [en, off] = e.split("@"); const o = off ? off.split(",").map(Number) : [0, 0];
+  return { s, body: await load("character-body"), eyes: await load("character-eyes-" + en), mouth: await load("character-mouth-" + m), o };
+})).then(items => {
+  const w = 600 * sc, h = 700 * sc, rows = Math.ceil(items.length / cols);
+  const cv = document.getElementById("c"); cv.width = cols * (w + pad) + pad; cv.height = rows * (h + pad + 18) + pad;
+  const g = cv.getContext("2d"); g.fillStyle = bg; g.fillRect(0, 0, cv.width, cv.height);
+  items.forEach((it, k) => {
+    const x = pad + (k % cols) * (w + pad), y = pad + Math.floor(k / cols) * (h + pad + 18);
+    g.fillStyle = "#5B3A29"; g.fillText(it.s, x, y + 12);
+    g.drawImage(it.body, x, y + 18, w, h);
+    g.drawImage(it.eyes, x + it.o[0] * sc, y + 18 + it.o[1] * sc, w, h);
+    g.drawImage(it.mouth, x, y + 18, w, h);
+  });
+  document.title = "DONE";
+});
+</script></body></html>

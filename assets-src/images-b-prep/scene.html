@@ -1,0 +1,11 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Prep scene</title>
+<style>html,body{margin:0;background:#222;overflow:hidden}#host{width:100vw}</style></head><body><div id="host"></div>
+<script>window.IMAGES_B_DIR = "../images-b/";</script>
+<script src="../images-b/scenes.js"></script>
+<script src="scenes-prep.js"></script>
+<script>
+// Screenshot harness: scene.html?s=wash&w=2400[&canvas=1]  (w = world width: 2400 at 20:9, 1440 at 4:3)
+const q = new URLSearchParams(location.search), W = +(q.get("w") || 2400), host = document.getElementById("host");
+const world = ScenesB.build(host, q.get("s") || "wash", W);
+if (q.get("canvas") === "1") ScenesPrep.toCanvasPrep(host, world, W).then(() => document.title = "CANVAS-DONE");
+</script></body></html>

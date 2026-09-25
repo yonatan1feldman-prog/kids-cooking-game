@@ -1,0 +1,60 @@
+<!doctype html><html><head><meta charset="utf-8"><title>kitchen view</title>
+<style>body{margin:0;background:#888;overflow:hidden}canvas{display:block}</style></head><body><canvas id="c"></canvas>
+<script>
+// kitchen-view.html?mode=oven   -> composite: oven-inside, pizza circle (350,480) d 320, oven-closed; plus oven-open; on bg colour
+// kitchen-view.html?mode=bg&x0=0&w=2400 -> background crop x0..x0+w (full height), scaled to canvas width = window width
+// kitchen-view.html?mode=scene -> bg at 20:9 with oven + buttons + stars + card at game sizes (0.75x)
+const q = new URLSearchParams(location.search), mode = q.get("mode") || "oven";
+const load = n => new Promise(r => { const i = new Image(); i.onload = () => { const t = document.createElement("canvas"); t.width = i.naturalWidth; t.height = i.naturalHeight; t.getContext("2d").drawImage(i, 0, 0); r(t); }; i.src = "../" + n + ".svg?" + Date.now(); });
+const cv = document.getElementById("c"), g = cv.getContext("2d");
+(async () => {
+  if (mode === "oven") {
+    const [ins, clo, opn] = await Promise.all(["oven-inside", "oven-closed", "oven-open"].map(load));
+    cv.width = 2200; cv.height = 820; g.fillStyle = "#F3E4C6"; g.fillRect(0, 0, 2200, 820);
+    for (const [ox, withPizza] of [[0, true], [730, false]]) {
+      g.save(); g.translate(ox, 10); g.drawImage(ins, 0, 0);
+      if (withPizza) { g.fillStyle = "#E0A35C"; g.beginPath(); g.arc(350, 480, 160, 0, 7); g.fill(); g.fillStyle = "#D8432E"; g.beginPath(); g.arc(350, 480, 130, 0, 7); g.fill(); }
+      g.drawImage(clo, 0, 0);
+      g.strokeStyle = "rgba(0,0,255,.6)"; g.lineWidth = 1; g.strokeRect(150, 320, 400, 290); g.strokeRect(120, 290, 460, 350);
+      g.restore();
+    }
+    g.drawImage(opn, 1460, 10);
+    g.strokeStyle = "rgba(0,0,255,.6)"; g.strokeRect(1460 + 90, 10 + 240, 520, 430); g.strokeRect(1460 + 40, 10 + 660, 620, 122);
+  } else if (mode === "check") {
+    const [clo, ins, bg, bp, st] = await Promise.all(["oven-closed", "oven-inside", "bg-kitchen-landscape", "btn-play", "star"].map(load));
+    const A = (c, x, y) => c.getContext("2d").getImageData(x, y, 1, 1).data;
+    const out = [];
+    // window hole: alpha 0 just inside, >0 just outside each edge
+    const pts = [[151, 465, 0], [147, 465, 1], [549, 465, 0], [553, 465, 1], [350, 321, 0], [350, 317, 1], [350, 609, 0], [350, 613, 1], [153, 323, 1], [160, 330, 0], [350, 465, 0]];
+    for (const [x, y, e] of pts) { const a = A(clo, x, y)[3]; out.push(`closed (${x},${y}) alpha=${a} expect ${e ? ">0" : "0"} ${(e ? a > 0 : a === 0) ? "OK" : "FAIL"}`); }
+    for (const [x, y] of [[120, 290], [580, 290], [120, 640], [580, 640], [350, 465]]) out.push(`inside (${x},${y}) alpha=${A(ins, x, y)[3]}`);
+    for (const y of [378, 382, 400, 412, 416, 430]) out.push(`bg x1200 y${y} rgb=${[...A(bg, 1200, y)].slice(0, 3)}`);
+    // button: alpha bbox of opaque pixels
+    const bb = (c, th) => { const d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data; let x0 = 1e9, y0 = 1e9, x1 = -1, y1 = -1; for (let y = 0; y < c.height; y++) for (let x = 0; x < c.width; x++) if (d[(y * c.width + x) * 4 + 3] > th) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); } return [x0, y0, x1, y1]; };
+    out.push("btn-play bbox(a>200) " + bb(bp, 200) + "  bbox(a>10) " + bb(bp, 10));
+    out.push("star bbox(a>200) " + bb(st, 200));
+    out.push("oven-closed bbox(a>200) " + bb(clo, 200));
+    cv.width = 900; cv.height = 30 + out.length * 22; g.fillStyle = "#fff"; g.fillRect(0, 0, cv.width, cv.height); g.fillStyle = "#000"; g.font = "16px monospace";
+    out.forEach((s, i) => g.fillText(s, 10, 24 + i * 22));
+  } else if (mode === "bg") {
+    const bg = await load("bg-kitchen-landscape");
+    const x0 = +(q.get("x0") || 0), w = +(q.get("w") || 2400), s = innerWidth / w;
+    cv.width = innerWidth; cv.height = 1080 * s; g.drawImage(bg, x0, 0, w, 1080, 0, 0, innerWidth, 1080 * s);
+  } else {
+    const names = ["bg-kitchen-landscape", "oven-inside", "oven-closed", "btn-home", "btn-play", "star", "card-pizza"];
+    const [bg, ins, clo, home, play, star, card] = await Promise.all(names.map(load));
+    const x0 = +(q.get("x0") || 0), W = +(q.get("w") || 2400), s = innerWidth / W;
+    cv.width = innerWidth; cv.height = 1080 * s; g.scale(s, s); g.translate(-x0, 0);
+    g.drawImage(bg, 0, 0);
+    const cx = 1200 - W / 2, px = cx + 0.47 * W;
+    g.drawImage(ins, px - 262, 390, 525, 600);
+    g.fillStyle = "#E0A35C"; g.beginPath(); g.arc(px, 390 + 480 * .75, 120, 0, 7); g.fill();
+    g.drawImage(clo, px - 262, 390, 525, 600);
+    g.drawImage(home, cx + 0.04 * W, 12, 180, 180); g.drawImage(play, cx + 0.96 * W - 180, 12, 180, 180);
+    for (let i = 0; i < 3; i++) g.drawImage(star, cx + W / 2 - 225 + i * 150, 30, 150, 150);
+    g.drawImage(card, cx + 0.07 * W, 480, 300, 390);
+    g.fillStyle = "rgba(90,60,160,.35)"; g.fillRect(cx + 0.72 * W + 60, 300, 300, 780);
+  }
+  document.title = "DONE";
+})();
+</script></body></html>

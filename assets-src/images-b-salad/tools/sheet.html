@@ -1,0 +1,41 @@
+<!doctype html><html><head><meta charset="utf-8"><title>sheet</title>
+<style>body{margin:0;background:#F3E4C6;font:12px sans-serif}canvas{display:block}</style></head><body>
+<canvas id="c"></canvas>
+<script>
+// sheet.html?files=a,b,c&scale=0.5&bg=%23F3E4C6&cols=6&grid=1
+// Draws each ../<name>.svg through img -> native-size canvas -> scaled drawImage (the game's path).
+// Optional crosshair: name@x,y marks a point (viewBox coords), e.g. hand-hint@53:23
+const q = new URLSearchParams(location.search);
+const list = (q.get("files") || "").split(",").filter(Boolean);
+const sc = +(q.get("scale") || 1), cols = +(q.get("cols") || 6), bg = q.get("bg") || "#F3E4C6", pad = 16;
+Promise.all(list.map(s => new Promise(res => {
+  const [name, pt] = s.split("@"); const i = new Image();
+  i.onload = () => res({ name, i, pt: pt ? pt.split(":").map(Number) : null });
+  i.onerror = () => res({ name, i: null });
+  i.src = (name.includes("/") ? name : "../" + name) + ".svg?" + Date.now();
+}))).then(items => {
+  const ws = items.map(o => o.i ? o.i.naturalWidth * sc : 100), hs = items.map(o => o.i ? o.i.naturalHeight * sc : 100);
+  const rows = Math.ceil(items.length / cols), colW = [], rowH = [];
+  items.forEach((o, k) => { const c = k % cols, r = Math.floor(k / cols); colW[c] = Math.max(colW[c] || 0, ws[k]); rowH[r] = Math.max(rowH[r] || 0, hs[k]); });
+  const W = colW.reduce((a, b) => a + b + pad, pad), H = rowH.reduce((a, b) => a + b + pad + 14, pad);
+  const cv = document.getElementById("c"); cv.width = W; cv.height = H; cv.style.width = W + "px";
+  const g = cv.getContext("2d"); g.fillStyle = bg; g.fillRect(0, 0, W, H);
+  let y = pad;
+  for (let r = 0; r < rows; r++) {
+    let x = pad;
+    for (let c = 0; c < cols; c++) {
+      const k = r * cols + c; if (k >= items.length) break; const o = items[k];
+      g.fillStyle = "#5B3A29"; g.fillText(o.name.split("/").pop() + (o.i ? "" : " MISSING"), x, y + 10);
+      if (o.i) {
+        const t = document.createElement("canvas"); t.width = o.i.naturalWidth; t.height = o.i.naturalHeight; t.getContext("2d").drawImage(o.i, 0, 0);
+        if (q.get("grid")) { g.strokeStyle = "rgba(0,0,0,.25)"; g.strokeRect(x, y + 14, ws[k], hs[k]); }
+        g.drawImage(t, x, y + 14, ws[k], hs[k]);
+        if (o.pt) { g.strokeStyle = "#00f"; g.lineWidth = 2; const px = x + o.pt[0] * sc, py = y + 14 + o.pt[1] * sc; g.beginPath(); g.moveTo(px - 12, py); g.lineTo(px + 12, py); g.moveTo(px, py - 12); g.lineTo(px, py + 12); g.stroke(); }
+      }
+      x += colW[c] + pad;
+    }
+    y += rowH[r] + pad + 14;
+  }
+  document.title = "DONE";
+});
+</script></body></html>

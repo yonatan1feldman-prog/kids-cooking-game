@@ -1,0 +1,12 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Cake scene</title>
+<style>html,body{margin:0;background:#222;overflow:hidden}#host{width:100vw}</style></head><body><div id="host"></div>
+<script>window.IMAGES_B_DIR = "../images-b/"; window.PREP_BASE = "../images-b-prep/"; window.SALAD_BASE = "../images-b-salad/"; window.COOKIES_BASE = "../images-b-cookies/"; window.SMOOTHIE_BASE = "../images-b-smoothie/"; window.PANCAKES_BASE = "../images-b-pancakes/"; window.SOUP_BASE = "../images-b-soup/"; window.CAKE_BASE = "./";</script>
+<script src="../images-b/scenes.js"></script>
+<script src="../images-b-prep/scenes-prep.js"></script>
+<script src="scenes-cake.js"></script>
+<script>
+// Screenshot harness (file://, no server): scene.html?s=cake-stir&w=2400[&canvas=1]  (w = world width: 2400 at 20:9, 1440 at 4:3)
+const q = new URLSearchParams(location.search), W = +(q.get("w") || 2400), host = document.getElementById("host");
+const world = ScenesB.build(host, q.get("s") || "cake-stir", W);
+if (q.get("canvas") === "1") ScenesCake.toCanvas(host, world, W).then(() => document.title = "CANVAS-DONE");
+</script></body></html>

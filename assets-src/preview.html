@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>תצוגת נכסים – משחק פיצה</title>
+<style>
+  :root { --ink:#5B3A29; --cream:#FFF6E6; --dough:#F8DDAE; --peach:#F3C9A8; --crust:#E3A869; --wood:#B97A4C;
+          --red:#E4523B; --redd:#B8382B; --orange:#F79A3E; --yellow:#FFCB47; --pink:#F6A5A0; --green:#8CB55A; --olive:#6E4868; }
+  * { box-sizing: border-box; }
+  html, body { overflow-x:hidden; }
+  body { margin:0; background:#FFFDF8; color:var(--ink); font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif; }
+  main { max-width: 430px; margin: 0 auto; padding: 12px 16px 60px; }
+  h1 { font-size: 22px; margin: 8px 0 4px; }
+  h2 { font-size: 18px; margin: 28px 0 8px; }
+  h3 { font-size: 15px; margin: 16px 0 6px; }
+  p.note { font-size: 13px; margin: 4px 0 10px; opacity: .8; }
+  .palette { display:grid; grid-template-columns: repeat(7, 1fr); gap:6px; }
+  .sw { border-radius: 10px; height: 44px; border: 3px solid var(--ink); display:flex; align-items:flex-end; justify-content:center;
+        font-size: 9px; padding-bottom: 2px; direction:ltr; }
+  .grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; padding:10px; border-radius:18px; }
+  .grid.light { background:#FFFFFF; border:2px dashed #E9D8C4; }
+  .grid.kitchen { background: url(images/bg-kitchen.svg) center/cover; }
+  .cell { background: transparent; border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:6px 2px; min-height: 104px; }
+  .cell img { max-width: 100%; max-height: 80px; }
+  .cell span { font-size: 10px; margin-top: 4px; direction:ltr; word-break: break-all; text-align:center; }
+  .grid.kitchen .cell span { background: rgba(255,246,230,.85); border-radius:6px; padding:0 4px; }
+  .scene { position:relative; width:100%; aspect-ratio: 9/16; border-radius:18px; overflow:hidden; box-shadow: 0 4px 16px rgba(91,58,41,.25); }
+  .scene img { position:absolute; display:block; user-select:none; -webkit-user-drag:none; }
+  .char { position:relative; aspect-ratio: 6/7; background:#fff; border-radius:16px; border:2px dashed #E9D8C4; }
+  .char img { position:absolute; left:0; top:0; width:100%; height:100%; }
+  .char label { position:absolute; bottom:4px; inset-inline:0; text-align:center; font-size:12px; }
+  .char.big { max-width: 260px; margin: 0 auto; cursor:pointer; }
+  .char.big label { font-size:15px; font-weight:600; }
+  .exprs { display:grid; grid-template-columns: repeat(4, 1fr); gap:6px; margin-top:10px; }
+  .exprs .char label { font-size:10px; }
+  .sounds { display:grid; grid-template-columns: repeat(2, 1fr); gap:10px; }
+  button.snd { font: inherit; font-size: 16px; padding: 14px 8px; border-radius: 16px; border: 4px solid var(--ink);
+               background: var(--yellow); color: var(--ink); cursor: pointer; direction:ltr; }
+  button.snd.voice { background: var(--pink); }
+  button.snd:active { transform: scale(.96); }
+  button.snd.missing { background: #eee; opacity:.5; }
+  .wide { width: calc(100vw - 32px); max-width: 1100px; position: relative; right: 50%; transform: translateX(50%); }
+  .land { position:relative; width:100%; overflow:hidden; border-radius:14px; margin-bottom:6px; box-shadow: 0 4px 16px rgba(91,58,41,.25); background:#000; }
+  .land img { position:absolute; display:block; user-select:none; -webkit-user-drag:none; }
+  .land .zone { position:absolute; border:2px dashed; font-size:11px; font-weight:700; padding:2px 4px; pointer-events:none; direction:ltr; }
+  .land .ban { position:absolute; background: repeating-linear-gradient(45deg, rgba(228,82,59,.28) 0 6px, transparent 6px 12px); pointer-events:none; }
+  .land.nozones .zone, .land.nozones .ban { display:none; }
+  .landcap { font-size:13px; margin: 0 0 18px; direction:ltr; text-align:left; }
+  .btnrow { display:flex; gap:8px; margin:8px 0; flex-wrap:wrap; }
+  .btnrow button { font:inherit; font-size:15px; padding:10px 14px; border-radius:14px; border:3px solid var(--ink); background:var(--cream); color:var(--ink); }
+</style>
+</head>
+<body>
+<main>
+  <h1>משחק הפיצה – תצוגת נכסים (v2)</h1>
+  <p class="note">כל הציורים מקוריים (SVG). הצלילים מחבילות Kenney ברישיון CC0 – פרטים ב-LICENSES.md. הגרסה הקודמת שמורה ב-images-v1 וב-sounds-v1.</p>
+
+  <h2>הפלטה (13 צבעים)</h2>
+  <div class="palette" id="palette"></div>
+
+  <h2>לרוחב (landscape): שלושה יחסי מסך</h2>
+  <p class="note">הרקע החדש, מגשים משמאל, פיצה במרכז, הדמות מימין וכפתורים למעלה. כדאי לסובב את הפלאפון כדי לראות גדול יותר.</p>
+  <label class="note" style="display:block;margin-bottom:8px"><input type="checkbox" id="zonesToggle" checked> הצג אזורים ושוליים אסורים</label>
+  <div class="wide" id="landHost"></div>
+
+  <h2>סצנה לאורך (portrait): פיצה על המגש</h2>
+  <p class="note">לחצו על הדמות כדי לעבור בין ההבעות.</p>
+  <div class="scene" id="scene"></div>
+  <div class="btnrow"><button id="reroll">פיצה אחרת</button></div>
+
+  <h2>התנור: שלוש שכבות</h2>
+  <p class="note">oven-inside ← פיצה ← oven-closed. החלון שקוף באמת, ורואים דרכו את הפיצה.</p>
+  <div class="btnrow">
+    <button id="bakeBtn">אפייה 🔥</button>
+    <button id="ovenBtn">פתיחה / סגירה</button>
+  </div>
+  <div class="scene" id="ovenScene"></div>
+
+  <h2>הדמות: כל ההבעות</h2>
+  <div class="char big" id="bigChar"></div>
+  <p class="note" style="text-align:center">לחצו על הדמות כדי לעבור להבעה הבאה</p>
+  <div class="exprs" id="exprs"></div>
+
+  <h2>צלילים</h2>
+  <div class="sounds" id="sounds"></div>
+  <h3>קולות באנגלית (sounds/voice)</h3>
+  <div class="sounds" id="voices"></div>
+
+  <h2>כל התמונות – רקע בהיר</h2>
+  <div class="grid light" id="gridLight"></div>
+
+  <h2>כל התמונות – על רקע המטבח</h2>
+  <div class="grid kitchen" id="gridKitchen"></div>
+
+  <h2>רקע המטבח במלואו</h2>
+  <div class="scene"><img src="images/bg-kitchen.svg" style="inset:0;width:100%;height:100%" alt=""></div>
+</main>
+<script>
+const NAMES = ["bg-kitchen","bg-kitchen-landscape","dough-ball","dough-flat","rolling-pin","sauce-bowl","sauce-blob","cheese-shaker","cheese-shred",
+  "topping-tomato","topping-olive","topping-mushroom","topping-corn","topping-pepper","topping-onion","tray",
+  "oven-closed","oven-open","oven-inside","pizza-slice","character-body",
+  "character-eyes-open","character-eyes-blink","character-eyes-happy","character-eyes-surprised",
+  "character-mouth-open","character-mouth-closed","character-mouth-chew","hand-hint","star",
+  "btn-play","btn-home","btn-done","card-pizza"];
+const PALETTE = [["ink","#5B3A29"],["cream","#FFF6E6"],["dough","#F8DDAE"],["peach","#F3C9A8"],["crust","#E3A869"],["wood","#B97A4C"],
+  ["red","#E4523B"],["red-d","#B8382B"],["orange","#F79A3E"],["yellow","#FFCB47"],["pink","#F6A5A0"],["green","#8CB55A"],["olive","#6E4868"]];
+const SOUNDS = ["tap","pop","squish","sprinkle","whoosh","oven-ding","munch","cheer","cheer-jingle"];
+const VOICES = ["ready","set","go","correct","you-win","level-up"];
+const EXPR = [ // [label, eyes, mouth]
+  ["עיניים פקוחות","open","closed"], ["מצמוץ","blink","closed"], ["שמחה","happy","closed"],
+  ["הפתעה","surprised","open"], ["פה פתוח","happy","open"], ["לעיסה","happy","chew"], ["פה סגור","open","closed"]];
+
+const pal = document.getElementById("palette");
+for (const [n,c] of PALETTE) {
+  const d = document.createElement("div"); d.className = "sw"; d.style.background = c;
+  d.style.color = ["ink","red-d","wood","olive"].includes(n) ? "#fff" : "#5B3A29"; d.textContent = n; pal.appendChild(d);
+}
+for (const id of ["gridLight","gridKitchen"]) {
+  const g = document.getElementById(id);
+  for (const n of NAMES) {
+    const c = document.createElement("div"); c.className = "cell";
+    c.innerHTML = `<img src="images/${n}.svg" alt="${n}" loading="lazy"><span>${n}</span>`; g.appendChild(c);
+  }
+}
+
+// ---- composition in design coordinates (1080 x 1920) ----
+function put(parent, name, x, y, w, opts = {}) {
+  const img = document.createElement("img");
+  img.src = `images/${name}.svg`; img.alt = "";
+  img.style.left = (x / 1080 * 100) + "%"; img.style.top = (y / 1920 * 100) + "%";
+  img.style.width = (w / 1080 * 100) + "%";
+  if (opts.rot || opts.center) img.style.transform = `${opts.center ? "translate(-50%,-50%)" : ""} rotate(${opts.rot || 0}deg)`;
+  parent.appendChild(img); return img;
+}
+function rng(seed) { return () => (seed = (seed * 16807) % 2147483647) / 2147483647; }
+
+// pizza centred at (cx,cy); k = scale relative to the 720px dough
+function buildPizza(parent, cx, cy, k, seed, place = put) {
+  const r = rng(seed), els = [];
+  els.push(place(parent, "dough-flat", cx, cy, 720 * k, { center: true }));
+  for (let i = 0; i < 26; i++) {
+    const a = r() * Math.PI * 2, d = Math.sqrt(r()) * 190 * k;
+    els.push(place(parent, "sauce-blob", cx + Math.cos(a) * d, cy + Math.sin(a) * d, 240 * k, { center: true, rot: r() * 360 }));
+  }
+  for (let i = 0; i < 36; i++) {
+    const a = r() * Math.PI * 2, d = Math.sqrt(r()) * 225 * k;
+    els.push(place(parent, "cheese-shred", cx + Math.cos(a) * d, cy + Math.sin(a) * d, 80 * k, { center: true, rot: r() * 360 }));
+  }
+  const tops = ["topping-tomato","topping-olive","topping-mushroom","topping-corn","topping-pepper","topping-onion"];
+  for (let i = 0; i < 12; i++) {
+    const a = r() * Math.PI * 2, d = (40 + Math.sqrt(r()) * 170) * k;
+    els.push(place(parent, tops[i % tops.length], cx + Math.cos(a) * d, cy + Math.sin(a) * d, 130 * k, { center: true, rot: r() * 360 }));
+  }
+  return els;
+}
+
+// character made of stacked layers (same viewBox); returns a setter for an EXPR entry
+function makeChar(el) {
+  el.insertAdjacentHTML("afterbegin", '<img src="images/character-body.svg" alt=""><img alt=""><img alt="">');
+  const imgs = el.querySelectorAll("img");
+  return (e) => { imgs[1].src = `images/character-eyes-${e[1]}.svg`; imgs[2].src = `images/character-mouth-${e[2]}.svg`; };
+}
+
+let seed = 7, exprIdx = 0;
+function nextExpr() {
+  exprIdx = (exprIdx + 1) % EXPR.length;
+  setScene(EXPR[exprIdx]); setBig();
+  play(EXPR[exprIdx][2] === "chew" ? "munch" : "pop");
+}
+
+let setScene = () => {};
+function buildScene() {
+  const s = document.getElementById("scene"); s.innerHTML = "";
+  put(s, "bg-kitchen", 0, 0, 1080);
+  put(s, "tray", 130, 700, 820);
+  buildPizza(s, 540, 1110, 1, seed);
+  const ch = document.createElement("div");
+  ch.style.cssText = "position:absolute;left:66%;top:69%;width:30%;aspect-ratio:6/7;cursor:pointer";
+  s.appendChild(ch);
+  for (const i of (setScene = makeChar(ch), ch.querySelectorAll("img"))) i.style.cssText = "left:0;top:0;width:100%;height:100%";
+  setScene(EXPR[exprIdx]);
+  ch.onclick = nextExpr;
+  put(s, "hand-hint", 250, 820, 170);
+  put(s, "btn-home", 40, 40, 150); put(s, "btn-done", 890, 40, 150);
+  put(s, "cheese-shaker", 40, 1400, 190); put(s, "sauce-bowl", 250, 1470, 230);
+}
+document.getElementById("reroll").onclick = () => { seed = seed * 31 + 11; buildScene(); play("pop"); };
+
+// oven: oven-inside -> pizza -> oven-closed (or oven-open alone)
+const BAKED = "saturate(1.35) brightness(.88) sepia(.25)";
+let ovenOpen = false, baked = false, pizzaEls = [];
+function buildOven() {
+  const s = document.getElementById("ovenScene"); s.innerHTML = "";
+  put(s, "bg-kitchen", 0, 0, 1080);
+  const OX = 190, OY = 640, OW = 700;   // window = (150..550, 320..610) inside the oven's 700x800 viewBox
+  if (ovenOpen) {
+    put(s, "oven-open", OX, OY, OW); pizzaEls = [];
+  } else {
+    put(s, "oven-inside", OX, OY, OW);
+    pizzaEls = buildPizza(s, OX + 350, OY + 480, 0.46, 3);
+    for (const e of pizzaEls) { e.style.transition = "filter 3s"; e.style.filter = baked ? BAKED : "none"; }
+    put(s, "oven-closed", OX, OY, OW);
+  }
+  put(s, "card-pizza", 60, 1460, 260); put(s, "pizza-slice", 420, 1520, 240); put(s, "btn-play", 760, 1500, 230);
+  put(s, "rolling-pin", 300, 440, 480); put(s, "dough-ball", 60, 380, 220);
+}
+document.getElementById("ovenBtn").onclick = () => { ovenOpen = !ovenOpen; buildOven(); play("whoosh"); };
+document.getElementById("bakeBtn").onclick = () => {
+  ovenOpen = false; baked = false; buildOven();
+  requestAnimationFrame(() => requestAnimationFrame(() => { baked = true; for (const e of pizzaEls) e.style.filter = BAKED; }));
+  setTimeout(() => play("oven-ding"), 3000);
+};
+
+// expressions: big clickable character + small grid of all of them
+const big = document.getElementById("bigChar");
+const setBigChar = makeChar(big);
+big.insertAdjacentHTML("beforeend", '<label id="bigLabel"></label>');
+function setBig() { setBigChar(EXPR[exprIdx]); document.getElementById("bigLabel").textContent = EXPR[exprIdx][0]; }
+big.onclick = nextExpr;
+const ex = document.getElementById("exprs");
+for (const e of EXPR) {
+  const d = document.createElement("div"); d.className = "char"; ex.appendChild(d);
+  makeChar(d)(e); d.insertAdjacentHTML("beforeend", `<label>${e[0]}</label>`);
+}
+
+// ---- sounds ----
+const audio = {};
+function play(n) { const a = audio[n]; if (!a) return; a.currentTime = 0; a.play().catch(() => {}); }
+function soundButtons(list, dir, host, cls) {
+  for (const n of list) {
+    const b = document.createElement("button"); b.className = "snd " + cls; b.textContent = "▶ " + n; host.appendChild(b);
+    (async () => {
+      for (const ext of ["ogg", "mp3"]) {
+        try { const r = await fetch(`${dir}${n}.${ext}`, { method: "HEAD" });
+          if (r.ok) { audio[n] = new Audio(`${dir}${n}.${ext}`); b.onclick = () => play(n); return; } } catch (e) {}
+      }
+      b.classList.add("missing"); b.textContent = n + " – חסר";
+    })();
+  }
+}
+soundButtons(SOUNDS, "sounds/", document.getElementById("sounds"), "");
+soundButtons(VOICES, "sounds/voice/", document.getElementById("voices"), "voice");
+
+// ---- landscape: world is always 1080 high; width = 1080 * aspect (see STYLE.md "Landscape layout") ----
+const LS = 0.75;                       // one scale for every gameplay asset -> 6px outline everywhere
+const LZ = { side: 0.04, bottom: 994, bar: 200, surface: 420, trays: [0, 0.22], work: [0.22, 0.72], char: [0.72, 1] };
+function buildLandscape(host, aspect, label, seed) {
+  const W = 1080 * aspect;
+  const box = document.createElement("div"); box.className = "land"; box.style.aspectRatio = aspect;
+  box.id = "land-" + host.children.length / 2;
+  host.appendChild(box);
+  const cap = document.createElement("p"); cap.className = "landcap"; cap.textContent = label; host.appendChild(cap);
+  const place = (name, x, y, w, opts = {}) => {
+    const img = document.createElement("img"); img.src = `images/${name}.svg`; img.alt = "";
+    img.style.left = (x / W * 100) + "%"; img.style.top = (y / 1080 * 100) + "%"; img.style.width = (w / W * 100) + "%";
+    if (opts.rot || opts.center) img.style.transform = `${opts.center ? "translate(-50%,-50%)" : ""} rotate(${opts.rot || 0}deg)`;
+    box.appendChild(img); return img;
+  };
+  // background: cover, anchored bottom-centre (crops sides on 4:3, crops top on 20:9)
+  const k = Math.max(W / 1920, 1);
+  place("bg-kitchen-landscape", (W - 1920 * k) / 2, 1080 - 1080 * k, 1920 * k);
+  // top bar
+  place("btn-home", W * LZ.side, 12, 240 * LS);
+  place("btn-done", W * (1 - LZ.side) - 240 * LS, 12, 240 * LS);
+  for (let i = -1; i <= 1; i++) place("star", W / 2 + i * 160 - 75, 22, 200 * LS);
+  // trays & ingredients (left): items rest on the counter surface (y >= 420). Shown here: the toppings step,
+  // two topping trays with three toppings each (the step's bowl/shaker would take the same slots).
+  const tx = W * (LZ.side + LZ.trays[1]) / 2;
+  const tops = ["topping-tomato","topping-olive","topping-mushroom","topping-corn","topping-pepper","topping-onion"];
+  [560, 830].forEach((ty, j) => {
+    place("tray", tx, ty, 820 * 0.32, { center: true });
+    for (let i = 0; i < 3; i++) {
+      const a = -Math.PI / 2 + i / 3 * Math.PI * 2;
+      place(tops[j * 3 + i], tx + Math.cos(a) * 58, ty + Math.sin(a) * 58, 140 * 0.6, { center: true });
+    }
+  });
+  // pizza on its tray (centre)
+  const wx = W * (LZ.work[0] + LZ.work[1]) / 2;
+  place("tray", wx, 702, 820 * LS, { center: true });
+  buildPizza(box, wx, 700, LS, seed, (_parent, ...a) => place(...a));
+  // character (right), feet on the counter, clickable through expressions
+  const cx = W * (LZ.char[0] + 1 - LZ.side) / 2;
+  const ch = document.createElement("div");
+  ch.style.cssText = `position:absolute;left:${(cx - 225) / W * 100}%;top:${540 / 10.8}%;width:${450 / W * 100}%;aspect-ratio:6/7;cursor:pointer`;
+  box.appendChild(ch);
+  const set = makeChar(ch); let e = 2; set(EXPR[e]);
+  for (const i of ch.querySelectorAll("img")) i.style.cssText = "left:0;top:0;width:100%;height:100%";
+  ch.onclick = () => { e = (e + 1) % EXPR.length; set(EXPR[e]); play("pop"); };
+  // zone overlay
+  const zone = (x0, x1, y0, y1, color, text) => {
+    const z = document.createElement("div"); z.className = "zone"; z.textContent = text;
+    Object.assign(z.style, { left: x0 / W * 100 + "%", width: (x1 - x0) / W * 100 + "%", top: y0 / 10.8 + "%", height: (y1 - y0) / 10.8 + "%", borderColor: color, color });
+    box.appendChild(z);
+  };
+  const ban = (x0, x1, y0, y1) => {
+    const z = document.createElement("div"); z.className = "ban";
+    Object.assign(z.style, { left: x0 / W * 100 + "%", width: (x1 - x0) / W * 100 + "%", top: y0 / 10.8 + "%", height: (y1 - y0) / 10.8 + "%" });
+    box.appendChild(z);
+  };
+  const m = W * LZ.side;
+  zone(m, W - m, 0, LZ.bar, "#5B3A29", "top bar");
+  zone(m, W * LZ.trays[1], LZ.bar, LZ.bottom, "#B8382B", "trays");
+  zone(W * LZ.work[0], W * LZ.work[1], LZ.bar, LZ.bottom, "#6E4868", "work");
+  zone(W * LZ.char[0], W - m, LZ.bar, LZ.bottom, "#3E6B1F", "character");
+  ban(0, m, 0, 1080); ban(W - m, W, 0, 1080); ban(m, W - m, LZ.bottom, 1080);
+}
+const landHost = document.getElementById("landHost");
+buildLandscape(landHost, 16 / 9, "16:9  (world 1920 x 1080)", 5);
+buildLandscape(landHost, 20 / 9, "20:9  (world 2400 x 1080, background top cropped)", 5);
+buildLandscape(landHost, 4 / 3, "4:3  (world 1440 x 1080, background sides cropped)", 5);
+document.getElementById("zonesToggle").onchange = (ev) => {
+  for (const b of document.querySelectorAll(".land")) b.classList.toggle("nozones", !ev.target.checked);
+};
+
+buildScene(); buildOven(); setBig();
+if (location.hash) { const t = document.querySelector(location.hash); if (t) t.scrollIntoView(); }
+</script>
+</body>
+</html>

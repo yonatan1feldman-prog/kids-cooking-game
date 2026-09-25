@@ -11,3 +11,8 @@ docs/screenshots-round5a/
 docs/screenshots-round5b/
 docs/screenshots-round6/
 docs/screenshots-round7/
+audio-src/tools/
+audio-src/work/
+audio-src/.venv/
+__pycache__/
+*.pyc

@@ -21,6 +21,7 @@
   - layout / positions: "Landscape layout", Handoff notes 2; tuning after watching her play: `core/tuning.ts` only.
   - voice or sound: "Asset contract" (levels), "Recipes are data" (voice lines per event, the queue rules).
   - testing: "Testing notes for agents", Handoff notes 1 (harness) and 5 (Phaser pitfalls).
+  - working in the cloud, art or voice sources: "Cloud workflow".
   - deploying: "Deployment" (every push needs the owner's explicit approval for that round).
 
 ## What this is
@@ -468,6 +469,76 @@ fallback if the capture fails.
   not precached by the service worker.
 - The browser console lists which placeholders and silent sounds are in use (`[assets]` lines).
 
+## Cloud workflow (round 10: everything the game is made from lives in this repo)
+Since round 10 the art and audio sources are inside the repo, so any agent (also Claude Code in the cloud) can
+continue without the owner's computer. The older folders beside the repo (`../cooking-game-assets`,
+`../cooking-game-audio`) are the same sources; where this file or a comment says `../cooking-game-assets/X`,
+read `assets-src/X` (and `../cooking-game-audio/X` -> `audio-src/X`).
+
+**Folders**
+```
+public/assets/images/          the SVGs the game loads, plus webp/ (the baked WebPs and webp/sources.json). The game
+                               and the build read only public/; nothing in src/, plugins/ or vite.config.ts reads
+                               assets-src/ or audio-src/.
+public/assets/sounds/          voice/, music/, sfx/ as the game plays them
+assets-src/                    the art sources (was ../cooking-game-assets)
+  images-b*/                   style-B SVGs per batch (images-b = pizza, Mom, Pipa, kitchen; -prep, -salad, -cookies,
+                               -smoothie, -pancakes, -soup, -cake), each with README-*.md, tools/ (the generators,
+                               *kit.py, montage / sheet pages, shot.sh) and ref/ (one reference shot, 960 px wide,
+                               for each step type the batch introduced, from its latest round: pizza roll / spread /
+                               sprinkle / decorate / bake, prep wash / knead / mash / cut / can / grate / momeats /
+                               celebrate, cookies cut, smoothie blend, pancakes flip, soup peel, cake candles; the
+                               salad added no step type). images-b also has CRITIQUE.md.
+  images/, sounds/             the first-round placeholders; STYLE.md, ux-guidelines.md, mechanics-notes.md, LICENSES.md
+audio-src/                     the audio sources (was ../cooking-game-audio)
+  scripts/                     make_vo.py (Kokoro narration), fix_vo*.py (per-recipe fixes), build_final.py, previews
+  voice-a-mom/                 Mom's lines as generated and fixed (the source of final/voice)
+  final/                       what is copied into public/assets/sounds (voice/, music/, sfx/), with LICENSES.md
+  music/, character/, voice-a/, LICENSES.md
+  tools/, work/, .venv/        NOT in git (see below); create them locally
+```
+Not carried over (still only on the owner's computer): the full-size shots, images-v1, sounds-v1, style-test,
+sfx-candidates, voice-b*, work. `build_final.py` reads `sfx-candidates/`, so do not re-run it: copy single files
+into `final/` and `public/assets/sounds/` by hand, and extend `final/LICENSES.md` and `ASSET-LICENSES.md`.
+
+**Baking the WebPs** (after adding or changing an SVG in `public/assets/images`): `npm run dev`, open
+`http://localhost:5173/kids-cooking-game/` in a browser the agent drives (headless Chrome / Playwright is fine; the
+bake must run in a real browser because it rasterizes like the game does), then in the page's console:
+`eval(await (await fetch('scripts/bake-webp.js')).text()); await __bakeWebp(); await __compareWebp();`.
+The dev server's `/__bake` endpoint writes `public/assets/images/webp/<key>.webp` and `webp/sources.json`.
+Commit `public/assets/images/webp/`. Details: "Asset contract", "Pre-rendered art (WebP)".
+
+**Producing Mom's voice** (Linux shell, from the repo root; the scripts find everything relative to `audio-src/`,
+so the files must sit exactly at these paths and the scripts need no change):
+```
+cd audio-src
+python3 -m venv .venv && . .venv/bin/activate
+pip install kokoro-onnx==0.4.7 soundfile==0.14.0 pyloudnorm==0.2.0 numpy scipy vosk==0.3.45
+mkdir -p tools/kokoro tools/ffmpeg/bin work/vo work/sfx
+# Kokoro-82M v1.0 ONNX model (Apache-2.0), 310 MB + 27 MB
+curl -L -o tools/kokoro/kokoro-v1.0.onnx https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx
+curl -L -o tools/kokoro/voices-v1.0.bin  https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin
+# ffmpeg with libvorbis. The scripts call tools/ffmpeg/bin/ffmpeg.exe; on Linux that name is just a link.
+curl -L https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz | tar xJ
+cp ffmpeg-master-latest-linux64-gpl/bin/ffmpeg tools/ffmpeg/bin/ffmpeg.exe && rm -rf ffmpeg-master-latest-linux64-gpl
+#   (or, if apt has ffmpeg: ln -s "$(command -v ffmpeg)" tools/ffmpeg/bin/ffmpeg.exe)
+# only for fix_vo*.py (speech check of the fixed lines): Vosk small English model, 40 MB
+curl -L -o work/sfx/vosk.zip https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip
+(cd work/sfx && unzip -q vosk.zip && rm vosk.zip)
+```
+On Windows the same paths hold (`tools/ffmpeg/bin/ffmpeg.exe` is the real Windows build, `.venv\Scripts\activate`).
+Then: add the line to `MOM_LINES` in `scripts/make_vo.py` and run `python scripts/make_vo.py mom <line-key> ...`
+(only the named lines; voice af_heart; trims, loudness-matches, writes `voice-a-mom/<key>.ogg` and
+`work/vo/report-mom.json`). Listen / check the report; for a click or an "uh" before a word, copy the newest
+`fix_vo_<recipe>.py` pattern (`build`, then `apply`). Copy the chosen `.ogg` to `final/voice/` and
+`public/assets/sounds/voice/`, add the key to `VoiceKey` / `SOUND_KEYS` (`src/core/audio.ts`, `assets.ts`) and a
+line to the licence files. Keep `audio-src/tools`, `work` and `.venv` out of git (they are in `.gitignore`).
+
+**Deploying from the cloud:** work on a branch and open a pull request to `master`
+(`gh pr create --base master`). The owner merges it; the merge is the deployment (the push to `master` runs
+`.github/workflows/deploy.yml`). An agent never pushes to `master` or merges itself unless the owner has
+explicitly approved that one push in the current round (see "Working rules" and "Deployment").
+
 ## Working rules
 - Work on a branch. **The repo is public on GitHub** (remote `origin`, see "Deployment").
   **Every push needs its own explicit approval message from the owner, every time.** An approval covers
@@ -489,7 +560,7 @@ fallback if the capture fails.
   `rollback-pre-landscape` (end of round 1, portrait), `v0.2-landscape` (end of round 2, landscape),
   `rollback-pre-mom` (master before round 4, the Mom round), `v0.3-mom` (end of round 4), `rollback-pre-prep`
   (master before round 5, the prep steps), `rollback-pre-prep-b` (round-5-prep-a before part B), `v0.4-pizza-full`
-  (the full pizza), `rollback-pre-salad` (master before round 6), `v0.5-salad` (with the salad).
+  (the full pizza), `rollback-pre-salad` (master before round 6), `v0.5-salad` (with the salad). `rollback-pre-cloud` (master before round 10, the sources moved into the repo), `v0.13-cloud` (after it).
 - Temporary files go in `.tmp/` inside this folder (git-ignored), never outside it.
 - This computer's memory is limited: one automated browser only, no parallel runs, no heavy sub-agents, and at least
   2 GB free before running the harness.

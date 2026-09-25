@@ -1,0 +1,27 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Salad 4:3 sheet</title>
+<style>html,body{margin:0;background:#FBF0DA;overflow:hidden}canvas{display:block;width:100vw}#tmp{position:absolute;left:-20000px;top:0;width:1440px}</style></head>
+<body><canvas id="c"></canvas><div id="tmp"></div>
+<script>window.IMAGES_B_DIR = "../images-b/"; window.PREP_BASE = "../images-b-prep/"; window.SALAD_BASE = "./";</script>
+<script src="../images-b/scenes.js"></script>
+<script src="../images-b-prep/scenes-prep.js"></script>
+<script src="scenes-salad.js"></script>
+<script>
+// Collision sheet: every salad scene at 4:3 (world 1440x1080), each drawn img -> canvas like the game, on one 4:3 page (4x4 grid).
+const cols = 4, CW = 600, CH = 450, W = 1440;
+const cv = document.getElementById("c"); cv.width = cols * CW; cv.height = 4 * CH;
+const g = cv.getContext("2d"); g.fillStyle = "#FBF0DA"; g.fillRect(0, 0, cv.width, cv.height);
+(async () => {
+  const tmp = document.getElementById("tmp");
+  const list = ScenesSalad.ORDER;
+  for (let i = 0; i < list.length; i++) {
+    tmp.innerHTML = ""; const host = document.createElement("div"); host.style.width = "1440px"; tmp.appendChild(host);
+    const world = ScenesB.build(host, list[i][0], W);
+    const c = await ScenesSalad.toCanvas(host, world, W);
+    const x = (i % cols) * CW, y = Math.floor(i / cols) * CH;
+    g.drawImage(c, x + 4, y + 4, CW - 8, CH - 8);
+    g.fillStyle = "rgba(58,34,22,.75)"; g.fillRect(x + 4, y + CH - 30, 170, 26);
+    g.fillStyle = "#fff"; g.font = "15px sans-serif"; g.fillText((i + 1) + ". " + list[i][0].replace("salad-", ""), x + 10, y + CH - 12);
+  }
+  tmp.innerHTML = ""; document.title = "DONE";
+})();
+</script></body></html>

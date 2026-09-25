@@ -1,0 +1,33 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Pancake items 4:3</title>
+<style>html,body{margin:0;background:#F3E4C6;overflow:hidden}canvas{display:block;width:100vw}</style></head><body><canvas id="c"></canvas>
+<script>
+// All pancake items on one 4:3 page (6 x 4 cells), each drawn img -> native canvas -> scaled drawImage (the game's path).
+// Batter stages inside the prep bowl; puddles/bubbles/golden inside the pan (+ flame under it for the golden cell); knobs on the stove recess colour.
+const N = ["card-pancakes","pancake-batter-0","pancake-batter-1","pancake-batter-2","pancake-batter-3","photo-frame-pancakes",
+ "stove-top","stove-knob-off","stove-knob-on","flame","pan","ladle",
+ "batter-puddle-1","batter-puddle-2","batter-puddle-3","pancake-bubbles","pancake-golden","plate-big",
+ "syrup-bottle","syrup-blob","berry","banana-coin","butter-pat","milk-carton"];
+const BOWL = n => n.startsWith("pancake-batter"), INPAN = n => n.startsWith("batter-puddle") || n === "pancake-bubbles" || n === "pancake-golden";
+const cols = 6, CW = 400, CH = 450, cv = document.getElementById("c"); cv.width = cols * CW; cv.height = 4 * CH;
+const g = cv.getContext("2d"); g.fillStyle = "#F3E4C6"; g.fillRect(0, 0, cv.width, cv.height);
+const load = s => new Promise(r => { const i = new Image(); i.onload = () => r(i); i.onerror = () => r(null); i.src = s; });
+const rast = i => { const t = document.createElement("canvas"); t.width = i.naturalWidth; t.height = i.naturalHeight; t.getContext("2d").drawImage(i, 0, 0); return t; };
+(async () => {
+  const back = await load("../../images-b-prep/prep-bowl-back.svg"), front = await load("../../images-b-prep/prep-bowl-front.svg"), pan = await load("../pan.svg");
+  for (let k = 0; k < N.length; k++) {
+    const i = await load((N[k] === "milk-carton" ? "../../images-b-smoothie/" : "../") + N[k] + ".svg"), x = (k % cols) * CW, y = Math.floor(k / cols) * CH;
+    g.fillStyle = "#5B3A29"; g.font = "15px sans-serif"; g.fillText(N[k] + (i ? "" : " MISSING"), x + 8, y + 18);
+    if (!i) continue;
+    if (INPAN(N[k])) {        // pan disc 744 wide; family 680 box at pan (60,60)
+      const s = Math.min((CW - 20) / 1240 * 1.9, (CH - 36) / 800), w = 1240 * s, h = 800 * s, dx = x + 10 - 60 * s, dy = y + 26;
+      g.save(); g.beginPath(); g.rect(x, y + 22, CW, CH - 22); g.clip();
+      g.drawImage(rast(pan), dx, dy, w, h); g.drawImage(rast(i), dx + 60 * s, dy + 60 * s, 680 * s, 680 * s); g.restore(); continue;
+    }
+    const s = Math.min((CW - 20) / i.naturalWidth, (CH - 36) / i.naturalHeight), w = i.naturalWidth * s, h = i.naturalHeight * s, dx = x + (CW - w) / 2, dy = y + 26 + (CH - 30 - h) / 2;
+    if (BOWL(N[k])) g.drawImage(rast(back), dx, dy, w, h);
+    g.drawImage(rast(i), dx, dy, w, h);
+    if (BOWL(N[k])) g.drawImage(rast(front), dx, dy, w, h);
+  }
+  document.title = "DONE";
+})();
+</script></body></html>

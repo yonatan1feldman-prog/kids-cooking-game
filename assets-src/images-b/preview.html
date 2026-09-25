@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pizza Set B Preview</title>
+<style>
+  :root{--bg:#FBF4E6;--ink:#4A2E20;--muted:#8A6A55;--card:#FFFDF8;--line:#E8D6B8;--accent:#3F9EA3}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+  header{padding:22px 16px 6px;max-width:1500px;margin:0 auto}
+  h1{margin:0 0 4px;font-size:24px} h2{font-size:18px;margin:28px 0 10px}
+  p.note{margin:0;color:var(--muted);max-width:900px}
+  main{max-width:1500px;margin:0 auto;padding:0 16px 60px}
+  .ratio{display:flex;gap:8px;margin:14px 0 4px;flex-wrap:wrap}
+  button{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:7px 14px;border-radius:999px;cursor:pointer}
+  button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .scene{margin:0 0 22px}
+  .scene h3{margin:0 0 6px;font-size:15px;font-weight:600}
+  .frame{border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(74,46,32,.18);background:#333;max-width:100%}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+  .tile{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;align-items:center;gap:6px}
+  .tile .pic{width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;position:relative}
+  .tile img{max-width:100%;max-height:100%}
+  .tile .cap{font-size:12px;color:var(--muted);text-align:center;word-break:break-all}
+  .tile .new{font-size:11px;color:#fff;background:#E07A3F;border-radius:6px;padding:0 6px}
+  .stack{position:relative;width:100%;height:100%}
+  .stack img{position:absolute;left:0;top:0;width:100%;height:100%;max-width:none;max-height:none}
+  .chars{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+  .charbox{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
+  .charbox .view{width:100%;max-width:420px;margin:0 auto;aspect-ratio:1;position:relative}
+  .controls{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;justify-content:center}
+  @media (max-width:600px){ .grid{grid-template-columns:repeat(2,1fr)} }
+</style></head>
+<body>
+<header>
+  <h1>Pizza recipe · style B art set</h1>
+  <p class="note">Every drawing on this page is a separate SVG from <code>images-b/</code>, loaded through an &lt;img&gt; tag. Scenes use the game's own layout table (stage.ts) with Mom in the character column and Pippa the hedgehog on the counter.</p>
+</header>
+<main>
+  <div class="ratio" id="ratio">
+    <button data-w="2400" class="on">20:9 phone</button><button data-w="1920">16:9</button><button data-w="1440">4:3 tablet</button>
+  </div>
+  <section id="scenes"></section>
+
+  <h2>Mom and Pippa: expressions</h2>
+  <div class="chars">
+    <div class="charbox"><div class="view" id="momView"></div><div class="controls" id="momCtl"></div></div>
+    <div class="charbox"><div class="view" id="petView"></div><div class="controls" id="petCtl"></div></div>
+  </div>
+
+  <h2>Every file on its own</h2>
+  <div class="grid" id="items"></div>
+</main>
+<script src="scenes.js"></script>
+<script>
+const ORDER = ScenesB.ORDER;
+function renderScenes(W) {
+  const box = document.getElementById("scenes"); box.innerHTML = "";
+  for (const [id, label] of ORDER) {
+    // at 4:3 Pippa only appears in the feeding scene (the layout has no room next to Mom)
+    const s = document.createElement("div"); s.className = "scene";
+    s.innerHTML = `<h3>${label}</h3>`;
+    const f = document.createElement("div"); f.className = "frame"; s.appendChild(f); box.appendChild(s);
+    ScenesB.build(f, id, W);
+  }
+}
+document.getElementById("ratio").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  document.querySelectorAll("#ratio button").forEach(x => x.classList.toggle("on", x === b));
+  renderScenes(+b.dataset.w);
+});
+renderScenes(2400);
+
+// ---- expression switchers ----
+function charView(el, ctl, layersFor, sets) {
+  const state = Object.fromEntries(Object.entries(sets).map(([k, v]) => [k, v[0]]));
+  const draw = () => {
+    el.innerHTML = '<div class="stack">' + layersFor(state).map(n => `<img src="${n}.svg" alt="">`).join("") + "</div>";
+  };
+  for (const [k, vals] of Object.entries(sets)) for (const v of vals) {
+    const b = document.createElement("button"); b.textContent = `${k}: ${v}`; b.dataset.k = k; b.dataset.v = v;
+    if (state[k] === v) b.classList.add("on");
+    b.onclick = () => { state[k] = v; ctl.querySelectorAll(`button[data-k="${k}"]`).forEach(x => x.classList.toggle("on", x.dataset.v === v)); draw(); };
+    ctl.appendChild(b);
+  }
+  const all = document.createElement("button"); all.textContent = "next expression ▶";
+  let i = 0; const combos = sets.eyes.flatMap(e => sets.mouth.map(m => [e, m]));
+  all.onclick = () => { i = (i + 1) % combos.length; [state.eyes, state.mouth] = combos[i];
+    ctl.querySelectorAll("button[data-k]").forEach(x => x.classList.toggle("on", state[x.dataset.k] === x.dataset.v)); draw(); };
+  ctl.appendChild(all);
+  draw();
+}
+charView(document.getElementById("momView"), document.getElementById("momCtl"),
+  s => ["mom-arm-right", "mom-body", "mom-head", "mom-hair", "mom-eyes-" + s.eyes, "mom-mouth-" + s.mouth, "mom-arm-left"],
+  { eyes: ["open", "blink", "happy", "surprised"], mouth: ["smile", "open", "talk"] });
+document.getElementById("petView").style.aspectRatio = "600/700";
+charView(document.getElementById("petView"), document.getElementById("petCtl"),
+  s => ["character-body", "character-eyes-" + s.eyes, "character-mouth-" + s.mouth],
+  { eyes: ["open", "blink", "happy", "surprised"], mouth: ["closed", "open", "chew"] });
+
+// ---- every file ----
+const REPLACE = ["bg-kitchen-landscape", "dough-ball", "dough-flat", "rolling-pin", "sauce-bowl", "sauce-blob", "cheese-shaker", "cheese-shred",
+  "topping-tomato", "topping-olive", "topping-mushroom", "topping-corn", "topping-pepper", "topping-onion", "tray", "oven-closed", "oven-open",
+  "oven-inside", "pizza-slice", "star", "btn-play", "btn-home", "btn-done", "card-pizza",
+  "character-body", "character-eyes-open", "character-eyes-blink", "character-eyes-happy", "character-eyes-surprised",
+  "character-mouth-open", "character-mouth-closed", "character-mouth-chew", "hand-hint"];
+const NEW = ["topping-bin", "pizza-board", "mom-body", "mom-head", "mom-hair", "mom-arm-left", "mom-arm-right", "mom-eyes-open", "mom-eyes-blink",
+  "mom-eyes-happy", "mom-eyes-surprised", "mom-mouth-smile", "mom-mouth-open", "mom-mouth-talk",
+  "mom-hand-point", "mom-hand-roll", "mom-hand-spread", "mom-hand-sprinkle", "mom-hand-grab"];
+const grid = document.getElementById("items");
+for (const n of [...REPLACE, ...NEW]) {
+  const t = document.createElement("div"); t.className = "tile";
+  if (n === "bg-kitchen-landscape") t.style.gridColumn = "1 / -1";
+  t.innerHTML = `<div class="pic" ${n === "bg-kitchen-landscape" ? 'style="aspect-ratio:20/9"' : ""}><img src="${n}.svg" alt="${n}" loading="lazy"></div>` +
+    `<div class="cap">${n}.svg ${NEW.includes(n) ? '<span class="new">new</span>' : ""}</div>`;
+  grid.appendChild(t);
+}
+</script>
+</body></html>
