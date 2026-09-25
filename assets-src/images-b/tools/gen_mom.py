@@ -15,6 +15,15 @@ from pb import (P, E, C, G, n, wob, wrect, smooth, smooth_open, svg, std_defs, m
 PARAMS = {"hair_color": "#6B4430", "hair_style": "bun", "skin_tone": "#E6B38A", "glasses": False, "apron_color": TEAL}
 HAIR_STYLES = ("bun", "bob", "curly")
 BLOUSE = "#F6B496"
+# ---- the look (round 11, "Mom anew"): the defaults draw Mom exactly as before; LOOKS are the variants ----
+LOOK = {"head": 1.0, "neck": 76, "eyes": "big", "ex": 0, "brow": 0, "mouth": 1.0, "finger": 96, "fw": 1.0, "cuff": 1.0, "ears": True}
+MOM_LOOK = "a"             # the look in the game (round 11b); "old" = Mom before it
+LOOKS = {
+    "old": {},
+    "a": {"head": .9, "neck": 92, "eyes": "soft", "ex": 4, "brow": 10, "mouth": .82, "finger": 72, "fw": 1.0, "hand": 2, "cuff": .8},
+    "b": {"head": .88, "neck": 96, "eyes": "dot", "ex": 10, "brow": 16, "mouth": .72, "finger": 66, "fw": 1.1, "hand": 2, "cuff": .75},
+    "c": {"head": .86, "neck": 100, "eyes": "bean", "ex": 12, "brow": 18, "mouth": .7, "finger": 60, "fw": 1.2, "hand": 2, "cuff": .7, "ears": False},
+}
 
 DX = 200                    # the style-test drawing (600 wide, centre 300) shifted right -> centre x 500
 PIVOT_LEFT = (350, 505)     # mom-arm-left shoulder (viewer's left, pointing arm)
@@ -64,6 +73,16 @@ def filt(p, material="smooth", seed=3, **kw):
 def shift(inner):
     """Style-test coordinates (600 frame) -> production 800 frame."""
     return f'<g transform="translate({DX} 0)">{inner}</g>'
+
+
+def hx(inner):
+    """The head's parts (head, hair, eyes, mouth) scaled by LOOK["head"] around the chin, so the chin stays on the neck."""
+    k = LOOK["head"]
+    return inner if k == 1 else f'<g transform="translate(300 424) scale({k}) translate(-300 -424)">{inner}</g>'
+
+
+def around(x, y, k, inner):
+    return inner if k == 1 else f'<g transform="translate({n(x)} {n(y)}) scale({k}) translate({n(-x)} {n(-y)})">{inner}</g>'
 
 
 def taper(pts, widths, cap=5):
@@ -161,7 +180,8 @@ def point_hand(c, tx, ty, ang, sc, cuff=False, lf=96, wrist=None):
     s, sh, lt = c["skin"], c["skin_sh"], c["skin_lt"]
     g = ""
     if cuff:
-        g += cuff_band(c, lf + 150, 118, 110)
+        k = LOOK["cuff"]
+        g += cuff_band(c, lf + 150, 118 * k, 110 * k)
     g += P(wrect(-30, lf + 88, 60, 76, 24, 1, 7), wrist or sh)                                        # wrist
     body = smooth([(-20, lf - 6), (14, lf - 8), (38, lf + 14), (46, lf + 52), (40, lf + 92), (20, lf + 116),
                    (-18, lf + 116), (-44, lf + 96), (-52, lf + 56), (-44, lf + 18)])
@@ -169,14 +189,41 @@ def point_hand(c, tx, ty, ang, sc, cuff=False, lf=96, wrist=None):
     for i, y in enumerate((lf + 34, lf + 62, lf + 88)):                                            # grooves between curled fingers
         g += P(f"M-50,{y} Q-36,{y - 8} -20,{y - 3}", "none", f' stroke="{sh}" stroke-width="3.2" stroke-linecap="round" opacity="0.6"')
         g += E(-42, y - 14, 6, 4.5, lt, ' opacity="0.7"')
-    fin = smooth([(0, 0), (11, 4), (14, 24), (16, lf * .6), (19, lf + 8), (0, lf + 14), (-19, lf + 8), (-16, lf * .6), (-14, 24), (-11, 4)])
+    fw = LOOK["fw"]
+    fin = smooth([(0, 0), (11 * fw, 4), (14 * fw, 24), (16 * fw, lf * .6), (19 * fw, lf + 8), (0, lf + 14), (-19 * fw, lf + 8), (-16 * fw, lf * .6), (-14 * fw, 24), (-11 * fw, 4)])
     g += P(fin, sh, ' transform="translate(2 2.5)"') + P(fin, s)                                       # index finger
     g += P(f"M-10,{lf * .5} Q0,{lf * .54} 10,{lf * .5}", "none", f' stroke="{sh}" stroke-width="2.6" stroke-linecap="round" opacity="0.6"')
-    g += E(0, 11, 6.5, 8, lt, ' opacity="0.9"')                                                     # nail light
+    g += E(0, 11, 6.5 * fw, 8, lt, ' opacity="0.9"')                                                # nail light
     thumb = smooth([(38, lf + 88), (30, lf + 100), (0, lf + 76), (-12, lf + 52), (-6, lf + 40), (8, lf + 44), (40, lf + 64)])
     g += P(thumb, sh, ' transform="translate(2 3)"') + P(thumb, s)                                    # thumb across the fist
     g += E(-4, lf + 48, 6, 5, lt, ' opacity="0.85"')
     g += E(18, lf + 30, 18, 12, lt, ' opacity="0.3"')                                               # back-of-hand light
+    return f'<g transform="translate({n(tx)} {n(ty)}) rotate({n(ang)}) scale({sc})">{g}</g>'
+
+
+def point_hand2(c, tx, ty, ang, sc, cuff=False, lf=70, wrist=None):
+    """Round 11b pointing hand, like a friendly picture-book hand: a compact rounded palm, the index finger a soft
+    capsule a little shorter than the palm, the three curled fingers as stacked rounded knuckles along the lower
+    side, the thumb resting across them. Fingertip at local (0,0), finger along +y; the wrist leaves at y = lf + 118."""
+    s, sh, lt = c["skin"], c["skin_sh"], c["skin_lt"]
+    g = ""
+    if cuff:
+        k = LOOK["cuff"]
+        g += cuff_band(c, lf + 150, 118 * k, 110 * k)
+    g += P(wrect(-30, lf + 80, 60, 84, 26, .8, 7), wrist or sh)                                        # wrist
+    for i, y in enumerate((lf + 8, lf + 34, lf + 60)):                                                  # curled fingers (knuckles)
+        kn = wrect(-60 + i * 3, y, 56, 30, 15, .6, 70 + i)
+        g += P(kn, sh, ' transform="translate(2 2.5)"') + P(kn, s) + E(-50 + i * 3, y + 10, 6, 5, lt, ' opacity="0.7"')
+    palm = wrect(-38, lf - 10, 80, 108, 32, .8, 75)
+    g += P(palm, sh, ' transform="translate(2.5 3)"') + P(palm, s)                                     # back of the hand
+    fw = 15 * LOOK["fw"]
+    fin = wrect(-fw, 0, fw * 2, lf + 26, fw, .5, 76)
+    g += P(fin, sh, ' transform="translate(2 2.5)"') + P(fin, s)                                      # index finger
+    g += P(f"M{n(-fw * .6)},{n(lf * .5)} Q0,{n(lf * .5 + 4)} {n(fw * .6)},{n(lf * .5)}", "none", f' stroke="{sh}" stroke-width="2.4" stroke-linecap="round" opacity="0.45"')
+    g += E(0, 10, fw * .45, 7, lt, ' opacity="0.85"')                                                # nail light
+    th = smooth([(40, lf + 84), (30, lf + 98), (-2, lf + 70), (-20, lf + 50), (-18, lf + 36), (-2, lf + 36), (38, lf + 62)])
+    g += P(th, sh, ' transform="translate(2 3)"') + P(th, s) + E(-10, lf + 42, 6, 5, lt, ' opacity="0.85"')   # thumb
+    g += E(20, lf + 24, 16, 12, lt, ' opacity="0.3"')
     return f'<g transform="translate({n(tx)} {n(ty)}) rotate({n(ang)}) scale({sc})">{g}</g>'
 
 
@@ -268,12 +315,13 @@ def layer(p, inner, material="smooth", seed=3):
 
 def mom_body(c, pr):
     p = "mp-bdy-"
-    L = [hair_back(c, pr["hair_style"], p)]
+    L = [hx(hair_back(c, pr["hair_style"], p))]
     torso = "M250,432 Q196,440 150,470 Q118,492 116,560 L112,810 L488,810 L484,560 Q482,492 450,470 Q404,440 350,432Z"
     L.append(G(P(torso, c["shirt"]), p + "cut"))
     dots = "".join(C(x + (20 if r % 2 else 0), 468 + r * 38, 6.5, c["dot"]) for r in range(9) for x in range(112, 500, 40))
     L.append(f'<clipPath id="{p}tc"><path d="{torso}"/></clipPath>' + G(dots, None, f' clip-path="url(#{p}tc)" opacity="0.9"'))
-    L.append(G(P("M262,380 L338,380 L342,456 Q300,476 258,456Z", c["skin_sh"]), p + "sh"))
+    nw = LOOK["neck"] / 2
+    L.append(G(P(f"M{n(300 - nw)},380 L{n(300 + nw)},380 L{n(304 + nw)},456 Q300,476 {n(296 - nw)},456Z", c["skin_sh"]), p + "sh"))
     L.append(G(P("M232,436 Q300,478 368,436 Q352,428 340,430 Q300,470 260,430 Q248,428 232,436Z", c["trim"]), p + "sh"))
     L.append(G(P("M214,540 Q228,480 256,446 L276,454 Q252,486 240,540Z", c["apron"]) + P("M386,540 Q372,480 344,446 L324,454 Q348,486 360,540Z", c["apron"]), p + "sh"))
     bib = "M206,528 Q300,516 394,528 Q404,660 432,810 L168,810 Q196,660 206,528Z"
@@ -298,22 +346,35 @@ def mom_head(c, pr):
         rx = 140 + 6 * max(0, math.sin(a)) * math.cos(2 * a) ** 2
         ry = 142 if math.sin(a) > 0 else 146
         pts.append((300 + math.cos(a) * rx, 268 + math.sin(a) * ry))
-    L.append(G(ears + P(smooth(pts), c["skin"]), p + "cut"))
+    L.append(G((ears if LOOK["ears"] else "") + P(smooth(pts), c["skin"]), p + "cut"))
     L.append(P(wob(270, 228, 92, 70, .04, 5), c["skin_lt"], ' opacity="0.45"'))
     L.append(E(226, 334, 28, 16, c["blush"], ' opacity="0.75"') + E(374, 334, 28, 16, c["blush"], ' opacity="0.75"'))
     L.append(C(216, 328, 4, c["skin_lt"], ' opacity="0.8"') + C(364, 328, 4, c["skin_lt"], ' opacity="0.8"'))
     L.append(E(300, 318, 9, 6.5, c["nose"]))
     L.append(E(297, 316, 3.5, 2.2, c["skin_lt"], ' opacity="0.7"'))
-    return layer(p, shift("".join(L)), "smooth", 23)
+    return layer(p, shift(hx("".join(L))), "smooth", 23)
 
 
 def mom_hair(c, pr):
     p = "mp-hr-"
-    return layer(p, shift(hair_front(c, pr["hair_style"], p)), "default", 25)
+    return layer(p, shift(hx(hair_front(c, pr["hair_style"], p))), "default", 25)
 
 
 EYES_X = (246, 354)
 EYE_Y = 284
+BASE_LOOK, BASE_EYES_X = dict(LOOK), EYES_X
+
+
+def use_look(name):
+    """Sets the look every drawing here reads (also for gen_prep_d's chewing mouth, which imports this module)."""
+    global EYES_X
+    LOOK.clear()
+    LOOK.update(BASE_LOOK)
+    LOOK.update(LOOKS[name])
+    EYES_X = (BASE_EYES_X[0] + LOOK["ex"], BASE_EYES_X[1] - LOOK["ex"])
+
+
+use_look(MOM_LOOK)
 
 
 def glasses(c, p):
@@ -331,7 +392,7 @@ def brows(c, lift=0):
     g = ""
     for x in EYES_X:
         sg = -1 if x < 300 else 1
-        y = EYE_Y - 60 - lift
+        y = EYE_Y - 60 - lift + LOOK["brow"]
         g += P(f"M{x - 22},{y + 7} Q{x - 4},{y - 9} {x + 22},{y + 3} Q{x + 25},{y + 7} {x + 20},{y + 8} Q{x - 2},{y - 2} {x - 18},{y + 11} Q{x - 25},{y + 12} {x - 22},{y + 7}Z",
                c["brow"], f' transform="translate({x} 0) scale({-sg} 1) translate({-x} 0)"' if sg < 0 else "")
     return g
@@ -340,7 +401,27 @@ def brows(c, lift=0):
 def eyes(c, pr, kind):
     p = f"mp-e{kind[:2]}-"
     L = []
-    if kind in ("open", "surprised"):
+    es = {"big": 1, "soft": .82, "dot": .62, "bean": .58}[LOOK["eyes"]]
+    if kind in ("open", "surprised") and LOOK["eyes"] != "big":
+        big = kind == "surprised"
+        st = LOOK["eyes"]
+        for x in EYES_X:
+            if st == "soft":
+                rx, ry = (21, 26) if big else (19, 23)
+                e = P(wob(x, EYE_Y, rx, ry, .02, x), "#4A3026")
+                e += C(x + 6, EYE_Y - 8, 6.5 if big else 6, "#FFFFFF") + C(x - 5, EYE_Y + 8, 2.6, "#FFFFFF", ' opacity="0.9"')
+                sg = -1 if x < 300 else 1
+                ox = x + sg * (rx - 4)
+                e += P(f"M{ox},{EYE_Y - ry * .5} Q{ox + sg * 9},{EYE_Y - ry * .85} {ox + sg * 13},{EYE_Y - ry * .75} Q{ox + sg * 7},{EYE_Y - ry * .55} {ox + sg * 2},{EYE_Y - ry * .3}Z", "#4A3026")
+            elif st == "dot":
+                rx, ry = (13, 17) if big else (11.5, 14.5)
+                e = P(wob(x, EYE_Y, rx, ry, .02, x), "#3E2A22") + C(x + 4, EYE_Y - 5, 3.8, "#FFFFFF")
+            else:  # bean: small upright ovals, one soft light
+                rx, ry = (10, 18) if big else (8.5, 15.5)
+                e = P(wob(x, EYE_Y + 2, rx, ry, .02, x), "#3E2A22") + C(x + 2.5, EYE_Y - 6, 3, "#FFFFFF", ' opacity="0.9"')
+            L.append(G(e, p + "sh"))
+        L.append(brows(c, lift=8 if big else 0))
+    elif kind in ("open", "surprised"):
         big = kind == "surprised"
         rx, ry = (27, 33) if big else (24, 30)
         for x in EYES_X:
@@ -357,17 +438,18 @@ def eyes(c, pr, kind):
         L.append(brows(c, lift=10 if big else 0))
     elif kind == "blink":
         for x in EYES_X:
-            L.append(P(f"M{x - 24},{EYE_Y + 2} Q{x},{EYE_Y + 16} {x + 24},{EYE_Y + 2} Q{x},{EYE_Y + 24} {x - 24},{EYE_Y + 2}Z", EYE))
+            L.append(around(x, EYE_Y, es, P(f"M{x - 24},{EYE_Y + 2} Q{x},{EYE_Y + 16} {x + 24},{EYE_Y + 2} Q{x},{EYE_Y + 24} {x - 24},{EYE_Y + 2}Z", EYE)))
             sg = -1 if x < 300 else 1
-            L.append(P(f"M{x + sg * 22},{EYE_Y + 4} Q{x + sg * 32},{EYE_Y + 2} {x + sg * 36},{EYE_Y + 8} Q{x + sg * 28},{EYE_Y + 8} {x + sg * 20},{EYE_Y + 9}Z", EYE))
+            if LOOK["eyes"] in ("big", "soft"):
+                L.append(around(x, EYE_Y, es, P(f"M{x + sg * 22},{EYE_Y + 4} Q{x + sg * 32},{EYE_Y + 2} {x + sg * 36},{EYE_Y + 8} Q{x + sg * 28},{EYE_Y + 8} {x + sg * 20},{EYE_Y + 9}Z", EYE)))
         L.append(brows(c))
     else:  # happy: upward arcs
         for x in EYES_X:
-            L.append(G(P(f"M{x - 24},{EYE_Y + 8} Q{x},{EYE_Y - 22} {x + 24},{EYE_Y + 8} Q{x + 22},{EYE_Y + 13} {x + 17},{EYE_Y + 8} Q{x},{EYE_Y - 10} {x - 17},{EYE_Y + 8} Q{x - 22},{EYE_Y + 13} {x - 24},{EYE_Y + 8}Z", EYE), p + "sh"))
+            L.append(around(x, EYE_Y, es if es == 1 else es + .12, G(P(f"M{x - 24},{EYE_Y + 8} Q{x},{EYE_Y - 22} {x + 24},{EYE_Y + 8} Q{x + 22},{EYE_Y + 13} {x + 17},{EYE_Y + 8} Q{x},{EYE_Y - 10} {x - 17},{EYE_Y + 8} Q{x - 22},{EYE_Y + 13} {x - 24},{EYE_Y + 8}Z", EYE), p + "sh")))
         L.append(brows(c, lift=4))
     if pr["glasses"]:
         L.append(glasses(c, p))
-    return layer(p, shift("".join(L)), "smooth", 27)
+    return layer(p, shift(hx("".join(L))), "smooth", 27)
 
 
 MY = 350   # mouth centre line
@@ -389,7 +471,7 @@ def mouth(c, pr, kind):
         L = [f'<clipPath id="{p}c"><path d="{m}"/></clipPath>',
              G(P(m, c["mouth"]) + G(E(300, MY + 34, 22, 13, c["tongue"]) + P(f"M270,{MY - 6} Q300,{MY + 4} 330,{MY - 6} L330,{MY + 5} Q300,{MY + 12} 270,{MY + 5}Z", teeth),
                                     None, f' clip-path="url(#{p}c)"'), p + "sh")]
-    return layer(p, shift("".join(L)), "smooth", 29)
+    return layer(p, shift(hx(around(300, MY, LOOK["mouth"], "".join(L)))), "smooth", 29)
 
 
 def sleeve(c, cx, cy, rot, seed, cuff_off=30, trim_rot=None):
@@ -416,12 +498,13 @@ def arm_left(c, pr):
     fx, fy = tip[0] - Ee[0], tip[1] - Ee[1]
     fl = math.hypot(fx, fy)
     vx, vy = fx / fl, fy / fl                                            # forearm direction
-    sc, lf = .74, 96
+    sc, lf = .74, LOOK["finger"]
     Lh = (lf + 128) * sc                                                 # fingertip -> wrist joint
     W = (tip[0] - vx * Lh, tip[1] - vy * Lh)
     ang = math.degrees(math.atan2(vx, -vy))                              # local +y of the hand (finger -> wrist) = -forearm
     L = [arm_shape(c, S, Ee, (W[0] + vx * 10, W[1] + vy * 10), ws=((0, 62), (.35, 56), (.5, 50), (.7, 46), (1, 40)))]
-    L.append(G(point_hand(c, tip[0], tip[1], ang, sc, lf=lf, wrist=c["skin"]), p + "sh"))
+    ph = point_hand2 if LOOK.get("hand") == 2 else point_hand
+    L.append(G(ph(c, tip[0], tip[1], ang, sc, lf=lf, wrist=c["skin"]), p + "sh"))
     ua = math.degrees(math.atan2(Ee[1] - S[1], Ee[0] - S[0]))
     L.append(G(sleeve(c, S[0] + 2, S[1] - 2, ua, 70, 36), p + "sh"))
     return layer(p, G("".join(L), p + "cut"), "smooth", 31), tip
@@ -486,7 +569,8 @@ def wrist_cuff(c, y0, w=74, cw=122, cl=104):
 
 def hand_point(c):
     ax, ay = HAND_ANCHORS["point"]
-    return hand_file("mh-pt-", point_hand(c, ax, ay, -45, 1.0, cuff=True, wrist=c["skin"]), 41)
+    ph = point_hand2 if LOOK.get("hand") == 2 else point_hand
+    return hand_file("mh-pt-", ph(c, ax, ay, -45, 1.0, cuff=True, lf=LOOK["finger"], wrist=c["skin"]), 41)
 
 
 def hand_roll(c):
@@ -601,6 +685,7 @@ def build(out, pr):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out")
+    ap.add_argument("--look", choices=sorted(LOOKS), default=MOM_LOOK)
     for k in PARAMS:
         ap.add_argument("--" + k)
     a = ap.parse_args()
@@ -609,6 +694,7 @@ def main():
         v = getattr(a, k)
         if v is not None:
             pr[k] = v not in ("0", "false", "False", "no") if k == "glasses" else v
+    use_look(a.look)
     out = OUT if not a.out else (a.out if os.path.isabs(a.out) else os.path.join(OUT, a.out))
     build(os.path.normpath(out), pr)
 

@@ -745,7 +745,7 @@
   "h": 400
  },
  "mom-arm-left": {
-  "sha1": "d5d25374b2a1632a454de4107ed6675fe3e53cf9",
+  "sha1": "ac05e990460c6e78a2580f802dfab9dcc0d3b40e",
   "w": 800,
   "h": 800
  },
@@ -765,32 +765,32 @@
   "h": 800
  },
  "mom-body": {
-  "sha1": "e4330f83e6982da534e0bb02caf7ea19ecd99936",
+  "sha1": "fc2103ecf8973a62b7f85e94df3d2b77b8b7fd53",
   "w": 800,
   "h": 800
  },
  "mom-eyes-blink": {
-  "sha1": "881e9b36a42308aa8b5c960e166afa0dbd269f6b",
+  "sha1": "15a1624ef8d81e569e1827512092624745265ab1",
   "w": 800,
   "h": 800
  },
  "mom-eyes-happy": {
-  "sha1": "9e98197807a0ac5215e7b87659c2465230e3e52c",
+  "sha1": "06426993f694898e35526bbdbe82e896ae5132bd",
   "w": 800,
   "h": 800
  },
  "mom-eyes-open": {
-  "sha1": "54f3e6d8bd51897c51a1fe91ad13f97b9023924a",
+  "sha1": "6dd3121b3f42259e8aaf668e243d9835591b52cc",
   "w": 800,
   "h": 800
  },
  "mom-eyes-surprised": {
-  "sha1": "4dfca5f0b9729af081cb11cb3c2e052ba79b8111",
+  "sha1": "906b03e33a1e8a6edf35871fc4e497d1836f7069",
   "w": 800,
   "h": 800
  },
  "mom-hair": {
-  "sha1": "2dae167f573e099160842c94a365a83e7b96c41d",
+  "sha1": "64d2e70a824cac40ef04037d53efe22ca281a00e",
   "w": 800,
   "h": 800
  },
@@ -810,7 +810,7 @@
   "h": 400
  },
  "mom-hand-point": {
-  "sha1": "246a652f2a7065619553db001562263d3ac1cbc1",
+  "sha1": "dfbefcae086d946f1d3a4e8d2391fdc8c0dcdc3b",
   "w": 400,
   "h": 400
  },
@@ -835,27 +835,27 @@
   "h": 400
  },
  "mom-head": {
-  "sha1": "da5dd4fd432f016a338994e8908b91eb8f0472a1",
+  "sha1": "4b64216c12eab6cde3cdcc75efe48593456f641f",
   "w": 800,
   "h": 800
  },
  "mom-mouth-chew": {
-  "sha1": "c16c7f860614a2730ba037e889504b4b7ab2ce88",
+  "sha1": "17085d2dd122f62f5bbbe7ed0d215f26bdf74e0d",
   "w": 800,
   "h": 800
  },
  "mom-mouth-open": {
-  "sha1": "d3cb7292169f4b0a7b8c27467b667325f01979b4",
+  "sha1": "f3775c00447ff1aeb337feb414bff9fe08d54a6e",
   "w": 800,
   "h": 800
  },
  "mom-mouth-smile": {
-  "sha1": "f19e2dc6feec0349732e05cac1e1b2c28ee80d28",
+  "sha1": "0c48bf585f67574f55f68c86b52d3399b49cee61",
   "w": 800,
   "h": 800
  },
  "mom-mouth-talk": {
-  "sha1": "e0f8e814017656601e4ec234ff6094674b7d5f82",
+  "sha1": "f95c67e4b8d602632ef010e211dc3cbef9f5bcef",
   "w": 800,
   "h": 800
  },
