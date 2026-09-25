@@ -1,12 +1,16 @@
 import Phaser from 'phaser';
 import { ART, IMAGES } from '../core/assets';
-import { voice } from '../core/audio';
-import { boing, burst } from '../core/fx';
-import type { HandMotion } from '../core/hand';
+import { voice, type VoiceKey } from '../core/audio';
+import { boing, burst, setRestScale, stars } from '../core/fx';
+import { GUESTS, guestLayers, type GuestDef } from '../core/guests';
+import { tapMotion, type HandMotion } from '../core/hand';
 import { sfx } from '../core/sfx';
 import { tasteOf } from '../core/tastes';
 import { TUNING } from '../core/tuning';
 import type { ShareParams } from '../recipes/types';
+import { loadImages, releaseImages } from '../scenes/BootScene';
+import type { Character } from './Character';
+import { Guest } from './Guest';
 import { PrepBowl } from './PrepBowl';
 import { cutSlices, stockSlices, type SliceDef } from './slices';
 import { Step } from './Step';
@@ -20,7 +24,7 @@ interface Slice {
   contents: string[];
 }
 
-type Who = 'mom' | 'pet';
+type Who = 'mom' | 'pet' | 'guest';
 
 /** A carried slice is shown a little bigger. */
 const LIFT = 1.08;
@@ -31,6 +35,8 @@ const MOUTH_REACH = 380;
 /** The one a slice comes this near to opens wide. */
 const EXPECT_REACH = 650;
 const CHEW_MS = 1050;
+/** A guest's badge: its touch reach beyond the drawing (x k). */
+const CARD_REACH = 30;
 /** Portions: the big bowl they come from (x k, at most), a portion, the serving bowls in front of Mom and of Pipa. */
 const BIG_BOWL = 0.66;
 const PORTION = 0.6;
@@ -56,11 +62,23 @@ interface Serving {
  * Pipa!". When all are eaten the step ends (the finale, with the photo, is its own step).
  * With `portions` (a salad) she shares portions from the big bowl instead: each is dragged to the serving bowl in front
  * of Mom or of Pipa, lands in it (the salad shows in the bowl) and that one eats (`eat`, e.g. crunch).
+ * The guests round: first she picks who comes to eat with them (core/guests.ts): three badges in the left column, "Who's
+ * coming to eat with us?". A tap invites one (after `TUNING.guests.bringAfterMs` with no pick, Pipa brings one: her
+ * bubble shows it, "Pipa brought a friend!"). The guest comes in ("Look, Giraffe is here!") and stands left of the dish,
+ * a third mouth: a piece let go near her is hers, she chews in her own way and answers with her own funny moment. The
+ * hint and Mom's help give the guest her share too. When all is eaten she says goodbye the way she came.
  */
 export class ShareStep extends Step<ShareParams> {
   private slices: Slice[] = [];
   private held?: Slice;
-  private fed: Record<Who, number> = { mom: 0, pet: 0 };
+  private fed: Record<Who, number> = { mom: 0, pet: 0, guest: 0 };
+  /** The guest who came, once she has arrived (a third mouth); the badges while she is being picked. */
+  private guest?: Guest;
+  private guestIn = false;
+  private picking = true;
+  private cards: { img: Phaser.GameObjects.Image; g: GuestDef; scale: number }[] = [];
+  private layersIn?: Promise<void>;
+  private bringTimer?: Phaser.Time.TimerEvent;
   private busy = 0;
   private sliceScale = 1;
   private k = 1;
@@ -77,7 +95,7 @@ export class ShareStep extends Step<ShareParams> {
   }
 
   start() {
-    this.stepLine = this.params.line;
+    this.stepLine = 'vo-guest-who';
     this.k = this.layout.k;
     this.workspace('dish', 400);
     this.ctx.character.moveTo(this.ctx.stage.feedPet);
@@ -88,8 +106,18 @@ export class ShareStep extends Step<ShareParams> {
     else if (this.params.pieces) this.buildPieces();
     else this.buildSlices();
 
+    this.showCards();
+
     this.onDown((p) => {
       if (this.held || this.done) return;
+      if (this.picking) {
+        const c = this.cardAt(p.worldX, p.worldY);
+        if (c) {
+          this.hit();
+          this.invite(c.g, false);
+        } else this.miss();
+        return;
+      }
       const s = this.sliceAt(p.worldX, p.worldY);
       if (!s) return;
       this.poke();
@@ -192,7 +220,8 @@ export class ShareStep extends Step<ShareParams> {
     const P = this.portions!;
     const k = this.k;
     const S = this.ctx.stage;
-    const area = S.prepArea;
+    // (the room right of where a guest stands: the badges, then the guest, are in the left column)
+    const area = { ...S.prepArea, x0: Math.max(S.prepArea.x0, S.guestRight + 10 * k) };
     const big = PrepBowl.take(this.ctx);
     let o = { x: area.x0 + 300 * k, y: S.dishHome.y, rx: 250 * k, ry: 65 * k };
     if (big) {
@@ -251,13 +280,18 @@ export class ShareStep extends Step<ShareParams> {
   }
 
   mouthOf(who: Who) {
-    return who === 'mom' ? this.ctx.mom.mouthAt : this.ctx.character.mouthAt;
+    return who === 'mom' ? this.ctx.mom.mouthAt : who === 'guest' && this.guest ? this.guest.mouthAt : this.ctx.character.mouthAt;
+  }
+
+  /** Who can eat now: Mom, Pipa, and the guest once she has arrived. */
+  private get eaters(): Who[] {
+    return this.guestIn ? ['guest', 'mom', 'pet'] : ['mom', 'pet'];
   }
 
   /** The mouth nearest to a point. */
   private nearest(x: number, y: number): Who {
     const d = (w: Who) => Phaser.Math.Distance.Between(x, y, this.targetOf(w).x, this.targetOf(w).y);
-    return d('mom') < d('pet') ? 'mom' : 'pet';
+    return this.eaters.reduce((a, b) => (d(b) < d(a) ? b : a));
   }
 
   /**
@@ -272,6 +306,7 @@ export class ShareStep extends Step<ShareParams> {
       // (with serving bowls, near the mouth counts too)
       if (this.portions && Phaser.Math.Distance.Between(x, y, this.mouthOf(w).x, this.mouthOf(w).y) < r) return w;
     }
+    if (this.guestIn && fx < this.ctx.stage.guestRight) return 'guest';
     return fx > this.ctx.stage.feedPetLeft ? this.nearest(fx, fy) : null;
   }
 
@@ -284,7 +319,11 @@ export class ShareStep extends Step<ShareParams> {
       if (Phaser.Math.Distance.Between(x, y, this.targetOf(w).x, this.targetOf(w).y) < EXPECT_REACH * this.k) who = w;
     }
     this.ctx.mom.expectFood(who === 'mom');
-    if (pet.mood === 'rest' || pet.mood === 'happy' || pet.mood === 'expect') pet.setMood(who === 'pet' ? 'expect' : 'rest');
+    const opens = (c: Character, me: Who) => {
+      if (c.mood === 'rest' || c.mood === 'happy' || c.mood === 'expect' || (c.mood === 'sleep' && who === me)) c.setMood(who === me ? 'expect' : 'rest');
+    };
+    opens(pet, 'pet');
+    if (this.guest && this.guestIn) opens(this.guest, 'guest');
   }
 
   /** The middle of the slice under the finger, its tip ahead of it, pointing at the nearer mouth. */
@@ -333,7 +372,7 @@ export class ShareStep extends Step<ShareParams> {
     const m = this.targetOf(who);
     const sv = this.serving[who];
     if (who === 'mom') this.ctx.mom.expectFood(true);
-    else this.ctx.character.setMood('expect');
+    else this.eaterOf(who).setMood('expect');
     this.scene.tweens.add({
       targets: s.img,
       x: m.x,
@@ -354,7 +393,7 @@ export class ShareStep extends Step<ShareParams> {
         } else burst(this.scene, m.x, m.y, { tint: [0xe3a869, 0xffcb47, 0xe4523b], count: 12, size: 20 * this.k, speed: 450 * this.k });
         let after = 0;
         if (who === 'mom') this.momEats(first);
-        else after = this.petEats(first, s);
+        else after = this.petEats(first, s, who);
         this.scene.time.delayedCall(CHEW_MS + after + 50, () => {
           this.busy--;
           if (this.slices.every((x) => x.eaten) && this.busy === 0) this.finish();
@@ -379,21 +418,36 @@ export class ShareStep extends Step<ShareParams> {
     }
   }
 
-  private sneezes = 0;
+  private sneezes: Partial<Record<Who, number>> = {};
   private said = new Set<string>();
+
+  private eaterOf(who: Who): Character {
+    return who === 'guest' && this.guest ? this.guest : this.ctx.character;
+  }
+
+  /** Mom's line, once per sharing. */
+  private sayOnce(line: VoiceKey, delay: number) {
+    if (this.said.has(line)) return;
+    this.said.add(line);
+    this.scene.time.delayedCall(delay, () => !this.aborted && voice.say(line, { ttlMs: 3000 }));
+  }
 
   /**
    * Pipa: about one second of happy chewing with munch sounds, then how she answers what was on it (core/tastes.ts:
    * her wish, a sneeze, a wow, a giggle), or, on a bare piece, one of her happy gags. Returns how much longer than the
    * chewing her answer takes (ms).
    */
-  private petEats(first: boolean, sl: Slice): number {
-    const pet = this.ctx.character;
+  private petEats(first: boolean, sl: Slice, who: Who): number {
+    const pet = this.eaterOf(who);
+    const guest = who === 'guest' ? this.guest : undefined;
+    // (the turtle chews slowly: her chewing takes longer, the rest waits for it)
+    const slow = guest?.chewScale ?? 1;
+    const chewMs = CHEW_MS * slow;
     pet.setMood('chew');
     sfx(this.scene, this.eat, { minGapMs: 0 });
     let closed = false;
     this.scene.time.addEvent({
-      delay: 150,
+      delay: 150 * slow,
       repeat: 5,
       callback: () => {
         if (pet.mood !== 'chew') return;
@@ -401,22 +455,26 @@ export class ShareStep extends Step<ShareParams> {
         pet.chewFrame(closed);
       },
     });
-    this.scene.time.delayedCall(480, () => sfx(this.scene, this.eat, { minGapMs: 0, volume: 0.6 }));
-    if (first) voice.say(this.params.forPet, { ttlMs: 4000 });
-    const taste = tasteOf(sl.contents, this.ctx.run.wishes, this.sneezes < TUNING.taste.maxSneezes);
-    if (taste !== 'plain') {
-      if (taste === 'sneeze') this.sneezes++;
-      this.scene.time.delayedCall(CHEW_MS - 150, () => {
+    this.scene.time.delayedCall(480 * slow, () => sfx(this.scene, this.eat, { minGapMs: 0, volume: 0.6 }));
+    if (first) voice.say(guest ? guest.g.forGuest : this.params.forPet, { ttlMs: 4000 });
+    // (Pipa loves what she wished for; a guest what she likes, core/guests.ts)
+    const sneezed = this.sneezes[who] ?? 0;
+    const taste = tasteOf(sl.contents, guest ? [] : this.ctx.run.wishes, sneezed < TUNING.taste.maxSneezes, guest?.g.likes);
+    if (taste !== 'plain' || guest) {
+      if (taste === 'sneeze') this.sneezes[who] = sneezed + 1;
+      let took = 0;
+      this.scene.time.delayedCall(chewMs - 150, () => {
         if (this.aborted) return;
-        pet.react(taste);
-        // Mom answers the first sneeze and the first favourite, once each.
-        const line = taste === 'sneeze' ? 'vo-bless-you' : taste === 'love' ? 'vo-pipa-loves' : null;
-        if (line && !this.said.has(line)) {
-          this.said.add(line);
-          this.scene.time.delayedCall(taste === 'sneeze' ? 900 : 300, () => !this.aborted && voice.say(line, { ttlMs: 3000 }));
-        }
+        took = pet.react(taste);
+        // Mom answers the first sneeze and the first favourite, once each (and a guest's funny moment, in Guest.onFunny).
+        if (guest) {
+          if (taste === 'love') this.sayOnce(guest.g.loves, 300);
+        } else if (taste === 'sneeze') this.sayOnce('vo-bless-you', 900);
+        else if (taste === 'love') this.sayOnce('vo-pipa-loves', 300);
+        if (took === 0 && pet.mood === 'chew') pet.setMood('rest');
       });
-      return taste === 'sneeze' ? 1400 : taste === 'giggle' ? 700 : 1100;
+      const extra = taste === 'sneeze' ? 1400 : taste === 'giggle' ? 700 : taste === 'plain' ? 0 : 1100;
+      return chewMs - CHEW_MS + extra + (guest && taste === 'love' ? 700 : 0);
     }
     this.scene.time.delayedCall(CHEW_MS, () => pet.mood === 'chew' && pet.setMood('rest'));
     const k = this.k * (pet.scale / 0.62);
@@ -427,6 +485,106 @@ export class ShareStep extends Step<ShareParams> {
     return 0;
   }
 
+  /**
+   * The three badges in the left column (the bins' places for three), popping in one after another. The guests' own
+   * layers start loading now, so the one she picks can come in at once.
+   */
+  private showCards() {
+    const S = this.ctx.stage;
+    const scale = Math.min(S.binScale(3), 1.1 * this.k);
+    GUESTS.forEach((g, i) => {
+      const at = S.bin(i, 3);
+      const img = this.own(this.scene.add.image(at.x, at.y, g.card).setScale(0).setDepth(25));
+      this.scene.tweens.add({ targets: img, scale, duration: 380, delay: 250 + i * 160, ease: 'Back.easeOut', onComplete: () => setRestScale(img) });
+      this.scene.time.delayedCall(250 + i * 160, () => sfx(this.scene, 'pop', { volume: 0.5 }));
+      this.cards.push({ img, g, scale });
+    });
+    this.layersIn = loadImages(this.scene.game, GUESTS.flatMap(guestLayers));
+    this.bringTimer = this.scene.time.delayedCall(TUNING.guests.bringAfterMs, () => this.picking && this.pipaBrings());
+  }
+
+  private cardAt(x: number, y: number) {
+    const r = (120 * (this.cards[0]?.scale ?? 1) + CARD_REACH * this.k) ** 2;
+    return this.cards.find((c) => (c.img.x - x) ** 2 + (c.img.y - y) ** 2 < r);
+  }
+
+  /** No pick yet: Pipa brings a friend (her bubble shows who), at random. */
+  private pipaBrings() {
+    if (!this.picking || this.done) return;
+    const g = GUESTS[Phaser.Math.Between(0, GUESTS.length - 1)];
+    const pet = this.ctx.character;
+    const S = this.ctx.stage;
+    pet.cheer();
+    pet.showWish([g.card], [], { maxRight: S.momFace.x0 + S.feedMomShift - 12 * this.k, k: this.k });
+    this.scene.time.delayedCall(1300, () => pet.hideWish());
+    this.invite(g, true);
+  }
+
+  /** She (or Pipa) invited `g`: the other badges go, hers flies to where the guest will stand, and the guest comes in. */
+  private invite(g: GuestDef, byPipa: boolean) {
+    if (!this.picking) return;
+    this.picking = false;
+    this.bringTimer?.remove();
+    this.poke();
+    this.hand.stop();
+    const S = this.ctx.stage;
+    const spot = g.arrive === 'above' ? S.guestAbove : S.guest;
+    for (const c of this.cards) {
+      this.scene.tweens.killTweensOf(c.img);
+      if (c.g === g) {
+        sfx(this.scene, 'pop');
+        stars(this.scene, c.img.x, c.img.y, 6, 40 * this.k);
+        this.scene.tweens.add({ targets: c.img, scale: c.scale * 1.2, duration: 160, yoyo: true, ease: 'Quad.easeOut' });
+        this.scene.tweens.add({ targets: c.img, alpha: 0, scale: c.scale * 0.6, duration: 300, delay: 380, onComplete: () => c.img.setVisible(false) });
+      } else this.scene.tweens.add({ targets: c.img, alpha: 0, scale: c.scale * 0.6, duration: 260, onComplete: () => c.img.setVisible(false) });
+    }
+    if (byPipa) voice.say('vo-pipa-brought', { ttlMs: 4000 });
+    voice.say(g.hello, { ttlMs: 6000, valid: () => !this.aborted });
+    // (the sharing can start right away; the guest joins as a third mouth once she has arrived)
+    voice.say(this.params.line, { ttlMs: 8000, valid: () => !this.aborted && !this.done });
+    void (this.layersIn ?? Promise.resolve()).then(() => {
+      if (this.aborted || this.done) return;
+      releaseImages(this.scene.game, GUESTS.filter((x) => x !== g).flatMap(guestLayers));
+      const guest = new Guest(this.scene, g, spot);
+      this.guest = guest;
+      guest.onFunny = () => g.funnyLine && this.sayOnce(g.funnyLine, g.id === 'penguin' ? 900 : 400);
+      this.scene.time.delayedCall(350, () => {
+        if (this.aborted || !guest.box.active) return;
+        guest.arrive(() => {
+          this.guestIn = true;
+          if (this.held) this.expectFrom(this.held.img.x, this.held.img.y);
+        });
+      });
+    });
+  }
+
+  /** All eaten: the guest waves goodbye the way she came (up, or walking off to the left), happy. */
+  private guestLeaves() {
+    const guest = this.guest;
+    if (!guest) return;
+    this.guest = undefined;
+    this.guestIn = false;
+    const box = guest.box;
+    this.scene.tweens.killTweensOf(box);
+    box.setAngle(0);
+    guest.setMood('happy');
+    const bye = () => box.destroy();
+    this.scene.time.delayedCall(250, () => {
+      if (!box.active) return;
+      if (guest.g.arrive === 'above') this.scene.tweens.add({ targets: box, y: -(350 + 60) * guest.scale, duration: 700, ease: 'Back.easeIn', onComplete: bye });
+      else this.scene.tweens.add({ targets: box, x: -320 * guest.scale, duration: 700, ease: 'Sine.easeIn', onComplete: bye });
+    });
+  }
+
+  update(delta: number) {
+    super.update(delta);
+    const g = this.guest;
+    if (!g || !this.guestIn) return;
+    const p = this.scene.input.manager.pointers.find((q) => q.isDown);
+    const t = p ? { x: p.worldX, y: p.worldY } : (this.hand.position ?? this.dish);
+    g.lookAt(t.x, t.y);
+  }
+
   private finish() {
     if (this.done) return;
     this.done = true;
@@ -434,6 +592,7 @@ export class ShareStep extends Step<ShareParams> {
     this.hand.stop();
     this.ctx.mom.happy();
     this.ctx.character.setMood('happy');
+    this.guestLeaves();
     // (the emptied tray goes: the photo shows the tray as it was decorated)
     if (this.params.pieces) this.scene.tweens.add({ targets: [this.dish, this.ctx.board], alpha: 0, duration: 400 });
     this.scene.time.delayedCall(500, () => this.complete());
@@ -441,11 +600,16 @@ export class ShareStep extends Step<ShareParams> {
 
   /** Whoever has had fewer (Mom first when even): the hint and Mom's help carry the next slice there. */
   private nextFor(): Who {
-    return this.fed.mom <= this.fed.pet ? 'mom' : 'pet';
+    // (the guest first when even: she was invited; then Mom, then Pipa)
+    return this.eaters.reduce((a, b) => (this.fed[b] < this.fed[a] ? b : a));
   }
 
   /** Mom carries a see-through copy of a slice to the mouth of whoever has had fewer (the real slices stay). */
   protected demo(): HandMotion | null {
+    if (this.picking) {
+      const c = this.cards[1] ?? this.cards[0];
+      return c ? tapMotion({ x: c.img.x, y: c.img.y }, this.k) : null;
+    }
     const s = this.slices.find((x) => !x.eaten);
     if (!s || this.done) return null;
     const who = this.nextFor();
@@ -483,6 +647,12 @@ export class ShareStep extends Step<ShareParams> {
 
   /** Mom helps: her hand shares the rest out, each slice to whoever has had fewer. */
   protected autoFinish() {
+    if (this.picking) {
+      // (Pipa brings a guest; the child then shares by herself)
+      this.pipaBrings();
+      this.resumeAfterAuto();
+      return;
+    }
     let carried: Phaser.GameObjects.Image | null = null;
     this.hand.follow('grab', () => (carried?.visible ? { x: carried.x - 40 * this.k, y: carried.y } : null));
     // (a portion flies from the bowl it lies over to the serving bowl)

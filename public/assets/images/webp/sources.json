@@ -554,6 +554,161 @@
   "w": 506,
   "h": 736
  },
+ "guest-card-giraffe": {
+  "sha1": "af6ab916f4b66399c7856029ed67e370b30941e9",
+  "w": 240,
+  "h": 240
+ },
+ "guest-card-penguin": {
+  "sha1": "599b3e82b92e0e0ad4d3735d967ebd6b3f2f86ae",
+  "w": 240,
+  "h": 240
+ },
+ "guest-card-turtle": {
+  "sha1": "72f3535a381eb0ff743759f9d12b155a521ddb7f",
+  "w": 240,
+  "h": 240
+ },
+ "guest-giraffe-body": {
+  "sha1": "46fd30a9e216a7715348990c18fec1146967a2ae",
+  "w": 372,
+  "h": 434
+ },
+ "guest-giraffe-eyes-blink": {
+  "sha1": "4adef5167d8991dbe6448af6f3fae14dd6f65f50",
+  "w": 372,
+  "h": 434
+ },
+ "guest-giraffe-eyes-happy": {
+  "sha1": "14cbe5a7f67b71af126ea0f83dad4acba976cc4e",
+  "w": 372,
+  "h": 434
+ },
+ "guest-giraffe-eyes-open": {
+  "sha1": "0dfb5afa672e44f2a90051732127b28a023356d4",
+  "w": 372,
+  "h": 434
+ },
+ "guest-giraffe-eyes-surprised": {
+  "sha1": "fbd647522380d70766f89b745e656a5db7de6d40",
+  "w": 372,
+  "h": 434
+ },
+ "guest-giraffe-mouth-chew": {
+  "sha1": "d862040068cdeeff21344a0e46ecd4c0f6dcf408",
+  "w": 372,
+  "h": 434
+ },
+ "guest-giraffe-mouth-closed": {
+  "sha1": "f519dc9cd76fbbb7a86926a6c47c614273ad025a",
+  "w": 372,
+  "h": 434
+ },
+ "guest-giraffe-mouth-funny": {
+  "sha1": "64b1da0489c17ca61eb6df838631c3c0f37353e2",
+  "w": 372,
+  "h": 434
+ },
+ "guest-giraffe-mouth-open": {
+  "sha1": "e5d89d4c5fe3bdc8a99e88febb82d3a02e924154",
+  "w": 372,
+  "h": 434
+ },
+ "guest-giraffe-neck": {
+  "sha1": "00cdf8e8df811df2624ee332578a730bedea6412",
+  "w": 372,
+  "h": 744
+ },
+ "guest-penguin-body": {
+  "sha1": "eebd969ca3eb7a5554a832ddfe953dae827fbe0c",
+  "w": 372,
+  "h": 434
+ },
+ "guest-penguin-eyes-blink": {
+  "sha1": "7560149417e6b10e11cda70aa83dff3fa2578018",
+  "w": 372,
+  "h": 434
+ },
+ "guest-penguin-eyes-happy": {
+  "sha1": "a9036d6d6163cc64876cb7bb09c8d05d0ffc3cde",
+  "w": 372,
+  "h": 434
+ },
+ "guest-penguin-eyes-open": {
+  "sha1": "ae1ae7e4163b3468dde15a8f2a264f8566a7be6b",
+  "w": 372,
+  "h": 434
+ },
+ "guest-penguin-eyes-surprised": {
+  "sha1": "04d111af8e2dfeb01c589e5e479870657fcda5f7",
+  "w": 372,
+  "h": 434
+ },
+ "guest-penguin-mouth-chew": {
+  "sha1": "17d45efc3d8611cd8eb72ca8e1318c0df482858f",
+  "w": 372,
+  "h": 434
+ },
+ "guest-penguin-mouth-closed": {
+  "sha1": "5ef32fe1bffa0a797086970466c50e5d9e7017f3",
+  "w": 372,
+  "h": 434
+ },
+ "guest-penguin-mouth-funny": {
+  "sha1": "fa44d9b0ed596f6274b4a235b8e9222833f839d6",
+  "w": 372,
+  "h": 434
+ },
+ "guest-penguin-mouth-open": {
+  "sha1": "88fcd6fffc71f58ed6413a2641220e4d61326d3e",
+  "w": 372,
+  "h": 434
+ },
+ "guest-turtle-body": {
+  "sha1": "bc89df373d3c1305e7c9ddd07e64a8cb03e28f06",
+  "w": 372,
+  "h": 434
+ },
+ "guest-turtle-eyes-blink": {
+  "sha1": "cd10e9843992e9e1d72a1920d6cac11e1cb69706",
+  "w": 372,
+  "h": 434
+ },
+ "guest-turtle-eyes-happy": {
+  "sha1": "26fd3b67a220fc0ef7c6bda6cb78f40a508aa7d8",
+  "w": 372,
+  "h": 434
+ },
+ "guest-turtle-eyes-open": {
+  "sha1": "13d5482d837e86cf113c98d3a396c6ad54263599",
+  "w": 372,
+  "h": 434
+ },
+ "guest-turtle-eyes-surprised": {
+  "sha1": "2346eb0f8fd98b7323286fcd45dd0325bf062c5d",
+  "w": 372,
+  "h": 434
+ },
+ "guest-turtle-mouth-chew": {
+  "sha1": "9be8d8d57dae18db2e581174d3be437de8ea4887",
+  "w": 372,
+  "h": 434
+ },
+ "guest-turtle-mouth-closed": {
+  "sha1": "cec7ffcbb76a55c3bdd22248b529e65587cec1fa",
+  "w": 372,
+  "h": 434
+ },
+ "guest-turtle-mouth-funny": {
+  "sha1": "4a60e248475d7d98b5db84d93108a715dfbb1674",
+  "w": 372,
+  "h": 434
+ },
+ "guest-turtle-mouth-open": {
+  "sha1": "94178edbce1b94620027498a643a574a9ec40e22",
+  "w": 372,
+  "h": 434
+ },
  "hand-hint": {
   "sha1": "6b68a244d4079f2bf1f08f923612e6e87c72919c",
   "w": 220,

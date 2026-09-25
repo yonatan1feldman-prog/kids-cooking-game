@@ -14,10 +14,20 @@ const RULES: [RegExp, Taste][] = [
   [/mushroom|olive|choc|syrup|icing|kiwi|mango/, 'wow'],
 ];
 
-/** The taste of a piece holding these things (image keys), given what Pipa wished for. */
-export function tasteOf(keys: readonly string[], wishes: readonly string[], sneezesLeft: boolean): Taste {
+/**
+ * What one eater likes (a guest, core/guests.ts): `love` = what she loves besides what she wished for; `sneeze` =
+ * whether onion and pepper make her sneeze (Pipa and the penguin do, the turtle and the giraffe don't).
+ */
+export interface Likes {
+  love?: RegExp;
+  sneeze?: boolean;
+}
+
+/** The taste of a piece holding these things (image keys), given what the eater wished for and likes. */
+export function tasteOf(keys: readonly string[], wishes: readonly string[], sneezesLeft: boolean, likes: Likes = {}): Taste {
   if (!keys.length) return 'plain';
-  if (keys.some((k) => wishes.includes(k))) return 'love';
+  if (keys.some((k) => wishes.includes(k) || likes.love?.test(k))) return 'love';
+  if (likes.sneeze === false) sneezesLeft = false;
   for (const [re, t] of RULES) {
     if (t === 'sneeze' && !sneezesLeft) continue;
     if (keys.some((k) => re.test(k))) return t;

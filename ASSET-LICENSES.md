@@ -275,6 +275,18 @@ Same engine, voice and processing as every line above.
 | vo-pipa-wants · vo-pipa-got-it | Look! Pipa wants... · Just what Pipa wanted! |
 | vo-pipa-loves · vo-bless-you | Pipa loves it! · Bless you, Pipa! |
 
+### New in the guests round (who comes to eat, 13 lines)
+
+Same engine, voice and processing as every line above.
+
+| Key | Line |
+|---|---|
+| vo-guest-who · vo-pipa-brought | Who's coming to eat with us? · Pipa brought a friend! |
+| vo-guest-giraffe · vo-guest-turtle · vo-guest-penguin | Look, Giraffe is here! · Look, Turtle is here! · Look, Penguin is here! |
+| vo-for-giraffe · vo-for-turtle · vo-for-penguin | Some for Giraffe! · Some for Turtle! · Some for Penguin! |
+| vo-giraffe-loves · vo-turtle-loves · vo-penguin-loves | Giraffe loves green food! · Turtle loves it! · Penguin loves it! |
+| vo-turtle-nap · vo-bless-penguin | Shh! Turtle is having a little nap. · Bless you, Penguin! |
+
 ## Graphics (`images/`)
 
 All SVG files in `images/` were drawn for this project by the art agent (style B, paper cut-out; generators in
@@ -298,5 +310,7 @@ choc chip, candle, flame, smoke, the cake card and photo frame) from `cooking-ga
 generators in their `tools/`); the memory book's button and arrows are drawn in code. The living kitchen's 12 pieces
 (`kitchen-*`: the jars, the basil, the utensils, the copper pots, the sun) and the background without them are drawn by
 `assets-src/images-b/tools/gen_kitchen_live.py` with the same code as the background; Pipa's thought bubble and the
-hearts are drawn in code. No third-party art, fonts or images.
+hearts are drawn in code. The 31 guest files of the guests round (the turtle, the giraffe and the penguin, each in
+layers like Pipa's, the giraffe's neck and the three invitation badges) are drawn by
+`assets-src/images-b-guests/tools/gen_guests.py` on the same kit. No third-party art, fonts or images.
 `images/webp/` holds WebP renderings of those same SVGs, made by `scripts/bake-webp.js`.

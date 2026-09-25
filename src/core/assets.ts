@@ -8,6 +8,9 @@
  * (stage.ts) gives an item its own scale: touch size comes before identical outlines.
  * Placeholders are drawn at the same size.
  */
+/** The guests' layers are made at this fraction of their native size (they are never shown bigger). */
+export const GUEST_RASTER = 0.62;
+
 export const IMAGES = {
   /** Landscape kitchen, 2400x1080 (fits 20:9 exactly): anchored bottom-center, cropped only at the sides. */
   'bg-kitchen-landscape': { size: [2400, 1080] },
@@ -351,6 +354,44 @@ export const IMAGES = {
   'flame-candle': { size: [200, 280] },
   'smoke-puff': { size: [240, 360] },
   'photo-frame-cake': { size: [700, 780] },
+  /**
+   * The guests round (assets-src/images-b-guests): the turtle, the giraffe and the penguin, each in layers on one
+   * 600x700 frame like Pipa's (body, eyes x4, mouths x4: the fourth is their own funny reaction). They are shown at
+   * most at 0.62 (Pipa's big size), so their textures are made at 0.62 of native. Their layers load when the sharing
+   * starts; the two not invited are freed at once.
+   * The giraffe's neck goes on up above her frame. The badges are what the child taps to invite one.
+   */
+  'guest-turtle-body': { size: [600, 700], raster: GUEST_RASTER },
+  'guest-turtle-eyes-open': { size: [600, 700], raster: GUEST_RASTER },
+  'guest-turtle-eyes-blink': { size: [600, 700], raster: GUEST_RASTER },
+  'guest-turtle-eyes-happy': { size: [600, 700], raster: GUEST_RASTER },
+  'guest-turtle-eyes-surprised': { size: [600, 700], raster: GUEST_RASTER },
+  'guest-turtle-mouth-closed': { size: [600, 700], raster: GUEST_RASTER },
+  'guest-turtle-mouth-open': { size: [600, 700], raster: GUEST_RASTER },
+  'guest-turtle-mouth-chew': { size: [600, 700], raster: GUEST_RASTER },
+  'guest-turtle-mouth-funny': { size: [600, 700], raster: GUEST_RASTER },
+  'guest-giraffe-body': { size: [600, 700], raster: GUEST_RASTER },
+  'guest-giraffe-eyes-open': { size: [600, 700], raster: GUEST_RASTER },
+  'guest-giraffe-eyes-blink': { size: [600, 700], raster: GUEST_RASTER },
+  'guest-giraffe-eyes-happy': { size: [600, 700], raster: GUEST_RASTER },
+  'guest-giraffe-eyes-surprised': { size: [600, 700], raster: GUEST_RASTER },
+  'guest-giraffe-mouth-closed': { size: [600, 700], raster: GUEST_RASTER },
+  'guest-giraffe-mouth-open': { size: [600, 700], raster: GUEST_RASTER },
+  'guest-giraffe-mouth-chew': { size: [600, 700], raster: GUEST_RASTER },
+  'guest-giraffe-mouth-funny': { size: [600, 700], raster: GUEST_RASTER },
+  'guest-penguin-body': { size: [600, 700], raster: GUEST_RASTER },
+  'guest-penguin-eyes-open': { size: [600, 700], raster: GUEST_RASTER },
+  'guest-penguin-eyes-blink': { size: [600, 700], raster: GUEST_RASTER },
+  'guest-penguin-eyes-happy': { size: [600, 700], raster: GUEST_RASTER },
+  'guest-penguin-eyes-surprised': { size: [600, 700], raster: GUEST_RASTER },
+  'guest-penguin-mouth-closed': { size: [600, 700], raster: GUEST_RASTER },
+  'guest-penguin-mouth-open': { size: [600, 700], raster: GUEST_RASTER },
+  'guest-penguin-mouth-chew': { size: [600, 700], raster: GUEST_RASTER },
+  'guest-penguin-mouth-funny': { size: [600, 700], raster: GUEST_RASTER },
+  'guest-giraffe-neck': { size: [600, 1200], raster: GUEST_RASTER },
+  'guest-card-turtle': { size: [240, 240] },
+  'guest-card-giraffe': { size: [240, 240] },
+  'guest-card-penguin': { size: [240, 240] },
 } as const satisfies Record<string, { size: readonly [number, number]; raster?: number }>;
 
 /** Texture size of an image: its native size, times its `raster` factor if it is shown bigger than native. */
@@ -528,10 +569,16 @@ RECIPE_ASSETS.cake = {
   ],
 };
 
+/** The invitation badges of the guests: every recipe ends by sharing, so every recipe loads them. */
+export const GUEST_CARDS: readonly ImageKey[] = ['guest-card-turtle', 'guest-card-giraffe', 'guest-card-penguin'];
+for (const r of Object.values(RECIPE_ASSETS)) r.images = [...r.images, ...GUEST_CARDS];
+/** A guest's own layers: loaded when the sharing starts (all three, the two not invited are freed at once). */
+export const GUEST_LAYERS: readonly ImageKey[] = IMAGE_KEYS.filter((k) => k.startsWith('guest-') && !k.startsWith('guest-card-'));
+
 export const RECIPE_SOUNDS: ReadonlySet<string> = new Set(Object.values(RECIPE_ASSETS).flatMap((r) => r.sounds));
 /** Contract images in neither the core nor any recipe (a new key someone forgot to list): reported at boot. */
 export const unlistedImages = () => {
-  const listed = new Set<ImageKey>([...CORE_IMAGES, ...Object.values(RECIPE_ASSETS).flatMap((r) => r.images)]);
+  const listed = new Set<ImageKey>([...CORE_IMAGES, ...GUEST_LAYERS, ...Object.values(RECIPE_ASSETS).flatMap((r) => r.images)]);
   return LOADED_KEYS.filter((k) => !listed.has(k));
 };
 
