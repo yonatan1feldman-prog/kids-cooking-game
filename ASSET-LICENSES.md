@@ -113,13 +113,25 @@ thick drink poured was found); lid-click is a plastic container lid.
 |---|---|---|---|---|---|
 | sfx/blow.ogg | blowing out candle.wav | Reitanna | https://freesound.org/people/Reitanna/sounds/242867/ | CC0 1.0 (read live on the sound's page, 2026-09-20) | cut 0.20-0.60 s, high-pass 80 Hz, -18 LUFS, -1.0 dBFS cap, 60 ms fade-out; 0.344 s, played at the normal effect level |
 
+### New in the gameplay round (Pipa's voice when she tastes, and her sneeze)
+
+The first three are the sound agent's wordless character candidates (`audio-src/character/CHARACTER-NOTES.md` has the
+full notes), copied unchanged; the sneeze is generated.
+
+| File | Title | Author | Source page | License | Processing |
+|---|---|---|---|---|---|
+| sfx/char-yay.ogg | yay.wav | Higgs01 | https://freesound.org/people/Higgs01/sounds/428156/ | CC0 1.0 | as in CHARACTER-NOTES.md (whole take, -18 LUFS) |
+| sfx/char-giggle.ogg | Girl, female, laughing, giggling.wav | SpliceSound | https://freesound.org/people/SpliceSound/sounds/218308/ | CC0 1.0 | as in CHARACTER-NOTES.md (third giggle, 3.00-3.95 s, -18 LUFS) |
+| sfx/char-wow.ogg | wow.mp3 | willy_ineedthatapp_com | https://freesound.org/people/willy_ineedthatapp_com/sounds/167355/ | CC0 1.0 | as in CHARACTER-NOTES.md (whole take, -18 LUFS) |
+| sfx/pipa-sneeze.ogg | "Ahh... CHOO!" | generated locally with Kokoro-82M (voice af_sky), Apache-2.0 weights; the output carries no third-party rights | https://huggingface.co/hexgrad/Kokoro-82M | own work | `audio-src/scripts/make_pipa_sneeze.py`: pitched up 5 semitones, high-pass 120 Hz, -18 LUFS, -1.5 dBFS cap; 0.74 s |
+
 ## Sounds: music (`sounds/music/`)
 
 | File | Title | Author | Source page | License | Processing |
 |---|---|---|---|---|---|
 | music/music-main.ogg | Cozy Puzzle In-Game 1 | MintoDog | https://opengameart.org/content/cozy-puzzle-in-game-1 | CC0 1.0 | none to the loop (exactly 256 beats at 118 BPM, gapless); gain -7.9 dB to -20 LUFS; Vorbis q2 |
 
-## Sounds: Mom's voice (`sounds/voice/`, 89 lines, English)
+## Sounds: Mom's voice (`sounds/voice/`, English)
 
 - Generated locally with **Kokoro-82M** v1.0 (https://huggingface.co/hexgrad/Kokoro-82M), ONNX build from
   https://github.com/thewh1teagle/kokoro-onnx/releases/tag/model-files-v1.0. The model weights are **Apache-2.0**;
@@ -254,6 +266,15 @@ Same engine, voice and processing as every line above. `name-pink`, `name-white`
 | vo-share-cake · vo-cake-mom · vo-cake-pipa · vo-cake-yum | Let's share the cake! · A slice for me? Thank you! · A slice for Pipa! · Mmm, so soft and sweet! |
 | vo-photo-cake · vo-finale-cake | Let's take a picture of your cake! · We made a birthday cake together! |
 
+### New in the gameplay round (Pipa's wishes and tastes, 4 lines)
+
+Same engine, voice and processing as every line above.
+
+| Key | Line |
+|---|---|
+| vo-pipa-wants · vo-pipa-got-it | Look! Pipa wants... · Just what Pipa wanted! |
+| vo-pipa-loves · vo-bless-you | Pipa loves it! · Bless you, Pipa! |
+
 ## Graphics (`images/`)
 
 All SVG files in `images/` were drawn for this project by the art agent (style B, paper cut-out; generators in
@@ -274,5 +295,8 @@ and sugar specks are drawn in code. The 24 soup files of round 9 (potato and zuc
 the pot, its heaps and soup stages, the jug, the bowls, the ladle, the soup card and photo frame) come from
 `cooking-game-assets/images-b-soup` and the 18 cake files (batter stages, pan, cake and plate, frosting tubs and blob,
 choc chip, candle, flame, smoke, the cake card and photo frame) from `cooking-game-assets/images-b-cake` (same kit,
-generators in their `tools/`); the memory book's button and arrows are drawn in code. No third-party art, fonts or images.
+generators in their `tools/`); the memory book's button and arrows are drawn in code. The living kitchen's 12 pieces
+(`kitchen-*`: the jars, the basil, the utensils, the copper pots, the sun) and the background without them are drawn by
+`assets-src/images-b/tools/gen_kitchen_live.py` with the same code as the background; Pipa's thought bubble and the
+hearts are drawn in code. No third-party art, fonts or images.
 `images/webp/` holds WebP renderings of those same SVGs, made by `scripts/bake-webp.js`.
