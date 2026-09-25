@@ -4,6 +4,7 @@ import { boing, stars } from '../core/fx';
 import { MomHandView } from '../core/hand';
 import { addBackground, art, getLayout, keepLayoutOnResize, ORIENTATION_PAUSE } from '../core/layout';
 import { sfx } from '../core/sfx';
+import { liveKitchen } from '../core/kitchen';
 import { getStage } from '../core/stage';
 import { iconButton } from '../core/ui';
 import { getRecipe } from '../recipes';
@@ -69,7 +70,7 @@ export class RecipeScene extends Phaser.Scene {
   create() {
     const L = getLayout(this);
     keepLayoutOnResize(this, L);
-    addBackground(this, L);
+    const bg = addBackground(this, L);
     const S = getStage(L);
     // Started without its art (a dev link, the test harness): load it first, then start over.
     if (!recipeLoaded(this.recipe.id)) {
@@ -77,7 +78,8 @@ export class RecipeScene extends Phaser.Scene {
       recipeAssets(this.game, id).then(() => this.scene.isActive() && this.scene.restart({ id }));
       return;
     }
-    this.withDemos = countRun(this.recipe.id) < DEMO_RUNS;
+    const runNo = countRun(this.recipe.id);
+    this.withDemos = runNo < DEMO_RUNS;
 
     // Home needs a second tap within 2 s (a stray tap only makes it wobble).
     iconButton(this, L, 'btn-home', S.home.x, S.home.y, () => this.goHome(), { confirm: true, scale: S.homeScale, hitPad: 30 }).setDepth(900);
@@ -89,7 +91,7 @@ export class RecipeScene extends Phaser.Scene {
     const mom = new Mom(this, S.mom);
     const character = new Character(this, this.recipe.character, S.pet, S.feedPet);
     if (S.pet) character.enter(300);
-    this.ctx = { scene: this, layout: L, stage: S, dish, board, mom, character, hand: new MomHandView(this, L), dishHome, recipeId: this.recipe.id, run: { demoTalkDone: false, handoff: new Map(), chosen: [], insert: [], once: new Set() } };
+    this.ctx = { scene: this, layout: L, stage: S, dish, board, mom, character, hand: new MomHandView(this, L), dishHome, recipeId: this.recipe.id, run: { demoTalkDone: false, handoff: new Map(), chosen: [], insert: [], once: new Set(), runNo, wishes: [] } };
 
     // The device turned to portrait: drop whatever the finger was holding, gently.
     const onPause = () => this.step?.cancelGesture();
@@ -98,6 +100,8 @@ export class RecipeScene extends Phaser.Scene {
       this.game.events.off(ORIENTATION_PAUSE, onPause);
       this.step?.abort();
     });
+    // The kitchen answers her taps (a jar hops, a pot swings): never a miss, never progress.
+    liveKitchen(this, bg.getData('kitchen') ?? []);
     this.built = true;
     this.runStep(this.devStart());
   }

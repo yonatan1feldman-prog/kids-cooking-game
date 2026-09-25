@@ -72,6 +72,37 @@ export class ChooseStep extends Step<ChooseParams> {
       if (c) this.toggle(c);
     });
     this.setIdle(true);
+    this.makeWish();
+  }
+
+  /** What Pipa wishes for (her thought bubble), still to be found. */
+  private wished: Choice[] = [];
+  private found = new Set<Choice>();
+
+  /**
+   * Pipa's wish (the gameplay round's small challenge): her thought bubble shows one option (two, after a few runs)
+   * and Mom says "Look! Pipa wants..." and its name. Picking it makes Pipa overjoyed ("Just what Pipa wanted!"); not
+   * picking it changes nothing: the bubble goes quietly at the end. Only where Pipa is on screen (not on 4:3).
+   */
+  private makeWish() {
+    const run = this.ctx.run;
+    const W = TUNING.wish.chooseItems;
+    const n = Math.min(W[Math.min(run.runNo, W.length - 1)], this.params.pick, this.choices.length);
+    const pick = Phaser.Utils.Array.Shuffle([...this.choices]).slice(0, n);
+    const S = this.ctx.stage;
+    const shown = this.ctx.character.showWish(
+      pick.map((c) => c.opt.image),
+      pick.map((c) => c.opt.id),
+      { maxRight: S.momFace.x0 - 12 * this.k, k: this.k },
+    );
+    if (!shown) return;
+    this.wished = pick;
+    run.wishes.push(...pick.map((c) => c.opt.topping as string));
+    this.scene.time.delayedCall(TUNING.wish.sayAfterMs, () => {
+      if (this.aborted || this.finishing) return;
+      voice.say('vo-pipa-wants', { ttlMs: 9000 });
+      for (const c of pick) if (c.opt.name) voice.say(c.opt.name, { ttlMs: 11000 });
+    });
   }
 
   /** The option whose cell holds the point (each cell is its touch area; they never overlap). */
@@ -115,6 +146,14 @@ export class ChooseStep extends Step<ChooseParams> {
     // Mom names it ("Cucumber!"); a newer name cuts the one playing, never another line. Options without a name: she counts.
     if (c.opt.name) voice.say(c.opt.name, { group: 'name', ttlMs: 2500 });
     else voice.say(countKey(this.picks.length), { group: 'count', sequence: true, ttlMs: 5000 });
+    const wi = this.wished.indexOf(c);
+    if (wi >= 0 && !this.found.has(c)) {
+      this.found.add(c);
+      if (this.found.size >= this.wished.length) {
+        this.ctx.character.wishGranted();
+        voice.say('vo-pipa-got-it', { ttlMs: 4000 });
+      } else this.ctx.character.wishFound(wi);
+    }
     if (this.picks.length >= this.params.pick) this.finish();
   }
 
@@ -124,6 +163,7 @@ export class ChooseStep extends Step<ChooseParams> {
     this.finishing = true;
     this.setIdle(false);
     this.hand.stop();
+    this.ctx.character.hideWish();
     const run = this.ctx.run;
     run.chosen = this.picks.map((c) => c.opt);
     run.insert = run.chosen.flatMap(prepSteps);
@@ -133,8 +173,9 @@ export class ChooseStep extends Step<ChooseParams> {
     });
   }
 
+  /** The next option Mom's hand shows or picks: what Pipa wished for first. */
   private nextFree() {
-    return this.choices.find((c) => !c.picked);
+    return this.wished.find((c) => !c.picked) ?? this.choices.find((c) => !c.picked);
   }
 
   /** Mom's finger taps an option (nothing is picked by the demo). */

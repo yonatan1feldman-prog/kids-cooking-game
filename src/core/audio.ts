@@ -48,6 +48,8 @@ export type VoiceKey =
   | 'vo-pick-cake' | 'vo-stir-cake' | 'vo-pour-pan' | 'vo-pick-frosting' | 'vo-frost' | 'vo-decorate-cake'
   | 'vo-candles' | 'vo-wish' | 'vo-blow-more' | 'vo-blown' | 'vo-share-cake' | 'vo-cake-mom' | 'vo-cake-pipa'
   | 'vo-cake-yum' | 'vo-photo-cake' | 'vo-finale-cake'
+  // the gameplay round: Pipa's wishes and tastes
+  | 'vo-pipa-wants' | 'vo-pipa-got-it' | 'vo-pipa-loves' | 'vo-bless-you'
   | CountKey | TempKey | NameKey;
 
 /** Mom counting (count-1..10) and saying the oven temperature (temp-50..250). */

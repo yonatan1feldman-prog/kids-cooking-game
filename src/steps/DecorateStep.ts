@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { voice } from '../core/audio';
+import { countKey, voice, type NameKey } from '../core/audio';
+import { TUNING } from '../core/tuning';
 import { boing, burst, stars } from '../core/fx';
 import type { HandMotion } from '../core/hand';
 import { art } from '../core/layout';
@@ -26,6 +27,9 @@ const IMAGES_SIZE = (key: string) => (IMAGES[key as ImageKey]?.size ?? [140, 140
 
 /** How far (world units at k = 1) a bin's touch area reaches beyond its drawing (stage.ts keeps that margin free). */
 const BIN_REACH = 30;
+
+/** Mom's name for a decorating thing that no choose step named (the rest have none: she says only the number). */
+const DECORATE_NAMES: Record<string, NameKey> = { 'banana-coin': 'name-banana', 'choc-chip': 'name-chocolate' };
 
 /** Idle timings for free play: the hand only comes after 15 s, and it ends itself after 30 s. */
 const DECORATE_HINT_MS = 15000;
@@ -127,6 +131,51 @@ export class DecorateStep extends Step<DecorateParams> {
     });
 
     this.setIdle(true);
+    this.makeWish();
+  }
+
+  /** Pipa's wish here: `count` of what `key` puts on the dish; `said` = how far Mom has counted. */
+  private wish?: { puts: string; count: number; said: number };
+
+  /**
+   * Pipa's counting wish (the gameplay round's small challenge): her bubble shows N of one thing (3 at first, up to 5
+   * after a few runs), Mom says "Look! Pipa wants..." and the number (and its name when she has one). Mom counts each
+   * one of it put on the dish, and at N Pipa is overjoyed. More is fine, fewer is fine: nothing else changes, the bubble
+   * goes quietly with the done button. What she wished for in choosing comes first, when she has it here.
+   */
+  private makeWish() {
+    const run = this.ctx.run;
+    const W = TUNING.wish.decorateCount;
+    const count = W[Math.min(run.runNo, W.length - 1)];
+    const keys = this.bins.map((b) => b.key);
+    if (!keys.length) return;
+    const key = keys.find((k) => run.wishes.includes(k)) ?? keys[Phaser.Math.Between(0, keys.length - 1)];
+    const S = this.ctx.stage;
+    const shown = this.ctx.character.showWish([key], [key], { count, maxRight: Math.min(S.momFace.x0, S.done.x - 130 * this.k) - 12 * this.k, k: this.k });
+    if (!shown) return;
+    this.wish = { puts: this.puts(key), count, said: 0 };
+    run.wishes.push(this.puts(key));
+    const name = (run.chosen.find((o) => o.topping === key)?.name ?? DECORATE_NAMES[key]) as NameKey | undefined;
+    this.scene.time.delayedCall(TUNING.wish.sayAfterMs, () => {
+      if (this.aborted || this.finishing) return;
+      voice.say('vo-pipa-wants', { ttlMs: 9000 });
+      voice.say(countKey(count), { ttlMs: 11000 });
+      if (name) voice.say(name, { ttlMs: 12000 });
+    });
+  }
+
+  /** After something lands: Mom counts Pipa's wished thing on the dish, and at her number the wish comes true. */
+  private countWish(key: string) {
+    const w = this.wish;
+    if (!w || key !== w.puts || w.said >= w.count) return;
+    const n = (this.dish.toppings.list as Phaser.GameObjects.Image[]).filter((t) => t.getData('key') === key).length;
+    if (n <= w.said) return;
+    w.said = Math.min(n, w.count);
+    voice.say(countKey(w.said), { group: 'count', sequence: true, ttlMs: 5000 });
+    if (w.said >= w.count) {
+      this.ctx.character.wishGranted();
+      voice.say('vo-pipa-got-it', { ttlMs: 5000 });
+    }
   }
 
   /** Forgiving hit test: the nearest bin whose square reaches the finger (BIN_REACH beyond its drawing). */
@@ -220,6 +269,7 @@ export class DecorateStep extends Step<DecorateParams> {
         sfx(this.scene, iced ? 'icing' : 'pop');
         burst(this.scene, w.x, w.y, { count: 8, size: 18 * this.k, tint: [0xffffff, 0xffcb47], speed: 350 * this.k, gravityY: 400 });
         this.placed++;
+        this.countWish(key);
         // After her third topping the done button grows twice, once (an answer to what she did, not a lure).
         if (this.placed >= 3 && !this.donePulsed && this.done?.active) {
           this.donePulsed = true;
@@ -250,6 +300,7 @@ export class DecorateStep extends Step<DecorateParams> {
     if (this.finishing || this.isAuto) return;
     this.finishing = true;
     this.setIdle(false);
+    this.ctx.character.hideWish();
     if (this.held) {
       const { img, key } = this.held;
       this.held = undefined;

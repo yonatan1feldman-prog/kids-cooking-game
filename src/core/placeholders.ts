@@ -289,6 +289,12 @@ export function makeFxTextures(game: Phaser.Game) {
     bake(game, FX_SOFT, 64, 64, (g) => {
       for (let i = 8; i >= 1; i--) g.fillStyle(0xffffff, 0.12).fillCircle(32, 32, i * 4);
     });
+  // (a heart for Pipa's love: two circles and a point)
+  if (!game.textures.exists('fx-heart'))
+    bake(game, 'fx-heart', 64, 60, (g) => {
+      g.fillStyle(0xffffff).fillCircle(19, 20, 17).fillCircle(45, 20, 17);
+      g.fillTriangle(3, 26, 61, 26, 32, 58);
+    });
 }
 
 /** Style-matched UI textures made in code: the solid sauce brush. */

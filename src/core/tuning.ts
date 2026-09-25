@@ -165,5 +165,14 @@ export const TUNING = {
     share: { slices: 6 },
   },
   /** Mom's help (after the idle hint): the pace of her own presses, rubs and strokes. */
+  /**
+   * Pipa's wishes (the gameplay round: a small challenge for a 4-5-year-old, never a test). Her thought bubble shows
+   * what she would like: in choosing, `chooseItems` things to find among the options; in decorating, `decorateCount`
+   * of one thing to put on (Mom says the number). Both grow with how often this recipe has been played on this device
+   * (the run's number: index 0 = the first run; past the end, the last value). Nothing happens if she does otherwise.
+   */
+  wish: { chooseItems: [1, 1, 2], decorateCount: [3, 3, 4, 4, 5], sayAfterMs: 900 },
+  /** Pipa's tastes when she eats: at most this many sneezes in one sharing (then she just giggles). */
+  taste: { maxSneezes: 2 },
   help: { pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150, chopEveryMs: 950, openMs: 1500, tempEveryMs: 1100, peelEveryMs: 900, candleEveryMs: 700 },
 } as const;

@@ -50,7 +50,7 @@
   "h": 140
  },
  "bg-kitchen-landscape": {
-  "sha1": "60802d2c14bbdf03b808841055c3c0a5c8c22e2e",
+  "sha1": "9f27efd4a34b0014899542e533a98deca94d1b69",
   "w": 2400,
   "h": 1080
  },
@@ -618,6 +618,66 @@
   "sha1": "256253f20086dea287670feb4e6fc579ba2fe670",
   "w": 600,
   "h": 420
+ },
+ "kitchen-basil": {
+  "sha1": "9d48a325f1439949bd35e8ea510e670505c0bccb",
+  "w": 102,
+  "h": 128
+ },
+ "kitchen-jar-flour": {
+  "sha1": "8cc559628bddf266743889bc0c8dbb19cab8bde9",
+  "w": 124,
+  "h": 134
+ },
+ "kitchen-jar-jam": {
+  "sha1": "b0f86a6f11876564f5a426b2f167f3d879ea2458",
+  "w": 86,
+  "h": 92
+ },
+ "kitchen-jar-pasta": {
+  "sha1": "ff0cae8b55b0eaf65fd0f1fa34ca98754002456f",
+  "w": 112,
+  "h": 118
+ },
+ "kitchen-ladle": {
+  "sha1": "eeb34a82237a8438bd1820ce0f5489a9f4eb20d5",
+  "w": 72,
+  "h": 178
+ },
+ "kitchen-pan": {
+  "sha1": "91e59ea165284efd666aee40e2ab9275ff2fadb4",
+  "w": 102,
+  "h": 170
+ },
+ "kitchen-pot-1": {
+  "sha1": "14d7efefb6959ea8789f4b776e8b6fd49700443e",
+  "w": 104,
+  "h": 116
+ },
+ "kitchen-pot-2": {
+  "sha1": "77818715aca488e84d3db5544890a643679243f2",
+  "w": 96,
+  "h": 112
+ },
+ "kitchen-pot-3": {
+  "sha1": "626d916fad65d1024b9ddb18dc763e45270024a5",
+  "w": 88,
+  "h": 108
+ },
+ "kitchen-spatula": {
+  "sha1": "0da3c487f85517df2a7e46858c0738523b5b8f7f",
+  "w": 70,
+  "h": 170
+ },
+ "kitchen-sun": {
+  "sha1": "981e88a257a1631dc3636b2bb06d6c15377f67c6",
+  "w": 88,
+  "h": 88
+ },
+ "kitchen-whisk": {
+  "sha1": "a90f2890ffbc57fde92c51666ffc6da1c3c8ed36",
+  "w": 48,
+  "h": 166
  },
  "knife": {
   "sha1": "96d9fc421ed6674057c3b78b2c8f942ef51e570c",

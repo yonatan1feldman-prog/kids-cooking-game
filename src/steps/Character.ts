@@ -1,11 +1,13 @@
 import Phaser from 'phaser';
 import { IMAGES } from '../core/assets';
-import { boing, setRestScale } from '../core/fx';
+import { boing, burst, setRestScale, stars } from '../core/fx';
+import { sfx } from '../core/sfx';
+import type { Taste } from '../core/tastes';
 import { opaqueBounds } from '../core/placeholders';
 import type { Spot } from '../core/stage';
 import type { CharacterDef } from '../recipes/types';
 
-export type Mood = 'rest' | 'expect' | 'chew' | 'happy' | 'party';
+export type Mood = 'rest' | 'expect' | 'chew' | 'happy' | 'party' | 'react';
 
 /** How far the eyes layer shifts toward what she is watching, in frame units (600x700 frame). */
 const LOOK_MAX = 14;
@@ -116,11 +118,175 @@ export class Character {
     } else if (m === 'chew') {
       this.eyes.setTexture(d.eyesHappy);
       this.mouth.setTexture(d.mouthChew);
-    } else {
+    } else if (m !== 'react') {
       // happy, party
       this.eyes.setTexture(d.eyesHappy);
       this.mouth.setTexture(d.mouthOpen);
     }
+  }
+
+  /**
+   * How she answers what she has just eaten (core/tastes.ts), after chewing. Everything moves up and down only (beside
+   * Mom's face there is no room sideways), and every reaction ends happy. Returns how long it takes (ms).
+   */
+  react(t: Taste): number {
+    if (!this.box.visible || t === 'plain') return 0;
+    const sc = this.scene;
+    const d = this.def;
+    const box = this.box;
+    const s = this.scale;
+    const k = s / 0.62;
+    const head = { x: this.rest.x, y: this.rest.y - 200 * s };
+    this.setMood('react');
+    sc.tweens.killTweensOf(box);
+    box.setScale(s).setPosition(this.rest.x, this.rest.y);
+    const end = (ms: number) =>
+      sc.time.delayedCall(ms, () => {
+        if (this._mood === 'react') this.setMood('rest');
+      });
+    if (t === 'love') {
+      this.eyes.setTexture(d.eyesHappy);
+      this.mouth.setTexture(d.mouthOpen);
+      sfx(sc, 'char-yay', { minGapMs: 0 });
+      sc.tweens.add({ targets: box, y: this.rest.y - 160 * k, duration: 260, yoyo: true, repeat: 1, ease: 'Quad.easeOut' });
+      burst(sc, head.x, head.y, { texture: 'fx-heart', count: 7, tint: [0xf06a8a, 0xf5a3b5], size: 46 * k, speed: 380 * k, gravityY: -120, lifespan: 1100, depth: 60 });
+      end(1300);
+      return 1300;
+    }
+    if (t === 'sneeze') {
+      // Ahh... (she fills up, eyes squeezed) ... CHOO! (a squash and a puff), then a giggle.
+      sfx(sc, 'pipa-sneeze', { minGapMs: 0, vary: false });
+      this.eyes.setTexture(d.eyesBlink);
+      this.mouth.setTexture(d.mouthOpen);
+      sc.tweens.chain({
+        targets: box,
+        tweens: [
+          { scaleY: s * 1.12, scaleX: s * 0.95, duration: 380, ease: 'Sine.easeIn' },
+          { scaleY: s * 0.82, scaleX: s * 1.08, y: this.rest.y + 10 * k, duration: 90, ease: 'Quad.easeOut' },
+          { scaleY: s, scaleX: s, y: this.rest.y, duration: 260, ease: 'Back.easeOut' },
+        ],
+      });
+      sc.time.delayedCall(460, () => {
+        if (!box.active) return;
+        const m = this.mouthAt;
+        burst(sc, m.x, m.y, { texture: 'fx-soft', count: 7, tint: 0xfff6e0, size: 60 * k, speed: 260 * k, gravityY: -200, lifespan: 700, depth: 60 });
+      });
+      sc.time.delayedCall(800, () => {
+        if (this._mood !== 'react') return;
+        this.eyes.setTexture(d.eyesHappy);
+        sfx(sc, 'char-giggle', { minGapMs: 0 });
+        sc.tweens.add({ targets: box, scaleY: s * 0.9, duration: 110, yoyo: true, repeat: 1, ease: 'Sine.easeInOut' });
+      });
+      end(1600);
+      return 1600;
+    }
+    if (t === 'wow') {
+      this.eyes.setTexture(d.eyesSurprised);
+      this.mouth.setTexture(d.mouthOpen);
+      sfx(sc, 'char-wow', { minGapMs: 0 });
+      sc.tweens.add({ targets: box, scaleY: s * 1.1, y: this.rest.y - 30 * k, duration: 260, yoyo: true, hold: 300, ease: 'Sine.easeOut' });
+      stars(sc, head.x, head.y, 6, 40 * k);
+      sc.time.delayedCall(900, () => this._mood === 'react' && this.eyes.setTexture(d.eyesHappy));
+      end(1300);
+      return 1300;
+    }
+    // giggle
+    this.eyes.setTexture(d.eyesHappy);
+    this.mouth.setTexture(d.mouthOpen);
+    sfx(sc, 'char-giggle', { minGapMs: 0 });
+    sc.tweens.add({ targets: box, scaleY: s * 0.86, duration: 120, yoyo: true, repeat: 2, ease: 'Sine.easeInOut', onComplete: () => box.setScale(s) });
+    end(900);
+    return 900;
+  }
+
+  private wish?: { box: Phaser.GameObjects.Container; keys: string[]; items: Phaser.GameObjects.Image[] };
+
+  /** What she wishes for right now (the keys her bubble shows), if anything. */
+  get wishing() {
+    return this.wish?.keys ?? [];
+  }
+
+  /**
+   * Her thought bubble: the pictures of what she would like (`images`, `count` times each when she wants a number of
+   * something), above her head, clear of Mom's face (`maxRight`). It pops in once, then stays still (nothing moves by
+   * itself); `wishGranted` or `hideWish` ends it. Not shown where she is not on screen (4:3).
+   */
+  showWish(images: string[], keys: string[], opts: { count?: number; maxRight: number; k: number }) {
+    this.hideWish(true);
+    if (!this.box.visible || !images.length) return false;
+    const sc = this.scene;
+    const k = opts.k;
+    const n = images.length * (opts.count ?? 1);
+    const cell = n > 1 ? 92 * k : 150 * k;
+    const w = Math.max(240 * k, n * cell + 70 * k);
+    const h = n > 1 ? 170 * k : 220 * k;
+    const headTop = this.rest.y - (350 - 44) * this.scale;
+    let x = this.rest.x - 30 * k;
+    x = Math.min(x, opts.maxRight - w / 2);
+    const y = Math.max(h / 2 + 12 * k, headTop - 60 * k - h / 2);
+    const g = sc.add.graphics();
+    const INK = 0x8a6a55;
+    const PAPER = 0xfffdf7;
+    // (the two small puffs lead from the bubble down to her head)
+    const tail = [
+      { x: this.rest.x - x - 10 * k, y: headTop - y - 22 * k, r: 13 * k },
+      { x: (this.rest.x - x) * 0.6 - 5 * k, y: h / 2 + 12 * k, r: 20 * k },
+    ];
+    g.lineStyle(5 * k, INK, 1);
+    g.fillStyle(PAPER, 1);
+    for (const t of tail) {
+      g.fillCircle(t.x, t.y, t.r);
+      g.strokeCircle(t.x, t.y, t.r);
+    }
+    g.fillEllipse(0, 0, w, h);
+    g.strokeEllipse(0, 0, w, h);
+    const items: Phaser.GameObjects.Image[] = [];
+    let i = 0;
+    for (const key of images) {
+      for (let c = 0; c < (opts.count ?? 1); c++, i++) {
+        const img = sc.add.image(-((n - 1) * cell) / 2 + i * cell, 0, key);
+        const f = (cell * 0.9) / Math.max(img.frame.realWidth, img.frame.realHeight);
+        img.setScale(f);
+        items.push(img);
+      }
+    }
+    const box = sc.add.container(x, y, [g, ...items]).setDepth(6).setScale(0);
+    sc.tweens.add({ targets: box, scale: 1, duration: 380, ease: 'Back.easeOut' });
+    sfx(sc, 'pop', { volume: 0.5 });
+    this.wish = { box, keys, items };
+    return true;
+  }
+
+  /** One of several wished things was found: its picture in the bubble sparkles and fades a little. */
+  wishFound(i: number) {
+    const img = this.wish?.items[i];
+    if (!img) return;
+    const m = img.getWorldTransformMatrix();
+    stars(this.scene, m.tx, m.ty, 5, 30 * (this.scale / 0.4));
+    this.scene.tweens.add({ targets: img, alpha: 0.35, duration: 250 });
+    boing(this.scene, img, 0.3);
+  }
+
+  /** Her wish came true: the bubble bursts into stars and she is overjoyed. */
+  wishGranted() {
+    const w = this.wish;
+    if (!w) return;
+    this.wish = undefined;
+    const sc = this.scene;
+    sc.tweens.killTweensOf(w.box);
+    stars(sc, w.box.x, w.box.y, 10, 50 * (this.scale / 0.4));
+    sc.tweens.add({ targets: w.box, scale: 1.25, alpha: 0, duration: 260, ease: 'Quad.easeOut', onComplete: () => w.box.destroy() });
+    if (this._mood === 'rest' || this._mood === 'happy') this.react('love');
+  }
+
+  /** The bubble goes quietly (the step is over): nothing is said, nobody is sad. */
+  hideWish(now = false) {
+    const w = this.wish;
+    if (!w) return;
+    this.wish = undefined;
+    if (now) return w.box.destroy();
+    this.scene.tweens.killTweensOf(w.box);
+    this.scene.tweens.add({ targets: w.box, alpha: 0, scale: 0.8, duration: 300, onComplete: () => w.box.destroy() });
   }
 
   /** Mouth texture while chewing (open/closed alternating). */
