@@ -217,9 +217,10 @@ export class Character {
     const sc = this.scene;
     const k = opts.k;
     const n = images.length * (opts.count ?? 1);
-    const cell = n > 1 ? 92 * k : 150 * k;
-    const w = Math.max(240 * k, n * cell + 70 * k);
-    const h = n > 1 ? 170 * k : 220 * k;
+    // (one or two things big enough to recognise; a row of 3-5 to count a little smaller)
+    const cell = n > 2 ? 96 * k : n > 1 ? 130 * k : 160 * k;
+    const w = Math.max(240 * k, n * cell + 80 * k);
+    const h = n > 2 ? 175 * k : 215 * k;
     const headTop = this.rest.y - (350 - 44) * this.scale;
     let x = this.rest.x - 30 * k;
     x = Math.min(x, opts.maxRight - w / 2);
@@ -245,8 +246,12 @@ export class Character {
     for (const key of images) {
       for (let c = 0; c < (opts.count ?? 1); c++, i++) {
         const img = sc.add.image(-((n - 1) * cell) / 2 + i * cell, 0, key);
-        const f = (cell * 0.9) / Math.max(img.frame.realWidth, img.frame.realHeight);
-        img.setScale(f);
+        // fitted by its drawing, not its frame (whole vegetables and jars have wide empty margins)
+        const ob = opaqueBounds(sc, key);
+        const fw = img.frame.realWidth;
+        const fh = img.frame.realHeight;
+        const f = (cell * 0.92) / Math.max(ob?.w ?? fw, ob?.h ?? fh);
+        img.setOrigin((ob?.cx ?? fw / 2) / fw, (ob?.cy ?? fh / 2) / fh).setScale(f);
         items.push(img);
       }
     }
