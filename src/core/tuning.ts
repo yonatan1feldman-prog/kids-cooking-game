@@ -164,6 +164,16 @@ export const TUNING = {
     candles: { count: 5 },
     share: { slices: 6 },
   },
+  /**
+   * The fruit skewers (round 13; aim: about 4 minutes from the card to home). Wash and chop: as the smoothie. Thread:
+   * pieces on each skewer, how many Mom threads herself on the "what comes next?" skewer, how far from the stick a
+   * dragged piece still lands (x k), the pause between skewers (ms). Share: the three skewers.
+   */
+  skewers: {
+    washFruit: { bubbles: 10, rubPerBubble: 300, rubLineAt: 99, rinseMs: 1200 },
+    chop: { cuts: 5, minSwipe: 50 },
+    thread: { pieces: 5, given: 3, reach: 260, pauseMs: 900 },
+  },
   /** Mom's help (after the idle hint): the pace of her own presses, rubs and strokes. */
   /**
    * Pipa's wishes (the gameplay round: a small challenge for a 4-5-year-old, never a test). Her thought bubble shows
@@ -174,5 +184,5 @@ export const TUNING = {
   wish: { chooseItems: [1, 1, 2], decorateCount: [3, 3, 4, 4, 5], sayAfterMs: 900 },
   /** Pipa's tastes when she eats: at most this many sneezes in one sharing (then she just giggles). */
   taste: { maxSneezes: 2 },
-  help: { pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150, chopEveryMs: 950, openMs: 1500, tempEveryMs: 1100, peelEveryMs: 900, candleEveryMs: 700 },
+  help: { pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150, chopEveryMs: 950, openMs: 1500, tempEveryMs: 1100, peelEveryMs: 900, candleEveryMs: 700, threadEveryMs: 700 },
 } as const;

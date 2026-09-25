@@ -170,7 +170,7 @@ export class ShareStep extends Step<ShareParams> {
       const img = this.own(this.scene.add.image(home.x, home.y, pc.key).setScale(this.sliceScale).setTint(pc.tint).setDepth(20));
       this.scene.tweens.add({ targets: img, y: home.y - 14 * this.k, duration: 200, delay: 450 + i * 60, yoyo: true, ease: 'Quad.easeOut' });
       const def: SliceDef = { key: pc.key, originX: 0.5, originY: 0.5, restAngle: 0, midAngle: 0, centerDist: 0 };
-      this.slices.push({ img, def, home, eaten: false, contents: this.contentsOf(i, (t) => t.on === i) });
+      this.slices.push({ img, def, home, eaten: false, contents: (pc as { contents?: string[] }).contents ?? this.contentsOf(i, (t) => t.on === i) });
     });
   }
 

@@ -186,6 +186,14 @@
       else if (st.phase === 'ladle') { const hp = st.holdPoint(); await __drag([[st.ladle.x, st.ladle.y], [hp.x, hp.y]], { hold: true }); await __run(st.params.pourMs + 300); __touch('end', 1, hp.x, hp.y); await __run(300); }
       else if (st.phase === 'flip') { const a = st.at; await __drag([[a.x, a.y + 60], [a.x + 10, a.y - 120]]); await __run(1800); }
       else await __run(300);
+    } else if (name === 'ThreadStep') {
+      // Round 11: taps on the bins. window.__threadMode: 'pattern' (what the pattern needs, the default), 'first' (always
+      // the first bin: a skewer of one fruit), 'drag' (the pattern's fruit dragged onto the stick instead of a tap).
+      if (st.busy || !st.row || st.reserved >= st.params.pieces) { await __run(300); return; }
+      const mode = window.__threadMode || 'pattern', b = mode === 'first' ? st.bins[0] : st.expectedBin();
+      if (mode === 'drag') await __drag([[b.x, b.y], [(b.x + st.slotX(2)) / 2, st.row.y - 120], [st.slotX(2), st.row.y + 30]]);
+      else __tap(b.x, b.y);
+      await __run(700);
     } else if (name === 'PhotoStep') {
       await __run(500);
     } else if (name === 'FeedStep') {
@@ -335,6 +343,7 @@
       if (st.lid) vis.push(['lid', box(st.lid)]);
       const b = st.box.getBounds(), p = 45 * L.k; hits.push(['box', { x0: b.x - p, y0: b.y - p, x1: b.right + p, y1: b.bottom + p }]);
     }
+    if (name === 'ThreadStep') st.bins.forEach((b, i) => { vis.push(['bin' + i, box(b.bin)]); const r = b.half + 30 * L.k; hits.push(['bin' + i, { x0: b.x - r, y0: b.y - r, x1: b.x + r, y1: b.y + r }]); });
     if (name === 'ShareStep') st.slices.filter((s) => !s.eaten).forEach((s, i) => { const c = st.sliceCenter(s); hits.push(['slice' + i, circ(c.x, c.y, 60 * L.k)]); });
     if (name === 'PhotoStep' && st.frame) vis.push(['photo', box(st.frame)]);
     if (name === 'FeedStep') st.slices.filter((s) => !s.eaten).forEach((s, i) => { const c = st.sliceCenter(s); hits.push(['slice' + i, circ(c.x, c.y, 60 * L.k)]); });
