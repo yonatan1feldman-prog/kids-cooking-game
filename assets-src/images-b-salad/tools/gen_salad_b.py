@@ -134,6 +134,7 @@ OC, ORX, ORY = (450, 218), 388, 100          # opening ellipse
 SBODY = "M30,210 C30,440 200,580 450,580 C700,580 870,440 870,210Z"
 SFRONT = f"M30,210 C30,440 200,580 450,580 C700,580 870,440 870,210 L838,218 A{ORX},{ORY} 0 0 1 62,218Z"
 SFRONT_RIM = f"M30,210 A{RRX},{RRY} 0 0 0 870,210 L838,218 A{ORX},{ORY} 0 0 1 62,218Z"
+SFRONT_LOW = f"M30,210 C30,440 200,580 450,580 C700,580 870,440 870,210 A{RRX},{RRY} 0 0 1 30,210Z"   # round 11: torn edge below the rim only (no seams)
 BOWL, BOWL_D, BOWL_L = mix(WALNUT, WOOD, .25), WALNUT_D, mix(WALNUT_L, WOOD_L, .5)
 
 
@@ -158,7 +159,7 @@ def salad_bowl_back():
 
 def salad_bowl_front():
     p = "sbf-"
-    L = [G(P(SFRONT, BOWL), p + "cut")]
+    L = [G(P(SFRONT_LOW, BOWL), p + "cut")]
     L.append(f'<clipPath id="{p}f"><path d="{SFRONT}"/></clipPath>')
     inner = P("M40,360 C100,520 250,578 450,578 C650,578 800,520 860,360 C800,480 650,540 450,540 C250,540 100,480 40,360Z", BOWL_D, ' opacity="0.75"')
     for i, y in enumerate((300, 350, 420, 470)):                                             # wood grain following the bowl

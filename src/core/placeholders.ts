@@ -314,6 +314,28 @@ export function makeBrush(game: Phaser.Game, blob: string, colour: number, key: 
     ctx.globalCompositeOperation = 'source-in';
     ctx.fillStyle = '#' + colour.toString(16).padStart(6, '0');
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Round 11: a paper grain, like every other cut-out in the game (the flat fill read as digital paint). Light and
+    // dark flecks and a few faint fibres, kept inside the silhouette; seeded, so every brush looks the same.
+    ctx.globalCompositeOperation = 'source-atop';
+    let seed = 7;
+    const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    const area = canvas.width * canvas.height;
+    for (let i = 0; i < area / 55; i++) {
+      ctx.fillStyle = rnd() < 0.5 ? 'rgba(255,245,235,0.16)' : 'rgba(70,20,10,0.10)';
+      ctx.beginPath();
+      ctx.arc(rnd() * canvas.width, rnd() * canvas.height, 0.6 + rnd() * 1.6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.lineCap = 'round';
+    for (let i = 0; i < area / 2600; i++) {
+      const x = rnd() * canvas.width, y = rnd() * canvas.height, a = rnd() * Math.PI, l = 8 + rnd() * 18;
+      ctx.strokeStyle = 'rgba(255,240,230,0.14)';
+      ctx.lineWidth = 1 + rnd();
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l);
+      ctx.stroke();
+    }
   }
   scene.textures.addCanvas(key, canvas);
   return key;

@@ -58,7 +58,9 @@ export class ChooseStep extends Step<ChooseParams> {
       const th = item.frame.realHeight;
       const ow = ob?.w ?? tw;
       const oh = ob?.h ?? th;
-      const s = Math.min((b * 0.98) / ow, (b * 0.74) / oh);
+      // Round 11: 0.84 of the bin wide (was 0.98: the pepper and the onion spilled over its rim) and 0.80 high (was 0.74:
+      // the can and the jar came out small beside them).
+      const s = Math.min((b * 0.84) / ow, (b * 0.8) / oh);
       item.setOrigin((ob?.cx ?? tw / 2) / tw, ((ob?.y ?? 0) + oh) / th);
       const itemY = y + b * 0.22;
       item.setY(itemY).setScale(0).setData('rest', s);

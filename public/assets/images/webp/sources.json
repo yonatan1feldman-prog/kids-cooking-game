@@ -285,7 +285,7 @@
   "h": 300
  },
  "cheese-handful": {
-  "sha1": "39b0831cb662ff5204138921992122830b2beb1a",
+  "sha1": "f13d586907f7cc698ba8573b5b77f7c410eaf266",
   "w": 300,
   "h": 260
  },
@@ -615,7 +615,7 @@
   "h": 160
  },
  "kid-hands": {
-  "sha1": "256253f20086dea287670feb4e6fc579ba2fe670",
+  "sha1": "2d9e556aeb9a9b886e1b5407235c5367c7f2e416",
   "w": 600,
   "h": 420
  },
@@ -685,12 +685,22 @@
   "h": 400
  },
  "mom-arm-left": {
-  "sha1": "1096c98fa5ef1e5b1e1d14288c52b0f9ca7ac5a7",
+  "sha1": "d5d25374b2a1632a454de4107ed6675fe3e53cf9",
+  "w": 800,
+  "h": 800
+ },
+ "mom-arm-left-reach": {
+  "sha1": "baa64f9d11f86a0bddbd35cce87caa57552c6d22",
   "w": 800,
   "h": 800
  },
  "mom-arm-right": {
   "sha1": "c86432326eb2c76b9a38543430a0500927ea9cd7",
+  "w": 800,
+  "h": 800
+ },
+ "mom-arm-right-rest": {
+  "sha1": "dde4fc0bf959739be42c55cb4d2c8329cfd341fa",
   "w": 800,
   "h": 800
  },
@@ -740,12 +750,12 @@
   "h": 400
  },
  "mom-hand-point": {
-  "sha1": "208c892048645663083269441288b6b922ed181f",
+  "sha1": "246a652f2a7065619553db001562263d3ac1cbc1",
   "w": 400,
   "h": 400
  },
  "mom-hand-press": {
-  "sha1": "6e9985955401fc286b4d7459ed87a53901959f82",
+  "sha1": "e4989ef0fe24f9c6bc889e352ea3a13213092270",
   "w": 400,
   "h": 400
  },
@@ -990,7 +1000,7 @@
   "h": 520
  },
  "prep-bowl-front": {
-  "sha1": "d16c5e892905bddba9a71b1d556b71b482f7c8d6",
+  "sha1": "08d7cf71c06d118db11fc6b96c51f1a964fda221",
   "w": 640,
   "h": 520
  },
@@ -1010,7 +1020,7 @@
   "h": 620
  },
  "salad-bowl-front": {
-  "sha1": "8b02958c9e519effde1fa12987f991646e727bd4",
+  "sha1": "ecd9f656df00d93a22c64874a9a4a0eeb4636655",
   "w": 900,
   "h": 620
  },
