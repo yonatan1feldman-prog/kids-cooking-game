@@ -161,6 +161,9 @@ IC, IRX, IRY = (320, 176), 262, 74           # inner (opening) ellipse
 BODY = "M30,170 C30,340 150,470 320,470 C490,470 610,340 610,170Z"
 FRONT = f"M30,170 C30,340 150,470 320,470 C490,470 610,340 610,170 L582,176 A{IRX},{IRY} 0 0 1 58,176Z"
 FRONT_RIM = f"M30,170 A{BRX},{BRY} 0 0 0 610,170 L582,176 A{IRX},{IRY} 0 0 1 58,176Z"
+# Round 11: the torn-paper edge goes only round the body below the rim (its top = the rim's lower arc, hidden under
+# FRONT_RIM). Cut along FRONT, the short edges where the rim meets the back layer showed as white seams on both sides.
+FRONT_LOW = f"M30,170 C30,340 150,470 320,470 C490,470 610,340 610,170 A{BRX},{BRY} 0 0 1 30,170Z"
 
 
 def prep_bowl_back():
@@ -180,7 +183,7 @@ def prep_bowl_back():
 
 def prep_bowl_front():
     p = "pbf-"
-    L = [G(P(FRONT, TEAL), p + "cut")]
+    L = [G(P(FRONT_LOW, TEAL), p + "cut")]
     L.append(f'<clipPath id="{p}f"><path d="{FRONT}"/></clipPath>')
     inner = P("M40,300 C80,420 190,466 320,466 C450,466 560,420 600,300 C560,396 450,440 320,440 C190,440 80,396 40,300Z", TEAL_D, ' opacity="0.8"')
     band = "M40,272 Q320,356 600,272 L588,316 Q320,404 52,316Z"

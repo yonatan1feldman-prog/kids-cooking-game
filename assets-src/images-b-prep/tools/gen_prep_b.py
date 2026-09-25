@@ -103,8 +103,10 @@ HANDFUL_ANCHOR = (150, 116)
 def cheese_handful():
     p = "ch-"
     r = random.Random(5)
-    L = [G(P(wob(150, 116, 90, 68, .06, 1, 20), mix(CHEESE, CHEESE_D, .35)), p + "cut")]
-    pts = [(150 + math.cos(a) * d * 80, 116 + math.sin(a) * d * 58) for a, d in [(r.uniform(0, 6.28), math.sqrt(r.random())) for _ in range(34)]]
+    # Round 11: a loose heap of shreds; the base under them is small and shaded (it only fills the gaps), because the
+    # old full yellow disc under them read as a flat pancake, not a handful.
+    L = [G(P(wob(150, 124, 62, 40, .12, 1, 20), mix(CHEESE_D, "#B8862E", .3)), p + "cut")]
+    pts = [(150 + math.cos(a) * d * 84, 116 + math.sin(a) * d * 56) for a, d in [(r.uniform(0, 6.28), r.random() ** .7) for _ in range(46)]]
     pts.sort(key=lambda q: q[1])
     L.append(G(shreds(p, r, pts), p + "sh"))
     L.append(G(shreds(p, r, [(122, 206), (176, 222), (146, 244)]), p + "sh"))     # a few falling

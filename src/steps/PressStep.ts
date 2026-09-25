@@ -15,6 +15,8 @@ const OVER_SIZE = 0.62;
 
 /** Code-drawn stand-in for a missing dent image: a soft shadow ellipse. */
 const DENT_FALLBACK = 'press-dent-drawn';
+/** A warm tint on the dent (round 11: untinted it read as a grey smudge on the dough). */
+const DENT_TINT = 0xf0b888;
 /** The press area reaches this far beyond the food (world units x k). */
 const PRESS_PAD = 70;
 
@@ -186,10 +188,18 @@ export class PressStep extends Step<PressParams> {
     this.squashTween = this.scene.tweens.add({ targets: target, scaleX: s, scaleY: s, duration: 420, ease: 'Elastic.easeOut', easeParams: [1.1, 0.45] });
   }
 
+  /** Dents on screen now (round 11: at most two, softer, so quick presses no longer pile up into a grey stain). */
+  private dents: Phaser.GameObjects.Image[] = [];
+
   private showDent(x: number, y: number) {
-    const dent = this.scene.add.image(x, y, this.dentKey).setScale(1.3 * this.k).setAlpha(0);
+    while (this.dents.length >= 2) this.dents.shift()?.destroy();
+    const dent = this.scene.add.image(x, y, this.dentKey).setScale(1.3 * this.k).setAlpha(0).setTint(DENT_TINT);
     dent.setDepth(this.bowl ? this.bowl.contentsDepth + 0.1 : 2.1);
-    this.scene.tweens.add({ targets: dent, alpha: 0.9, duration: 80, yoyo: true, hold: 350, onComplete: () => dent.destroy() });
+    this.dents.push(dent);
+    this.scene.tweens.add({
+      targets: dent, alpha: 0.5, duration: 80, yoyo: true, hold: 300,
+      onComplete: () => { this.dents = this.dents.filter((d) => d !== dent); dent.destroy(); },
+    });
   }
 
   /** The food changes to its next state (a crossfade with a little puff). The last state ends the step. */

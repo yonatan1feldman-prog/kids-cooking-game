@@ -174,7 +174,7 @@ export class MomHandView {
     this.img.setPosition(x, y + down).setAlpha(alpha);
     if (flat) this.img.setScale(base * (1 + 0.05 * press), base * (1 - 0.1 * press));
     else this.img.setScale(base * (1 - 0.1 * press));
-    this.mark?.setPosition(x, y + down).setAlpha(alpha * Math.min(1, press * 1.6));
+    this.mark?.setPosition(x, y + down).setAlpha(0.55 * alpha * Math.min(1, press * 1.6));   // round 11: softer, as the child's dents
     for (const img of this.props) {
       const p = img.getData('prop') as HandProp;
       let a = alpha * (p.alpha ?? 1);
@@ -197,7 +197,7 @@ export class MomHandView {
     this.stop();
     this.setKind(m.kind, m.size);
     this.makeProps(m.props);
-    if (m.mark) this.mark = this.scene.add.image(0, 0, m.mark.key).setDepth(997).setScale(m.mark.scale).setAlpha(0);
+    if (m.mark) this.mark = this.scene.add.image(0, 0, m.mark.key).setDepth(997).setScale(m.mark.scale).setAlpha(0).setTint(0xf0b888);
     this.onStop = m.onStop;
     const keys = m.keys;
     const total = keys[keys.length - 1].t;

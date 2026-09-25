@@ -20,7 +20,8 @@ DX = 200                    # the style-test drawing (600 wide, centre 300) shif
 PIVOT_LEFT = (350, 505)     # mom-arm-left shoulder (viewer's left, pointing arm)
 PIVOT_RIGHT = (650, 505)    # mom-arm-right shoulder (waving arm)
 # pointing arm geometry (frame coords): shoulder -> elbow -> wrist -> fingertip, pointing left ~12 deg up
-ARM_L = dict(shoulder=(350, 505), elbow=(264, 428), wrist=(160, 405))
+ARM_L = dict(shoulder=(350, 505), elbow=(264, 428), wrist=(160, 405))   # round 4 pose (kept for reference)
+FINGERTIP_L = (37, 378)     # the pointing fingertip; the game aims the arm with it (ART.mom.fingertipL)
 HAND_ANCHORS = {"point": (100, 100), "roll": (140, 140), "spread": (110, 250), "sprinkle": (125, 115), "grab": (110, 150)}
 
 
@@ -150,6 +151,32 @@ def pointing_hand(c, tx, ty, ang, sc, cuff=None, flen=150, wrist=None):
     thumb = f"M34,{150 + d} Q64,{120 + d} 50,{92 + d} Q40,{80 + d} 28,{92 + d} Q26,{118 + d} 12,{140 + d}Z"
     g += P(thumb, sh, ' transform="translate(2 2)"') + P(thumb, s)
     g += P(wob(40, 94 + d, 6, 5, .1, 33), lt, ' opacity="0.8"')
+    return f'<g transform="translate({n(tx)} {n(ty)}) rotate({n(ang)}) scale({sc})">{g}</g>'
+
+
+def point_hand(c, tx, ty, ang, sc, cuff=False, lf=96, wrist=None):
+    """Mom's pointing hand (round 11): a natural index finger (about as long as the back of the hand, a little
+    tapered, growing out of the knuckle line), the other three fingers curled into one soft fist with shallow grooves,
+    the thumb resting across them. Fingertip at local (0,0), finger along +y; the wrist leaves at y = lf + 118."""
+    s, sh, lt = c["skin"], c["skin_sh"], c["skin_lt"]
+    g = ""
+    if cuff:
+        g += cuff_band(c, lf + 150, 118, 110)
+    g += P(wrect(-30, lf + 88, 60, 76, 24, 1, 7), wrist or sh)                                        # wrist
+    body = smooth([(-20, lf - 6), (14, lf - 8), (38, lf + 14), (46, lf + 52), (40, lf + 92), (20, lf + 116),
+                   (-18, lf + 116), (-44, lf + 96), (-52, lf + 56), (-44, lf + 18)])
+    g += P(body, sh, ' transform="translate(2.5 3)"') + P(body, s)                                 # back of hand + curled fingers
+    for i, y in enumerate((lf + 34, lf + 62, lf + 88)):                                            # grooves between curled fingers
+        g += P(f"M-50,{y} Q-36,{y - 8} -20,{y - 3}", "none", f' stroke="{sh}" stroke-width="3.2" stroke-linecap="round" opacity="0.6"')
+        g += E(-42, y - 14, 6, 4.5, lt, ' opacity="0.7"')
+    fin = smooth([(0, 0), (11, 4), (14, 24), (16, lf * .6), (19, lf + 8), (0, lf + 14), (-19, lf + 8), (-16, lf * .6), (-14, 24), (-11, 4)])
+    g += P(fin, sh, ' transform="translate(2 2.5)"') + P(fin, s)                                       # index finger
+    g += P(f"M-10,{lf * .5} Q0,{lf * .54} 10,{lf * .5}", "none", f' stroke="{sh}" stroke-width="2.6" stroke-linecap="round" opacity="0.6"')
+    g += E(0, 11, 6.5, 8, lt, ' opacity="0.9"')                                                     # nail light
+    thumb = smooth([(38, lf + 88), (30, lf + 100), (0, lf + 76), (-12, lf + 52), (-6, lf + 40), (8, lf + 44), (40, lf + 64)])
+    g += P(thumb, sh, ' transform="translate(2 3)"') + P(thumb, s)                                    # thumb across the fist
+    g += E(-4, lf + 48, 6, 5, lt, ' opacity="0.85"')
+    g += E(18, lf + 30, 18, 12, lt, ' opacity="0.3"')                                               # back-of-hand light
     return f'<g transform="translate({n(tx)} {n(ty)}) rotate({n(ang)}) scale({sc})">{g}</g>'
 
 
@@ -377,20 +404,26 @@ def sleeve(c, cx, cy, rot, seed, cuff_off=30, trim_rot=None):
 
 
 def arm_left(c, pr):
-    """Pointing arm (toward the pizza, left and ~12 deg up): sleeve, upper arm, elbow, forearm, wrist, hand."""
+    """Pointing arm (round 11): an almost straight arm from the shoulder to the fingertip at FINGERTIP_L (unchanged,
+    the game aims with it), the elbow a little below the line so it reads relaxed; sleeve, upper arm, forearm, hand."""
     p = "mp-al-"
-    S, Ee, W = ARM_L["shoulder"], ARM_L["elbow"], ARM_L["wrist"]
-    fx, fy = W[0] - Ee[0], W[1] - Ee[1]
+    S = (344, 509)
+    tip = FINGERTIP_L
+    dx, dy = tip[0] - S[0], tip[1] - S[1]
+    d = math.hypot(dx, dy)
+    ux, uy = dx / d, dy / d
+    Ee = (S[0] + dx * .40 - uy * -14, S[1] + dy * .40 + ux * -14)       # the elbow, 14 below the shoulder-tip line
+    fx, fy = tip[0] - Ee[0], tip[1] - Ee[1]
     fl = math.hypot(fx, fy)
-    ux, uy = fx / fl, fy / fl                                   # forearm direction
-    ang = math.degrees(math.atan2(ux, -uy))                     # local -y of the hand -> (ux,uy)
-    sc, flen = .68, 128
-    Lh = (175 + flen - 118) * sc                                # fingertip -> wrist distance
-    tip = (W[0] + ux * Lh, W[1] + uy * Lh)
-    L = [arm_shape(c, (S[0] - 6, S[1] + 4), Ee, (W[0] + ux * 8, W[1] + uy * 8))]
-    L.append(G(pointing_hand(c, tip[0], tip[1], ang, sc, flen=flen, wrist=c["skin"]), p + "sh"))
+    vx, vy = fx / fl, fy / fl                                            # forearm direction
+    sc, lf = .74, 96
+    Lh = (lf + 128) * sc                                                 # fingertip -> wrist joint
+    W = (tip[0] - vx * Lh, tip[1] - vy * Lh)
+    ang = math.degrees(math.atan2(vx, -vy))                              # local +y of the hand (finger -> wrist) = -forearm
+    L = [arm_shape(c, S, Ee, (W[0] + vx * 10, W[1] + vy * 10), ws=((0, 62), (.35, 56), (.5, 50), (.7, 46), (1, 40)))]
+    L.append(G(point_hand(c, tip[0], tip[1], ang, sc, lf=lf, wrist=c["skin"]), p + "sh"))
     ua = math.degrees(math.atan2(Ee[1] - S[1], Ee[0] - S[0]))
-    L.append(G(sleeve(c, S[0] - 8, S[1] + 2, ua, 70, 34), p + "sh"))
+    L.append(G(sleeve(c, S[0] + 2, S[1] - 2, ua, 70, 36), p + "sh"))
     return layer(p, G("".join(L), p + "cut"), "smooth", 31), tip
 
 
@@ -403,6 +436,29 @@ def arm_right(c, pr):
     L.append(G(open_hand(c, 739, 462, 12, .8), p + "sh"))
     L.append(G(sleeve(c, sx + 14, sy + 20, 58, 80, 30), p + "sh"))
     return layer(p, G("".join(L), p + "cut"), "smooth", 33)
+
+
+def arm_right_rest(c, pr):
+    """Round 11: the resting arm, hand on the hip (elbow out, the hand tucked behind her side). Her pose while she
+    works with the child; the wave (mom-arm-right) is only for hello, a step done and the finale. Same pivot."""
+    p = "mp-arr-"
+    sx, sy = PIVOT_RIGHT
+    S, Ee, W = (sx + 6, sy + 24), (748, 648), (694, 742)
+    L = [arm_shape(c, S, Ee, W, ws=((0, 56), (.4, 52), (.5, 48), (.7, 46), (1, 40)))]
+    L.append(G(P(wob(682, 752, 30, 26, .04, 83, 16, 30), c["skin_sh"]) + P(wob(680, 749, 27, 23, .04, 84, 16, 30), c["skin"]), p + "sh"))
+    L.append(G(sleeve(c, sx + 14, sy + 20, 62, 80, 30), p + "sh"))
+    return layer(p, G("".join(L), p + "cut"), "smooth", 35)
+
+
+def arm_left_reach(c, pr):
+    """Round 11: the pointing arm reaching down to the counter (out of the frame at the bottom), shown while her demo
+    hand works on the counter, so that hand reads as hers. Same pivot as mom-arm-left."""
+    p = "mp-alr-"
+    S, Ee, W = (344, 509), (286, 642), (262, 830)
+    L = [arm_shape(c, S, Ee, W, ws=((0, 62), (.35, 56), (.5, 50), (.7, 46), (1, 42)))]
+    ua = math.degrees(math.atan2(Ee[1] - S[1], Ee[0] - S[0]))
+    L.append(G(sleeve(c, S[0] + 2, S[1] - 2, ua, 72, 36), p + "sh"))
+    return layer(p, G("".join(L), p + "cut"), "smooth", 37)
 
 
 # ---------- demo hands (400x400, from the lower right, hovering) ----------
@@ -430,7 +486,7 @@ def wrist_cuff(c, y0, w=74, cw=122, cl=104):
 
 def hand_point(c):
     ax, ay = HAND_ANCHORS["point"]
-    return hand_file("mh-pt-", pointing_hand(c, ax, ay, -45, .92, cuff=True, flen=150), 41)
+    return hand_file("mh-pt-", point_hand(c, ax, ay, -45, 1.0, cuff=True, wrist=c["skin"]), 41)
 
 
 def hand_roll(c):
@@ -449,8 +505,6 @@ def hand_roll(c):
     for x, t in tips:
         g += E(x, t + 13, 6.5, 7.5, lt, ' opacity="0.75"')
     g += P("M-44,-18 Q0,-30 44,-16 Q0,-22 -44,-18Z", sh, ' opacity="0.5"')                   # knuckle fold
-    for x in (-36, -12, 12, 36):
-        g += E(x, -28, 7, 4.5, lt, ' opacity="0.7"')
     g += P(wob(-8, 8, 30, 22, .05, 16), lt, ' opacity="0.35"')                                # back-of-hand light
     ax, ay = HAND_ANCHORS["roll"]
     return hand_file("mh-ro-", f'<g transform="translate({ax} {ay}) rotate(-45) scale(1.06 .9)">{g}</g>', 43)   # squashed: pressing down
@@ -528,7 +582,8 @@ def build(out, pr):
     os.makedirs(out, exist_ok=True)
     al, tip = arm_left(c, pr)
     files = {"mom-body": mom_body(c, pr), "mom-head": mom_head(c, pr), "mom-hair": mom_hair(c, pr),
-             "mom-arm-left": al, "mom-arm-right": arm_right(c, pr)}
+             "mom-arm-left": al, "mom-arm-right": arm_right(c, pr),
+             "mom-arm-left-reach": arm_left_reach(c, pr), "mom-arm-right-rest": arm_right_rest(c, pr)}
     for k in ("open", "blink", "happy", "surprised"):
         files["mom-eyes-" + k] = eyes(c, pr, k)
     for k in ("smile", "open", "talk"):

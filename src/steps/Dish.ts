@@ -83,8 +83,9 @@ export class Dish extends Phaser.GameObjects.Container {
       y,
       scale: diameter / Math.max(1, frame.realWidth),
       angle: Phaser.Math.Between(0, 359),
-      // Slight shade variation so the sauce doesn't look like flat plastic.
-      tint: Phaser.Math.RND.pick([0xffffff, 0xffffff, 0xf2e4e2, 0xe6d0cc]),
+      // One shade only (round 11): the old darker stamps showed every stamp's scalloped edge; the brush's own paper
+      // grain keeps it from looking like flat plastic.
+      tint: 0xffffff,
     };
     this.stamps.push(s);
     this.drawStamp(this.ensureSauce(), s);

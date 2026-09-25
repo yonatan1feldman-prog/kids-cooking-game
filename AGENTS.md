@@ -647,6 +647,28 @@ explicitly approved that one push in the current round (see "Working rules" and 
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
 ## Handoff notes (written for the next agent; round 9 on top, rounds 2-8 below still hold)
+### 00000000. Round 11 (visual polish, part 1)
+From a visual audit (20:9 screenshots of the pizza and the salad). All art changes were made in the cloud with the
+generators in `assets-src/*/tools` (they reproduce the delivered SVGs byte for byte), then baked (`__bakeWebp(keys)`).
+- **Mom's pointing hand** (`point_hand` in `images-b/tools/gen_mom.py`; the old `pointing_hand` stays for Pipa): a
+  natural index finger out of the knuckle line, the other fingers one soft fist, the thumb across it. Used by
+  `mom-arm-left` and `mom-hand-point` (anchor (100,100) unchanged). The pointing arm is almost straight now, out of its
+  sleeve at the shoulder (it used to rise from the collar with the sleeve hanging under it); the fingertip stays at
+  `FINGERTIP_L` = (37, 378) = `ART.mom.fingertipL`.
+- **Two new arm poses** (same pivots and frame): `mom-arm-right-rest` (hand on the hip, her pose while she works; the
+  wave `mom-arm-right` only for hello, a step done, the finale) and `mom-arm-left-reach` (down to the counter, out of the
+  frame). `Mom.followHand(() => hand.active)` (RecipeScene): while her demo hand shows, the pointing arm reaches down,
+  so the hand reads as hers (no more three hands); back up 700 ms after it goes. Poses cross-fade in 160 ms.
+  `celebrate()` points at the photo (-12°) instead of swinging the arm +55° off the screen.
+- Sauce brush (`makeBrush`): a seeded paper grain, one tint for every stamp (the darker stamps showed scalloped edges).
+  Dents: warm tint, alpha 0.5, at most two. `cheese-handful`: a heap of shreds, not a yellow disc. Bowl fronts
+  (`prep-bowl-front`, `salad-bowl-front`): the torn edge only below the rim (`FRONT_LOW`), no seams at the sides.
+  `kid-hands`: slimmer fingers, shorter thumbs. `mom-hand-press`: no bead row of knuckle lights. Choose: items fit 0.84
+  of the bin wide, 0.80 high. Grater 50 higher, cheese block 0.95.
+- **Open:** in the cloud's software WebGL (SwiftShader) the cut slices on the chopping pile lose rectangular pieces;
+  with the Canvas renderer they are whole. Check on the phone before touching ChopStep. Not done yet: the kitchen
+  background (the counter reads as a wall), `mom-hand-roll`'s knuckle beads, the title/home hint hand (Mom still points).
+
 ### 0000000. Round 9 (the memory book; the soup and the birthday cake)
 State: `rollback-pre-album` = master before the round; `round-9-album` merged and tagged `v0.10-album`;
 `rollback-pre-soup`, `round-9-soup` -> `v0.11-soup`; `rollback-pre-cake`, `round-9-cake` -> `v0.12-cake`.

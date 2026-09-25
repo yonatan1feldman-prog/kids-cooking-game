@@ -58,6 +58,10 @@ export const IMAGES = {
   'mom-mouth-talk': { size: [800, 800] },
   'mom-mouth-open': { size: [800, 800] },
   'mom-arm-left': { size: [800, 800] },
+  /** Round 11: the other arm poses, same frame and pivots. The resting arm (hand on the hip) is her pose while she works;
+   * mom-arm-right waves (hello, a step done, the finale). The reaching arm goes down to the counter while her demo hand shows. */
+  'mom-arm-right-rest': { size: [800, 800] },
+  'mom-arm-left-reach': { size: [800, 800] },
   /** Mom's demo hands, 400x400; the anchor (ART.momHands) is the point placed on the target. */
   'mom-hand-point': { size: [400, 400] },
   'mom-hand-roll': { size: [400, 400] },
@@ -378,6 +382,7 @@ export const CORE_IMAGES: readonly ImageKey[] = [
   'character-mouth-closed', 'character-mouth-open', 'character-mouth-chew',
   'mom-arm-right', 'mom-body', 'mom-head', 'mom-hair', 'mom-eyes-open', 'mom-eyes-blink', 'mom-eyes-happy',
   'mom-eyes-surprised', 'mom-mouth-smile', 'mom-mouth-talk', 'mom-mouth-open', 'mom-mouth-chew', 'mom-arm-left',
+  'mom-arm-right-rest', 'mom-arm-left-reach',
   'mom-hand-point', 'mom-hand-roll', 'mom-hand-spread', 'mom-hand-sprinkle', 'mom-hand-grab', 'mom-hand-press',
   'mom-hand-knife', 'mom-hand-mitt',
 ];
