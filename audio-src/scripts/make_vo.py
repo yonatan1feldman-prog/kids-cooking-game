@@ -259,6 +259,19 @@ MOM_LINES = {
     # The puzzle (added 2026-09-26; Voice A only: python make_vo.py mom-a <names>): a picture from the memory book
     "vo-puzzle": "Let's make a puzzle from your picture!",
     "vo-puzzle-done": "You put it all together!",
+    # The garden (added 2026-09-26; Voice A only: python make_vo.py mom-a <names>): plant, water, grow, pick
+    "vo-pick-garden": "Let's go to the garden!",
+    "vo-garden-seeds": "What shall we grow? Pick some seeds!",
+    "vo-garden-plant": "Put a seed in each little hole!",
+    "vo-garden-water": "Now let's water them!",
+    "vo-garden-sprout": "Look! They're growing!",
+    "vo-garden-cloud": "Oh, a cloud! Can you push it away?",
+    "vo-garden-sun": "Hello, sunshine!",
+    "vo-garden-snail": "A hungry snail! Let's give it a leaf.",
+    "vo-garden-snail-yum": "Munch, munch! The snail is happy.",
+    "vo-garden-pick": "Let's pick them! Into the basket!",
+    "vo-garden-pull": "Let's pull the carrots out!",
+    "vo-garden-done": "What a lovely harvest! We grew it together!",
     # Gameplay round 4 (added 2026-09-26; Voice A only: python make_vo.py mom-a <names>): find the tool, Pipa's order,
     # stir with the arrow
     "vo-find-grater": "Which one is the grater? Can you find it?",

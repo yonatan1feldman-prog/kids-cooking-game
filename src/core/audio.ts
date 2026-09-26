@@ -60,6 +60,9 @@ export type VoiceKey =
   | 'vo-pull-out' | 'vo-cut-slices'
   // the puzzle from a memory-book photo
   | 'vo-puzzle' | 'vo-puzzle-done'
+  // the garden (not cooking: plant, water, grow, pick)
+  | 'vo-pick-garden' | 'vo-garden-seeds' | 'vo-garden-plant' | 'vo-garden-water' | 'vo-garden-sprout' | 'vo-garden-cloud'
+  | 'vo-garden-sun' | 'vo-garden-snail' | 'vo-garden-snail-yum' | 'vo-garden-pick' | 'vo-garden-pull' | 'vo-garden-done'
   // gameplay round 4: find the tool, Pipa's order, stir with the arrow
   | 'vo-find-grater' | 'vo-find-pin' | 'vo-find-spoon' | 'vo-pipa-order' | 'vo-then' | 'vo-first-this' | 'vo-stir-arrow'
   | 'vo-other-way'

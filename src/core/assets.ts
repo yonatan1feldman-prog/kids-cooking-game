@@ -427,6 +427,38 @@ export const IMAGES = {
   /** The recipe's board: a wooden tray with a napkin; Mom's model and her three skewers lie on it in rows. */
   'skewer-tray': { size: [800, 600] },
   'photo-frame-skewers': { size: [700, 780] },
+  // ---- The garden (a stage that is not cooking: plant, water, grow, pick; assets-src/images-b-garden, tools/gen_garden.py).
+  // Anchors: ART.garden.
+  'card-garden': { size: [400, 520] },
+  'bg-garden': { size: [2400, 1080] },
+  /** The raised bed: soil on top (the plants stand on ART.garden.soilY), planks below; `-front` is the planks alone, over the carrots. */
+  'garden-bed': { size: [1300, 360] },
+  'garden-bed-front': { size: [1300, 360] },
+  'garden-hole': { size: [180, 80] },
+  'garden-mound': { size: [200, 90] },
+  'garden-seed': { size: [50, 62] },
+  'seed-packet-tomato': { size: [240, 320] },
+  'seed-packet-strawberry': { size: [240, 320] },
+  'seed-packet-carrot': { size: [240, 320] },
+  /** The plants stand on their bottom centre (the soil line). */
+  'garden-sprout': { size: [140, 180] },
+  'plant-tomato-1': { size: [260, 380] },
+  'plant-strawberry-1': { size: [260, 380] },
+  'plant-carrot-1': { size: [260, 380] },
+  'plant-tomato-2': { size: [400, 640] },
+  'plant-strawberry-2': { size: [420, 300] },
+  'garden-flower': { size: [80, 80] },
+  'garden-tomato': { size: [140, 150] },
+  'garden-strawberry': { size: [130, 150] },
+  /** A whole carrot, standing: leaves on top, the root from ART.garden.carrotTop down. */
+  'garden-carrot': { size: [180, 420] },
+  'watering-can': { size: [440, 320] },
+  'garden-sun': { size: [300, 300] },
+  'garden-cloud': { size: [580, 270] },
+  'garden-snail': { size: [260, 190] },
+  'garden-leaf': { size: [240, 190] },
+  'garden-basket': { size: [440, 320] },
+  'garden-basket-front': { size: [440, 320] },
 } as const satisfies Record<string, { size: readonly [number, number]; raster?: number }>;
 
 /** Texture size of an image: its native size, times its `raster` factor if it is shown bigger than native. */
@@ -479,7 +511,7 @@ export const SCENERY_KEYS: readonly ImageKey[] = [
 export const CORE_IMAGES: readonly ImageKey[] = [
   'bg-kitchen-landscape', ...KITCHEN_KEYS, ...SCENERY_KEYS, 'logo-cooking-with-mom', 'star', 'btn-play', 'btn-home', 'btn-done', 'hand-hint',
   'card-pizza', 'card-salad', 'card-cookies', 'card-smoothie', 'card-pancakes', 'card-soup', 'card-cake',
-  'card-skewers',
+  'card-skewers', 'card-garden',
   'character-body', 'character-eyes-open', 'character-eyes-blink', 'character-eyes-surprised', 'character-eyes-happy',
   'character-mouth-closed', 'character-mouth-open', 'character-mouth-chew',
   'mom-arm-right', 'mom-body', 'mom-head', 'mom-hair', 'mom-eyes-open', 'mom-eyes-blink', 'mom-eyes-happy',
@@ -638,6 +670,21 @@ RECIPE_ASSETS.skewers = {
 /** The invitation badges of the guests: every recipe ends by sharing, so every recipe loads them. */
 export const GUEST_CARDS: readonly ImageKey[] = ['guest-card-turtle', 'guest-card-giraffe', 'guest-card-penguin'];
 for (const r of Object.values(RECIPE_ASSETS)) r.images = [...r.images, ...GUEST_CARDS];
+/** The garden (not a recipe, its own scene, GardenScene): loaded on its card like a recipe, released at home. */
+RECIPE_ASSETS.garden = {
+  images: [
+    'bg-garden', 'garden-bed', 'garden-bed-front', 'garden-hole', 'garden-mound', 'garden-seed', 'seed-packet-tomato',
+    'seed-packet-strawberry', 'seed-packet-carrot', 'garden-sprout', 'plant-tomato-1', 'plant-strawberry-1', 'plant-carrot-1',
+    'plant-tomato-2', 'plant-strawberry-2', 'garden-flower', 'garden-tomato', 'garden-strawberry', 'garden-carrot',
+    'watering-can', 'garden-sun', 'garden-cloud', 'garden-snail', 'garden-leaf', 'garden-basket', 'garden-basket-front',
+    'water-drop',
+  ],
+  sounds: [
+    'vo-garden-seeds', 'vo-garden-plant', 'vo-garden-water', 'vo-garden-sprout', 'vo-garden-cloud', 'vo-garden-sun',
+    'vo-garden-snail', 'vo-garden-snail-yum', 'vo-garden-pick', 'vo-garden-pull', 'vo-garden-done', 'name-tomato',
+    'name-strawberry', 'name-carrot', 'tear',
+  ],
+};
 /** A guest's own layers: loaded when the sharing starts (all three, the two not invited are freed at once). */
 export const GUEST_LAYERS: readonly ImageKey[] = IMAGE_KEYS.filter((k) => k.startsWith('guest-') && !k.startsWith('guest-card-'));
 
@@ -853,6 +900,23 @@ export const ART = {
     plateTop: 290,
     /** syrup-bottle (260x520): its nozzle. */
     syrupTip: { x: 130, y: 506 },
+  },
+  /** The garden's art geometry (assets-src/images-b-garden/tools/gen_garden.py prints it). */
+  garden: {
+    /** garden-bed (1300x360): the soil line the plants stand on, and the three holes' x. */
+    soilY: 100,
+    holes: [250, 650, 1050],
+    /** Where the fruit hang on a grown plant, from its base (the soil line), at the plant's own scale. */
+    tomatoFruits: [[-92, -330], [70, -420], [-40, -210]],
+    strawberryFruits: [[-128, -44], [0, -30], [126, -52]],
+    /** garden-carrot (180x420): where the root meets the leaves (at the soil line while it grows). */
+    carrotTop: 196,
+    /** watering-can (440x320): the spout's rose, where the water leaves it. */
+    spout: { x: 22, y: 92 },
+    /** garden-snail (260x190, facing left): its mouth. */
+    snailMouth: { x: 30, y: 150 },
+    /** garden-basket (440x320): the middle of the heap inside. */
+    basketIn: { x: 220, y: 128 },
   },
 } as const;
 

@@ -49,6 +49,11 @@
   "w": 140,
   "h": 140
  },
+ "bg-garden": {
+  "sha1": "f3e31aebe5df10f5b46ecfc287818fe73e615778",
+  "w": 2400,
+  "h": 1080
+ },
  "bg-kitchen-landscape": {
   "sha1": "00a938327874bc0c82f04742a180755e07ecd9f2",
   "w": 2400,
@@ -211,6 +216,11 @@
  },
  "card-cookies": {
   "sha1": "624a63f5260ee3d96126d005b9839ceca57cd6fd",
+  "w": 400,
+  "h": 520
+ },
+ "card-garden": {
+  "sha1": "eab13997e76c0315ffe31805c6b514e23023c411",
   "w": 400,
   "h": 520
  },
@@ -543,6 +553,86 @@
   "sha1": "b9a1d7b6504718892b35bdb2a9d3de12fd747b68",
   "w": 672,
   "h": 504
+ },
+ "garden-basket": {
+  "sha1": "a3e856ebd630822cbd7a867f2713518c32e48617",
+  "w": 440,
+  "h": 320
+ },
+ "garden-basket-front": {
+  "sha1": "0405006d98ab571b22491f1e9f9aaffb8dc7563d",
+  "w": 440,
+  "h": 320
+ },
+ "garden-bed": {
+  "sha1": "d723080241ea1622790443b694f80eb323572e92",
+  "w": 1300,
+  "h": 360
+ },
+ "garden-bed-front": {
+  "sha1": "4da77334ada816dca51bc770540ca111e71d2348",
+  "w": 1300,
+  "h": 360
+ },
+ "garden-carrot": {
+  "sha1": "50e133d1001d61786d767879c9b0f49328705b7b",
+  "w": 180,
+  "h": 420
+ },
+ "garden-cloud": {
+  "sha1": "29afb8e0d1e1f97b7c42c01b07c3cfdab7b538e9",
+  "w": 580,
+  "h": 270
+ },
+ "garden-flower": {
+  "sha1": "7e1ea2896280c3e7fee1c66c15184709ecbda7de",
+  "w": 80,
+  "h": 80
+ },
+ "garden-hole": {
+  "sha1": "906088193a1423ccc9faf905db1abeb5eb08ba4c",
+  "w": 180,
+  "h": 80
+ },
+ "garden-leaf": {
+  "sha1": "80e3668f285acc253c0b939599a455d9b9e9c05b",
+  "w": 240,
+  "h": 190
+ },
+ "garden-mound": {
+  "sha1": "bf6ec75c90d9fad028b868e95fccc993616472cf",
+  "w": 200,
+  "h": 90
+ },
+ "garden-seed": {
+  "sha1": "c06f6b46954af236145c68a7f86f0fdf3bb256c3",
+  "w": 50,
+  "h": 62
+ },
+ "garden-snail": {
+  "sha1": "ee1c5f44121466ce1239c5f7de0d4849665f9fe9",
+  "w": 260,
+  "h": 190
+ },
+ "garden-sprout": {
+  "sha1": "77e273683ac5c2fb4371198e65a923008ecb5531",
+  "w": 140,
+  "h": 180
+ },
+ "garden-strawberry": {
+  "sha1": "cdfd8ffc4b92963ca454c1e378e44b9ee6fd895d",
+  "w": 130,
+  "h": 150
+ },
+ "garden-sun": {
+  "sha1": "a79caf94349550cc413435915bb990a8f2a5cd09",
+  "w": 300,
+  "h": 300
+ },
+ "garden-tomato": {
+  "sha1": "327294169209f124e2eebd1e47303e359dc28125",
+  "w": 140,
+  "h": 150
  },
  "glass-empty": {
   "sha1": "a16f8a0ebedd3d54931d1a35945029c4168a2906",
@@ -1309,6 +1399,31 @@
   "w": 300,
   "h": 300
  },
+ "plant-carrot-1": {
+  "sha1": "b61585ad3e4e20822fd7d20cb9d7af43fa842e4e",
+  "w": 260,
+  "h": 380
+ },
+ "plant-strawberry-1": {
+  "sha1": "3aecdb973194c94791ade3bc19394f50f159d0cf",
+  "w": 260,
+  "h": 380
+ },
+ "plant-strawberry-2": {
+  "sha1": "13ae29536ce80018bf90744ce7091ddbbbaab8a6",
+  "w": 420,
+  "h": 300
+ },
+ "plant-tomato-1": {
+  "sha1": "53ba03c53ce0305e10b6a746d5b3501c2b23c740",
+  "w": 260,
+  "h": 380
+ },
+ "plant-tomato-2": {
+  "sha1": "ade900ab85f958ce50535581acc3d5b38abc77af",
+  "w": 400,
+  "h": 640
+ },
  "plate-big": {
   "sha1": "c9ad9f695059770b51fc8bd145ca6af75dab0054",
   "w": 720,
@@ -1433,6 +1548,21 @@
   "sha1": "ed449899ea240918e3b0ed457bf6f5b290bb53ce",
   "w": 640,
   "h": 520
+ },
+ "seed-packet-carrot": {
+  "sha1": "b5c0e8d6474c5ffd828a98af5a5560642db8ff39",
+  "w": 240,
+  "h": 320
+ },
+ "seed-packet-strawberry": {
+  "sha1": "5d70591b8cbb09917aefc882cd04cd1e046b72be",
+  "w": 240,
+  "h": 320
+ },
+ "seed-packet-tomato": {
+  "sha1": "c0f4d5f5bcff5ab155fad874802e1994dc53ef76",
+  "w": 240,
+  "h": 320
  },
  "serving-bowl": {
   "sha1": "808424878595a2e0b836828988d52c52b788e886",
@@ -1713,5 +1843,10 @@
   "sha1": "8a593f28e2ff486507f00b0c1693f3747a6a7c44",
   "w": 240,
   "h": 420
+ },
+ "watering-can": {
+  "sha1": "e893945d4aa6f17f93f9a2d594a8fb7a372a1f20",
+  "w": 440,
+  "h": 320
  }
 }

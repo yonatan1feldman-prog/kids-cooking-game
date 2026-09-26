@@ -293,6 +293,18 @@ Same engine, voice and processing as every line above.
 | vo-find-grater · vo-find-pin · vo-find-spoon · name-grater · name-rolling-pin · name-spoon · name-whisk · name-spatula | Which one is the grater? Can you find it? · Which one is the rolling pin? Can you find it? · Which one is the wooden spoon? Can you find it? · Grater! · Rolling pin! · Spoon! · Whisk! · Spatula! |
 | vo-pipa-order · vo-then · vo-first-this · vo-stir-arrow · vo-other-way | Look! Pipa wants two things, in order. First... · and then... · Pipa wants this one first! · Stir round and round, the way the arrow goes! · Now stir the other way! |
 
+### New in the garden round (a stage that is not cooking, 12 lines)
+
+Same engine, voice and processing as every line above (Kokoro af_heart, `make_vo.py mom-a`). The names are the smoothie's and the salad's.
+
+| Key | Line |
+|---|---|
+| vo-pick-garden · vo-garden-seeds | Let's go to the garden! · What shall we grow? Pick some seeds! |
+| vo-garden-plant · vo-garden-water · vo-garden-sprout | Put a seed in each little hole! · Now let's water them! · Look! They're growing! |
+| vo-garden-cloud · vo-garden-sun | Oh, a cloud! Can you push it away? · Hello, sunshine! |
+| vo-garden-snail · vo-garden-snail-yum | A hungry snail! Let's give it a leaf. · Munch, munch! The snail is happy. |
+| vo-garden-pick · vo-garden-pull · vo-garden-done | Let's pick them! Into the basket! · Let's pull the carrots out! · What a lovely harvest! We grew it together! |
+
 ### New in the guests round (who comes to eat, 13 lines)
 
 Same engine, voice and processing as every line above.
@@ -334,5 +346,7 @@ The 31 guest files of the guests round (the turtle, the giraffe and the penguin,
 layers like Pipa's, the giraffe's neck and the three invitation badges) are drawn by
 `assets-src/images-b-guests/tools/gen_guests.py` on the same kit. The living window's birds and cloud come from
 `assets-src/images-b/tools/gen_kitchen_sky.py`, and the 21 files of visual round 5 (the garden, the cat, the clock, the
-child's drawing, the sill's things, the bunting) from `gen_kitchen_view.py` beside it. No third-party art, fonts or images.
+child's drawing, the sill's things, the bunting) from `gen_kitchen_view.py` beside it. The 27 garden-stage files (the garden background, the raised
+bed, holes, seeds and packets, the plants, fruit and carrots, the watering can, sun, cloud, snail, leaf, basket and the
+garden card) are drawn by `assets-src/images-b-garden/tools/gen_garden.py` on the same kit. No third-party art, fonts or images.
 `images/webp/` holds WebP renderings of those same SVGs, made by `scripts/bake-webp.js`.
