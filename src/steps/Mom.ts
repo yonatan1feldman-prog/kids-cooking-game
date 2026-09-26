@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import { ART, IMAGES, type ImageKey } from '../core/assets';
 import { voice } from '../core/audio';
+import { burst } from '../core/fx';
+import { sfx } from '../core/sfx';
 import type { Spot } from '../core/stage';
 
 type Eyes = 'open' | 'blink' | 'happy' | 'surprised';
@@ -198,6 +200,34 @@ export class Mom {
         this.breath?.resume();
       },
     });
+  }
+
+  private tickledAt = -Infinity;
+
+  /** A world point on her face or upper body (a tap there makes her smile). */
+  hit(x: number, y: number) {
+    const { cx, h } = ART.mom;
+    const lx = (x - this.box.x) / this.s + cx;
+    const ly = (y - this.box.y) / this.s + h;
+    return lx > 300 && lx < 700 && ly > 30 && ly < 620;
+  }
+
+  /** A tap on her: a happy smile and a little sway from the waist, a heart or two (never while she is busy). */
+  tickle() {
+    const now = this.scene.time.now;
+    if (this.mood || this.mouthHeld || this.chewing || this.handActive?.() || now - this.tickledAt < 1200) return;
+    this.tickledAt = now;
+    this.mood = 'happy';
+    this.setEyes('happy');
+    this.mouthHeld = 'open';
+    this.joy(0);
+    sfx(this.scene, 'pop', { volume: 0.5 });
+    const { cx, h, mouth } = ART.mom;
+    burst(this.scene, this.box.x + (mouth.x - cx + 120) * this.s, this.box.y + (mouth.y - h - 120) * this.s, { texture: 'fx-heart', count: 3, tint: [0xf06a8a, 0xf5a3b5], size: 34 * this.s, speed: 240, gravityY: -160, lifespan: 800, depth: 60 });
+    this.scene.time.delayedCall(450, () => {
+      if (this.mouthHeld === 'open' && this.mood === 'happy') this.mouthHeld = null;
+    });
+    this.scene.time.delayedCall(900, () => this.box.active && this.mood === 'happy' && this.rest());
   }
 
   /** Hello: happy eyes and a wave of the raised hand (the title, after the play tap). */

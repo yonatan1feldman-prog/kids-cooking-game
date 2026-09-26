@@ -357,7 +357,7 @@ export const IMAGES = {
   /**
    * The guests round (assets-src/images-b-guests): the turtle, the giraffe and the penguin, each in layers on one
    * 600x700 frame like Pipa's (body, eyes x4, mouths x4: the fourth is their own funny reaction). They are shown at
-   * most at 0.62 (Pipa's big size), so their textures are made at 0.62 of native. Their layers load when the sharing
+   * most at 0.75, so their textures are made at 0.75 of native. Their layers load when the sharing
    * starts; the two not invited are freed at once.
    * The giraffe's neck goes on up above her frame. The badges are what the child taps to invite one.
    */
@@ -392,6 +392,13 @@ export const IMAGES = {
   'guest-card-turtle': { size: [240, 240] },
   'guest-card-giraffe': { size: [240, 240] },
   'guest-card-penguin': { size: [240, 240] },
+  // ---- The fruit skewers (round 13, assets-src/images-b-skewers, tools/gen_skewers.py). Anchors: ART.skewers.
+  'card-skewers': { size: [400, 520] },
+  /** The stick, drawn standing (point at the top); the game lays it down, point to the right. */
+  'skewer-stick': { size: [60, 720] },
+  /** The recipe's board: a wooden tray with a napkin; Mom's model and her three skewers lie on it in rows. */
+  'skewer-tray': { size: [800, 600] },
+  'photo-frame-skewers': { size: [700, 780] },
 } as const satisfies Record<string, { size: readonly [number, number]; raster?: number }>;
 
 /** Texture size of an image: its native size, times its `raster` factor if it is shown bigger than native. */
@@ -433,6 +440,7 @@ export const KITCHEN_KEYS: readonly ImageKey[] = [
 export const CORE_IMAGES: readonly ImageKey[] = [
   'bg-kitchen-landscape', ...KITCHEN_KEYS, 'logo-cooking-with-mom', 'star', 'btn-play', 'btn-home', 'btn-done', 'hand-hint',
   'card-pizza', 'card-salad', 'card-cookies', 'card-smoothie', 'card-pancakes', 'card-soup', 'card-cake',
+  'card-skewers',
   'character-body', 'character-eyes-open', 'character-eyes-blink', 'character-eyes-surprised', 'character-eyes-happy',
   'character-mouth-closed', 'character-mouth-open', 'character-mouth-chew',
   'mom-arm-right', 'mom-body', 'mom-head', 'mom-hair', 'mom-eyes-open', 'mom-eyes-blink', 'mom-eyes-happy',
@@ -517,7 +525,7 @@ RECIPE_ASSETS.smoothie = {
 
 RECIPE_ASSETS.pancakes = {
   images: [
-    ...WASH, ...PREP_BOWL, 'topping-bin', 'flour-bag', 'batter-stage-0', 'milk-carton', 'milk-drop', 'egg-1', 'egg-2', 'egg-3',
+    ...WASH, ...PREP_BOWL, 'topping-bin', 'knife', 'flour-bag', 'batter-stage-0', 'milk-carton', 'milk-drop', 'egg-1', 'egg-2', 'egg-3',
     'pancake-batter-0', 'pancake-batter-1', 'pancake-batter-2', 'pancake-batter-3', 'stove-top', 'stove-knob-off',
     'stove-knob-on', 'flame', 'pan', 'ladle', 'batter-puddle-1', 'batter-puddle-2', 'batter-puddle-3', 'pancake-bubbles',
     'pancake-golden', 'plate-big', 'syrup-bottle', 'syrup-blob', 'berry', 'banana-coin', 'butter-pat',
@@ -554,7 +562,7 @@ RECIPE_ASSETS.soup = {
 
 RECIPE_ASSETS.cake = {
   images: [
-    ...WASH, ...PREP_BOWL, ...OVEN, 'topping-bin', 'btn-done', 'flour-bag', 'batter-stage-0', 'sugar-jar', 'milk-carton',
+    ...WASH, ...PREP_BOWL, ...OVEN, 'topping-bin', 'knife', 'btn-done', 'flour-bag', 'batter-stage-0', 'sugar-jar', 'milk-carton',
     'milk-drop', 'egg-1', 'egg-2', 'egg-3',
     'cake-batter-0', 'cake-batter-1', 'cake-batter-2', 'cake-batter-3', 'cake-pan', 'cake-pan-full',
     'cake-baked', 'cake-plate', 'frosting-tub-pink', 'frosting-tub-white', 'frosting-tub-choc', 'frosting-blob',
@@ -569,6 +577,17 @@ RECIPE_ASSETS.cake = {
   ],
 };
 
+RECIPE_ASSETS.skewers = {
+  images: [
+    ...WASH, ...CHOP, ...fruit('banana', 'strawberry', 'mango', 'kiwi'),
+    'colander-fruit', 'water-drop', 'skewer-stick', 'skewer-tray', 'photo-frame-skewers',
+  ],
+  sounds: [
+    'name-banana', 'name-strawberry', 'name-mango', 'name-kiwi', 'vo-wash-fruit', 'vo-wash-veg-done', 'vo-choose-fruit',
+    'vo-cut', 'vo-cut-careful', 'vo-thread', 'vo-copy', 'vo-same', 'vo-next', 'vo-pattern', 'vo-new-pattern', 'vo-own',
+    'vo-share-skewers', 'vo-skewer-mom', 'vo-skewer-pipa', 'vo-skewer-yum', 'vo-photo-skewers', 'vo-finale-skewers',
+  ],
+};
 /** The invitation badges of the guests: every recipe ends by sharing, so every recipe loads them. */
 export const GUEST_CARDS: readonly ImageKey[] = ['guest-card-turtle', 'guest-card-giraffe', 'guest-card-penguin'];
 for (const r of Object.values(RECIPE_ASSETS)) r.images = [...r.images, ...GUEST_CARDS];
@@ -705,6 +724,21 @@ export const ART = {
    * the pancakes) is drawn under it, and the knob and the flame sit on the stove, given here in the pot's frame.
    */
   /** The birthday cake (round 9), from README-cake.md: the candle's base (where it stands) and its flame point. */
+  /**
+   * The fruit skewers (tools/gen_skewers.py). On `skewer-tray` (800x600, from its centre): the rows' centre lines (row 0 is
+   * Mom's model); on a row the stick's foot end, the first slot and the slot pitch, and a piece's scale (fruit slices,
+   * 240 frames). `skewer-stick` (60x720, standing): its tip and its foot, in its own frame.
+   */
+  skewers: {
+    rows: [-187, -62, 62, 187],
+    foot: -345,
+    slot0: -250,
+    pitch: 116,
+    piece: 0.55,
+    stickScale: 0.96,
+    stickTip: 10,
+    stickFoot: 712,
+  },
   cake: {
     /**
      * candle (260x460, README-cake.md): the base that lands where she puts it down, and the wick tip where the flame

@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { countKey, voice, type NameKey } from '../core/audio';
 import { TUNING } from '../core/tuning';
 import { boing, burst, stars } from '../core/fx';
+import { sway } from '../core/juice';
 import type { HandMotion } from '../core/hand';
 import { art } from '../core/layout';
 import { sfx } from '../core/sfx';
@@ -118,6 +119,7 @@ export class DecorateStep extends Step<DecorateParams> {
     });
     this.onMove((p) => {
       if (!this.held) return;
+      sway(this.scene, this.held.img, p.worldX - this.held.img.x, this.k);
       this.held.img.setPosition(p.worldX, p.worldY - LIFT_UP * this.k);
       this.poke();
     });

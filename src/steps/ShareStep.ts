@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { ART, IMAGES } from '../core/assets';
-import { voice, type VoiceKey } from '../core/audio';
+import { countKey, voice, type VoiceKey } from '../core/audio';
 import { boing, burst, setRestScale, stars } from '../core/fx';
 import { GUESTS, guestLayers, type GuestDef } from '../core/guests';
 import { tapMotion, type HandMotion } from '../core/hand';
@@ -42,6 +42,9 @@ const BIG_BOWL = 0.66;
 const PORTION = 0.6;
 const SERVE_MOM = 0.6;
 const SERVE_PET = 0.52;
+/** Cutting: the knife's size (x k), how thick the cut shows (x k). */
+const KNIFE = 0.45;
+const CUT_W = 5;
 
 /** A serving bowl in front of one of them, and the salad that shows in it once she has put some in. */
 interface Serving {
@@ -84,6 +87,16 @@ export class ShareStep extends Step<ShareParams> {
   private k = 1;
   private done = false;
   private serving: Partial<Record<Who, Serving>> = {};
+  // cutting (params.cut): she cuts the dish herself before sharing it
+  private cutting = false;
+  private knife?: Phaser.GameObjects.Image;
+  private guide?: Phaser.GameObjects.Graphics;
+  private cutsG?: Phaser.GameObjects.Graphics;
+  private cutsDone = 0;
+  private cutHeld = false;
+  private cutBusy = false;
+  private travel = 0;
+  private last = { x: 0, y: 0 };
 
   private get portions() {
     return this.params.portions;
@@ -96,6 +109,8 @@ export class ShareStep extends Step<ShareParams> {
 
   start() {
     this.stepLine = 'vo-guest-who';
+    this.cutting = !!this.params.cut && !this.portions && !this.params.pieces;
+    if (this.cutting) this.stepLine = this.params.cut!.line;
     this.k = this.layout.k;
     this.workspace('dish', 400);
     this.ctx.character.moveTo(this.ctx.stage.feedPet);
@@ -104,11 +119,14 @@ export class ShareStep extends Step<ShareParams> {
     this.ctx.mom.stepAside(this.ctx.stage.feedMomShift);
     if (this.portions) this.buildPortions();
     else if (this.params.pieces) this.buildPieces();
+    else if (this.cutting) this.buildCut();
     else this.buildSlices();
 
-    this.showCards();
+    // (who comes to eat is asked once the dish is cut)
+    if (!this.cutting) this.showCards();
 
     this.onDown((p) => {
+      if (this.cutting) return this.cutDown(p.worldX, p.worldY);
       if (this.held || this.done) return;
       if (this.picking) {
         const c = this.cardAt(p.worldX, p.worldY);
@@ -130,6 +148,7 @@ export class ShareStep extends Step<ShareParams> {
       this.held = s;
     });
     this.onMove((p) => {
+      if (this.cutting) return this.cutMove(p.worldX, p.worldY);
       const s = this.held;
       if (!s) return;
       this.scene.tweens.killTweensOf(s.img);
@@ -140,6 +159,7 @@ export class ShareStep extends Step<ShareParams> {
       this.expectFrom(p.worldX, p.worldY);
     });
     this.onUp((p, cancelled) => {
+      if (this.cutting) return this.cutUp();
       const s = this.held;
       if (!s) return;
       this.held = undefined;
@@ -182,6 +202,233 @@ export class ShareStep extends Step<ShareParams> {
     sfx(this.scene, 'whoosh', { volume: 0.6 });
   }
 
+  // ------------------------------------------------------------------ cutting (params.cut)
+
+  /** The cut lines, in order: diameters for an even number of slices (6 slices: 3 cuts), else one radius per slice. */
+  private cutLines() {
+    const n = this.params.slices;
+    const R = this.dish.R * this.dish.scaleX * (this.params.cutRadius ?? 1) * 0.94;
+    const c = { x: this.dish.x, y: this.dish.y };
+    const count = n % 2 ? n : n / 2;
+    const out: { a: { x: number; y: number }; b: { x: number; y: number } }[] = [];
+    for (let i = 0; i < count; i++) {
+      const ang = Phaser.Math.DegToRad(-90 + 180 / n + (i * 360) / n);
+      const e = { x: c.x + Math.cos(ang) * R, y: c.y + Math.sin(ang) * R };
+      const o = n % 2 ? c : { x: c.x - Math.cos(ang) * R, y: c.y - Math.sin(ang) * R };
+      // The knife starts at the lower end (its handle stands up over the dish, on screen), else the left one.
+      const aFirst = o.y > e.y + 1 || (Math.abs(o.y - e.y) <= 1 && o.x < e.x);
+      out.push(aFirst ? { a: o, b: e } : { a: e, b: o });
+    }
+    return out;
+  }
+
+  /** The whole dish waits on its board, the knife beside the first cut line, shown by a dotted guide. */
+  private buildCut() {
+    const k = this.k;
+    const P = this.params.cut!;
+    this.cutsG = this.own(this.scene.add.graphics().setDepth(11));
+    this.guide = this.own(this.scene.add.graphics().setDepth(11.5));
+    this.knife = this.own(this.scene.add.image(0, 0, P.knife).setOrigin(ART.prep.knifeTip.x / 240, ART.prep.knifeTip.y / 640).setScale(KNIFE * k).setDepth(26).setAlpha(0));
+    this.scene.time.delayedCall(420, () => {
+      if (!this.cutting) return;
+      this.drawGuide();
+      this.restKnife(true);
+      this.scene.tweens.add({ targets: this.knife, alpha: 1, duration: 300 });
+    });
+  }
+
+  /** The next cut, as soft dots across the dish (where the knife will go; she need not follow them). */
+  private drawGuide() {
+    const g = this.guide;
+    if (!g) return;
+    g.clear();
+    const l = this.cutLines()[this.cutsDone];
+    if (!l) return;
+    const d = Phaser.Math.Distance.Between(l.a.x, l.a.y, l.b.x, l.b.y);
+    const n = Math.max(2, Math.floor(d / (34 * this.k)));
+    for (let i = 0; i <= n; i++) {
+      const x = Phaser.Math.Linear(l.a.x, l.b.x, i / n);
+      const y = Phaser.Math.Linear(l.a.y, l.b.y, i / n);
+      g.fillStyle(0x6b3b1f, 0.35).fillCircle(x, y, 7 * this.k);
+      g.fillStyle(0xffffff, 0.85).fillCircle(x, y, 4.5 * this.k);
+    }
+  }
+
+  /** The knife's tip, kept low enough for its handle to stay on screen. */
+  private knifeAt(x: number, y: number) {
+    if (!this.knife) return;
+    const top = ART.prep.knifeTip.y * this.knife.scaleY + 8 * this.k;
+    this.knife.setPosition(x, Math.max(y, top));
+  }
+
+  private restKnife(now = false) {
+    const l = this.cutLines()[this.cutsDone];
+    if (!this.knife || !l) return;
+    const at = { x: l.a.x - 20 * this.k, y: l.a.y + 10 * this.k };
+    if (now) this.knifeAt(at.x, at.y);
+    else this.scene.tweens.add({ targets: this.knife, x: at.x, y: Math.max(at.y, ART.prep.knifeTip.y * this.knife.scaleY + 8 * this.k), angle: 0, duration: 260, ease: 'Sine.easeOut' });
+  }
+
+  private cutDown(x: number, y: number) {
+    if (!this.knife || this.cutBusy || this.isAuto) return;
+    const onKnife = this.knife.getBounds().contains(x, y);
+    if (!onKnife && this.dish.reach(x, y) > 1.2) return;
+    this.hand.stop();
+    this.poke();
+    this.cutHeld = true;
+    this.travel = 0;
+    this.last = { x, y };
+    this.scene.tweens.killTweensOf(this.knife);
+    this.knife.setAngle(-8);
+    this.knifeAt(x, y);
+    sfx(this.scene, 'tap');
+  }
+
+  /**
+   * Any stroke over the dish cuts: she need not follow the dots or cut straight. Once her finger has travelled
+   * `TUNING.share.cutSwipe` over the dish, the next cut goes all the way across along its line.
+   */
+  private cutMove(x: number, y: number) {
+    if (!this.cutHeld || !this.knife) return;
+    this.knifeAt(x, y);
+    this.poke();
+    if (this.dish.reach(x, y) < 1.15) this.travel += Phaser.Math.Distance.Between(x, y, this.last.x, this.last.y);
+    this.last = { x, y };
+    if (this.travel >= TUNING.share.cutSwipe * this.k && !this.cutBusy) {
+      this.travel = 0;
+      this.hit();
+      this.cutNext();
+    }
+  }
+
+  private cutUp() {
+    if (!this.cutHeld) return;
+    this.cutHeld = false;
+    this.knife?.setAngle(0);
+    if (!this.cutBusy) this.restKnife();
+  }
+
+  /** The next cut appears along its line, drawn from end to end (with the knife, when her finger is not on it). */
+  private cutNext(glide = !this.cutHeld) {
+    const l = this.cutLines()[this.cutsDone];
+    if (!l || this.cutBusy) return;
+    this.cutBusy = true;
+    this.cutsDone++;
+    this.guide?.clear();
+    sfx(this.scene, 'chop');
+    voice.say(countKey(this.cutsDone), { group: 'count', sequence: true, ttlMs: 5000 });
+    const g = this.cutsG!;
+    const w = CUT_W * this.k;
+    const draw = (t: number) => {
+      const x = Phaser.Math.Linear(l.a.x, l.b.x, t);
+      const y = Phaser.Math.Linear(l.a.y, l.b.y, t);
+      return { x, y };
+    };
+    let prev = draw(0);
+    this.scene.tweens.addCounter({
+      from: 0,
+      to: 1,
+      duration: 280,
+      ease: 'Sine.easeIn',
+      onUpdate: (tw) => {
+        const p = draw(tw.getValue() ?? 0);
+        g.lineStyle(w * 1.9, 0x5a3218, 0.35).lineBetween(prev.x, prev.y, p.x, p.y);
+        g.lineStyle(w, 0x5a3218, 0.75).lineBetween(prev.x, prev.y, p.x, p.y);
+        if (glide) this.knifeAt(p.x, p.y);
+        prev = p;
+      },
+      onComplete: () => {
+        burst(this.scene, l.b.x, l.b.y, { tint: [0xe3a869, 0xffcb47], count: 6, size: 12 * this.k, speed: 220 * this.k, gravityY: 400 * this.k });
+        this.cutBusy = false;
+        if (this.cutsDone >= this.cutLines().length) return this.cutDoneAll();
+        this.drawGuide();
+        if (!this.cutHeld) this.restKnife();
+      },
+    });
+  }
+
+  /** All cut: the knife goes, the pieces come apart, and the guests' badges come (then the sharing). */
+  private cutDoneAll() {
+    this.cutting = false;
+    this.cutHeld = false;
+    this.hand.stop();
+    this.guide?.destroy();
+    if (this.knife) this.scene.tweens.add({ targets: this.knife, alpha: 0, x: this.knife.x - 80 * this.k, duration: 300 });
+    this.scene.time.delayedCall(350, () => {
+      if (this.aborted) return;
+      this.cutsG?.destroy();
+      this.buildSlices();
+      // now who comes to eat (the share line follows her arrival)
+      this.showCards();
+      voice.say('vo-guest-who', { ttlMs: 5000 });
+      this.poke();
+    });
+  }
+
+  /** Mom's knife hand draws one cut along the next line (nothing is cut). */
+  private cutDemo(): HandMotion | null {
+    const l = this.cutLines()[this.cutsDone];
+    if (!l) return null;
+    return {
+      kind: 'knife',
+      keys: [
+        { x: l.a.x - 30 * this.k, y: l.a.y + 20 * this.k, t: 0 },
+        { x: l.a.x, y: l.a.y, t: 400 },
+        { x: l.b.x, y: l.b.y, t: 1500 },
+        { x: l.b.x, y: l.b.y, t: 1900 },
+      ],
+      glow: { x: this.dish.x, y: this.dish.y },
+      size: 0.75,
+      onStop: () => this.knife?.active && this.cutting && this.knife.setVisible(true),
+    };
+  }
+
+  protected onDemoStart() {
+    if (this.cutting) this.knife?.setVisible(false);
+  }
+
+  protected onDemoEnd() {
+    if (this.knife?.active) this.knife.setVisible(true);
+  }
+
+  protected showHint() {
+    if (this.cutting) this.knife?.setVisible(false);
+    super.showHint();
+  }
+
+  /** Mom helps cut: her knife hand draws each cut in turn; then the sharing is hers again. */
+  private cutHelp() {
+    this.cutHeld = false;
+    this.knife?.setVisible(false);
+    const at = { x: 0, y: 0 };
+    this.hand.follow('knife', () => at, 0.75);
+    const one = () => {
+      if (!this.cutting || this.aborted) return;
+      const l = this.cutLines()[this.cutsDone];
+      if (!l) return;
+      this.scene.tweens.addCounter({
+        from: 0,
+        to: 1,
+        duration: 700,
+        ease: 'Sine.easeInOut',
+        onUpdate: (tw) => {
+          const t = tw.getValue() ?? 0;
+          at.x = Phaser.Math.Linear(l.a.x, l.b.x, t);
+          at.y = Phaser.Math.Linear(l.a.y, l.b.y, t);
+        },
+        onComplete: () => {
+          this.cutNext(false);
+          const last = this.cutsDone >= this.cutLines().length;
+          if (last) {
+            this.hand.stop();
+            this.resumeAfterAuto();
+          } else this.scene.time.delayedCall(400, one);
+        },
+      });
+    };
+    one();
+  }
+
   /** Her cookies (each with its own icing, captured when decorating) lift off the tray, which stays. */
   private buildPieces() {
     const home0 = this.ctx.stage.dishHome;
@@ -201,7 +448,7 @@ export class ShareStep extends Step<ShareParams> {
       const img = this.own(this.scene.add.image(home.x, home.y, pc.key).setScale(this.sliceScale).setTint(pc.tint).setDepth(20));
       this.scene.tweens.add({ targets: img, y: home.y - 14 * this.k, duration: 200, delay: 450 + i * 60, yoyo: true, ease: 'Quad.easeOut' });
       const def: SliceDef = { key: pc.key, originX: 0.5, originY: 0.5, restAngle: 0, midAngle: 0, centerDist: 0 };
-      this.slices.push({ img, def, home, eaten: false, contents: this.contentsOf(i, (t) => t.on === i) });
+      this.slices.push({ img, def, home, eaten: false, contents: (pc as { contents?: string[] }).contents ?? this.contentsOf(i, (t) => t.on === i) });
     });
   }
 
@@ -609,6 +856,7 @@ export class ShareStep extends Step<ShareParams> {
 
   /** Mom carries a see-through copy of a slice to the mouth of whoever has had fewer (the real slices stay). */
   protected demo(): HandMotion | null {
+    if (this.cutting) return this.cutDemo();
     if (this.picking) {
       const c = this.cards[1] ?? this.cards[0];
       return c ? tapMotion({ x: c.img.x, y: c.img.y }, this.k) : null;
@@ -650,6 +898,7 @@ export class ShareStep extends Step<ShareParams> {
 
   /** Mom helps: her hand shares the rest out, each slice to whoever has had fewer. */
   protected autoFinish() {
+    if (this.cutting) return this.cutHelp();
     if (this.picking) {
       // (Pipa brings a guest; the child then shares by herself)
       this.pipaBrings();

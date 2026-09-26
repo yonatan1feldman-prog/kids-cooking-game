@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { ART, IMAGES } from '../core/assets';
 import { countKey, voice } from '../core/audio';
 import { boing, stars } from '../core/fx';
+import { settle, sway } from '../core/juice';
 import { tapMotion, type HandMotion } from '../core/hand';
 import { sfx } from '../core/sfx';
 import { TUNING } from '../core/tuning';
@@ -79,6 +80,7 @@ export class CandlesStep extends Step<CandlesParams> {
     this.onMove((q) => {
       if (this.finishing) return;
       if (this.held) {
+        sway(this.scene, this.held.img, q.worldX + this.held.dx - this.held.img.x, this.layout.k);
         this.held.img.setPosition(q.worldX + this.held.dx, q.worldY + this.held.dy);
         return;
       }
@@ -89,6 +91,7 @@ export class CandlesStep extends Step<CandlesParams> {
       const h = this.held;
       if (!h) return;
       this.held = null;
+      settle(this.scene, h.img);
       this.scene.tweens.add({ targets: h.img, scale: this.cs, duration: 120 });
       if (cancelled || this.dish.reach(h.img.x, h.img.y) > 1.35) return this.putBack(h.img);
       this.stand(h.img);

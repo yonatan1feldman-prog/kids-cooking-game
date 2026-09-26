@@ -48,12 +48,16 @@ export type VoiceKey =
   | 'vo-pick-cake' | 'vo-stir-cake' | 'vo-pour-pan' | 'vo-pick-frosting' | 'vo-frost' | 'vo-decorate-cake'
   | 'vo-candles' | 'vo-wish' | 'vo-blow-more' | 'vo-blown' | 'vo-share-cake' | 'vo-cake-mom' | 'vo-cake-pipa'
   | 'vo-cake-yum' | 'vo-photo-cake' | 'vo-finale-cake'
+  // the fruit skewers (round 13: the thread step)
+  | 'vo-pick-skewers' | 'vo-thread' | 'vo-copy' | 'vo-same' | 'vo-next' | 'vo-pattern' | 'vo-new-pattern' | 'vo-own'
+  | 'vo-share-skewers' | 'vo-skewer-mom' | 'vo-skewer-pipa' | 'vo-skewer-yum' | 'vo-photo-skewers' | 'vo-finale-skewers'
   // the gameplay round: Pipa's wishes and tastes
   | 'vo-pipa-wants' | 'vo-pipa-got-it' | 'vo-pipa-loves' | 'vo-bless-you'
   // the guests round: who comes to eat with Mom and Pipa
   | 'vo-guest-who' | 'vo-pipa-brought' | 'vo-guest-giraffe' | 'vo-guest-turtle' | 'vo-guest-penguin'
   | 'vo-for-giraffe' | 'vo-for-turtle' | 'vo-for-penguin' | 'vo-giraffe-loves' | 'vo-turtle-loves' | 'vo-penguin-loves'
   | 'vo-turtle-nap' | 'vo-bless-penguin'
+  | 'vo-pull-out' | 'vo-cut-slices'
   | CountKey | TempKey | NameKey;
 
 /** Mom counting (count-1..10) and saying the oven temperature (temp-50..250). */

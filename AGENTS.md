@@ -3,7 +3,7 @@
 ## Quick start (read this, then only the sections your task needs)
 - **What:** a text-free, English-speaking cooking game for a 5-year-old (Android phone, landscape): she cooks with
   Mom, Pipa the hedgehog watches and eats. Phaser 4 + Vite + TypeScript PWA, deployed to GitHub Pages from `master`.
-  Seven recipes: pizza, salad, cookies, smoothie, pancakes, vegetable soup and birthday cake (`src/recipes/<name>.ts`),
+  Eight recipes: pizza, salad, cookies, smoothie, pancakes, vegetable soup, birthday cake and fruit skewers (`src/recipes/<name>.ts`),
   cards in a grid on the home screen, with the memory book's button in one more cell once there is a photo in it.
 - **Where things are:** `src/recipes/` recipes as pure data (`types.ts` = every step type's params); `src/steps/` one
   reusable class per step type (`registry.ts` maps names to classes); `src/core/tuning.ts` every count and threshold;
@@ -101,7 +101,7 @@ DynamicTexture needs `.render()`).
    or about the pizza: "Beautiful!", "Yummy!"). Never "you're so smart / talented / good".
 5. **Every animation, sound and effect answers something she did** (or helps her after she stopped: the hint, Mom's
    help). Nothing sparkles, bobs, pulses or wiggles by itself to pull her attention. Allowed exceptions, because they
-   are life, not lures: Mom breathing and blinking, Pipa blinking, the soft background music, the loading spinner,
+   are life, not lures: Mom breathing and blinking, Pipa breathing (round 13) and blinking, the soft background music, the loading spinner,
    and the text-free rotate animation. Pipa's thought bubble (her wish) pops in once when a step starts and then stays
    still; the kitchen's jars, utensils, pots and sun move only when she taps them. The oven's glow and steam while baking are the result of her putting the
    pizza in. (Round 4 removed: the play button's endless pulse, the recipe card's endless bobbing, the bins' endless
@@ -186,6 +186,7 @@ src/core/
   stage.ts                 THE LAYOUT TABLE: every position and per-item scale, relative to margins and center
   orientation.ts           landscape guard: rotate screen, pause/resume
   fx.ts                    burst / puff / stars particles, boing squash
+  juice.ts                 the polish round: touch ripples, paper confetti, sway of a held thing, Mom and Pipa tickles
   hand.ts                  MomHandView: Mom's 5 demo hands, keyframed motions (demo / looping hint), follow (help), props
   ui.ts                    iconButton (padded hit circle, fires on press, optional two-tap confirm)
   tuning.ts                THE TUNING TABLE: every count, threshold and idle timing (and Pipa's wishes: `wish`, `taste`)
@@ -219,7 +220,7 @@ src/scenes/
 ## Recipes are data
 A recipe is `{ id, card, board, character, steps: StepDef[] }`. Each step names a reusable type and its params.
 Step types: `wash`, `knead`, `crush`, `stir`, `grate`, `roll`, `spread`, `sprinkle`, `choose`, `chop`, `peel`, `open-pour`,
-`decorate`, `bake`, `candles`, `share`, `photo`, `cutters`, `blend`, `flip` (and `feed`, the older single-eater ending with its own finale, no longer used).
+`decorate`, `bake`, `candles`, `share`, `photo`, `cutters`, `blend`, `flip`, `thread` (and `feed`, the older single-eater ending with its own finale, no longer used).
 The salad (`salad.ts`) is the second worked example: see Handoff notes 0000.
 The pizza: wash, knead, roll, crush, stir, spread, grate, sprinkle, choose, then the prep step of each of the three
 chosen toppings in the order she picked them (chop, or open-pour), decorate, bake (with the panel and the mitts),
@@ -280,9 +281,9 @@ feedback on every touch, Mom's demo, the 5 s hint from her hand, her help after 
   says `temp-N`, the oven glows and tints from cool to warm. At `target`: the glow ring over its number, "Perfect! Now
   press start!", the hand on start; at `max`: "Oops, too hot!" and the hand on down; idle below the target: "A little
   more!" and the hand on up. Start only works at the target (elsewhere it wiggles: a miss), then beep, `startOn`, the
-  old baking. The pizza never burns. `mitts`: after the ding the mitts lie on the board, "Put on your oven mitts!"; a
-  tap puts them on (they fly down to her hands); a tap on the oven or a drag from it takes the pizza out, her mitt
-  pulling its rim. Mom's hand: pointing at the buttons and the mitts, `mom-hand-mitt` pulling it out.
+  old baking. The pizza never burns. `mitts`: after the ding the mitts lie on the board, "Put on your oven mitts!"; she
+  drags them to the oven (the door opens, a mitt holds the rim), then drags the pizza out onto the board (gameplay
+  round 2, see its handoff note). Mom's hand: pointing at the buttons and the mitts, `mom-hand-mitt` pulling it out.
 - `share` (`ShareStep`, `ShareParams`): her pizza cut into slices (as `feed`), Pipa big on the board's rim, Mom a step
   aside (`stage.feedPet`, `feedMomShift`). A slice goes to whoever's mouth it is let go near (or, right of Pipa's
   edge, the nearer one). The one it comes near opens wide (Mom: surprised eyes, open mouth, `Mom.expectFood`); Mom
@@ -338,6 +339,21 @@ Reusable step type of round 8 (the smoothie; params in `recipes/types.ts`):
   glasses become `run.pieces` for `share` with `pieces`, and MADE_KEY for `photo` with `made`); a tall kept bowl's pour
   point stays on screen; chop's vegetables include the fruit (`FruitName` in vegArt.ts); a bin's icon from a bigger frame
   (a 240 fruit slice) shows at the topping size (`iconScale`).
+
+Reusable step type of round 13 (the fruit skewers; params in `recipes/types.ts`):
+- `thread` (`ThreadStep`, `ThreadParams`): patterning, the one "slightly harder" mechanic. The recipe's board is a tray
+  (`skewer-tray`); the bins of what she chose and cut stand where decorating puts them (`stage.bin(i, n)`). One skewer per
+  round, each on its own row of the tray (`ART.skewers.rows`, row 0 = Mom's model): `copy` (Mom's AB AB A lies above hers;
+  a matching piece makes Mom's piece hop and sparkle), `extend` (Mom's hand threads the first `given`, ABC, then "What
+  comes next?"), `free` ("Now make your very own!"). A tap on a bin threads its fruit (it flies to the stick's point and
+  slides to the next place); a drag from a bin let go near the stick (`reach`) does the same, elsewhere it floats back (a
+  miss). Mom says each fruit's name as it lands (`name-*`, group 'name'), so the sequence is heard. Whatever she makes is
+  fine: a skewer that follows the pattern gets `sameLine` / `patternLine` (`isPattern` for her own: a unit of 2+ things
+  repeated), any other one `newLine` ("Ooh! A brand new pattern!"); nothing is taken off or counted. Hint and demo: the
+  grab hand carries a see-through piece from the bin the pattern needs; help fills the current skewer with the pattern and
+  gives the next one back. At the end every skewer becomes a picture (`skewer-made-N`, `run.pieces` for `share` with
+  `pieces`) and the tray with all of them MADE_KEY (`photo` with `made`). A pasta necklace, a vegetable kebab, a sandwich
+  in layers: the same type with other pictures.
 
 **What every future recipe must provide** (data only, unless it needs a new step type):
 1. `src/recipes/<name>.ts` with `id`, `card`, `board`, `character` and its `steps`, added to `RECIPES`.
@@ -637,15 +653,15 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the guests round on top; rounds 2-12 below still hold)
-### 000000000. The guests round (who comes to eat)
+## Handoff notes (written for the next agent; the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 000000000000. The guests round (who comes to eat)
 The owner's idea: each meal she picks who comes to eat. Pipa stays the pet; a guest joins Mom and Pipa in `share`.
 - **Data:** `src/core/guests.ts` (`GUESTS`: turtle, giraffe, penguin): layers like Pipa's (`CharacterDef` + `back` for
   the giraffe's neck), `mouthFunny`, how she arrives (`above` / `walk`), `likes` (core/tastes.ts `Likes`: what she
   loves, whether onion and pepper make her sneeze), `chew` (the turtle is 1.6x slower), her voice lines.
 - **Art:** `assets-src/images-b-guests/tools/gen_guests.py` (pb.py kit + Pipa's eyes and mouths from gen_pippa.py):
   per guest body, eyes x4, mouths x4 (closed, open, chew, funny) on a 600x700 frame (feet at 684), the giraffe's neck
-  (600x1200, standing on the frame's top edge) and a 240 badge each. Layers are textures at 0.62 (`GUEST_RASTER`,
+  (600x1200, standing on the frame's top edge) and a 240 badge each. Layers are textures at 0.75 (`GUEST_RASTER`,
   Character scales them back up); they load when `share` starts (`GUEST_LAYERS`, `loadImages`) and the two not
   invited are freed at once; the badges are in every recipe's `RECIPE_ASSETS`.
 - **Flow (ShareStep):** three badges in the left column (`stage.bin(i, 3)`), "Who's coming to eat with us?" (the step
@@ -666,6 +682,67 @@ The owner's idea: each meal she picks who comes to eat. Pipa stays the pet; a gu
   vo-bless-penguin.
 - **Harness:** `window.__guest = 'turtle' | 'giraffe' | 'penguin'` picks the badge in `__gesture`; `__shareTo` gained
   'guest' and 'alt' cycles guest, Mom, Pipa once she is in.
+### 00000000000. Gameplay round 2 (the owner: "she should cut it herself; drag the mitts, pull it out")
+- **Taking it out of the oven** (`BakeStep`, every baked recipe: pizza, cookies, cake, since they share the pizza's
+  `mitts`): after the ding the mitts lie on the board; she DRAGS them to the oven (dropped near it or carried well toward
+  it counts; anywhere else they slide back, a miss). The door opens with hot air, a mitt holds the dish's rim, Mom:
+  "Now pull it out, nice and slow!" (`mitts.pull`, vo-pull-out). She drags the dish out: it follows her finger and grows
+  from its oven size to its board size; let go past `TUNING.bake.pullAt` (0.4 of the way) it lands on the board, earlier
+  it slides gently back in (a miss). Puffs of hot air answer the pulling. First run: Mom's hand shows each of the two
+  moments once (`firstRunShow`); the 8 s hint loops it; her help carries the mitts (then gives it back), then pulls it out.
+- **Cutting before sharing** (`ShareStep`, `cut: { knife, line }`: pizza, cake, pancakes): the whole dish on its board, a
+  dotted guide where the next cut goes, the knife (tip-anchored, as in `chop`) beside it. Any stroke over the dish of
+  `TUNING.share.cutSwipe` (200 x k) makes the next cut all the way across its line (no precision, no wrong direction),
+  chop, Mom counts; 6 slices = 3 diameters (an odd number: radii). Then the pieces come apart and the share line plays.
+  Demo / hint: Mom's knife hand draws the next cut (size 0.75); help: her hand cuts the rest, then sharing is hers.
+- **Finale glitch fixed:** `render.maxTextures: 8` in main.ts (with 16, a crowded screen lost pieces of Mom in WebGL).
+- Voice: vo-pull-out, vo-cut-slices (Kokoro, `make_vo.py mom-a`), not heard by an agent.
+- **Needs a real child:** does she drag the mitts or tap them (a tap does nothing now: the hint comes after 3 taps or 8 s)?
+  Is the pull clear? Is a 200-unit stroke per cut right?
+### 0000000000. Round 14, the polish round ("juice", all recipes)
+State: branch `claude/project-thread-k5x3u3`; `rollback-pre-juice` = master before it (see PROJECT-KNOWLEDGE.md's
+pending tags). No new art or sound: everything is drawn in code (`fx-ring`, `fx-paper` in `makeFxTextures`, kept by
+`releaseRecipe`). Every effect answers a touch (wellbeing rule 5):
+- **Touch ripple** (`touchRipples`, recipe and home): a cream paper ring grows and fades where the first finger lands
+  (not in the no-touch strips). One image per touch; never a miss or progress.
+- **Mom and Pipa answer a tap on them** (`tickles`, `Mom.hit/tickle`, `Character.hit/tickle`; recipe and home; not in
+  `share` / `feed`, where they are what she feeds, and not on a button). Mom: happy eyes, open smile, one sway from the
+  waist, two or three hearts, a soft pop; not while she chews, demos, holds a mouth or has a mood (1.2 s gap).
+  Pipa: happy face, a vertical squish-hop, `char-giggle`, hearts; only at rest (0.7 s gap). Mom's shapes are not
+  assumed: `hit` is a box in her 800 frame (x 300-700, y 30-620), so her redesign keeps working if the frame does.
+- **Pipa breathes** like Mom: her three layers hang from her feet (origin at `FOOT`) and rise 1.8% slowly, no inner container (the audit
+  measures her as before).
+- **A step done**: fewer stars (10) plus paper confetti (18 strips that flip as they fall, `confetti`).
+- **A held thing swings like paper** (`sway` / `settle`): decorating's toppings and the cake's candles tilt toward
+  where the finger moves them and settle when it stops.
+- Considered and left out: a page-turn between steps (it would hide her dish for a moment and slow the pace), a
+  squash on every ingredient (most steps already answer their own touch with a boing or bits).
+- **Needs a real child:** does she find tickling Mom and Pipa (nothing points at it), and does it pull her away from
+  the step for too long? Is the ripple visible under her finger on the phone?
+### 000000000. Round 13 (the fruit skewers, the eighth recipe; the `thread` step type)
+State: `rollback-pre-skewers` = master before the round; branch `claude/project-thread-pgpwe5`, PR to master. Research
+and spec: `/mnt/project-files/research/new-stage-spec.md` (patterning: copy, then extend, then create is the order a
+4-5-year-old learns it in; one new mechanic, built on the smoothie's fruit, colander, cutting and names).
+- **The recipe** (`src/recipes/skewers.ts`): wash hands · wash the fruit (the smoothie's colander) · choose 3 of 4 fruits
+  (Pipa's wish bubble as in every `choose`) · chop each · thread (copy Mom's AB skewer, extend ABC, make her own) · share
+  the three skewers (`pieces`; each piece carries what is on it, `run.pieces[].contents`, so Pipa tastes the real fruit:
+  her wished fruit = love, kiwi / mango = wow) · photo of the tray (`made`). Counts: `TUNING.skewers`, help pace
+  `TUNING.help.threadEveryMs`. Art: `assets-src/images-b-skewers` (`tools/gen_skewers.py`: stick, tray, card, frame);
+  anchors `ART.skewers`. Voice: 14 lines (`make_vo.py`, three soft-limited by `fix_vo_skewers.py`).
+- **Checked (virtual clock, simulated voice):** layout audit on every step at 20:9 and 4:3: clean but Mom's known finale
+  sway (and at 4:3 her known step aside while sharing); a child-pace run with demos: voice in order, no overlap, no forbidden
+  cut, vo-watch-me / vo-your-turn / vo-cut-careful once, vo-copy, vo-same, vo-next, vo-pattern, vo-own, then Pipa loves
+  her wished strawberry; a no-touch run (Mom helped 10 times) ends at home; the three thread paths (pattern taps, a drag,
+  one fruit only; her own free skewer gets a line only when it is a real pattern, the step's praise follows anyway);
+  rotate and background with a fruit and a skewer held mid-drag: dropped, kept, finished (background's idle clock is
+  the harness artefact of round 7); smoothie and pizza regression runs: home, no voice problems. Screenshots:
+  `/mnt/project-files/research/screens-skewers/`.
+- **Harness speed in the cloud:** with SwiftShader every rendered frame is slow (a whole audited recipe took ~25 min).
+  For runs that need no pixels, `game.loop.callback = game.headlessStep.bind(game)` first makes them take seconds; the
+  step times it logs are then inflated (captures and image decodes wait in real time while the virtual clock runs), so
+  measure a recipe's length with rendering on.
+- **Needs a real child:** does she copy Mom's skewer or just tap? Is "What comes next?" clear? Tapping vs dragging a fruit.
+
 ### 00000000. Round 12, the gameplay round (after she played: "too simple, too short")
 State: `rollback-pre-gameplay` = master before the round; branch `claude/project-thread-dsv460`, PR to master. Research
 behind it: `/mnt/project-files/research/gameplay-research.md` (Toca Kitchen, Dr. Panda, Sago Mini: what keeps 4-5-year-olds

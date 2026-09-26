@@ -195,6 +195,7 @@ export const cake: Recipe = {
       params: {
         slice: 'cake-baked',
         slices: T.share.slices,
+        cut: { knife: 'knife', line: 'vo-cut-slices' },
         line: 'vo-share-cake',
         forMom: 'vo-cake-mom',
         momYum: 'vo-cake-yum',

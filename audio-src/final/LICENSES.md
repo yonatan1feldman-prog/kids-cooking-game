@@ -17,6 +17,7 @@ This file covers only the files in this folder. Every file is either CC0 1.0 (pu
 - **Pancakes (added 2026-09-19):** 15 more `vo-*` lines, same engine, voice, speed and processing. **Targeted fix (`scripts/fix_vo_pancakes.py`, a copy of fix_vo_smoothie.py reusing the same functions):** vo-pancake-yum had a breathy hiss before the "Mmm" and an exhale after "fluffy": start cut at the first voiced frame after the hiss (as name-onion) and end cut into the exhale (25 ms fade-out, as vo-flour); vo-flip-done and vo-more-pancake had a breathy exhale after the last word: the same end cut; vo-ladle, vo-pick-pancakes, vo-photo-pancakes, vo-share-pancakes and vo-pancake-mom hit the peak cap first (-20.4 to -18.3 LUFS): the same gentle soft limiter as vo-temp-more (max 0.7-2.8 dB), then -18 LUFS. After the fixes the speech recognizer hears every line as written ("Whee" as its homophone "we").
 - **Vegetable soup (added 2026-09-20):** 16 more lines (14 `vo-*` soup lines, `vo-album` for the recipe album, and 2 `name-*` vegetable names), same engine, voice, speed and processing. **Targeted fix (`scripts/fix_vo_soup.py`, a copy of fix_vo_pancakes.py reusing the same functions):** name-zucchini had a loud voiced "uh" before the "z" (-8.6 dB under the peak; the free recognizer heard "is that kieny"): start cut at the "z" (3 ms fade-in, 20 ms silence in front, as name-carrot) plus the gentle soft limiter (1.8 dB), then -18 LUFS (was -19.1); vo-stir-soup had the same "uh" before the "st" (-7.2 dB; the recognizer heard "esther the soup"): the same start cut, then -18 LUFS; vo-water had a breathy exhale after "water" (the recognizer heard "waters"): end cut 5 ms into the exhale with a 25 ms fade-out, as vo-flour; vo-album, vo-peel and vo-photo-soup hit the -1.5 dBFS peak cap first (-20.0 to -19.0 LUFS): the same gentle soft limiter as vo-temp-more (max 1.5-2.4 dB), then -18 LUFS. After the fixes the speech recognizer hears every sentence as written ("pour" as its homophone "poor"; "Pipa" is not in its vocabulary; "bowl" comes out as "ball", and "All peeled!" as "oh peeled", the same substitution the recognizer already makes on the shipped vo-wash-done, "All clean!"), and, limited to the two vegetable names as for the salad names, each name at confidence 1.0. A tail cut on vo-peel-done was tried and rejected: the noise after "peeled" is the "d" release, and cutting it lost the word. Originals are kept in `work/vo/pre-fix-soup/`.
 - **Birthday cake (added 2026-09-20):** 19 more lines (16 `vo-*` cake lines and 3 `name-*` frosting colours), same engine, voice, speed and processing. **Targeted fix (`scripts/fix_vo_cake.py`, a copy of fix_vo_soup.py reusing the same functions):** name-pink and name-chocolate had a loud voiced "uh" before the opening consonant (-4.4 / -2.7 dB under the peak; the free recognizer heard "the tank" / "a chocolate"): start cut at the "p" / "ch" (3 ms fade-in, 20 ms silence in front, as name-carrot), then -18 LUFS; vo-pick-frosting had a fainter version of the same noise before the "p" (-14.2 dB): the same start cut, which raised the recognizer's confidence on "pick" from 0.64 to 0.81; vo-pour-pan had a breathy exhale after "pan" (the recognizer heard "pans"): end cut 5 ms into the exhale with a 25 ms fade-out, as vo-flour, after which it hears "pan" at 1.0; vo-decorate-cake, vo-photo-cake and vo-cake-pipa hit the -1.5 dBFS peak cap first (-19.0 / -18.6 / -18.2 LUFS): the same gentle soft limiter as vo-temp-more (max 1.3 / 1.1 / 0.6 dB), then -18 LUFS. After the fixes the speech recognizer hears every sentence as written ("Yay!" as its homophone "yea"; "Pipa" is not in its vocabulary, and it runs "A slice" together as "as slice", exactly as it does on the shipped vo-glass-mom / vo-cookie-mom lines), and, limited to the three frosting colours as for the salad names, each colour at confidence 1.0. The other 12 lines measured clean and were not changed. Originals of the changed lines are in `work/vo/pre-fix-cake/`.
+- **Fruit skewers (added 2026-09-25, in a cloud session with the pinned packages of AGENTS.md):** 14 more `vo-*` lines, same engine, voice, speed and processing. **Targeted fix (`scripts/fix_vo_skewers.py`, the fix_vo.py functions unchanged):** vo-skewer-mom, vo-skewer-yum and vo-photo-skewers hit the -1.5 dBFS peak cap first (-18.5 / -19.2 / -18.6 LUFS): the gentle soft limiter of vo-temp-more (0.45 / 1.56 / 0.83 dB), then -18 LUFS. vo-new-pattern was first generated as "Ooh, a brand new pattern!" and came out at -22.9 LUFS (the "Ooh" took the peak); written "Ooh! A brand new pattern!" it is -18.0. The speech-recognizer check of earlier rounds was not run: its model download was blocked in the cloud session. Originals of the limited lines are in `work/vo/pre-fix-skewers/`.
 | file | text | duration (s) | loudness (LUFS) | size (bytes) |
 |---|---|---|---|---|
 | voice/vo-welcome.ogg | Let's cook together! | 1.25 | -18.0 | 11773 |
@@ -200,6 +201,20 @@ This file covers only the files in this folder. Every file is either CC0 1.0 (pu
 | voice/vo-cake-yum.ogg | Mmm, so soft and sweet! | 2.07 | -18.0 | 16128 |
 | voice/vo-photo-cake.ogg | Let's take a picture of your cake! | 1.82 | -18.0 | 14350 |
 | voice/vo-finale-cake.ogg | We made a birthday cake together! | 1.72 | -18.0 | 14668 |
+| voice/vo-pick-skewers.ogg | Fruit skewers! Yummy! | 1.53 | -17.8 | 12783 |
+| voice/vo-thread.ogg | Let's slide the fruit onto the stick! | 1.84 | -17.7 | 14603 |
+| voice/vo-copy.ogg | Look at mine! Can you make one just like it? | 2.65 | -17.8 | 19565 |
+| voice/vo-same.ogg | Just like mine! | 1.13 | -17.8 | 10173 |
+| voice/vo-next.ogg | What comes next? | 1.17 | -17.8 | 10709 |
+| voice/vo-pattern.ogg | You found the pattern! | 1.32 | -17.9 | 11737 |
+| voice/vo-new-pattern.ogg | Ooh! A brand new pattern! | 1.69 | -17.9 | 13332 |
+| voice/vo-own.ogg | Now make your very own! | 1.45 | -18.0 | 12549 |
+| voice/vo-share-skewers.ogg | Let's share our fruit skewers! | 1.56 | -17.9 | 12838 |
+| voice/vo-skewer-mom.ogg | A skewer for me? Thank you! | 1.79 | -17.7 | 13690 |
+| voice/vo-skewer-pipa.ogg | One for Pipa! | 1.10 | -17.9 | 10161 |
+| voice/vo-skewer-yum.ogg | Mmm, so juicy! | 1.43 | -17.5 | 11439 |
+| voice/vo-photo-skewers.ogg | Let's take a picture of our fruit skewers! | 2.17 | -17.5 | 16360 |
+| voice/vo-finale-skewers.ogg | We made fruit skewers together! | 1.69 | -17.8 | 14198 |
 | voice/vo-pipa-wants.ogg | Look! Pipa wants... | 1.39 | -18.0 | 11896 |
 | voice/vo-pipa-got-it.ogg | Just what Pipa wanted! | 1.56 | -18.0 | 12815 |
 | voice/vo-pipa-loves.ogg | Pipa loves it! | 1.10 | -18.0 | 10120 |
@@ -217,6 +232,8 @@ This file covers only the files in this folder. Every file is either CC0 1.0 (pu
 | voice/vo-penguin-loves.ogg | Penguin loves it! | 1.16 | -18.0 | 10591 |
 | voice/vo-turtle-nap.ogg | Shh! Turtle is having a little nap. | 2.58 | -20.2 | 18605 |
 | voice/vo-bless-penguin.ogg | Bless you, Penguin! | 1.17 | -19.0 | 10182 |
+| voice/vo-pull-out.ogg | Now pull it out, nice and slow! | 2.03 | -18.0 | 15350 |
+| voice/vo-cut-slices.ogg | Let's cut it into slices! | 1.71 | -18.4 | 13820 |
 
 ## music/ (1 file)
 

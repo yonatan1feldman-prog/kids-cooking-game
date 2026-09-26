@@ -11,6 +11,8 @@ export type Mood = 'rest' | 'expect' | 'chew' | 'happy' | 'party' | 'react' | 's
 
 /** How far the eyes layer shifts toward what she is watching, in frame units (600x700 frame). */
 const LOOK_MAX = 14;
+/** Her feet in the frame, from its centre (feet at y 684 of 700): she breathes from there. */
+const FOOT = 334;
 
 /**
  * Pipa the hedgehog, the kitchen pet, who tastes the pizza at the end. Layers share one frame and are
@@ -33,21 +35,28 @@ export class Character {
   private look = { x: 0, y: 0 };
   /** The mouth in frame coordinates, measured from the art. */
   private mouthLocal: { x: number; y: number };
+  /** The layers, hung from her feet so she can breathe (a slow rise, like Mom's) without floating. */
+  private layers: Phaser.GameObjects.Image[];
+  private tickledAt = -Infinity;
 
   constructor(protected scene: Phaser.Scene, protected def: CharacterDef, at: Spot | null, hiddenAt: Spot) {
     const spot = at ?? hiddenAt;
     this.rest = { x: spot.x, y: spot.y };
     this.scale = spot.scale;
-    // (layers made smaller than native, `raster` in the contract, are shown at their native size)
+    // (every layer hangs from her feet, so she breathes without floating; layers made smaller than native, `raster`
+    // in the contract, are shown at their native size)
     const r = (IMAGES[def.body] as { raster?: number }).raster ?? 1;
-    const layer = (key: string) => new Phaser.GameObjects.Image(scene, 0, 0, key).setScale(1 / r);
+    const layer = (key: string) => new Phaser.GameObjects.Image(scene, 0, FOOT, key).setOrigin(0.5, 0.5 + FOOT / 700).setScale(1 / r);
     const body = layer(def.body);
     this.eyes = layer(def.eyesOpen);
     this.mouth = layer(def.mouthClosed);
     const [fw, fh] = IMAGES[def.mouthOpen].size;
-    const parts = [body, this.eyes, this.mouth];
-    if (def.back) parts.unshift(layer(def.back).setOrigin(0.5, 1).setY(-fh / 2 + 4));
-    this.box = scene.add.container(spot.x, spot.y, parts).setDepth(5).setScale(spot.scale);
+    this.layers = [body, this.eyes, this.mouth];
+    // (the giraffe's neck stands on the frame's top edge, hung from her feet like the rest)
+    if (def.back) this.layers.unshift(layer(def.back).setOrigin(0.5, 1 + (FOOT + fh / 2 - 4) / IMAGES[def.back].size[1]));
+    this.box = scene.add.container(spot.x, spot.y, this.layers).setDepth(5).setScale(spot.scale);
+    // Breathing, the one thing she does on her own besides blinking (life, not a lure: wellbeing rule 5).
+    scene.tweens.add({ targets: this.layers, scaleY: 1.018 / r, scaleX: 0.994 / r, duration: 2100, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     this.box.setVisible(!!at);
 
     const b = opaqueBounds(scene, def.mouthOpen);
@@ -316,7 +325,41 @@ export class Character {
     const ty = (dy / d) * LOOK_MAX * 0.6 * reach;
     this.look.x += (tx - this.look.x) * 0.15;
     this.look.y += (ty - this.look.y) * 0.15;
-    this.eyes.setPosition(this.look.x, this.look.y);
+    this.eyes.setPosition(this.look.x, this.look.y + FOOT);
+  }
+
+  /** A world point on her (her frame, a little wider than her drawing, so a small Pipa is still easy to tap). */
+  hit(x: number, y: number) {
+    if (!this.box.visible) return false;
+    const s = this.scale;
+    const r = Math.max(270 * s, 110);
+    return Math.abs(x - this.rest.x) < r && y > this.rest.y - 340 * s && y < this.rest.y + FOOT * s;
+  }
+
+  /** A tap on her: she giggles and squishes up and down (never sideways: Mom's face is close). */
+  tickle() {
+    const now = this.scene.time.now;
+    if (this._mood !== 'rest' || !this.box.visible || now - this.tickledAt < 700 || this.scene.tweens.isTweening(this.box)) return;
+    this.tickledAt = now;
+    const d = this.def;
+    this.eyes.setTexture(d.eyesHappy);
+    this.mouth.setTexture(d.mouthOpen);
+    sfx(this.scene, 'char-giggle', { volume: 0.8, minGapMs: 600 });
+    const s = this.scale;
+    this.scene.tweens.chain({
+      targets: this.box,
+      tweens: [
+        { scaleY: s * 0.86, scaleX: s * 1.06, duration: 90, ease: 'Quad.easeOut' },
+        { scaleY: s * 1.06, scaleX: s * 0.97, y: this.rest.y - 36 * s, duration: 160, ease: 'Quad.easeOut' },
+        { scaleY: s, scaleX: s, y: this.rest.y, duration: 200, ease: 'Bounce.easeOut' },
+      ],
+    });
+    burst(this.scene, this.rest.x, this.rest.y - 260 * s, { texture: 'fx-heart', count: 3, tint: [0xf06a8a, 0xf5a3b5], size: 30 * (s / 0.4), speed: 220, gravityY: -160, lifespan: 800, depth: 60 });
+    this.scene.time.delayedCall(650, () => {
+      if (this._mood !== 'rest' || !this.eyes.active) return;
+      this.eyes.setTexture(d.eyesOpen);
+      this.mouth.setTexture(d.mouthClosed);
+    });
   }
 
   /** A short burst of joy at the end of a step: happy face and a little hop. */
