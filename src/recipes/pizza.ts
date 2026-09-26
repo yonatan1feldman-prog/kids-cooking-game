@@ -117,6 +117,16 @@ export const pizza: Recipe = {
       },
     },
     { type: 'spread', params: { source: 'sauce-bowl', blob: 'sauce-blob', coverage: TUNING.spread.coverage } },
+    // Gameplay round 4: find the grater among three tools (a small challenge; another one is only named).
+    {
+      type: 'find',
+      params: {
+        options: [{ image: 'grater', name: 'name-grater' }, { image: 'spoon-wood', name: 'name-spoon' }, { image: 'kitchen-whisk', name: 'name-whisk' }],
+        answer: 'grater',
+        bin: 'topping-bin',
+        line: 'vo-find-grater',
+      },
+    },
     {
       type: 'grate',
       params: {

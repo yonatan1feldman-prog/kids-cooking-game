@@ -154,6 +154,16 @@ export const soup: Recipe = {
         sound: 'salt',
       },
     },
+    // Gameplay round 4: find the wooden spoon among three tools, for stirring the soup.
+    {
+      type: 'find',
+      params: {
+        options: [{ image: 'spoon-wood', name: 'name-spoon' }, { image: 'kitchen-whisk', name: 'name-whisk' }, { image: 'kitchen-spatula', name: 'name-spatula' }],
+        answer: 'spoon-wood',
+        bin: 'topping-bin',
+        line: 'vo-find-spoon',
+      },
+    },
     // Light the stove, then stir the soup while it cooks: three stages, steam, the bake loop.
     {
       type: 'stir',

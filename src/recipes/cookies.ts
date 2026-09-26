@@ -131,6 +131,16 @@ export const cookies: Recipe = {
         handoff: 'cookie-dough-ball',
       },
     },
+    // Gameplay round 4: find the rolling pin among three tools.
+    {
+      type: 'find',
+      params: {
+        options: [{ image: 'rolling-pin', name: 'name-rolling-pin' }, { image: 'kitchen-whisk', name: 'name-whisk' }, { image: 'kitchen-spatula', name: 'name-spatula' }],
+        answer: 'rolling-pin',
+        bin: 'topping-bin',
+        line: 'vo-find-pin',
+      },
+    },
     {
       type: 'roll',
       params: { ball: 'cookie-dough-ball', flat: 'cookie-dough-flat', tool: 'rolling-pin', rubWidths: TUNING.cookies.roll.rubWidths, line: 'vo-roll-cookies', size: SHEET },

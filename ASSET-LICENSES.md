@@ -290,6 +290,8 @@ Same engine, voice and processing as every line above.
 | vo-pipa-loves · vo-bless-you | Pipa loves it! · Bless you, Pipa! |
 | vo-pull-out · vo-cut-slices | Now pull it out, nice and slow! · Let's cut it into slices! |
 | vo-puzzle · vo-puzzle-done | Let's make a puzzle from your picture! · You put it all together! |
+| vo-find-grater · vo-find-pin · vo-find-spoon · name-grater · name-rolling-pin · name-spoon · name-whisk · name-spatula | Which one is the grater? Can you find it? · Which one is the rolling pin? Can you find it? · Which one is the wooden spoon? Can you find it? · Grater! · Rolling pin! · Spoon! · Whisk! · Spatula! |
+| vo-pipa-order · vo-then · vo-first-this · vo-stir-arrow · vo-other-way | Look! Pipa wants two things, in order. First... · and then... · Pipa wants this one first! · Stir round and round, the way the arrow goes! · Now stir the other way! |
 
 ### New in the guests round (who comes to eat, 13 lines)
 

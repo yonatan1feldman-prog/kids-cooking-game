@@ -95,6 +95,8 @@ export const salad: Recipe = {
         ],
         pick: TUNING.choose.pick,
         pauseMs: TUNING.choose.pauseMs,
+        // gameplay round 4: Pipa wants two things, in order
+        order: { line: 'vo-pipa-order', then: 'vo-then', first: 'vo-first-this' },
         bin: 'topping-bin',
         line: 'vo-choose-veg',
       },

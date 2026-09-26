@@ -92,6 +92,8 @@ export const pancakes: Recipe = {
         splash: BATTER,
         line: 'vo-stir-batter',
         keep: true,
+        // gameplay round 4: stir the way the arrows go (they turn round half-way)
+        arrow: { line: 'vo-stir-arrow', flipLine: 'vo-other-way' },
       },
     },
     {

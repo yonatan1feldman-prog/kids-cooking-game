@@ -7,6 +7,7 @@ import { sfx } from '../core/sfx';
 import { TUNING } from '../core/tuning';
 import { VEG, vegColumn } from '../core/vegArt';
 import type { ChopParams } from '../recipes/types';
+import { drawCutGuide, LineCut } from './lineCut';
 import { Step } from './Step';
 import { binKey, binsWaiting, fillBin, iconScale, makeBin, parkBin } from './ToppingBin';
 
@@ -18,10 +19,13 @@ const SLICE = 0.8;
 /**
  * Chop (reusable: vegetables for a pizza or a salad, fruit, a cucumber...). The whole vegetable lies on the cutting
  * board in the middle; the knife waits upright just above the next cut line. The knife follows the finger by its
- * blade tip. Every short move down over the vegetable (TUNING.chop.minSwipe, from any height, anywhere sideways) cuts
- * the next slice: the code cuts from right to left at one slice width inside the body (core/vegArt.ts), the cut face
- * strip sits on the cut line fitted to the body's profile (the mushroom shows only its cap outside the stem), a slice
- * drops onto the pile, chop, and Mom counts. One cut per stroke: the finger goes up (or lifts) for the next. After
+ * blade tip. Gameplay round 4: the cut follows the finger. While the knife is held the next cut line shows (dots and
+ * arrows down); a stroke down along it (TUNING.cut: near it, roughly downwards) cuts into the vegetable as far as the
+ * finger has come (a dark line), a stroke may stop and go on, and once it is `through` the body the slice comes off.
+ * A stroke up, sideways or away from the line cuts nothing: the vegetable gives a small wobble (a miss). The code cuts
+ * from right to left at one slice width inside the body (core/vegArt.ts), the cut face strip sits on the cut line
+ * fitted to the body's profile (the mushroom shows only its cap outside the stem), a slice drops onto the pile, chop,
+ * and Mom counts. After
  * `cuts` cuts the end that is left becomes the last slice; the slices fly into the topping's bin, which waits for
  * decorating. A tap without a stroke only wiggles the vegetable (3 of those show the hint).
  */
@@ -33,10 +37,14 @@ export class ChopStep extends Step<ChopParams> {
   private pile: Phaser.GameObjects.Image[] = [];
   private cutsDone = 0;
   private held = false;
-  private armed = true;
-  private downRun = 0;
-  private upRun = 0;
-  private lastY = 0;
+  /** The next cut, following the finger; its dotted guide and the part already cut. */
+  private line!: LineCut;
+  private guide!: Phaser.GameObjects.Graphics;
+  private cutG!: Phaser.GameObjects.Graphics;
+  private last = { x: 0, y: 0 };
+  /** Finger travel this touch that cut nothing (the wrong way, sideways, away from the line). */
+  private wrongRun = 0;
+  private wobbled = false;
   private cutThisTouch = false;
   private moved = 0;
   private finishing = false;
@@ -76,55 +84,89 @@ export class ChopStep extends Step<ChopParams> {
     for (const o of [this.board, this.veg, this.knife]) o.setAlpha(0);
     this.scene.tweens.add({ targets: [this.board, this.veg], alpha: 1, duration: 400 });
     this.scene.tweens.add({ targets: this.knife, alpha: 1, delay: 250, duration: 300 });
+    this.cutG = this.own(this.scene.add.graphics().setDepth(3.2));
+    this.guide = this.own(this.scene.add.graphics().setDepth(5));
+    this.nextLine();
 
     this.onDown((q) => {
       if (this.finishing || !this.inReach(q.worldX, q.worldY)) return;
       this.held = true;
-      this.armed = true;
-      this.downRun = this.upRun = 0;
       this.moved = 0;
+      this.wrongRun = 0;
+      this.wobbled = false;
       this.cutThisTouch = false;
-      this.lastY = q.worldY;
+      this.last = { x: q.worldX, y: q.worldY };
       this.scene.tweens.killTweensOf(this.knife);
       this.follow(q.worldX, q.worldY, true);
+      this.showGuide(true);
       sfx(this.scene, 'tap', { volume: 0.5 });
       this.poke();
     });
     this.onMove((q) => {
       if (!this.held || this.finishing) return;
-      const dy = q.worldY - this.lastY;
-      this.lastY = q.worldY;
-      this.moved += Math.abs(dy);
-      this.follow(q.worldX, q.worldY, false);
-      if (dy > 0) {
-        this.downRun += dy;
-        this.upRun = 0;
-      } else if (dy < 0) {
-        // Going up again: ready for the next stroke.
-        this.upRun -= dy;
-        if (this.upRun > 25 * u) {
-          this.armed = true;
-          this.downRun = 0;
-        }
-      }
-      if (this.armed && this.downRun >= this.params.minSwipe * this.layout.k && this.inCutZone(q.worldX, q.worldY)) {
-        this.armed = false;
-        this.downRun = 0;
+      const at = { x: q.worldX, y: q.worldY };
+      const step = Phaser.Math.Distance.Between(this.last.x, this.last.y, at.x, at.y);
+      this.moved += step;
+      this.follow(at.x, at.y, false);
+      const r = this.line.feed(this.last, at);
+      this.last = at;
+      if (r === 'cut') {
         this.cutThisTouch = true;
-        this.cut();
+        this.poke();
+        this.drawCutSoFar();
+        if (this.line.progress >= TUNING.cut.through) this.cut();
+      } else if (r === 'off' && this.inCutZone(at.x, at.y)) {
+        // (Up again, to start the next stroke, is natural: only sideways, or down away from the line, is "not like that".)
+        this.wrongRun += step;
+        if (!this.wobbled && !this.cutThisTouch && this.wrongRun >= TUNING.cut.wobbleAfter * this.layout.k) {
+          this.wobbled = true;
+          this.wobble();
+        }
       }
     });
     this.onUp((_q, cancelled) => {
       if (!this.held) return;
       this.held = false;
       // A tap on the vegetable without a stroke: it wiggles (a try; after 3 the hand shows the stroke).
-      if (!cancelled && !this.cutThisTouch && this.moved < 10 && !this.finishing) {
-        this.miss();
-        this.scene.tweens.add({ targets: this.veg, angle: { from: -2, to: 2 }, duration: 70, yoyo: true, repeat: 1, onComplete: () => this.veg.setAngle(0) });
-      }
+      if (!cancelled && !this.cutThisTouch && this.moved < 10 && !this.finishing) this.wobble();
+      if (!this.finishing) this.showGuide(false);
       this.restKnife();
     });
     this.setIdle(true);
+  }
+
+  /** A gentle "not like that": the vegetable wiggles (a miss; three in a row show Mom's hand). */
+  private wobble() {
+    this.miss();
+    this.scene.tweens.add({ targets: this.veg, angle: { from: -2, to: 2 }, duration: 70, yoyo: true, repeat: 1, onComplete: () => this.veg.setAngle(0) });
+  }
+
+  /** The next cut line: from just above the body down through it, at the next cut. */
+  private nextLine() {
+    const x = this.cutX(Math.min(this.cutsDone + 1, this.params.cuts));
+    const col = vegColumn(this.params.veg, x);
+    this.line = new LineCut({ x: this.X(x), y: this.Yf(col.top) - 30 * this.u }, { x: this.X(x), y: this.Yf(col.bottom) }, this.bandW(), TUNING.cut.gap, TUNING.cut.angle);
+    this.cutG?.clear();
+  }
+
+  /** The dotted line (and its arrows down) where the next cut goes: shown while the knife is held, or Mom shows it. */
+  private showGuide(on: boolean) {
+    if (!this.guide?.active) return;
+    if (!on || this.finishing) return void this.guide.clear();
+    drawCutGuide(this.guide, this.line.a, this.line.b, this.layout.k, true);
+  }
+
+  /** The cut so far: a dark line into the vegetable down to where the finger has come. */
+  private drawCutSoFar() {
+    const g = this.cutG;
+    g.clear();
+    const col = vegColumn(this.params.veg, this.cutX(this.cutsDone + 1));
+    const top = this.Yf(col.top);
+    const end = this.line.point();
+    if (end.y <= top) return;
+    const w = 5 * this.layout.k;
+    g.lineStyle(w * 2, 0x3b2414, 0.25).lineBetween(end.x, top, end.x, end.y);
+    g.lineStyle(w, 0x3b2414, 0.7).lineBetween(end.x, top, end.x, end.y);
   }
 
   private get span() {
@@ -179,14 +221,17 @@ export class ChopStep extends Step<ChopParams> {
     return x > z.x0 && x < z.x1 && y > z.y0 && y < z.y1;
   }
 
-  /** The knife tip under the finger; over the vegetable it glides onto the next cut line. */
+  /** The knife tip under the finger; near the next cut line it glides onto it (elsewhere it stays where the finger is). */
   private follow(x: number, y: number, jump: boolean) {
-    const [s0, s1] = this.span;
-    const over = x > this.X(s0) - 150 * this.u && x < this.X(s1) + 150 * this.u;
-    const target = over ? this.X(this.cutX(Math.min(this.cutsDone + 1, this.params.cuts))) : x;
+    const target = Math.abs(x - this.line.a.x) <= this.bandW() ? this.line.a.x : x;
     const nx = jump ? target : this.knife.x + (target - this.knife.x) * 0.5;
     // (held high up, it stays low enough for its handle to stay on the screen)
     this.knife.setPosition(nx, Math.max(y, ART.prep.knifeTip.y * this.knife.scaleY + 8 * this.layout.k));
+  }
+
+  private bandW() {
+    const [s0, s1] = this.span;
+    return Math.max(TUNING.cut.minBand * this.layout.k, (s1 - s0) * this.vs * TUNING.cut.vegBand);
   }
 
   private cut() {
@@ -194,6 +239,11 @@ export class ChopStep extends Step<ChopParams> {
     this.poke();
     this.hit();
     const i = ++this.cutsDone;
+    this.cutG.clear();
+    if (i < this.params.cuts) {
+      this.nextLine();
+      this.showGuide(this.held);
+    } else this.showGuide(false);
     const x = this.cutX(i);
     const col = vegColumn(this.params.veg, x);
     this.veg.setCrop(0, 0, x, VEG.size[1]);
@@ -295,26 +345,33 @@ export class ChopStep extends Step<ChopParams> {
 
   protected onDemoStart() {
     this.knife.setVisible(false);
+    this.showGuide(true);
   }
 
   protected onDemoEnd() {
     this.knife.setVisible(true);
+    if (!this.held) this.showGuide(false);
   }
 
   protected showHint() {
     this.knife.setVisible(false);
+    this.showGuide(true);
     super.showHint();
   }
 
-  /** Mom helps: her knife hand cuts the rest, one stroke after another. */
+  /**
+   * Mom helps: her knife hand makes ONE cut down the line (gameplay round 4), then the knife is hers again (the next
+   * help comes after the usual hint and wait, as in the puzzle).
+   */
   protected autoFinish() {
     this.held = false;
     this.knife.setVisible(false);
+    this.showGuide(true);
     const every = TUNING.help.chopEveryMs;
     const at = { x: 0, y: 0 };
-    this.hand.follow('knife', () => at);
     const stroke = () => {
-      if (this.finishing) return;
+      if (this.finishing || this.aborted) return;
+      this.hand.follow('knife', () => at);
       const x = this.X(this.cutX(this.cutsDone + 1));
       const col = vegColumn(this.params.veg, this.cutX(this.cutsDone + 1));
       const top = this.Yf(col.top) - 50 * this.u;
@@ -330,11 +387,18 @@ export class ChopStep extends Step<ChopParams> {
           at.x = x;
           at.y = top + (bottom - top) * f;
         },
-        onComplete: stroke,
+        onComplete: () => {
+          if (this.finishing || this.aborted) return;
+          this.hand.stop();
+          this.knife.setVisible(true);
+          this.showGuide(false);
+          this.restKnife();
+          this.resumeAfterAuto();
+        },
       });
-      this.scene.time.delayedCall(every / 2, () => this.cut());
+      this.scene.time.delayedCall(every / 2, () => !this.aborted && this.cut());
     };
-    // Her first stroke comes after "Let me help you!", so she can count every cut.
+    // Her stroke comes after "Let me help you!".
     this.scene.time.delayedCall(lineMs('vo-help'), stroke);
   }
 }
