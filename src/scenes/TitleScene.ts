@@ -57,10 +57,13 @@ export class TitleScene extends Phaser.Scene {
       this.mom.followHand(hint.active);
       fadeIn(this.mom.box);
       if (S.pet) fadeIn(new Character(this, RECIPES[0].character, S.pet, S.feedPet).box);
-      this.events.on(Phaser.Scenes.Events.UPDATE, () => {
+      const look = () => {
         const p = this.input.manager.pointers.find((q) => q.isDown);
         this.mom?.lookAt(p ? p.worldX : btn.x, p ? p.worldY : btn.y);
-      });
+      };
+      // (the scene object lives on across visits: without the off, every visit would add one more watcher)
+      this.events.on(Phaser.Scenes.Events.UPDATE, look);
+      this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.events.off(Phaser.Scenes.Events.UPDATE, look));
     });
 
     // Idle 5 s: Mom's pointing hand taps the play button.
