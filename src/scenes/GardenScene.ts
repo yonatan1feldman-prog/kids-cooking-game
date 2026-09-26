@@ -157,7 +157,7 @@ export class GardenScene extends Phaser.Scene {
     });
 
     // The sun, above the bed between the first two plants; the cloud will come over it.
-    this.sunAt = { x: bedX - 200 * bs, y: L.Y(150) };
+    this.sunAt = { x: bedX - 200 * bs, y: L.Y(180) };
     this.sun = this.add.image(this.sunAt.x, this.sunAt.y, 'garden-sun').setScale(0.7 * k).setDepth(3);
 
     assetsReady().then(() => {
@@ -196,7 +196,7 @@ export class GardenScene extends Phaser.Scene {
   // ---------------------------------------------------------------- helpers
 
   private say(key: VoiceKey, opts: { ttlMs?: number; done?: () => void; group?: string; sequence?: boolean } = {}) {
-    voice.say(key, { ttlMs: 3000, ...opts, valid: () => this.scene.isActive() && !this.leaving });
+    voice.say(key, { ttlMs: 4000, ...opts, valid: () => this.scene.isActive() && !this.leaving });
   }
 
   private leave(from: 'recipe' | 'finale') {
@@ -223,7 +223,7 @@ export class GardenScene extends Phaser.Scene {
 
   private praise(then: () => void, wait = 900) {
     const L = this.L;
-    voice.praise({ ttlMs: 3000, valid: () => this.scene.isActive() && !this.leaving });
+    voice.praise({ ttlMs: 5000, valid: () => this.scene.isActive() && !this.leaving });
     this.mom?.happy();
     this.pipa?.cheer();
     confetti(this, this.bed.x, L.Y(300), 14, 24 * L.k);
@@ -457,7 +457,7 @@ export class GardenScene extends Phaser.Scene {
       this.tweens.add({ targets: this.sun, angle: 360, scale: 0.85 * L.k, duration: 900, ease: 'Sine.easeInOut', yoyo: false, onComplete: () => this.tweens.add({ targets: this.sun, scale: 0.7 * L.k, duration: 400 }) });
       stars(this, this.sunAt.x, this.sunAt.y, 10, 60 * L.k);
       this.mom?.happy();
-      this.say('vo-garden-sun', { ttlMs: 3000 });
+      this.say('vo-garden-sun', { ttlMs: 5000 });
       this.time.delayedCall(700, () => this.grow());
     });
   }
@@ -601,7 +601,7 @@ export class GardenScene extends Phaser.Scene {
     const col = (i % 5) - 2;
     const row = Math.floor(i / 5);
     const tx = at.x + col * 52 * b.s;
-    const ty = at.y - row * 30 * b.s + Math.abs(col) * 6 * b.s;
+    const ty = at.y - row * 30 * b.s + Math.abs(col) * 6 * b.s - (f.carrot ? 40 * b.s : 0);
     this.tweens.killTweensOf(f.img);
     f.img.setDepth(31);
     this.tweens.add({
@@ -609,7 +609,7 @@ export class GardenScene extends Phaser.Scene {
       x: tx,
       y: ty,
       scale: f.carrot ? 0.42 * L.k : 0.55 * L.k,
-      angle: f.carrot ? 70 + col * 8 : col * 10,
+      angle: f.carrot ? 80 + col * 6 : col * 10,
       duration: 300,
       ease: 'Quad.easeOut',
       onComplete: () => {

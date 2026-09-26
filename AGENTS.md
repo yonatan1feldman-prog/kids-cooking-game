@@ -4,7 +4,8 @@
 - **What:** a text-free, English-speaking cooking game for a 5-year-old (Android phone, landscape): she cooks with
   Mom, Pipa the hedgehog watches and eats. Phaser 4 + Vite + TypeScript PWA, deployed to GitHub Pages from `master`.
   Eight recipes: pizza, salad, cookies, smoothie, pancakes, vegetable soup, birthday cake and fruit skewers (`src/recipes/<name>.ts`),
-  cards in a grid on the home screen, with the memory book's button in one more cell once there is a photo in it.
+  cards in a grid on the home screen, then the garden's card (a stage that is not cooking: `scenes/GardenScene.ts`), with
+  the memory book's button in one more cell once there is a photo in it.
 - **Where things are:** `src/recipes/` recipes as pure data (`types.ts` = every step type's params); `src/steps/` one
   reusable class per step type (`registry.ts` maps names to classes); `src/core/tuning.ts` every count and threshold;
   `src/core/stage.ts` every position; `src/core/assets.ts` the asset contract (image keys, sizes, art anchors `ART`);
@@ -658,7 +659,28 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; the garden, visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 00000000000000000. The garden (a stage that is not cooking)
+Spec and research: `/mnt/project-files/research/new-stage-2-spec.md`. Branch `claude/new-stage-garden-6ev1by`.
+- **Way in:** a card after the recipes on the home screen (`card-garden`; the album's button moves one cell on). Its tap
+  loads `RECIPE_ASSETS.garden` like a recipe (`recipeAssets(game, 'garden')`), says vo-pick-garden (core, as every pick
+  line) and starts the `Garden` scene; home (two taps) and the finale go back to Home, which releases it.
+- **The scene (`scenes/GardenScene.ts`, one file, phases):** seeds (tap one of three packets: tomato, strawberry, carrot;
+  Mom says its name) · plant (tap a hole, or drag a seed from the packet: a mound, Mom counts) · water (drag the can; with
+  its spout over a plant it tips, drops fall, `waterLoop`; `TUNING.garden.waterMs` of water makes a sprout, then a young
+  plant) · cloud (it covers the sun and the garden dims; dragging it `cloudPush` away sends it off; a partial push stays)
+  · grow (by itself after the sun: grown plants, flowers, then fruit; carrots come up with only their tops above the
+  bed's front planks) · snail (it crawls to the first plant; drag the leaf to it: it munches, hearts, it leaves) · pick
+  (drag each fruit to the basket; a carrot is pulled straight up `pull` x its root, then it goes to the basket by
+  itself) · finale (a fruit to Pipa's mouth, `react('love')`; Mom on 4:3; jingle, stars, confetti, vo-garden-done,
+  vo-bye, Home). Demo (first visit, `cooking.runs.garden`), hint after 8 s, help 20 s later (one piece), 3 misses show
+  the hint, one finger owns what it holds, rotation drops it back. Layout: a tool column on the left (packet, can, leaf,
+  basket) and the bed from it to Pipa (or Mom's face); Mom stands behind the bed (depth 4 < bed 10).
+- **Art:** `assets-src/images-b-garden/tools/gen_garden.py` (pb.py kit, 27 SVGs; anchors printed at the end = `ART.garden`).
+  Voice: 12 lines (`make_vo.py mom-a`), not heard by an agent.
+- **Checked (cloud, virtual clock, simulated voice):** see the garden round's PR.
+- **Not done:** bringing the harvest into the kitchen as an ingredient (touches the recipes); no photo for the book.
+- **Needs a real child:** does she find the can's pour (hold it over a plant)? Is pushing the cloud clear? The carrot pull.
 ### 0000000000000000. Visual round 5 (more around the kitchen)
 The owner asked for "a lot more scenery, much more interest in the steps". Art: `assets-src/images-b/tools/gen_kitchen_view.py`
 (21 pieces, each SVG's viewBox is its own box in the 2400x1080 frame, like the living kitchen's); code: `addKitchenLife`
