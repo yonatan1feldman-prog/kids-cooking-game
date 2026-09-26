@@ -195,5 +195,12 @@ export const TUNING = {
    * floats `napBubbles` sleep bubbles; a bite coming near wakes her.
    */
   guests: { bringAfterMs: 9000, napAfter: 3, napBubbles: 3 },
+  /**
+   * The puzzle from a memory-book photo (research/puzzle-spec.md). `grids`: columns x rows, the first puzzle on this
+   * device first, the last one from then on (4, 6, 9, 12 pieces). `snap`: a piece let go this close to its place
+   * (times the cell's shorter side) clicks in. `ghost`: how strongly the picture shows on the board under the pieces.
+   * `trayMax`: the largest size a waiting piece is shown at (1 = its size on the board).
+   */
+  puzzle: { grids: [[2, 2], [3, 2], [3, 3], [4, 3]] as readonly (readonly [number, number])[], snap: 0.55, ghost: 0.3, trayMax: 0.9, helpMs: 900 },
   help: { pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150, chopEveryMs: 950, openMs: 1500, tempEveryMs: 1100, peelEveryMs: 900, candleEveryMs: 700, threadEveryMs: 700 },
 } as const;
