@@ -4,6 +4,7 @@ import { refreshAlbumCount } from '../core/album';
 import { CORE_IMAGES, FX_DOT, KITCHEN_KEYS, FX_SOFT, IMAGES, RECIPE_ASSETS, textureSize, unlistedImages, type ImageKey } from '../core/assets';
 import { loadRecipeSounds, loadSounds, releaseSounds } from '../core/audio';
 import { ensurePlaceholders, makeFxTextures, makeUiTextures } from '../core/placeholders';
+import { SUNBEAM_KEY } from '../core/scenery';
 import { loadSvgTexture, loadWebpTexture } from '../core/svgRaster';
 
 /** Asset paths in the manifest are relative to the site root; the game lives under BASE_URL. */
@@ -83,7 +84,7 @@ export function releaseRecipe(game: Phaser.Game) {
   if (!current) return;
   const own = RECIPE_ASSETS[current.id];
   current = null;
-  const keep = new Set<string>([...CORE_IMAGES, FX_DOT, FX_SOFT, 'fx-heart', 'fx-ring', 'fx-paper']);
+  const keep = new Set<string>([...CORE_IMAGES, FX_DOT, FX_SOFT, 'fx-heart', 'fx-ring', 'fx-paper', SUNBEAM_KEY]);
   for (const key of game.textures.getTextureKeys()) if (!keep.has(key)) game.textures.remove(key);
   if (own) releaseSounds(own.sounds);
 }

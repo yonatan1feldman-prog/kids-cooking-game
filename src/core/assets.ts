@@ -30,6 +30,10 @@ export const IMAGES = {
   'kitchen-pot-2': { size: [96, 112] },
   'kitchen-pot-3': { size: [88, 108] },
   'kitchen-sun': { size: [88, 88] },
+  /** The living window (visual round 4, core/scenery.ts): a bird's two wing frames and a cloud, slid across the glass. */
+  'kitchen-bird-up': { size: [58, 44] },
+  'kitchen-bird-down': { size: [58, 44] },
+  'kitchen-cloud': { size: [156, 62] },
   'dough-ball': { size: [360, 300] },
   'dough-flat': { size: [720, 720] },
   'rolling-pin': { size: [640, 200] },
@@ -435,6 +439,7 @@ export const LOADED_KEYS = IMAGE_KEYS.filter((k) => !NOT_LOADED.has(k));
 export const KITCHEN_KEYS: readonly ImageKey[] = [
   'kitchen-jar-flour', 'kitchen-jar-pasta', 'kitchen-jar-jam', 'kitchen-basil', 'kitchen-ladle', 'kitchen-whisk',
   'kitchen-spatula', 'kitchen-pan', 'kitchen-pot-1', 'kitchen-pot-2', 'kitchen-pot-3', 'kitchen-sun',
+  'kitchen-bird-up', 'kitchen-bird-down', 'kitchen-cloud',
 ];
 
 export const CORE_IMAGES: readonly ImageKey[] = [

@@ -784,6 +784,21 @@
   "w": 102,
   "h": 128
  },
+ "kitchen-bird-down": {
+  "sha1": "a7e62798d03d5627033fe4a8090132f945032b3d",
+  "w": 58,
+  "h": 44
+ },
+ "kitchen-bird-up": {
+  "sha1": "beec5c969ab8d67e2fe7882dd49c76bb1b598bd4",
+  "w": 58,
+  "h": 44
+ },
+ "kitchen-cloud": {
+  "sha1": "e1dc39022944d92fec6bfc95cc09518b322104d6",
+  "w": 156,
+  "h": 62
+ },
  "kitchen-jar-flour": {
   "sha1": "8cc559628bddf266743889bc0c8dbb19cab8bde9",
   "w": 124,

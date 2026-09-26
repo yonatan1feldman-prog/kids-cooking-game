@@ -102,7 +102,9 @@ DynamicTexture needs `.render()`).
 5. **Every animation, sound and effect answers something she did** (or helps her after she stopped: the hint, Mom's
    help). Nothing sparkles, bobs, pulses or wiggles by itself to pull her attention. Allowed exceptions, because they
    are life, not lures: Mom breathing and blinking, Pipa breathing (round 13) and blinking, the soft background music, the loading spinner,
-   and the text-free rotate animation. Pipa's thought bubble (her wish) pops in once when a step starts and then stays
+   the text-free rotate animation, and the living window (visual round 4, the owner's request: now and then a few birds fly
+   past the window, one cloud drifts across it, the sunbeam dims while it covers the sun; only inside the window's glass,
+   slow, muted, silent, never tappable; `core/scenery.ts`). Pipa's thought bubble (her wish) pops in once when a step starts and then stays
    still; the kitchen's jars, utensils, pots and sun move only when she taps them. The oven's glow and steam while baking are the result of her putting the
    pizza in. (Round 4 removed: the play button's endless pulse, the recipe card's endless bobbing, the bins' endless
    wiggle, the done button's endless pulse, the oven's endless "tap me" hop, stars around Pipa's head at every step.)
@@ -655,7 +657,20 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 000000000000000. Visual round 4 (the living window)
+The owner asked for "birds flying past the window, and anything that makes the scenery nicer". `core/scenery.ts`
+(`addScenery`, called by `addBackground`, so title, home, album and every recipe have it):
+- **Birds:** every 18-34 s (first after 3-7 s) one to three birds (`kitchen-bird-up` / `-down`, 58x44, flapping 1.2 s,
+  gliding 0.8 s) cross the window left to right in about 6 s. **Cloud:** one `kitchen-cloud` (156x62) drifts across at 4.5
+  units/s, then waits 6-20 s. Both are cropped to the window's two upper panes (`Clipped`: one image per pane, `setCrop`,
+  no mask filter), so the frame and its cross stay in front. Art: `assets-src/images-b/tools/gen_kitchen_sky.py`.
+- **Sunbeam** (`fx-sunbeam`, a canvas texture drawn once, kept by `releaseRecipe`): soft light from the window onto the
+  wall and counter with the window's cross as shade, depth -98 (under the board at -1), alpha 0.26, dimmed to ~45% while
+  the cloud passes the sun, turning -1.5..2.5 degrees over 5 min (the afternoon).
+- Runs on the scene's update, so it pauses with the scene. Costs: ~8 images and one small canvas; 3 WebPs of 4-10 KB.
+- The photo's kitchen (`drawKitchenPieces`) has no birds or beam, on purpose.
+- **Needs a real child:** does she look at the window instead of the step? If so, lengthen `BIRD_GAP_MS`.
 ### 0000000000000. The puzzle (a memory-book photo as a jigsaw)
 Spec and research: `/mnt/project-files/research/puzzle-spec.md`. No new art: everything is cut and drawn at runtime.
 - **Way in:** in the album, a tap on a photo enlarges it (as before) and the puzzle button (`PUZZLE_ICON`, a piece on
