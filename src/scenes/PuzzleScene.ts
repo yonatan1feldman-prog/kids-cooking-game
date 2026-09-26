@@ -211,8 +211,8 @@ export class PuzzleScene extends Phaser.Scene {
     let s: number = TUNING.puzzle.trayMax;
     for (; s >= 0.3; s -= 0.025) {
       // A piece's footprint in the tray: its cell and a little of its tabs (tabs may reach between neighbours).
-      const fw = (w + pad) * s + 8 * k;
-      const fh = (h + pad) * s + 8 * k;
+      const fw = (w + 1.4 * pad) * s + 8 * k;
+      const fh = (h + 1.4 * pad) * s + 8 * k;
       slots = [];
       for (const g of regions) {
         const nc = Math.floor((g.x1 - g.x0) / fw);
