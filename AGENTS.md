@@ -224,7 +224,7 @@ src/scenes/
 ## Recipes are data
 A recipe is `{ id, card, board, character, steps: StepDef[] }`. Each step names a reusable type and its params.
 Step types: `wash`, `knead`, `crush`, `stir`, `grate`, `roll`, `spread`, `sprinkle`, `choose`, `chop`, `peel`, `open-pour`,
-`decorate`, `bake`, `candles`, `share`, `photo`, `cutters`, `blend`, `flip`, `thread` (and `feed`, the older single-eater ending with its own finale, no longer used).
+`decorate`, `bake`, `candles`, `share`, `photo`, `cutters`, `blend`, `flip`, `thread`, `find` (and `feed`, the older single-eater ending with its own finale, no longer used).
 The salad (`salad.ts`) is the second worked example: see Handoff notes 0000.
 The pizza: wash, knead, roll, crush, stir, spread, grate, sprinkle, choose, then the prep step of each of the three
 chosen toppings in the order she picked them (chop, or open-pour), decorate, bake (with the panel and the mitts),
@@ -261,12 +261,12 @@ feedback on every touch, Mom's demo, the 5 s hint from her hand, her help after 
   first free ones. Salad (pick vegetables), cookies (pick decorations), soup: the same type, other options.
 - `chop` (`ChopStep`, `ChopParams`): a cutting board in the prep area, the whole vegetable (`veg` = its measured
   profile in `core/vegArt.ts`), the knife upright above the next cut line. The knife follows the finger by its blade
-  tip (`ART.prep.knifeTip`; over the vegetable it glides onto the cut line; held high it stays low enough for its
-  handle to stay on screen). Any short stroke down over the vegetable (`minSwipe`, anywhere sideways) cuts the next
-  slice: `cuts` cuts at one slice width (body span / (cuts + 1)) from right to left, the whole image cropped at the
+  tip (`ART.prep.knifeTip`; near the cut line it glides onto it; held high it stays low enough for its
+  handle to stay on screen). Since gameplay round 4 the cut follows the finger (`LineCut`, `TUNING.cut`, see its
+  handoff note): while the knife is held the next cut line shows (dots, arrows down), a stroke down along it cuts into
+  the vegetable as far as the finger has come, and once `through` the body the next slice comes off: `cuts` cuts at one slice width (body span / (cuts + 1)) from right to left, the whole image cropped at the
   cut, the `inside` strip on the cut line fitted to the profile (the mushroom's cap part only outside its stem), a
-  `slice` drops onto the pile, chop, Mom counts. One cut per stroke (the finger goes up 25 units or lifts for the
-  next). After the last cut the end that is left becomes the last slice; the slices fly into the topping's bin.
+  `slice` drops onto the pile, chop, Mom counts. After the last cut the end that is left becomes the last slice; the slices fly into the topping's bin.
   `careful` is said once per run (`run.once`). A new vegetable = its whole / slice / inside art + its profile (the art
   agent's `gen_prep_e.py --profiles`) in vegArt.ts.
 - `open-pour` (`OpenPourStep`, `OpenPourParams`): `kind: 'can'` (a swipe up of `swipe` or `taps` taps on the lid:
@@ -657,7 +657,39 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; gameplay round 4 (cutting, challenges), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 0000000000000000. Gameplay round 4 (cutting that follows the finger; a new small challenge in every recipe)
+The owner: "a cut only when the finger cuts in the right direction and place"; "more challenges".
+- **Cutting** (`steps/lineCut.ts`, `TUNING.cut`; `chop` in five recipes, the `share` cut of pizza, cake and pancakes):
+  a `LineCut` is the next cut line with a direction. A finger move cuts only if it is near the line (`band` x the
+  dish's diameter, `vegBand` x the vegetable's width, at least `minBand` 110 x k, about 7 mm), within `angle` (35
+  degrees) of its direction, and not more than `gap` (0.3 of the line) ahead of the cut's front. The front follows the
+  finger (a dark line into the vegetable / across the dish), so a stroke can stop and be continued; at `through` (0.8)
+  the cut finishes by itself. The other way, sideways or off the line cuts nothing: after `wobbleAfter` (90 x k) of such
+  travel in one touch the vegetable or the dish wobbles once (a miss; three show Mom's hand). In `chop` going up
+  (between strokes) is neutral. The guide (dots + arrowheads, `drawCutGuide`) shows while the knife is held and while
+  Mom's hand demos or hints; on the dish it is always there, stronger while held. Mom's help makes ONE cut and gives the
+  knife back (the next help after the usual 8 s + 20 s), in both steps.
+- **Find the tool** (new step type `find`, `FindStep`, `FindParams`): three tools on bins in the choose cells, shuffled;
+  Mom asks for one (vo-find-grater / -pin / -spoon). Another one hops and Mom names it (name-whisk, name-spatula,
+  name-spoon, ...), a miss; the right one glows, stars, is named, and the step ends. The demo only looks over the three
+  (it does not give the answer); the hint taps the right one; help picks it. Pizza (the grater, before grating), cookies
+  (the rolling pin, before rolling), soup (the wooden spoon, before stirring). Art: existing (`kitchen-whisk`,
+  `kitchen-spatula` are core).
+- **Pipa's order** (`choose` `order`): salad, smoothie, skewers. Her wish is always two things (from the first run),
+  said "Look! Pipa wants two things, in order. First..." name "and then..." name. Her second before her first is not
+  picked: it wiggles, "Pipa wants this one first!" + the name, and Mom's hand shows it at once (`hintNow`). A found wish
+  item stays picked. Only where Pipa is on screen (not 4:3), like every wish.
+- **Stir with the arrow** (`stir` `arrow`): pancakes and cake. Three curved orange arrows inside the bowl
+  (`drawArrows`); only stirring round their way counts (the arc round the opening's centre), the other way wobbles the
+  contents (`TUNING.stirArrow.wobbleAfter`). At `flipAt` (0.5) they turn round: "Now stir the other way!". Demo, hint
+  and help stir the arrows' way.
+- Voice: 13 lines (Kokoro af_heart, `make_vo.py mom-a`), not heard by an agent (the cloud could not fetch the Vosk
+  model for the speech check).
+- Harness: `__gesture` cuts along `st.line` (`__cutWrong` backwards), follows Pipa's order, stirs `st.dir`
+  (`__stirWrong`), taps the right tool (`__findWrong` first a wrong one); `__audit` knows `FindStep`.
+- **Needs a real child:** is a straight stroke along the line doable on the phone (else raise `TUNING.cut.band` /
+  `angle`)? Does she grab the knife where it waits (the start of the line)? Does she understand the arrows?
 ### 000000000000000. Visual round 4 (the living window)
 The owner asked for "birds flying past the window, and anything that makes the scenery nicer". `core/scenery.ts`
 (`addScenery`, called by `addBackground`, so title, home, album and every recipe have it):
@@ -774,10 +806,10 @@ The owner's idea: each meal she picks who comes to eat. Pipa stays the pet; a gu
   it slides gently back in (a miss). Puffs of hot air answer the pulling. First run: Mom's hand shows each of the two
   moments once (`firstRunShow`); the 8 s hint loops it; her help carries the mitts (then gives it back), then pulls it out.
 - **Cutting before sharing** (`ShareStep`, `cut: { knife, line }`: pizza, cake, pancakes): the whole dish on its board, a
-  dotted guide where the next cut goes, the knife (tip-anchored, as in `chop`) beside it. Any stroke over the dish of
-  `TUNING.share.cutSwipe` (200 x k) makes the next cut all the way across its line (no precision, no wrong direction),
-  chop, Mom counts; 6 slices = 3 diameters (an odd number: radii). Then the pieces come apart and the share line plays.
-  Demo / hint: Mom's knife hand draws the next cut (size 0.75); help: her hand cuts the rest, then sharing is hers.
+  dotted guide where the next cut goes, the knife (tip-anchored, as in `chop`) beside it. Since gameplay round 4 only a
+  stroke along the guide, the way its arrows point, cuts (see that round's note); 6 slices = 3 diameters (an odd number:
+  radii). Then the pieces come apart and the share line plays.
+  Demo / hint: Mom's knife hand draws the next cut (size 0.75); help: her hand makes one cut, then the knife is hers.
 - **Finale glitch fixed:** `render.maxTextures: 8` in main.ts (with 16, a crowded screen lost pieces of Mom in WebGL).
 - Voice: vo-pull-out, vo-cut-slices (Kokoro, `make_vo.py mom-a`), not heard by an agent.
 - **Needs a real child:** does she drag the mitts or tap them (a tap does nothing now: the hint comes after 3 taps or 8 s)?

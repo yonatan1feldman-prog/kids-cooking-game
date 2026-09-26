@@ -89,7 +89,9 @@ export class ChooseStep extends Step<ChooseParams> {
   private makeWish() {
     const run = this.ctx.run;
     const W = TUNING.wish.chooseItems;
-    const n = Math.min(W[Math.min(run.runNo, W.length - 1)], this.params.pick, this.choices.length);
+    const order = this.params.order;
+    // Pipa's order (gameplay round 4): always two things, the first one first.
+    const n = Math.min(order ? 2 : W[Math.min(run.runNo, W.length - 1)], this.params.pick, this.choices.length);
     const pick = Phaser.Utils.Array.Shuffle([...this.choices]).slice(0, n);
     const S = this.ctx.stage;
     const shown = this.ctx.character.showWish(
@@ -102,6 +104,13 @@ export class ChooseStep extends Step<ChooseParams> {
     run.wishes.push(...pick.map((c) => c.opt.topping as string));
     this.scene.time.delayedCall(TUNING.wish.sayAfterMs, () => {
       if (this.aborted || this.finishing) return;
+      if (order && pick.length === 2) {
+        voice.say(order.line, { ttlMs: 9000 });
+        if (pick[0].opt.name) voice.say(pick[0].opt.name, { ttlMs: 11000 });
+        voice.say(order.then, { ttlMs: 12000 });
+        if (pick[1].opt.name) voice.say(pick[1].opt.name, { ttlMs: 13000 });
+        return;
+      }
       voice.say('vo-pipa-wants', { ttlMs: 9000 });
       for (const c of pick) if (c.opt.name) voice.say(c.opt.name, { ttlMs: 11000 });
     });
@@ -119,6 +128,11 @@ export class ChooseStep extends Step<ChooseParams> {
     this.hit();
     const k = this.k;
     const rest = c.item.getData('rest') as number;
+    if (c.picked && this.params.order && this.found.has(c)) {
+      // (Pipa's thing, found in order, stays chosen: a tap on it only makes it hop.)
+      boing(this.scene, c.item, 0.12);
+      return;
+    }
     this.scene.tweens.killTweensOf([c.item, c.glow]);
     c.item.setScale(rest);
     if (c.picked) {
@@ -129,6 +143,19 @@ export class ChooseStep extends Step<ChooseParams> {
       this.scene.tweens.add({ targets: c.item, y: c.itemY, duration: 260, ease: 'Sine.easeOut' });
       this.scene.tweens.add({ targets: c.glow, alpha: 0, duration: 200 });
       boing(this.scene, c.bin, 0.1);
+      return;
+    }
+    // Pipa's order: her second thing before her first one is not picked yet. It wiggles, Mom says "Pipa wants this one
+    // first!" and her hand shows the first one (a gentle redirect, never a "no").
+    const order = this.params.order;
+    if (order && this.wished.length === 2 && c === this.wished[1] && !this.found.has(this.wished[0])) {
+      sfx(this.scene, 'tap');
+      this.scene.tweens.add({ targets: c.item, angle: { from: -7, to: 7 }, duration: 90, yoyo: true, repeat: 1, onComplete: () => c.item.setAngle(0) });
+      boing(this.scene, c.bin, 0.08);
+      voice.say(order.first, { ttlMs: 3000 });
+      const f = this.wished[0];
+      if (f.opt.name) voice.say(f.opt.name, { ttlMs: 4500 });
+      this.hintNow();
       return;
     }
     c.picked = true;

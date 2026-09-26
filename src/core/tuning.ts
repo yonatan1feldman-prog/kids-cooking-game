@@ -51,11 +51,19 @@ export const TUNING = {
   sprinkle: { count: 55 },
   /** Choose the toppings: how many she picks, and the pause after the last pick (she sees her three). */
   choose: { pick: 3, pauseMs: 900 },
+  /** Chop: cuts per vegetable (the end that is left becomes one more slice). How a cut is made: `cut` below. */
+  chop: { cuts: 6 },
   /**
-   * Chop: cuts per vegetable (the end that is left becomes one more slice), and how far (world units) a finger must
-   * move down over the vegetable for one cut: short and forgiving, wherever it is sideways.
+   * Gameplay round 4: every cut follows the finger (the vegetables in `chop`, the pizza / cake / pancakes in `share`).
+   * The knife cuts only while the finger moves along the next cut line, in its direction (down through a vegetable,
+   * across the dish from the knife's end), at most `angle` degrees off it and at most `band` x the dish's diameter or
+   * `vegBand` x the vegetable's width either side of it, never less than `minBand` (x k; 110 is about 7 mm on the
+   * phone: a small fingertip). The cut's front follows the finger, so a stroke may stop and go on
+   * (a new stroke starting up to `gap` of the line ahead of the front still cuts). `through`: how far along the line
+   * the cut must come (the rest is finished by itself). `wobbleAfter`: finger travel (x k) the wrong way, sideways or
+   * off the line in one touch before the item wobbles (a gentle "not like that", a miss: three show the hint).
    */
-  chop: { cuts: 6, minSwipe: 70 },
+  cut: { angle: 35, band: 0.17, vegBand: 0.33, minBand: 110, gap: 0.3, through: 0.8, wobbleAfter: 90 },
   /**
    * Open a can or a jar, then pour it into the bowl. Can: `taps` taps on the lid, or one move up of `swipe` units.
    * Jar: sideways rubbing on the lid adds up to `twist` units (a tap counts a quarter of it). Pour: ms of holding the
@@ -72,10 +80,9 @@ export const TUNING = {
   bake: { pullAt: 0.55 },
   /**
    * Gameplay round 3 raised most counts here a little (a bit more to do in every step, never harder to do).
-   * Share: slices the pizza is cut into (shared between Mom and Pipa, any way she likes); `cutSwipe`: finger travel over
-   * the dish (x k) that makes the next cut.
+   * Share: slices the pizza is cut into (shared between Mom and Pipa, any way she likes; how a cut is made: `cut`).
    */
-  share: { slices: 6, cutSwipe: 260 },
+  share: { slices: 6 },
   /**
    * The salad (round 6; aim: 4-5 minutes from the card to home). Wash the vegetables: drops (bursts) of rubbing, as
    * `wash.bubbles`. Tear the lettuce: presses per stage (head -> tear-1 -> 2 -> 3: 3 changes). Chop: cuts per vegetable.
@@ -85,7 +92,7 @@ export const TUNING = {
   salad: {
     washVeg: { bubbles: 10, rubPerBubble: 300, rubLineAt: 99, rinseMs: 1200 },
     tear: { pressesPerStage: 4 },
-    chop: { cuts: 5, minSwipe: 70 },
+    chop: { cuts: 5 },
     transfer: { ms: 1300 },
     lemon: { pressesPerStage: 4 },
     oil: { ms: 1800 },
@@ -117,7 +124,7 @@ export const TUNING = {
    */
   smoothie: {
     washFruit: { bubbles: 12, rubPerBubble: 300, rubLineAt: 99, rinseMs: 1200 },
-    chop: { cuts: 6, minSwipe: 70 },
+    chop: { cuts: 6 },
     transfer: { ms: 1500 },
     milk: { ms: 2200 },
     blend: { runMs: 7000, tapMs: 450 },
@@ -145,7 +152,7 @@ export const TUNING = {
   soup: {
     washVeg: { bubbles: 12, rubPerBubble: 300, rubLineAt: 99, rinseMs: 1200 },
     peel: { strips: 6, minSwipe: 130 },
-    chop: { cuts: 5, minSwipe: 70 },
+    chop: { cuts: 5 },
     transfer: { ms: 1400 },
     water: { ms: 2400 },
     stir: { distance: 4800 },
@@ -168,7 +175,7 @@ export const TUNING = {
     frost: { rubWidths: 5 },
     decorate: { items: 4 },
     candles: { count: 5 },
-    share: { slices: 6, cutSwipe: 260 },
+    share: { slices: 6 },
   },
   /**
    * The fruit skewers (round 13; aim: about 4 minutes from the card to home). Wash and chop: as the smoothie. Thread:
@@ -177,9 +184,14 @@ export const TUNING = {
    */
   skewers: {
     washFruit: { bubbles: 12, rubPerBubble: 300, rubLineAt: 99, rinseMs: 1200 },
-    chop: { cuts: 6, minSwipe: 70 },
+    chop: { cuts: 6 },
     thread: { pieces: 5, given: 3, reach: 260, pauseMs: 900 },
   },
+  /**
+   * Stir with the arrow (gameplay round 4; the pancakes and the cake): the arrows turn round at `flipAt` of the stirring;
+   * `wobbleAfter`: stirring the other way round (x k) before the bowl's contents wobble (a miss).
+   */
+  stirArrow: { flipAt: 0.5, wobbleAfter: 160 },
   /** Mom's help (after the idle hint): the pace of her own presses, rubs and strokes. */
   /**
    * Pipa's wishes (the gameplay round: a small challenge for a 4-5-year-old, never a test). Her thought bubble shows

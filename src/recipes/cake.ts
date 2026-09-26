@@ -119,6 +119,8 @@ export const cake: Recipe = {
         splash: 0xf6dca0,
         line: 'vo-stir-cake',
         keep: true,
+        // gameplay round 4: stir the way the arrows go (they turn round half-way)
+        arrow: { line: 'vo-stir-arrow', flipLine: 'vo-other-way' },
       },
     },
     // The bowl itself is tipped over the pan, which fills and becomes cake-pan-full (the smoothie's `glasses`).

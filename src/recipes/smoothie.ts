@@ -71,6 +71,8 @@ export const smoothie: Recipe = {
         options: [option('banana', 0xfff3c8), option('strawberry', 0xe23a4e), option('mango', 0xffb234), option('kiwi', 0x8cc63f)],
         pick: TUNING.choose.pick,
         pauseMs: TUNING.choose.pauseMs,
+        // gameplay round 4: Pipa wants two things, in order
+        order: { line: 'vo-pipa-order', then: 'vo-then', first: 'vo-first-this' },
         bin: 'topping-bin',
         line: 'vo-choose-fruit',
       },
