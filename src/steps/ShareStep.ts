@@ -31,7 +31,7 @@ const LIFT = 1.08;
 /** Slices spread apart a little so the cuts show. */
 const EXPLODE = 12;
 /** A slice counts when the finger (or its tip) is this near a mouth (x k). Very forgiving. */
-const MOUTH_REACH = 380;
+const MOUTH_REACH = 320;
 /** The one a slice comes this near to opens wide. */
 const EXPECT_REACH = 650;
 const CHEW_MS = 1050;
@@ -164,7 +164,12 @@ export class ShareStep extends Step<ShareParams> {
       if (!s) return;
       this.held = undefined;
       const who = cancelled ? null : this.receiver(p.worldX, p.worldY, s.img.x, s.img.y);
-      if (who) {
+      if (who && !this.mayHave(who, s)) {
+        // Everyone gets some: this one has had a piece, and the pieces left are for those who have not.
+        this.expectFrom(null);
+        this.sendHome(s);
+        this.stillHungry(who);
+      } else if (who) {
         this.hit();
         this.feed(s, who);
       } else {
@@ -706,7 +711,8 @@ export class ShareStep extends Step<ShareParams> {
       },
     });
     this.scene.time.delayedCall(480 * slow, () => sfx(this.scene, this.eat, { minGapMs: 0, volume: 0.6 }));
-    if (first) voice.say(guest ? guest.g.forGuest : this.params.forPet, { ttlMs: 4000 });
+    // (not when Mom has just named her: "Some for Pipa!" as the nudge, stillHungry)
+    if (first && !this.nudged.has(who)) voice.say(guest ? guest.g.forGuest : this.params.forPet, { ttlMs: 4000 });
     // (Pipa loves what she wished for; a guest what she likes, core/guests.ts)
     const sneezed = this.sneezes[who] ?? 0;
     const taste = tasteOf(sl.contents, guest ? [] : this.ctx.run.wishes, sneezed < TUNING.taste.maxSneezes, guest?.g.likes);
@@ -854,6 +860,57 @@ export class ShareStep extends Step<ShareParams> {
     return this.eaters.reduce((a, b) => (this.fed[b] < this.fed[a] ? b : a));
   }
 
+  /** Who has not eaten yet: Mom, Pipa, and the guest from the moment she is invited (before she has walked in too). */
+  private get hungry(): Who[] {
+    const all: Who[] = this.picking ? ['mom', 'pet'] : ['guest', 'mom', 'pet'];
+    return all.filter((w) => this.fed[w] === 0);
+  }
+
+  /**
+   * Everyone eats (gameplay round 3): a second piece for one who has eaten is fine while enough pieces are left for
+   * every one who has not.
+   */
+  private mayHave(who: Who, s: Slice) {
+    if (this.fed[who] === 0) return true;
+    return this.slices.filter((x) => !x.eaten && x !== s).length >= this.hungry.length;
+  }
+
+  private nudged = new Set<Who>();
+
+  /**
+   * A piece brought to one who has already eaten while another has not: it goes back, the full one smiles and pats a
+   * happy tummy (no "no", nobody sad), the hungry one opens wide and hops, Mom names her once ("Some for Pipa!"), and
+   * Mom's hand shows the way at once.
+   */
+  private stillHungry(full: Who) {
+    const want = this.hungry.find((w) => w !== full && (w !== 'guest' || this.guestIn));
+    if (full === 'mom') this.ctx.mom.happy();
+    else {
+      const c = this.eaterOf(full);
+      c.setMood('happy');
+      this.scene.tweens.add({ targets: c.box, scaleY: c.scale * 0.9, duration: 110, yoyo: true, repeat: 1, ease: 'Sine.easeInOut', onComplete: () => c.box.setScale(c.scale) });
+    }
+    if (!want) return;
+    if (want === 'mom') this.ctx.mom.expectFood(true);
+    else {
+      const c = this.eaterOf(want);
+      c.setMood('expect');
+      this.scene.tweens.add({ targets: c.box, y: c.rest.y - 70 * this.k * (c.scale / 0.62), duration: 180, yoyo: true, repeat: 1, ease: 'Quad.easeOut' });
+    }
+    this.scene.time.delayedCall(1400, () => !this.aborted && !this.held && this.expectFrom(null));
+    if (!this.nudged.has(want) && want !== 'mom') {
+      this.nudged.add(want);
+      voice.say(want === 'guest' && this.guest ? this.guest.g.forGuest : this.params.forPet, { ttlMs: 3000 });
+    }
+    this.hintNow();
+  }
+
+  /** Mom's help: whoever has had fewer, but never a second piece while one who has not eaten still waits to come in. */
+  private helpFor(s: Slice): Who | null {
+    const who = this.nextFor();
+    return this.mayHave(who, s) ? who : null;
+  }
+
   /** Mom carries a see-through copy of a slice to the mouth of whoever has had fewer (the real slices stay). */
   protected demo(): HandMotion | null {
     if (this.cutting) return this.cutDemo();
@@ -911,16 +968,25 @@ export class ShareStep extends Step<ShareParams> {
     if (this.held) {
       const s = this.held;
       this.held = undefined;
-      carried = s.img;
-      this.feed(s, this.nextFor());
+      const who = this.helpFor(s);
+      if (who) {
+        carried = s.img;
+        this.feed(s, who);
+      } else this.sendHome(s);
     }
     this.expectFrom(null);
-    const left = this.slices.filter((x) => !x.eaten);
-    left.forEach((s, i) =>
-      this.scene.time.delayedCall(300 + i * (CHEW_MS + 250), () => {
+    // One after another; when the only one still hungry is the guest on her way in, Mom waits for her.
+    const next = (wait: number) =>
+      this.scene.time.delayedCall(wait, () => {
+        if (this.aborted || this.done) return;
+        const s = this.slices.find((x) => !x.eaten && x !== this.held);
+        if (!s) return;
+        const who = this.helpFor(s);
+        if (!who) return next(300);
         carried = s.img;
-        this.feed(s, this.nextFor());
-      }),
-    );
+        this.feed(s, who);
+        next(CHEW_MS + 250);
+      });
+    next(300);
   }
 }

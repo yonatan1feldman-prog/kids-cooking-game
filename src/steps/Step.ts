@@ -246,6 +246,15 @@ export abstract class Step<P> {
     }
   }
 
+  /** Mom's hand shows what to do right away (as after three misses), e.g. when a try needs another answer. */
+  protected hintNow() {
+    this.misses = 0;
+    if (this.hinting || this.isAuto) return;
+    this.hinting = true;
+    this.idleMs = this.hintAfterMs;
+    this.showHint();
+  }
+
   /** A try that landed: the miss streak starts over. */
   protected hit() {
     this.misses = 0;
