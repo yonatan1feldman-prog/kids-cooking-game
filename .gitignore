@@ -16,3 +16,4 @@ audio-src/work/
 audio-src/.venv/
 __pycache__/
 *.pyc
+docs/screenshots-round5v/

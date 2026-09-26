@@ -884,10 +884,70 @@
   "w": 58,
   "h": 44
  },
+ "kitchen-bunting-l": {
+  "sha1": "43fce423d0c2c6a1ed91403793a5dff56f60e3cd",
+  "w": 476,
+  "h": 76
+ },
+ "kitchen-bunting-r": {
+  "sha1": "fdff135d96ac69c406831624f3da8329b970c294",
+  "w": 496,
+  "h": 76
+ },
+ "kitchen-cat-awake": {
+  "sha1": "9d534cb764e95f050c3db028aa955fbbf7f9ee55",
+  "w": 180,
+  "h": 168
+ },
+ "kitchen-cat-body": {
+  "sha1": "13a8c6a409ed7611f551b14815c00ddc6e45695b",
+  "w": 180,
+  "h": 168
+ },
+ "kitchen-cat-sleep": {
+  "sha1": "ef5200e95605498d7de170fa90e194996cbdcf32",
+  "w": 180,
+  "h": 168
+ },
+ "kitchen-cat-tail": {
+  "sha1": "ec365dce1c47dcb8f17239949097b1a78f13c4f2",
+  "w": 180,
+  "h": 168
+ },
+ "kitchen-cat-yawn": {
+  "sha1": "82143785c5cb6622d54f5ac55f69dce5e903d0d1",
+  "w": 180,
+  "h": 168
+ },
+ "kitchen-clock": {
+  "sha1": "c5d9ac9c04c8b6643e91aae15396a200d117594d",
+  "w": 120,
+  "h": 120
+ },
+ "kitchen-clock-hour": {
+  "sha1": "ae554eaf39f5acb80fb129c0d9ad091d6471461e",
+  "w": 120,
+  "h": 120
+ },
+ "kitchen-clock-minute": {
+  "sha1": "70029c7cccc9493572d33fe6ecd74baaaceb3b98",
+  "w": 120,
+  "h": 120
+ },
  "kitchen-cloud": {
   "sha1": "e1dc39022944d92fec6bfc95cc09518b322104d6",
   "w": 156,
   "h": 62
+ },
+ "kitchen-drawing": {
+  "sha1": "5dbf8a12a0bfe19715dc55c08ae6a3cca5dfa5ba",
+  "w": 156,
+  "h": 180
+ },
+ "kitchen-garden": {
+  "sha1": "fb8b98d5430522f52f869aefbced9baaa0c20ccd",
+  "w": 400,
+  "h": 96
  },
  "kitchen-jar-flour": {
   "sha1": "8cc559628bddf266743889bc0c8dbb19cab8bde9",
@@ -928,6 +988,51 @@
   "sha1": "626d916fad65d1024b9ddb18dc763e45270024a5",
   "w": 88,
   "h": 108
+ },
+ "kitchen-sill-berries": {
+  "sha1": "e1419d382fa3c524489356c1f76c6f3489950e65",
+  "w": 124,
+  "h": 112
+ },
+ "kitchen-sill-carrots": {
+  "sha1": "4fe6d48365ee6ea2a42efb43ea53ab983f1b9653",
+  "w": 124,
+  "h": 112
+ },
+ "kitchen-sill-cookies": {
+  "sha1": "12d823c4d08169c67ac31f85728c735cbb7ac617",
+  "w": 124,
+  "h": 112
+ },
+ "kitchen-sill-flowers": {
+  "sha1": "c87f4bb5e0269371dfb2fbfbab8554e1e0dcd366",
+  "w": 124,
+  "h": 112
+ },
+ "kitchen-sill-fruit": {
+  "sha1": "b7d08f073fbc36bfe57753277a34ef884678a312",
+  "w": 124,
+  "h": 112
+ },
+ "kitchen-sill-honey": {
+  "sha1": "8cd1f7b37085e6321c4ffd0662b61dd0eb199652",
+  "w": 124,
+  "h": 112
+ },
+ "kitchen-sill-lemons": {
+  "sha1": "ed3567bb438757f2479e66dd659b3aca6ba5a327",
+  "w": 124,
+  "h": 112
+ },
+ "kitchen-sill-present": {
+  "sha1": "96f388c590e8748eb0dea1fddfeaec3ce030f4af",
+  "w": 124,
+  "h": 112
+ },
+ "kitchen-sill-tomato": {
+  "sha1": "7ea7452cc4f5e30ad3ad092a262f10f1ebecc5c8",
+  "w": 124,
+  "h": 112
  },
  "kitchen-spatula": {
   "sha1": "0da3c487f85517df2a7e46858c0738523b5b8f7f",

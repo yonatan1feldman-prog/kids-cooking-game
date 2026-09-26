@@ -34,6 +34,30 @@ export const IMAGES = {
   'kitchen-bird-up': { size: [58, 44] },
   'kitchen-bird-down': { size: [58, 44] },
   'kitchen-cloud': { size: [156, 62] },
+  /** More around the kitchen (visual round 5, core/scenery.ts): the garden in the window's lower panes, the cat on the
+   * sill (body, tail, three heads), the clock and its hands, the child's drawing, one thing on the sill per recipe, the
+   * cake's bunting. Each is its own box in the background's frame (gen_kitchen_view.py). */
+  'kitchen-garden': { size: [400, 96] },
+  'kitchen-cat-body': { size: [180, 168] },
+  'kitchen-cat-tail': { size: [180, 168] },
+  'kitchen-cat-sleep': { size: [180, 168] },
+  'kitchen-cat-awake': { size: [180, 168] },
+  'kitchen-cat-yawn': { size: [180, 168] },
+  'kitchen-clock': { size: [120, 120] },
+  'kitchen-clock-hour': { size: [120, 120] },
+  'kitchen-clock-minute': { size: [120, 120] },
+  'kitchen-drawing': { size: [156, 180] },
+  'kitchen-sill-flowers': { size: [124, 112] },
+  'kitchen-sill-tomato': { size: [124, 112] },
+  'kitchen-sill-lemons': { size: [124, 112] },
+  'kitchen-sill-cookies': { size: [124, 112] },
+  'kitchen-sill-fruit': { size: [124, 112] },
+  'kitchen-sill-honey': { size: [124, 112] },
+  'kitchen-sill-carrots': { size: [124, 112] },
+  'kitchen-sill-present': { size: [124, 112] },
+  'kitchen-sill-berries': { size: [124, 112] },
+  'kitchen-bunting-l': { size: [476, 76] },
+  'kitchen-bunting-r': { size: [496, 76] },
   'dough-ball': { size: [360, 300] },
   'dough-flat': { size: [720, 720] },
   'rolling-pin': { size: [640, 200] },
@@ -474,8 +498,18 @@ export const KITCHEN_KEYS: readonly ImageKey[] = [
   'kitchen-bird-up', 'kitchen-bird-down', 'kitchen-cloud',
 ];
 
+/** More around the kitchen (visual round 5, core/scenery.ts): core, but loaded after the title's art; each joins the
+ * kitchen as soon as it is in. */
+export const SCENERY_KEYS: readonly ImageKey[] = [
+  'kitchen-garden', 'kitchen-cat-body', 'kitchen-cat-tail', 'kitchen-cat-sleep', 'kitchen-cat-awake',
+  'kitchen-cat-yawn', 'kitchen-clock', 'kitchen-clock-hour', 'kitchen-clock-minute', 'kitchen-drawing',
+  'kitchen-sill-flowers', 'kitchen-sill-tomato', 'kitchen-sill-lemons', 'kitchen-sill-cookies', 'kitchen-sill-fruit',
+  'kitchen-sill-honey', 'kitchen-sill-carrots', 'kitchen-sill-present', 'kitchen-sill-berries', 'kitchen-bunting-l',
+  'kitchen-bunting-r',
+];
+
 export const CORE_IMAGES: readonly ImageKey[] = [
-  'bg-kitchen-landscape', ...KITCHEN_KEYS, 'logo-cooking-with-mom', 'star', 'btn-play', 'btn-home', 'btn-done', 'hand-hint',
+  'bg-kitchen-landscape', ...KITCHEN_KEYS, ...SCENERY_KEYS, 'logo-cooking-with-mom', 'star', 'btn-play', 'btn-home', 'btn-done', 'hand-hint',
   'card-pizza', 'card-salad', 'card-cookies', 'card-smoothie', 'card-pancakes', 'card-soup', 'card-cake',
   'card-skewers', 'card-garden',
   'character-body', 'character-eyes-open', 'character-eyes-blink', 'character-eyes-surprised', 'character-eyes-happy',
