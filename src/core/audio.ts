@@ -67,6 +67,8 @@ const PRAISE: VoiceKey[] = ['vo-praise-1', 'vo-praise-2', 'vo-praise-3', 'vo-pra
 
 let game: Phaser.Game | null = null;
 const buffers = new Map<string, AudioBuffer>();
+/** Recipe lines asked for but never loaded, each reported once (see `Voice.play`). */
+const unloadedTold = new Set<string>();
 const ctx = () => (game?.sound as Phaser.Sound.WebAudioSoundManager | undefined)?.context;
 
 // ---------------------------------------------------------------- loading
@@ -439,6 +441,11 @@ class Voice {
   private play(p: Pending): void {
     const c = ctx();
     const buf = buffers.get(p.key);
+    if (!buf && RECIPE_SOUNDS.has(p.key) && !unloadedTold.has(p.key)) {
+      // A line some other recipe lists but this one doesn't: it was never loaded and Mom would skip it silently.
+      unloadedTold.add(p.key);
+      console.warn(`[assets] voice not loaded: ${p.key} (add it to this recipe's RECIPE_ASSETS sounds)`);
+    }
     if (!c || !buf || (p.valid && !p.valid())) {
       p.done?.();
       return this.next();

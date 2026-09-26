@@ -152,6 +152,8 @@ export class CandlesStep extends Step<CandlesParams> {
     this.scene.time.delayedCall(500, () => {
       if (this.aborted) return;
       this.phase = 'blow';
+      // (after Mom's help stood the candles up, the blowing is hers again: without this the step waited forever)
+      this.resumeAfterAuto();
       this.setIdle(true);
       this.poke();
       voice.say(this.params.wishLine, { ttlMs: 6000, valid: () => !this.aborted });
