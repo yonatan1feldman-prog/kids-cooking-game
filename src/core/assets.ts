@@ -477,7 +477,7 @@ export const RECIPE_ASSETS: Record<string, { images: readonly ImageKey[]; sounds
     sounds: [
       'can-open', 'jar-open', 'grate', 'name-corn', 'name-mushroom', 'name-olives', 'vo-choose', 'vo-crush', 'vo-grate',
       'vo-knead', 'vo-mom-yum', 'vo-open-can', 'vo-open-jar', 'vo-photo', 'vo-pour', 'vo-share', 'vo-slice-mom',
-      'vo-slice-pipa', 'vo-stir', 'vo-temp',
+      'vo-slice-pipa', 'vo-stir', 'vo-temp', 'vo-cut', 'vo-cut-careful', 'name-tomato', 'name-onion',
     ],
   },
   salad: {
@@ -492,7 +492,8 @@ export const RECIPE_ASSETS: Record<string, { images: readonly ImageKey[]; sounds
     sounds: [
       'tear', 'squeeze', 'drizzle', 'crunch', 'name-carrot', 'name-cucumber', 'vo-bowl-mom', 'vo-bowl-pipa',
       'vo-choose-veg', 'vo-finale-salad', 'vo-fresh', 'vo-into-bowl', 'vo-mix', 'vo-oil', 'vo-photo-salad', 'vo-salt',
-      'vo-serve', 'vo-squeeze', 'vo-tear', 'vo-wash-veg', 'vo-wash-veg-done',
+      'vo-serve', 'vo-squeeze', 'vo-tear', 'vo-wash-veg', 'vo-wash-veg-done', 'vo-cut', 'vo-cut-careful', 'name-tomato',
+      'name-onion',
     ],
   },
   cookies: {
@@ -524,7 +525,7 @@ RECIPE_ASSETS.smoothie = {
     'blender', 'lid-click', 'slurp', 'glass-pour', 'name-banana', 'name-strawberry', 'name-mango', 'name-kiwi',
     'vo-wash-fruit', 'vo-wash-veg-done', 'vo-choose-fruit', 'vo-into-blender', 'vo-milk', 'vo-lid', 'vo-blend', 'vo-blend-done',
     'vo-pour-glass', 'vo-share-smoothie', 'vo-glass-mom', 'vo-glass-pipa', 'vo-smoothie-yum', 'vo-photo-smoothie',
-    'vo-finale-smoothie',
+    'vo-finale-smoothie', 'vo-cut', 'vo-cut-careful',
   ],
 };
 
@@ -540,6 +541,8 @@ RECIPE_ASSETS.pancakes = {
     'sizzle', 'egg-crack', 'flour-poof', 'glass-pour', 'vo-flour', 'vo-milk', 'vo-egg', 'vo-stir-batter', 'vo-stove',
     'vo-ladle', 'vo-bubbles', 'vo-flip', 'vo-flip-done', 'vo-more-pancake', 'vo-decorate-pancakes', 'vo-share-pancakes',
     'vo-pancake-mom', 'vo-pancake-pipa', 'vo-pancake-yum', 'vo-photo-pancakes', 'vo-finale-pancakes',
+    // (Pipa's wish in decorating names the banana: DECORATE_NAMES in DecorateStep)
+    'name-banana',
   ],
 };
 
@@ -578,7 +581,7 @@ RECIPE_ASSETS.cake = {
     'blow', 'egg-crack', 'flour-poof', 'glass-pour', 'vo-flour', 'vo-sugar', 'vo-milk', 'vo-egg',
     'vo-stir-cake', 'vo-pour-pan', 'vo-pick-frosting', 'name-pink', 'name-white', 'name-chocolate',
     'vo-frost', 'vo-decorate-cake', 'vo-candles', 'vo-wish', 'vo-blow-more', 'vo-blown',
-    'vo-share-cake', 'vo-cake-mom', 'vo-cake-pipa', 'vo-cake-yum', 'vo-photo-cake', 'vo-finale-cake',
+    'vo-share-cake', 'vo-cake-mom', 'vo-cake-pipa', 'vo-cake-yum', 'vo-photo-cake', 'vo-finale-cake', 'vo-temp',
   ],
 };
 
