@@ -633,6 +633,8 @@ export interface CharacterDef {
   mouthClosed: ImageKey;
   mouthOpen: ImageKey;
   mouthChew: ImageKey;
+  /** Drawn behind the body, standing on the frame's top edge (the giraffe's neck, going on up out of the screen). */
+  back?: ImageKey;
 }
 
 export type StepDef =
