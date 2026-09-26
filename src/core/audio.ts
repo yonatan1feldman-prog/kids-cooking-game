@@ -60,6 +60,9 @@ export type VoiceKey =
   | 'vo-pull-out' | 'vo-cut-slices'
   // the puzzle from a memory-book photo
   | 'vo-puzzle' | 'vo-puzzle-done'
+  // the garden (not cooking: plant, water, grow, pick)
+  | 'vo-pick-garden' | 'vo-garden-seeds' | 'vo-garden-plant' | 'vo-garden-water' | 'vo-garden-sprout' | 'vo-garden-cloud'
+  | 'vo-garden-sun' | 'vo-garden-snail' | 'vo-garden-snail-yum' | 'vo-garden-pick' | 'vo-garden-pull' | 'vo-garden-done'
   | CountKey | TempKey | NameKey;
 
 /** Mom counting (count-1..10) and saying the oven temperature (temp-50..250). */

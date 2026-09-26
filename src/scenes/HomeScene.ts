@@ -69,7 +69,8 @@ export class HomeScene extends Phaser.Scene {
     const n = RECIPES.length;
     // The memory book takes one more cell in the same grid, and only once there is something in it: never an empty
     // slot waiting to be filled (Child wellbeing rules). The cards get a touch smaller the day it appears.
-    const cells = n + (albumCount() > 0 ? 1 : 0);
+    // The garden (not a recipe, its own scene) takes the cell after the recipes.
+    const cells = n + 1 + (albumCount() > 0 ? 1 : 0);
     const cards: Phaser.GameObjects.Image[] = [];
     RECIPES.forEach((recipe, i) => {
       const at = S.card(i, cells);
@@ -91,10 +92,29 @@ export class HomeScene extends Phaser.Scene {
       this.tweens.add({ targets: card, alpha: { from: 0, to: 1 }, duration: 400 });
       cards.push(card);
     });
-    if (cells > n) {
+    {
+      // The garden: out of the kitchen door to plant, water and pick (GardenScene). Loaded on its tap like a recipe.
+      const at = S.card(n, cells);
+      const card = iconButton(this, L, 'card-garden', at.x, at.y, () => {
+        if (going) return;
+        going = true;
+        hint?.stop();
+        stars(this, card.x, card.y, 14, 70 * L.k);
+        voice.say('vo-pick-garden', { ttlMs: 3000 });
+        mom?.wave();
+        const spin = this.time.delayedCall(250, () => loading(card.x, card.y + card.displayHeight * 0.1));
+        Promise.all([recipeAssets(this.game, 'garden'), new Promise((r) => this.time.delayedCall(350, r))]).then(() => {
+          spin.remove();
+          if (this.scene.isActive()) this.scene.start('Garden');
+        });
+      }, { hitPad: 30, scale: S.cardScale(cells) });
+      this.tweens.add({ targets: card, alpha: { from: 0, to: 1 }, duration: 400 });
+      cards.push(card);
+    }
+    if (cells > n + 1) {
       // The album button: no text, the same size as a card, its picture drawn in code (a little stack of photos).
       makeAlbumTextures(this.game);
-      const at = S.card(n, cells);
+      const at = S.card(n + 1, cells);
       const btn = iconButton(this, L, ALBUM_ICON, at.x, at.y, () => {
         if (going) return;
         going = true;

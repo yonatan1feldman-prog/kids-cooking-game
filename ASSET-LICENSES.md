@@ -291,6 +291,18 @@ Same engine, voice and processing as every line above.
 | vo-pull-out · vo-cut-slices | Now pull it out, nice and slow! · Let's cut it into slices! |
 | vo-puzzle · vo-puzzle-done | Let's make a puzzle from your picture! · You put it all together! |
 
+### New in the garden round (a stage that is not cooking, 12 lines)
+
+Same engine, voice and processing as every line above (Kokoro af_heart, `make_vo.py mom-a`). The names are the smoothie's and the salad's.
+
+| Key | Line |
+|---|---|
+| vo-pick-garden · vo-garden-seeds | Let's go to the garden! · What shall we grow? Pick some seeds! |
+| vo-garden-plant · vo-garden-water · vo-garden-sprout | Put a seed in each little hole! · Now let's water them! · Look! They're growing! |
+| vo-garden-cloud · vo-garden-sun | Oh, a cloud! Can you push it away? · Hello, sunshine! |
+| vo-garden-snail · vo-garden-snail-yum | A hungry snail! Let's give it a leaf. · Munch, munch! The snail is happy. |
+| vo-garden-pick · vo-garden-pull · vo-garden-done | Let's pick them! Into the basket! · Let's pull the carrots out! · What a lovely harvest! We grew it together! |
+
 ### New in the guests round (who comes to eat, 13 lines)
 
 Same engine, voice and processing as every line above.
@@ -330,5 +342,7 @@ hearts are drawn in code. The 4 fruit-skewer files of round 13 (the stick, the t
 come from `assets-src/images-b-skewers` (the same kit, generator `tools/gen_skewers.py`; the fruit is the smoothie's).
 The 31 guest files of the guests round (the turtle, the giraffe and the penguin, each in
 layers like Pipa's, the giraffe's neck and the three invitation badges) are drawn by
-`assets-src/images-b-guests/tools/gen_guests.py` on the same kit. No third-party art, fonts or images.
+`assets-src/images-b-guests/tools/gen_guests.py` on the same kit. The 27 garden files (the garden background, the raised
+bed, holes, seeds and packets, the plants, fruit and carrots, the watering can, sun, cloud, snail, leaf, basket and the
+garden card) are drawn by `assets-src/images-b-garden/tools/gen_garden.py` on the same kit. No third-party art, fonts or images.
 `images/webp/` holds WebP renderings of those same SVGs, made by `scripts/bake-webp.js`.

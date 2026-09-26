@@ -203,5 +203,12 @@ export const TUNING = {
    * `trayMax`: the largest size a waiting piece is shown at (1 = its size on the board).
    */
   puzzle: { grids: [[2, 2], [3, 2], [3, 3], [4, 3]] as readonly (readonly [number, number])[], snap: 0.55, ghost: 0.3, trayMax: 0.9, helpMs: 900 },
+  /**
+   * The garden (GardenScene, research/new-stage-2-spec.md). `waterMs`: watering one plant (held over it) until it is a young
+   * plant (the sprout at `sproutAt` of it). `cloudPush`: how far she moves the cloud before it drifts off on its own (a tap
+   * pushes it `cloudTap`). `pull`: how far up a carrot is pulled (times its root) before it comes out. `perPlant`: fruit on a
+   * grown tomato or strawberry plant (carrots: `carrotsPerPlant`). `reach`: a thing let go this near its target counts.
+   */
+  garden: { waterMs: 2200, sproutAt: 0.35, cloudPush: 260, cloudTap: 90, pull: 0.75, perPlant: 3, carrotsPerPlant: 2, reach: 230, helpMs: 1100 },
   help: { pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150, chopEveryMs: 950, openMs: 1500, tempEveryMs: 1100, peelEveryMs: 900, candleEveryMs: 700, threadEveryMs: 700 },
 } as const;
