@@ -193,8 +193,11 @@ export class ShareStep extends Step<ShareParams> {
     this.dish.cookies.setVisible(false);
     this.dish.toppings.setVisible(false);
     this.sliceScale = list[0]?.scale ?? this.k;
+    // (pieces standing in the left column, the smoothie's glasses, move right of where the guest will stand)
+    const left = Math.min(...list.map((pc) => home0.x + pc.x - (this.scene.textures.get(pc.key).getSourceImage().width / 2) * this.sliceScale));
+    const dx = Math.max(0, this.ctx.stage.guestRight + 20 * this.k - left);
     list.forEach((pc, i) => {
-      const home = { x: home0.x + pc.x, y: home0.y + pc.y };
+      const home = { x: home0.x + pc.x + dx, y: home0.y + pc.y };
       const img = this.own(this.scene.add.image(home.x, home.y, pc.key).setScale(this.sliceScale).setTint(pc.tint).setDepth(20));
       this.scene.tweens.add({ targets: img, y: home.y - 14 * this.k, duration: 200, delay: 450 + i * 60, yoyo: true, ease: 'Quad.easeOut' });
       const def: SliceDef = { key: pc.key, originX: 0.5, originY: 0.5, restAngle: 0, midAngle: 0, centerDist: 0 };
@@ -239,8 +242,8 @@ export class ShareStep extends Step<ShareParams> {
     const [pw, ph] = IMAGES[P.image].size;
     const x0 = o.x + o.rx + 40 * k;
     const x1 = Math.min(S.work.x1, S.feedPetLeft) - 30 * k;
-    // (in two rows where the counter is narrow, so they keep their size)
-    const cols = Math.max(1, Math.min(n, Math.floor((x1 - x0) / (pw * 0.5 * k))));
+    // (in two rows where the counter is narrow, never more: a third row would reach the palm strip)
+    const cols = Math.min(n, Math.max(Math.ceil(n / 2), Math.floor((x1 - x0) / (pw * 0.5 * k))));
     const gap = (x1 - x0) / cols;
     const ps = Math.min(PORTION * k, (gap * 1.05) / pw);
     for (let i = 0; i < n; i++) {
