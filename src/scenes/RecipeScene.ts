@@ -71,7 +71,7 @@ export class RecipeScene extends Phaser.Scene {
   create() {
     const L = getLayout(this);
     keepLayoutOnResize(this, L);
-    const bg = addBackground(this, L);
+    const bg = addBackground(this, L, this.recipe.id);
     const S = getStage(L);
     // Started without its art (a dev link, the test harness): load it first, then start over.
     if (!recipeLoaded(this.recipe.id)) {
@@ -104,7 +104,7 @@ export class RecipeScene extends Phaser.Scene {
       this.step?.abort();
     });
     // The kitchen answers her taps (a jar hops, a pot swings): never a miss, never progress.
-    liveKitchen(this, bg.getData('kitchen') ?? []);
+    liveKitchen(this, bg.getData('kitchen') ?? [], bg.getData('scenery') ?? []);
     // The polish round: a paper ring answers every touch; Mom and Pipa answer a tap on them (not while she feeds them).
     touchRipples(this, L);
     tickles(this, () => [mom, S.pet ? character : null], () => this.stepDef?.type !== 'share' && this.stepDef?.type !== 'feed');
