@@ -234,6 +234,8 @@ This file covers only the files in this folder. Every file is either CC0 1.0 (pu
 | voice/vo-bless-penguin.ogg | Bless you, Penguin! | 1.17 | -19.0 | 10182 |
 | voice/vo-pull-out.ogg | Now pull it out, nice and slow! | 2.03 | -18.0 | 15350 |
 | voice/vo-cut-slices.ogg | Let's cut it into slices! | 1.71 | -18.4 | 13820 |
+| voice/vo-puzzle.ogg | Let's make a puzzle from your picture! | 1.93 | -18.0 | 15119 |
+| voice/vo-puzzle-done.ogg | You put it all together! | 1.38 | -18.0 | 12389 |
 
 ## music/ (1 file)
 

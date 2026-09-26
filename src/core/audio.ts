@@ -58,6 +58,8 @@ export type VoiceKey =
   | 'vo-for-giraffe' | 'vo-for-turtle' | 'vo-for-penguin' | 'vo-giraffe-loves' | 'vo-turtle-loves' | 'vo-penguin-loves'
   | 'vo-turtle-nap' | 'vo-bless-penguin'
   | 'vo-pull-out' | 'vo-cut-slices'
+  // the puzzle from a memory-book photo
+  | 'vo-puzzle' | 'vo-puzzle-done'
   | CountKey | TempKey | NameKey;
 
 /** Mom counting (count-1..10) and saying the oven temperature (temp-50..250). */

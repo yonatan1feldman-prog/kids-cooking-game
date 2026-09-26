@@ -256,6 +256,9 @@ MOM_LINES = {
     "vo-bless-penguin": "Bless you, Penguin!",
     "vo-pull-out": "Now pull it out, nice and slow!",
     "vo-cut-slices": "Let's cut it into slices!",
+    # The puzzle (added 2026-09-26; Voice A only: python make_vo.py mom-a <names>): a picture from the memory book
+    "vo-puzzle": "Let's make a puzzle from your picture!",
+    "vo-puzzle-done": "You put it all together!",
 }
 SUFFIX = ""
 if len(sys.argv) > 1 and sys.argv[1] in ("mom", "mom-a"):

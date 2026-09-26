@@ -10,6 +10,7 @@ import { iconButton } from '../core/ui';
 import { RECIPES } from '../recipes';
 import { Character } from '../steps/Character';
 import { Mom } from '../steps/Mom';
+import { makePuzzleIcon, PUZZLE_ICON } from '../core/puzzle';
 import { assetsReady, loadImages, releaseImages } from './BootScene';
 
 /** The photo frame art (700x780) with its window: the album shows every photo in the frame of its own recipe. */
@@ -53,12 +54,21 @@ export class AlbumScene extends Phaser.Scene {
     super('Album');
   }
 
+  /** Coming back from a puzzle: the page she was on. */
+  init(data: { page?: number }) {
+    this.page = data?.page ?? 0;
+    this.big = null;
+    this.tiles = [];
+    this.shown = { page: this.page, pages: 0, count: 0, recipes: [], big: null };
+  }
+
   create() {
     const L = getLayout(this);
     keepLayoutOnResize(this, L, { relayout: true });
     addBackground(this, L);
     const S = getStage(L);
     makeAlbumTextures(this.game);
+    makePuzzleIcon(this.game);
 
     // Home: two taps, like everywhere else, so a resting palm can't close the book.
     iconButton(this, L, 'btn-home', S.home.x, S.home.y, () => this.scene.start('Home', { from: 'album' }), {
@@ -191,22 +201,36 @@ export class AlbumScene extends Phaser.Scene {
     return out;
   }
 
-  /** A tap makes the photo big in the middle; a tap on it puts it back in the grid. */
+  /**
+   * A tap makes the photo big; a tap on it puts it back in the grid. Beside it, the puzzle button: a tap turns this
+   * picture into a jigsaw (PuzzleScene, research/puzzle-spec.md).
+   */
   private enlarge(L: ReturnType<typeof getLayout>, S: ReturnType<typeof getStage>, p: AlbumPhoto, key: string) {
     if (this.big) return;
     // The grid stays where it is, only hidden: an invisible object gets no touches, so nothing under the big photo reacts.
     this.tiles.forEach((o) => (o as Phaser.GameObjects.Image).setVisible?.(false));
     const A = S.albumArea;
     const [fw, fh] = IMAGES[frameOf(p.recipe)].size;
-    const s = Math.min(1.15 * L.k, (A.x1 - A.x0) / fw, (A.y1 - A.y0) / fh);
+    // The puzzle button takes a column on the right (only for a photo that has a picture to cut).
+    const btnW = key ? 250 * L.k : 0;
+    const s = Math.min(1.15 * L.k, (A.x1 - A.x0 - btnW) / fw, (A.y1 - A.y0) / fh);
     const back = () => {
       this.big?.forEach((o) => o.destroy());
       this.big = null;
       this.tiles.forEach((o) => (o as Phaser.GameObjects.Image).setVisible?.(true));
       this.shown = { ...this.shown, big: null };
     };
-    const objs = this.frameAt(p, key, (A.x0 + A.x1) / 2, (A.y0 + A.y1) / 2, s, back);
-    objs.forEach((o) => o.setDepth(o.depth + 100));
+    const cx = (A.x0 + A.x1 - btnW) / 2;
+    const objs: Phaser.GameObjects.GameObject[] = this.frameAt(p, key, cx, (A.y0 + A.y1) / 2, s, back);
+    objs.forEach((o) => (o as Phaser.GameObjects.Image).setDepth((o as Phaser.GameObjects.Image).depth + 100));
+    if (key) {
+      const bx = Math.min(A.x1 - btnW / 2, cx + (fw * s) / 2 + btnW / 2);
+      const btn = iconButton(this, L, PUZZLE_ICON, bx, (A.y0 + A.y1) / 2, () => this.scene.start('Puzzle', { photoId: p.id, page: this.page }), {
+        scale: 0.95 * L.k,
+        hitPad: 20,
+      }).setDepth(170);
+      objs.push(btn);
+    }
     this.big = objs;
     this.shown = { ...this.shown, big: p.recipe };
   }
