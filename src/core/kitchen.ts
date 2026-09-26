@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import type { ImageKey, SoundKey } from './assets';
 import { burst, stars } from './fx';
 import { inNoTouchZone } from './layout';
+import type { Tappable } from './scenery';
 import { sfx } from './sfx';
 
 /**
@@ -90,17 +91,18 @@ export function drawKitchenPieces(scene: Phaser.Scene, dt: Phaser.Textures.Dynam
 /**
  * Makes the pieces answer her taps. Only the first finger counts (a second finger or a resting palm does nothing),
  * never in the no-touch strips, and never where a button is (the home button, the done button: they get the tap).
+ * `extras`: the scenery's own (core/scenery.ts: the cat on the sill wakes for a yawn).
  */
-export function liveKitchen(scene: Phaser.Scene, pieces: Placed[]) {
+export function liveKitchen(scene: Phaser.Scene, pieces: Placed[], extras: Tappable[] = []) {
   const s = pieces[0]?.img.scaleX ?? 1;
   scene.input.on(Phaser.Input.Events.POINTER_DOWN, (p: Phaser.Input.Pointer) => {
     if (scene.input.manager.pointers.some((o) => o !== p && o.isDown)) return;
     if (inNoTouchZone(scene, p.x, p.y)) return;
     if (scene.input.hitTestPointer(p).length) return;
-    let best: Placed | undefined;
+    let best: Placed | Tappable | undefined;
     let bestD = Infinity;
-    for (const pl of pieces) {
-      const b = pl.img.getBounds();
+    for (const pl of [...pieces, ...extras]) {
+      const b = 'img' in pl ? pl.img.getBounds() : pl.bounds();
       const r = REACH * s;
       const inside = p.worldX > Math.min(b.left, pl.mid.x - r) && p.worldX < Math.max(b.right, pl.mid.x + r) && p.worldY > Math.min(b.top, pl.mid.y - r) && p.worldY < Math.max(b.bottom, pl.mid.y + r);
       if (!inside) continue;
@@ -110,7 +112,10 @@ export function liveKitchen(scene: Phaser.Scene, pieces: Placed[]) {
         best = pl;
       }
     }
-    if (best) answer(scene, best, s);
+    if (best) {
+      if ('img' in best) answer(scene, best, s);
+      else best.poke();
+    }
   });
 }
 

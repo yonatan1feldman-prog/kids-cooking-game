@@ -330,5 +330,7 @@ hearts are drawn in code. The 4 fruit-skewer files of round 13 (the stick, the t
 come from `assets-src/images-b-skewers` (the same kit, generator `tools/gen_skewers.py`; the fruit is the smoothie's).
 The 31 guest files of the guests round (the turtle, the giraffe and the penguin, each in
 layers like Pipa's, the giraffe's neck and the three invitation badges) are drawn by
-`assets-src/images-b-guests/tools/gen_guests.py` on the same kit. No third-party art, fonts or images.
+`assets-src/images-b-guests/tools/gen_guests.py` on the same kit. The living window's birds and cloud come from
+`assets-src/images-b/tools/gen_kitchen_sky.py`, and the 21 files of visual round 5 (the garden, the cat, the clock, the
+child's drawing, the sill's things, the bunting) from `gen_kitchen_view.py` beside it. No third-party art, fonts or images.
 `images/webp/` holds WebP renderings of those same SVGs, made by `scripts/bake-webp.js`.
