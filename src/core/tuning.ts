@@ -189,5 +189,11 @@ export const TUNING = {
   wish: { chooseItems: [1, 1, 2], decorateCount: [3, 3, 4, 4, 5], sayAfterMs: 900 },
   /** Pipa's tastes when she eats: at most this many sneezes in one sharing (then she just giggles). */
   taste: { maxSneezes: 2 },
+  /**
+   * The guests round: before the sharing she picks who comes to eat (one of three badges). With no pick for
+   * `bringAfterMs`, Pipa brings one (at random). The turtle dozes off after `napAfter` bites (or her favourite) and
+   * floats `napBubbles` sleep bubbles; a bite coming near wakes her.
+   */
+  guests: { bringAfterMs: 9000, napAfter: 3, napBubbles: 3 },
   help: { pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150, chopEveryMs: 950, openMs: 1500, tempEveryMs: 1100, peelEveryMs: 900, candleEveryMs: 700, threadEveryMs: 700 },
 } as const;

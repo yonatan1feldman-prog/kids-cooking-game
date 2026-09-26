@@ -167,11 +167,17 @@
         await __drag([[d.x - r, d.y + 30], [d.x, d.y + 10], [d.x + r, d.y - 10]]); await __run(450);
         return;
       }
-      // Alternates Mom and Pipa (window.__shareTo: 'mom' | 'pet' | 'alt').
+      // The guests round: first a tap on a guest's badge (window.__guest: 'turtle' | 'giraffe' | 'penguin', default the
+      // middle one), then she arrives. Then alternates Mom, Pipa and the guest (window.__shareTo: 'mom' | 'pet' | 'guest' | 'alt').
+      if (st.picking) {
+        const c = st.cards.find((x) => x.g.id === window.__guest) ?? st.cards[1];
+        if (c) { __tap(c.img.x, c.img.y); await __run(2600); }
+        return;
+      }
       const s = st.slices.find((x) => !x.eaten);
       if (s) {
         const mode = window.__shareTo || 'alt', n = st.slices.filter((x) => x.eaten).length;
-        const who = mode === 'alt' ? (n % 2 ? 'pet' : 'mom') : mode;
+        const who = mode === 'alt' ? (st.guestIn ? ['guest', 'mom', 'pet'][n % 3] : n % 2 ? 'pet' : 'mom') : mode;
         const c = st.sliceCenter(s), m = st.targetOf(who);
         await __drag([[c.x, c.y], [(c.x + m.x) / 2, (c.y + m.y) / 2 - 40], [m.x, m.y]]); await __run(1250);
       }

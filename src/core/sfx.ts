@@ -26,9 +26,9 @@ const lastPlayed = new Map<string, number>();
 /**
  * Plays a contract sound if it was loaded. A missing sound is silently skipped.
  * Same-key calls closer than `minGapMs` are dropped so rapid rubbing doesn't turn into noise.
- * `volume` is relative (1 = the normal effect level, LEVEL.sfx ~0.65 of Mom's voice).
+ * `volume` is relative (1 = the normal effect level, LEVEL.sfx ~0.65 of Mom's voice); `rate` pitches it (a guest's voice).
  */
-export function sfx(scene: Phaser.Scene, key: SoundKey, opts: { volume?: number; minGapMs?: number; vary?: boolean } = {}) {
+export function sfx(scene: Phaser.Scene, key: SoundKey, opts: { volume?: number; minGapMs?: number; vary?: boolean; rate?: number } = {}) {
   if (!scene.cache.audio.exists(key)) return;
   const now = performance.now();
   const gap = opts.minGapMs ?? 60;
@@ -38,7 +38,7 @@ export function sfx(scene: Phaser.Scene, key: SoundKey, opts: { volume?: number;
     const vary = opts.vary ?? true;
     scene.sound.play(key, {
       volume: gainOf(key, opts.volume),
-      rate: vary ? Phaser.Math.FloatBetween(0.92, 1.1) : 1,
+      rate: (opts.rate ?? 1) * (vary ? Phaser.Math.FloatBetween(0.92, 1.1) : 1),
     });
   } catch (err) {
     console.warn(`[sfx] ${key}`, err);

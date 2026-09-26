@@ -219,6 +219,19 @@ This file covers only the files in this folder. Every file is either CC0 1.0 (pu
 | voice/vo-pipa-got-it.ogg | Just what Pipa wanted! | 1.56 | -18.0 | 12815 |
 | voice/vo-pipa-loves.ogg | Pipa loves it! | 1.10 | -18.0 | 10120 |
 | voice/vo-bless-you.ogg | Bless you, Pipa! | 1.14 | -18.0 | 10188 |
+| voice/vo-guest-who.ogg | Who's coming to eat with us? | 1.60 | -18.0 | 13291 |
+| voice/vo-pipa-brought.ogg | Pipa brought a friend! | 1.32 | -18.0 | 11356 |
+| voice/vo-guest-giraffe.ogg | Look, Giraffe is here! | 1.46 | -18.0 | 12045 |
+| voice/vo-guest-turtle.ogg | Look, Turtle is here! | 1.33 | -18.0 | 11348 |
+| voice/vo-guest-penguin.ogg | Look, Penguin is here! | 1.41 | -18.0 | 11898 |
+| voice/vo-for-giraffe.ogg | Some for Giraffe! | 1.20 | -18.0 | 10406 |
+| voice/vo-for-turtle.ogg | Some for Turtle! | 1.10 | -18.0 | 10212 |
+| voice/vo-for-penguin.ogg | Some for Penguin! | 1.17 | -18.0 | 10710 |
+| voice/vo-giraffe-loves.ogg | Giraffe loves green food! | 1.72 | -18.0 | 14003 |
+| voice/vo-turtle-loves.ogg | Turtle loves it! | 1.11 | -18.0 | 10244 |
+| voice/vo-penguin-loves.ogg | Penguin loves it! | 1.16 | -18.0 | 10591 |
+| voice/vo-turtle-nap.ogg | Shh! Turtle is having a little nap. | 2.58 | -20.2 | 18605 |
+| voice/vo-bless-penguin.ogg | Bless you, Penguin! | 1.17 | -19.0 | 10182 |
 | voice/vo-pull-out.ogg | Now pull it out, nice and slow! | 2.03 | -18.0 | 15350 |
 | voice/vo-cut-slices.ogg | Let's cut it into slices! | 1.71 | -18.4 | 13820 |
 

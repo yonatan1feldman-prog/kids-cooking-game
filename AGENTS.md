@@ -289,7 +289,8 @@ feedback on every touch, Mom's demo, the 5 s hint from her hand, her help after 
   edge, the nearer one). The one it comes near opens wide (Mom: surprised eyes, open mouth, `Mom.expectFood`); Mom
   chews (`Mom.chew`, `mom-mouth-chew`), Pipa munches with a jump or an up-down squish (nothing sideways: Mom's face is
   close). All to one is fine; the other keeps smiling. First for Mom: `forMom` + `momYum`; first for Pipa: `forPet`.
-  The hint and Mom's help carry a slice to whoever has had fewer.
+  The hint and Mom's help carry a slice to whoever has had fewer. Since the guests round she first invites a guest
+  (turtle, giraffe or penguin; see Handoff notes, the guests round), a third mouth left of the dish.
 - `photo` (`PhotoStep`, `PhotoParams`): the finale, the last step of a recipe: "Let's take a picture of your pizza!",
   camera + white flash, the photo frame (`stage.photo`) with her dish in its window (a DynamicTexture `photo-made`: a
   square of the kitchen, the board, her captured pizza with its baked tint), "We made a pizza together!", the cheer,
@@ -652,7 +653,35 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 000000000000. The guests round (who comes to eat)
+The owner's idea: each meal she picks who comes to eat. Pipa stays the pet; a guest joins Mom and Pipa in `share`.
+- **Data:** `src/core/guests.ts` (`GUESTS`: turtle, giraffe, penguin): layers like Pipa's (`CharacterDef` + `back` for
+  the giraffe's neck), `mouthFunny`, how she arrives (`above` / `walk`), `likes` (core/tastes.ts `Likes`: what she
+  loves, whether onion and pepper make her sneeze), `chew` (the turtle is 1.6x slower), her voice lines.
+- **Art:** `assets-src/images-b-guests/tools/gen_guests.py` (pb.py kit + Pipa's eyes and mouths from gen_pippa.py):
+  per guest body, eyes x4, mouths x4 (closed, open, chew, funny) on a 600x700 frame (feet at 684), the giraffe's neck
+  (600x1200, standing on the frame's top edge) and a 240 badge each. Layers are textures at 0.75 (`GUEST_RASTER`,
+  Character scales them back up); they load when `share` starts (`GUEST_LAYERS`, `loadImages`) and the two not
+  invited are freed at once; the badges are in every recipe's `RECIPE_ASSETS`.
+- **Flow (ShareStep):** three badges in the left column (`stage.bin(i, 3)`), "Who's coming to eat with us?" (the step
+  line; demo and hint tap a badge). A tap invites (the others go); with no pick after `TUNING.guests.bringAfterMs`
+  Pipa brings one at random (her bubble shows the badge, "Pipa brought a friend!"). "Look, Giraffe is here!", then the
+  recipe's share line. She comes in (`Guest.arrive`: the giraffe's head down from above at `stage.guestAbove`, clear of
+  the home button; the others walk in from the left edge to `stage.guest`) and is a third mouth (`eaters`,
+  `nearest`; anything let go left of `stage.guestRight` is hers). Salad and soup: the big bowl and portions move right
+  of her; she eats from the spoon (no serving bowl). Hint and help: the guest first when even, then Mom, then Pipa.
+  All eaten: she leaves the way she came.
+- **Reactions (`steps/Guest.ts`, extends Character):** Pipa's reactions with the guest's own pitch (`sfx` `rate`), plus:
+  the giraffe loves green food and licks her nose after it; the turtle chews slowly and after her favourite or her
+  third bite dozes off (eyes shut, a dozy smile, breathing, three sleep bubbles, "Shh! Turtle is having a little nap."),
+  a bite coming near wakes her happy; the penguin sneezes at onion and pepper (her beak wide) then laughs, "Bless you,
+  Penguin!", and rocks happily when she loves something. Nobody is ever sad.
+- **Voice (13 lines, Kokoro af_heart, make_vo.py):** vo-guest-who, vo-pipa-brought, vo-guest-giraffe/-turtle/-penguin,
+  vo-for-giraffe/-turtle/-penguin (her first bite), vo-giraffe-loves/-turtle-loves/-penguin-loves, vo-turtle-nap,
+  vo-bless-penguin.
+- **Harness:** `window.__guest = 'turtle' | 'giraffe' | 'penguin'` picks the badge in `__gesture`; `__shareTo` gained
+  'guest' and 'alt' cycles guest, Mom, Pipa once she is in.
 ### 00000000000. Gameplay round 2 (the owner: "she should cut it herself; drag the mitts, pull it out")
 - **Taking it out of the oven** (`BakeStep`, every baked recipe: pizza, cookies, cake, since they share the pizza's
   `mitts`): after the ding the mitts lie on the board; she DRAGS them to the oven (dropped near it or carried well toward

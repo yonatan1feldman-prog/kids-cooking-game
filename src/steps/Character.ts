@@ -7,7 +7,7 @@ import { opaqueBounds } from '../core/placeholders';
 import type { Spot } from '../core/stage';
 import type { CharacterDef } from '../recipes/types';
 
-export type Mood = 'rest' | 'expect' | 'chew' | 'happy' | 'party' | 'react';
+export type Mood = 'rest' | 'expect' | 'chew' | 'happy' | 'party' | 'react' | 'sleep';
 
 /** How far the eyes layer shifts toward what she is watching, in frame units (600x700 frame). */
 const LOOK_MAX = 14;
@@ -27,9 +27,11 @@ export class Character {
   /** Where she rests now (her frame centre) and her scale. */
   rest: { x: number; y: number };
   scale: number;
-  private eyes: Phaser.GameObjects.Image;
-  private mouth: Phaser.GameObjects.Image;
-  private _mood: Mood = 'rest';
+  protected eyes: Phaser.GameObjects.Image;
+  protected mouth: Phaser.GameObjects.Image;
+  protected _mood: Mood = 'rest';
+  /** Her wordless voice's pitch (Pipa 1; a guest has her own). */
+  protected voiceRate = 1;
   private look = { x: 0, y: 0 };
   /** The mouth in frame coordinates, measured from the art. */
   private mouthLocal: { x: number; y: number };
@@ -37,24 +39,28 @@ export class Character {
   private layers: Phaser.GameObjects.Image[];
   private tickledAt = -Infinity;
 
-  constructor(private scene: Phaser.Scene, private def: CharacterDef, at: Spot | null, hiddenAt: Spot) {
+  constructor(protected scene: Phaser.Scene, protected def: CharacterDef, at: Spot | null, hiddenAt: Spot) {
     const spot = at ?? hiddenAt;
     this.rest = { x: spot.x, y: spot.y };
     this.scale = spot.scale;
-    // (every layer hangs from her feet, so she breathes without floating)
-    const layer = (key: string) => new Phaser.GameObjects.Image(scene, 0, FOOT, key).setOrigin(0.5, 0.5 + FOOT / 700);
+    // (every layer hangs from her feet, so she breathes without floating; layers made smaller than native, `raster`
+    // in the contract, are shown at their native size)
+    const r = (IMAGES[def.body] as { raster?: number }).raster ?? 1;
+    const layer = (key: string) => new Phaser.GameObjects.Image(scene, 0, FOOT, key).setOrigin(0.5, 0.5 + FOOT / 700).setScale(1 / r);
     const body = layer(def.body);
     this.eyes = layer(def.eyesOpen);
     this.mouth = layer(def.mouthClosed);
+    const [fw, fh] = IMAGES[def.mouthOpen].size;
     this.layers = [body, this.eyes, this.mouth];
+    // (the giraffe's neck stands on the frame's top edge, hung from her feet like the rest)
+    if (def.back) this.layers.unshift(layer(def.back).setOrigin(0.5, 1 + (FOOT + fh / 2 - 4) / IMAGES[def.back].size[1]));
     this.box = scene.add.container(spot.x, spot.y, this.layers).setDepth(5).setScale(spot.scale);
     // Breathing, the one thing she does on her own besides blinking (life, not a lure: wellbeing rule 5).
-    scene.tweens.add({ targets: this.layers, scaleY: 1.018, scaleX: 0.994, duration: 2100, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    scene.tweens.add({ targets: this.layers, scaleY: 1.018 / r, scaleX: 0.994 / r, duration: 2100, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     this.box.setVisible(!!at);
 
-    const [fw, fh] = IMAGES['character-mouth-open'].size;
-    const b = opaqueBounds(scene, def.mouthOpen) ?? { cx: 300, cy: 440 };
-    this.mouthLocal = { x: b.cx - fw / 2, y: b.cy - fh / 2 };
+    const b = opaqueBounds(scene, def.mouthOpen);
+    this.mouthLocal = b ? { x: b.cx / r - fw / 2, y: b.cy / r - fh / 2 } : { x: 0, y: 440 - fh / 2 };
     this.scheduleBlink();
   }
 
@@ -101,7 +107,7 @@ export class Character {
   }
 
   /** Random blink every few seconds while at rest. */
-  private scheduleBlink() {
+  protected scheduleBlink() {
     this.scene.time.delayedCall(Phaser.Math.Between(2200, 5200), () => {
       if (!this.box.active) return;
       if (this._mood === 'rest') {
@@ -128,8 +134,7 @@ export class Character {
     } else if (m === 'chew') {
       this.eyes.setTexture(d.eyesHappy);
       this.mouth.setTexture(d.mouthChew);
-    } else if (m !== 'react') {
-      // happy, party
+    } else if (m === 'happy' || m === 'party') {
       this.eyes.setTexture(d.eyesHappy);
       this.mouth.setTexture(d.mouthOpen);
     }
@@ -157,7 +162,7 @@ export class Character {
     if (t === 'love') {
       this.eyes.setTexture(d.eyesHappy);
       this.mouth.setTexture(d.mouthOpen);
-      sfx(sc, 'char-yay', { minGapMs: 0 });
+      sfx(sc, 'char-yay', { minGapMs: 0, rate: this.voiceRate });
       sc.tweens.add({ targets: box, y: this.rest.y - 160 * k, duration: 260, yoyo: true, repeat: 1, ease: 'Quad.easeOut' });
       burst(sc, head.x, head.y, { texture: 'fx-heart', count: 7, tint: [0xf06a8a, 0xf5a3b5], size: 46 * k, speed: 380 * k, gravityY: -120, lifespan: 1100, depth: 60 });
       end(1300);
@@ -165,7 +170,7 @@ export class Character {
     }
     if (t === 'sneeze') {
       // Ahh... (she fills up, eyes squeezed) ... CHOO! (a squash and a puff), then a giggle.
-      sfx(sc, 'pipa-sneeze', { minGapMs: 0, vary: false });
+      sfx(sc, 'pipa-sneeze', { minGapMs: 0, vary: false, rate: this.voiceRate });
       this.eyes.setTexture(d.eyesBlink);
       this.mouth.setTexture(d.mouthOpen);
       sc.tweens.chain({
@@ -184,7 +189,7 @@ export class Character {
       sc.time.delayedCall(800, () => {
         if (this._mood !== 'react') return;
         this.eyes.setTexture(d.eyesHappy);
-        sfx(sc, 'char-giggle', { minGapMs: 0 });
+        sfx(sc, 'char-giggle', { minGapMs: 0, rate: this.voiceRate });
         sc.tweens.add({ targets: box, scaleY: s * 0.9, duration: 110, yoyo: true, repeat: 1, ease: 'Sine.easeInOut' });
       });
       end(1600);
@@ -193,7 +198,7 @@ export class Character {
     if (t === 'wow') {
       this.eyes.setTexture(d.eyesSurprised);
       this.mouth.setTexture(d.mouthOpen);
-      sfx(sc, 'char-wow', { minGapMs: 0 });
+      sfx(sc, 'char-wow', { minGapMs: 0, rate: this.voiceRate });
       sc.tweens.add({ targets: box, scaleY: s * 1.1, y: this.rest.y - 30 * k, duration: 260, yoyo: true, hold: 300, ease: 'Sine.easeOut' });
       stars(sc, head.x, head.y, 6, 40 * k);
       sc.time.delayedCall(900, () => this._mood === 'react' && this.eyes.setTexture(d.eyesHappy));
@@ -203,7 +208,7 @@ export class Character {
     // giggle
     this.eyes.setTexture(d.eyesHappy);
     this.mouth.setTexture(d.mouthOpen);
-    sfx(sc, 'char-giggle', { minGapMs: 0 });
+    sfx(sc, 'char-giggle', { minGapMs: 0, rate: this.voiceRate });
     sc.tweens.add({ targets: box, scaleY: s * 0.86, duration: 120, yoyo: true, repeat: 2, ease: 'Sine.easeInOut', onComplete: () => box.setScale(s) });
     end(900);
     return 900;

@@ -153,6 +153,14 @@ export interface Stage {
    */
   photo: Spot;
   /**
+   * The guests round: a guest invited to share stands on the counter in the left column, left of the board, feet on
+   * the counter like Pipa's (frame 600x700, opaque about x 58-542); the giraffe hangs her head down from above, a
+   * little to the right, so her neck stays clear of the home button. `guestRight` = the guest's opaque right edge.
+   */
+  guest: Spot;
+  guestAbove: Spot;
+  guestRight: number;
+  /**
    * The memory book (round 9): the room for the grid of photos, right of the home button (so its corner stays free)
    * and left of Mom's face and Pipa, from just under the top edge down to above the palm strip.
    */
@@ -193,6 +201,9 @@ const PET_OPAQUE_Y0 = 44;
 const PET_SMALL = 0.4;
 const PET_BIG = 0.62;
 const DOUGH_R = 336; // the pizza's opaque radius on the board (dough-flat opaque x 22-694)
+// A guest (600x700 frame like Pipa's; the widest, the turtle's shell, is opaque over about 484 of it) at most 0.75, a little bigger than Pipa at the board (she stands further back).
+const GUEST_SCALE = 0.75;
+const GUEST_OPAQUE_W = 500;
 /** Pipa beside Mom only where the screen is wide enough (16:9 and wider). */
 const PET_MIN_W = 1700;
 
@@ -413,6 +424,16 @@ export function getStage(L: Layout): Stage {
   const photoScale = Math.min(0.95 * k, (2 * photoHalf) / PHOTO_W, (Y(990) - Y(120)) / PHOTO_H);
   const photo = { x: photoX, y: Y(120) + (PHOTO_H / 2) * photoScale + 10 * k, scale: photoScale };
 
+  // A guest (the guests round): in the left column, left of the board and clear of the thumb strip.
+  const boardLeft = dishHome.x - (BOARD_W / 2) * k;
+  const guestScale = Math.min(GUEST_SCALE * k, (boardLeft - gap - m) / GUEST_OPAQUE_W);
+  const guestX = Math.max(m + (GUEST_OPAQUE_W / 2) * guestScale, boardLeft - gap - (GUEST_OPAQUE_W / 2) * guestScale);
+  const guest = { x: guestX, y: Y(984) - (PET_FOOT - PET_H / 2) * guestScale, scale: guestScale };
+  // (her neck, x 238-382 of the frame, starts to the right of the home button's touch circle)
+  const neckX = Math.max(guestX, home.x + homeR + (300 - 238) * guestScale + 10 * k);
+  const guestAbove = { x: Math.min(neckX, boardLeft - 215 * guestScale), y: guest.y - 250 * guestScale, scale: guestScale };
+  const guestRight = guestX + (GUEST_OPAQUE_W / 2) * guestScale;
+
   // Title: logo and play button in one column: left of centre on wide screens, centred in the space left
   // of Mom's face on narrow ones (the art agent's title scene).
   const titleX = W >= PET_MIN_W ? dishHome.x - 80 * k : (m + momLeft + MOM_FACE.x0 * s) / 2;
@@ -447,6 +468,9 @@ export function getStage(L: Layout): Stage {
     feedPet,
     feedMomShift,
     feedPetLeft: px + PET_OPAQUE_X0 * bs,
+    guest,
+    guestAbove,
+    guestRight,
     aside: { x: sideX, y: Y(640) },
     asideScale: 0.4,
     sink: { x: dishHome.x, y: sinkY, scale: 1.1 * k },

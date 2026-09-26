@@ -53,6 +53,10 @@ export type VoiceKey =
   | 'vo-share-skewers' | 'vo-skewer-mom' | 'vo-skewer-pipa' | 'vo-skewer-yum' | 'vo-photo-skewers' | 'vo-finale-skewers'
   // the gameplay round: Pipa's wishes and tastes
   | 'vo-pipa-wants' | 'vo-pipa-got-it' | 'vo-pipa-loves' | 'vo-bless-you'
+  // the guests round: who comes to eat with Mom and Pipa
+  | 'vo-guest-who' | 'vo-pipa-brought' | 'vo-guest-giraffe' | 'vo-guest-turtle' | 'vo-guest-penguin'
+  | 'vo-for-giraffe' | 'vo-for-turtle' | 'vo-for-penguin' | 'vo-giraffe-loves' | 'vo-turtle-loves' | 'vo-penguin-loves'
+  | 'vo-turtle-nap' | 'vo-bless-penguin'
   | 'vo-pull-out' | 'vo-cut-slices'
   | CountKey | TempKey | NameKey;
 
