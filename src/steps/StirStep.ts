@@ -35,9 +35,16 @@ export class StirStep extends Step<StirParams> {
   private phase: 'knob' | 'stir' = 'stir';
   private knob?: Phaser.GameObjects.Image;
   private flame?: Phaser.GameObjects.Image;
+  /** Stir with the arrow (gameplay round 4): 1 = clockwise, -1 = the other way; the arrows drawn in the bowl. */
+  private dir = 1;
+  private arrows?: Phaser.GameObjects.Graphics;
+  private flipped = false;
+  private wrongRun = 0;
+  private wobbled = false;
 
   start() {
     this.stepLine = this.params.stove ? this.params.stove.line : this.params.line;
+    if (this.params.arrow && !this.params.stove) this.moreLines = [this.params.arrow.line];
     this.k = this.layout.k;
     this.workspace('aside');
     this.bowl = PrepBowl.take(this.ctx) ?? new PrepBowl(this.ctx, this.params.bowl, this.params.from);
@@ -70,6 +77,12 @@ export class StirStep extends Step<StirParams> {
       this.spoon.setVisible(false);
     }
 
+    if (this.params.arrow) {
+      this.arrows = this.own(this.scene.add.graphics().setDepth(BOWL_DEPTH.contents + 0.05).setAlpha(0));
+      this.drawArrows();
+      if (this.phase === 'stir') this.scene.tweens.add({ targets: this.arrows, alpha: 1, duration: 400, delay: 300 });
+    }
+
     this.onDown((q) => {
       if (this.finishing) return;
       if (this.phase === 'knob') {
@@ -80,6 +93,8 @@ export class StirStep extends Step<StirParams> {
       const onSpoon = this.spoon.getBounds().contains(q.worldX, q.worldY);
       if (this.bowl.reach(q.worldX, q.worldY) > 1.8 && !onSpoon) return;
       this.stirring = true;
+      this.wrongRun = 0;
+      this.wobbled = false;
       const at = this.spoonAt(q.worldX, q.worldY);
       this.last = at;
       this.moveSpoon(at);
@@ -89,10 +104,12 @@ export class StirStep extends Step<StirParams> {
     this.onMove((q) => {
       if (!this.stirring || this.finishing || this.phase === 'knob') return;
       const at = this.spoonAt(q.worldX, q.worldY);
-      const d = Phaser.Math.Distance.Between(this.last.x, this.last.y, at.x, at.y);
+      const prev = this.last;
+      const d = Phaser.Math.Distance.Between(prev.x, prev.y, at.x, at.y);
       this.last = at;
       this.moveSpoon(at);
       if (this.bowl.reach(q.worldX, q.worldY) > 2.2) return;
+      if (this.params.arrow) return this.stirAround(prev, at);
       this.stir(d, at.x, at.y);
     });
     this.onUp(() => {
@@ -128,6 +145,10 @@ export class StirStep extends Step<StirParams> {
     this.spoon.setVisible(true).setAlpha(0);
     this.scene.tweens.add({ targets: this.spoon, alpha: 1, duration: 300, delay: 200 });
     voice.say(this.params.line, { ttlMs: 6000, valid: () => !this.aborted });
+    if (this.params.arrow) {
+      voice.say(this.params.arrow.line, { ttlMs: 8000, valid: () => !this.aborted });
+      if (this.arrows) this.scene.tweens.add({ targets: this.arrows, alpha: 1, duration: 400, delay: 300 });
+    }
   }
 
   /** The spoon's bowl goes where the finger is, kept inside the opening. */
@@ -169,7 +190,76 @@ export class StirStep extends Step<StirParams> {
         puff(this.scene, o.x + (Math.random() - 0.5) * o.rx, o.y - o.ry * 0.4, 0xffffff, 3, 90 * this.k).setDepth(BOWL_DEPTH.front + 0.2);
       }
     }
+    if (this.params.arrow && !this.flipped && this.progress >= TUNING.stirArrow.flipAt) this.flipArrows();
     if (this.progress >= 1) this.finish();
+  }
+
+  /**
+   * Stir with the arrow: only the way round the arrows point counts (the arc travelled round the bowl's middle, that
+   * way). The other way round stirs nothing: after a little of it the contents give a small wobble (a miss). Half-way
+   * the arrows turn round: "Now stir the other way!".
+   */
+  private stirAround(prev: { x: number; y: number }, at: { x: number; y: number }) {
+    const o = this.bowl.opening();
+    const a0 = Math.atan2((prev.y - o.y) / o.ry, (prev.x - o.x) / o.rx);
+    const a1 = Math.atan2((at.y - o.y) / o.ry, (at.x - o.x) / o.rx);
+    const along = Phaser.Math.Angle.Wrap(a1 - a0) * this.dir;
+    const rho = Math.max(Math.hypot(at.x - o.x, at.y - o.y), o.ry * 0.25);
+    if (along > 0) return this.stir(along * rho, at.x, at.y);
+    this.wrongRun -= along * rho;
+    if (!this.wobbled && this.wrongRun >= TUNING.stirArrow.wobbleAfter * this.k) {
+      this.wobbled = true;
+      this.miss();
+      this.scene.tweens.add({ targets: [this.bowl.contents, this.done], angle: { from: -3, to: 3 }, duration: 80, yoyo: true, repeat: 1, onComplete: () => this.render() });
+    }
+  }
+
+  /** Three curved arrows round the inside of the bowl, pointing the way to stir (`dir`). */
+  private drawArrows() {
+    const g = this.arrows;
+    if (!g) return;
+    g.clear();
+    const o = this.bowl.opening();
+    const rx = o.rx * 0.68;
+    const ry = o.ry * 0.68;
+    const k = this.k;
+    const pt = (a: number) => ({ x: o.x + Math.cos(a) * rx, y: o.y + Math.sin(a) * ry });
+    for (let i = 0; i < 3; i++) {
+      const a0 = (i * Math.PI * 2) / 3 + 0.3;
+      const span = 1.35;
+      const pts: { x: number; y: number }[] = [];
+      for (let j = 0; j <= 16; j++) pts.push(pt(a0 + (this.dir > 0 ? j : 16 - j) * (span / 16)));
+      for (const [w, c, al] of [[17 * k, 0xffffff, 0.95], [9 * k, 0xe8743a, 1]] as const) {
+        g.lineStyle(w, c, al).beginPath().moveTo(pts[0].x, pts[0].y);
+        for (const p of pts) g.lineTo(p.x, p.y);
+        g.strokePath();
+        // the head at the end, along the curve
+        const e = pts[pts.length - 1];
+        const b = pts[pts.length - 3];
+        const len = Math.hypot(e.x - b.x, e.y - b.y) || 1;
+        const ux = (e.x - b.x) / len;
+        const uy = (e.y - b.y) / len;
+        const h = 30 * k;
+        g.beginPath().moveTo(e.x - ux * h - uy * h * 0.75, e.y - uy * h + ux * h * 0.75).lineTo(e.x + ux * 4 * k, e.y + uy * 4 * k);
+        g.lineTo(e.x - ux * h + uy * h * 0.75, e.y - uy * h - ux * h * 0.75).strokePath();
+      }
+    }
+  }
+
+  /** Half-way: the arrows turn round, and Mom says so. */
+  private flipArrows() {
+    if (this.flipped || !this.params.arrow) return;
+    this.flipped = true;
+    this.dir = -this.dir;
+    this.wrongRun = 0;
+    this.wobbled = true;
+    this.drawArrows();
+    if (this.arrows) {
+      this.arrows.setAlpha(0);
+      this.scene.tweens.add({ targets: this.arrows, alpha: 1, duration: 350 });
+    }
+    sfx(this.scene, 'whoosh', { volume: 0.5 });
+    voice.say(this.params.arrow.flipLine, { ttlMs: 4000, valid: () => !this.aborted });
   }
 
   /** The smooth sauce shows through more and more; the contents sway a little with the spoon. */
@@ -204,6 +294,7 @@ export class StirStep extends Step<StirParams> {
     this.bowl.contents.setAngle(0);
     this.done.setAngle(0);
     this.scene.tweens.add({ targets: this.spoon, alpha: 0, duration: 250 });
+    if (this.arrows) this.scene.tweens.add({ targets: this.arrows, alpha: 0, duration: 250 });
     if (this.params.keep) {
       // The bowl stays where it is, now with the result in it, for the next step.
       this.scene.time.delayedCall(350, () => {
@@ -242,7 +333,7 @@ export class StirStep extends Step<StirParams> {
     const o = this.bowl.opening();
     const keys = [];
     for (let i = 0; i <= 10; i++) {
-      const a = Math.PI / 2 + (i / 10) * Math.PI * 2 * 1.3;
+      const a = Math.PI / 2 + this.dir * (i / 10) * Math.PI * 2 * 1.3;
       keys.push({ x: o.x + Math.cos(a) * o.rx * 0.55, y: o.y + Math.sin(a) * o.ry * 0.55, t: 150 + i * 205 });
     }
     keys.unshift({ ...keys[0], t: 0 });
@@ -279,9 +370,12 @@ export class StirStep extends Step<StirParams> {
     }
     this.spoon.setVisible(false);
     const o = this.bowl.opening();
-    const t0 = this.scene.time.now;
+    let a = Math.PI / 2;
+    let t = this.scene.time.now;
     const at = () => {
-      const a = (this.scene.time.now - t0) / 260;
+      const now = this.scene.time.now;
+      a += (this.dir * (now - t)) / 260;
+      t = now;
       return { x: o.x + Math.cos(a) * o.rx * 0.55, y: o.y + Math.sin(a) * o.ry * 0.55 };
     };
     this.hand.follow('spread', at, STIR_HAND);
@@ -291,6 +385,7 @@ export class StirStep extends Step<StirParams> {
       duration: TUNING.help.stirMs,
       onUpdate: (tw) => {
         this.progress = tw.getValue() ?? 1;
+        if (this.params.arrow && !this.flipped && this.progress >= TUNING.stirArrow.flipAt) this.flipArrows();
         this.render();
         const p = at();
         if (Math.random() < 0.15) this.drops(p.x, p.y, 2);

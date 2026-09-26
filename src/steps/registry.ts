@@ -9,6 +9,7 @@ import { FlipStep } from './FlipStep';
 import { ThreadStep } from './ThreadStep';
 import { DecorateStep } from './DecorateStep';
 import { FeedStep } from './FeedStep';
+import { FindStep } from './FindStep';
 import { GrateStep } from './GrateStep';
 import { OpenPourStep } from './OpenPourStep';
 import { PeelStep } from './PeelStep';
@@ -49,6 +50,7 @@ const STEP_TYPES: Record<StepType, Factory> = {
   blend: (c, p, d) => new BlendStep(c, p, d),
   flip: (c, p, d) => new FlipStep(c, p, d),
   thread: (c, p, d) => new ThreadStep(c, p, d),
+  find: (c, p, d) => new FindStep(c, p, d),
 };
 
 export function createStep(def: StepDef, ctx: StepContext, onDone: () => void): Step<unknown> {

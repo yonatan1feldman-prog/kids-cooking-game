@@ -1,5 +1,5 @@
 import type { ImageKey, SoundKey } from '../core/assets';
-import type { VoiceKey } from '../core/audio';
+import type { NameKey, VoiceKey } from '../core/audio';
 import type { VegName } from '../core/vegArt';
 
 /**
@@ -134,6 +134,12 @@ export interface StirParams {
   cook?: boolean;
   /** Said when the stirring is done ("It smells so good!"), before the step ends. */
   doneLine?: VoiceKey;
+  /**
+   * Gameplay round 4, stir with the arrow (a small challenge): curved arrows in the bowl show which way round to stir;
+   * only that way counts (the other way: a small wobble). Half-way (TUNING.stirArrow.flipAt) they turn round and Mom
+   * says `flipLine`. `line` follows the step's line.
+   */
+  arrow?: { line: VoiceKey; flipLine: VoiceKey };
 }
 
 /**
@@ -259,12 +265,30 @@ export interface ChooseParams {
   line: VoiceKey;
   /** Pause after the last pick before the step goes on (so she sees her three). */
   pauseMs: number;
+  /**
+   * Gameplay round 4, Pipa's order (a small challenge): her wish is always two things, and she wants them in order
+   * ("Look! Pipa wants two things, in order. First..." name, "and then..." name). Tapping the second before the first
+   * does not pick it: it wiggles and Mom says `first` while her hand shows the first one. Anything else is free.
+   */
+  order?: { line: VoiceKey; then: VoiceKey; first: VoiceKey };
 }
 
 /**
- * Chop: the whole vegetable lies on the cutting board; the knife follows the finger (by its blade tip). Every short
- * move down over the vegetable cuts the next slice, wherever the finger is sideways: the code cuts from right to left
- * at a fixed slice width inside the body, the cut face (`inside`, fitted to the body's measured profile) shows on the
+ * Find the tool (gameplay round 4, `FindStep`): three tools on their bins in the middle (shuffled), Mom asks for one
+ * (`line`). Another one only hops and is named (`name`); the right one (`answer`, an option's image) goes off to work.
+ */
+export interface FindParams {
+  options: { image: ImageKey; name?: NameKey }[];
+  answer: ImageKey;
+  bin: ImageKey;
+  line: VoiceKey;
+}
+
+/**
+ * Chop: the whole vegetable lies on the cutting board; the knife follows the finger (by its blade tip). The next cut
+ * line is shown (dots and an arrow down) while the knife is held; a stroke down along it, through the vegetable, cuts
+ * the next slice (gameplay round 4: only there and only downwards, TUNING.cut; the cut follows the finger and a
+ * stroke may stop and go on). The code cuts from right to left at a fixed slice width inside the body, the cut face (`inside`, fitted to the body's measured profile) shows on the
  * cut line, a slice drops onto a pile, chop, and Mom counts. After `cuts` cuts the end that is left becomes the last
  * slice, and the slices go into the topping's bin (left for decorating). Counts: TUNING.chop.
  */
@@ -305,7 +329,6 @@ export interface ChopParams {
   board: ImageKey;
   knife: ImageKey;
   cuts: number;
-  minSwipe: number;
   /** Colour of the drops that fly on each cut. */
   juice: number;
   /** The bin the slices go into, and the topping shown on it (its bin in decorating). */
@@ -659,7 +682,8 @@ export type StepDef =
   | { type: 'cutters'; params: CutterParams }
   | { type: 'blend'; params: BlendParams }
   | { type: 'flip'; params: FlipParams }
-  | { type: 'thread'; params: ThreadParams };
+  | { type: 'thread'; params: ThreadParams }
+  | { type: 'find'; params: FindParams };
 
 export type StepType = StepDef['type'];
 

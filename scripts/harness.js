@@ -91,8 +91,9 @@
     } else if (name === 'StirStep') {
       // Round 9 (the soup): the stove's knob first, then the stirring.
       if (st.phase === 'knob') { __tap(st.knob.x, st.knob.y); await __run(900); await __run(300); return; }
-      const o = st.bowl.opening(), pts = [];
-      for (let i = 0; i <= 12; i++) { const a = (i / 12) * Math.PI * 2; pts.push([o.x + Math.cos(a) * o.rx * 0.6, o.y + Math.sin(a) * o.ry * 0.6]); }
+      // Gameplay round 4: with arrows, round the way they point (st.dir; window.__stirWrong stirs the other way).
+      const o = st.bowl.opening(), pts = [], dir = (st.dir ?? 1) * (window.__stirWrong ? -1 : 1);
+      for (let i = 0; i <= 12; i++) { const a = dir * (i / 12) * Math.PI * 2; pts.push([o.x + Math.cos(a) * o.rx * 0.6, o.y + Math.sin(a) * o.ry * 0.6]); }
       await __drag(pts);
     } else if (name === 'GrateStep') {
       const f = st.face(), x = (f.x0 + f.x1) / 2, pts = [[st.block.x, st.block.y]];
@@ -127,13 +128,15 @@
       else await __run(300);
     } else if (name === 'ChooseStep') {
       // Picks in the order of __pickOrder (option ids), else the first free ones.
-      const order = window.__pickOrder || [];
+      // Gameplay round 4: Pipa's order (st.params.order) is followed first, unless window.__pickOrder says otherwise.
+      const order = [...(st.params.order ? st.wished.map((w) => w.opt.id) : []), ...(window.__pickOrder || [])];
       const c = order.map((id) => st.choices.find((x) => x.opt.id === id && !x.picked)).find(Boolean) || st.choices.find((x) => !x.picked);
       if (c) { __tap(c.x, c.y); await __run(400); }
     } else if (name === 'ChopStep') {
+      // Gameplay round 4: a stroke down along the next cut line, through the vegetable (and up again).
       if (!st.finishing) {
-        const z = st.cutZone(), x = st.knife.x;
-        await __drag([[x, z.y0 + 60], [x, z.y1 - 40], [x, z.y0 + 60]]);
+        const l = st.line;
+        await __drag([[l.a.x + 8, l.a.y - 30], [l.a.x + 4, (l.a.y + l.b.y) / 2], [l.b.x, l.b.y + 10], [l.a.x, l.a.y - 30]]);
         await __run(250);
       }
     } else if (name === 'CandlesStep') {
@@ -162,16 +165,19 @@
       }
     } else if (name === 'ShareStep') {
       // Gameplay round 2: first she cuts (a stroke across the dish, anywhere), then shares.
+      // Gameplay round 4: the stroke must go along the dotted line, from the knife's end (st.line; window.__cutWrong: backwards).
       if (st.cutting) {
-        const r = d.R * d.scaleX * 0.7;
-        await __drag([[d.x - r, d.y + 30], [d.x, d.y + 10], [d.x + r, d.y - 10]]); await __run(450);
+        const l = st.line;
+        if (!l) { await __run(300); return; }
+        const [p, q] = window.__cutWrong ? [l.b, l.a] : [l.a, l.b];
+        await __drag([[p.x, p.y], [(p.x * 2 + q.x) / 3, (p.y * 2 + q.y) / 3], [(p.x + q.x * 2) / 3, (p.y + q.y * 2) / 3], [q.x, q.y]]); await __run(450);
         return;
       }
       // The guests round: first a tap on a guest's badge (window.__guest: 'turtle' | 'giraffe' | 'penguin', default the
       // middle one), then she arrives. Then alternates Mom, Pipa and the guest (window.__shareTo: 'mom' | 'pet' | 'guest' | 'alt').
       if (st.picking) {
         const c = st.cards.find((x) => x.g.id === window.__guest) ?? st.cards[1];
-        if (c) { __tap(c.img.x, c.img.y); await __run(2600); }
+        if (c) { __tap(c.img.x, c.img.y); await __run(2600); } else await __run(300);
         return;
       }
       const s = st.slices.find((x) => !x.eaten);
@@ -222,6 +228,12 @@
       if (mode === 'drag') await __drag([[b.x, b.y], [(b.x + st.slotX(2)) / 2, st.row.y - 120], [st.slotX(2), st.row.y + 30]]);
       else __tap(b.x, b.y);
       await __run(700);
+    } else if (name === 'FindStep') {
+      // Gameplay round 4: tap the right tool (window.__findWrong: first a wrong one).
+      if (st.done) { await __run(300); return; }
+      const t = window.__findWrong && !st.__triedWrong ? st.tools.find((x) => !x.right) : st.tools.find((x) => x.right);
+      st.__triedWrong = true;
+      __tap(t.x, t.itemY); await __run(600);
     } else if (name === 'PhotoStep') {
       await __run(500);
     } else if (name === 'FeedStep') {
@@ -357,6 +369,14 @@
         const a = box(c.bin), b = box(c.item);
         vis.push(['choice' + i, { x0: Math.min(a.x0, b.x0), y0: Math.min(a.y0, b.y0), x1: Math.max(a.x1, b.x1), y1: Math.max(a.y1, b.y1) }]);
         hits.push(['choice' + i, { x0: c.x - h, y0: c.y - h, x1: c.x + h, y1: c.y + h }]);
+      });
+    }
+    if (name === 'FindStep') {
+      const h = sc.ctx.stage.chooseHalf(st.tools.length);
+      st.tools.forEach((c, i) => {
+        const a = box(c.bin), b = box(c.item);
+        vis.push(['tool' + i, { x0: Math.min(a.x0, b.x0), y0: Math.min(a.y0, b.y0), x1: Math.max(a.x1, b.x1), y1: Math.max(a.y1, b.y1) }]);
+        hits.push(['tool' + i, { x0: c.x - h, y0: c.y - h, x1: c.x + h, y1: c.y + h }]);
       });
     }
     if (name === 'ChopStep') {

@@ -60,6 +60,8 @@ export const skewers: Recipe = {
         options: [option('strawberry', 0xe23a4e), option('banana', 0xfff3c8), option('kiwi', 0x8cc63f), option('mango', 0xffb234)],
         pick: TUNING.choose.pick,
         pauseMs: TUNING.choose.pauseMs,
+        // gameplay round 4: Pipa wants two things, in order
+        order: { line: 'vo-pipa-order', then: 'vo-then', first: 'vo-first-this' },
         bin: 'topping-bin',
         line: 'vo-choose-fruit',
       },

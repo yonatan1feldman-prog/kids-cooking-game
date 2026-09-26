@@ -272,6 +272,21 @@ MOM_LINES = {
     "vo-garden-pick": "Let's pick them! Into the basket!",
     "vo-garden-pull": "Let's pull the carrots out!",
     "vo-garden-done": "What a lovely harvest! We grew it together!",
+    # Gameplay round 4 (added 2026-09-26; Voice A only: python make_vo.py mom-a <names>): find the tool, Pipa's order,
+    # stir with the arrow
+    "vo-find-grater": "Which one is the grater? Can you find it?",
+    "vo-find-pin": "Which one is the rolling pin? Can you find it?",
+    "vo-find-spoon": "Which one is the wooden spoon? Can you find it?",
+    "name-grater": "Grater!",
+    "name-rolling-pin": "Rolling pin!",
+    "name-spoon": "Spoon!",
+    "name-whisk": "Whisk!",
+    "name-spatula": "Spatula!",
+    "vo-pipa-order": "Look! Pipa wants two things, in order. First...",
+    "vo-then": "and then...",
+    "vo-first-this": "Pipa wants this one first!",
+    "vo-stir-arrow": "Stir round and round, the way the arrow goes!",
+    "vo-other-way": "Now stir the other way!",
 }
 SUFFIX = ""
 if len(sys.argv) > 1 and sys.argv[1] in ("mom", "mom-a"):

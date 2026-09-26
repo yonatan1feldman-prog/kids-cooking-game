@@ -13,6 +13,7 @@ import type { Character } from './Character';
 import { Guest } from './Guest';
 import { PrepBowl } from './PrepBowl';
 import { cutSlices, stockSlices, type SliceDef } from './slices';
+import { drawCutGuide, LineCut } from './lineCut';
 import { Step } from './Step';
 
 interface Slice {
@@ -95,7 +96,13 @@ export class ShareStep extends Step<ShareParams> {
   private cutsDone = 0;
   private cutHeld = false;
   private cutBusy = false;
-  private travel = 0;
+  /** The next cut, following her finger (gameplay round 4). */
+  private line?: LineCut;
+  /** The part of the next cut already made (from its start to where her finger has come). */
+  private partG?: Phaser.GameObjects.Graphics;
+  private wrongRun = 0;
+  private wobbled = false;
+  private cutThisTouch = false;
   private last = { x: 0, y: 0 };
 
   private get portions() {
@@ -232,6 +239,7 @@ export class ShareStep extends Step<ShareParams> {
     const k = this.k;
     const P = this.params.cut!;
     this.cutsG = this.own(this.scene.add.graphics().setDepth(11));
+    this.partG = this.own(this.scene.add.graphics().setDepth(11.2));
     this.guide = this.own(this.scene.add.graphics().setDepth(11.5));
     this.knife = this.own(this.scene.add.image(0, 0, P.knife).setOrigin(ART.prep.knifeTip.x / 240, ART.prep.knifeTip.y / 640).setScale(KNIFE * k).setDepth(26).setAlpha(0));
     this.scene.time.delayedCall(420, () => {
@@ -242,21 +250,41 @@ export class ShareStep extends Step<ShareParams> {
     });
   }
 
-  /** The next cut, as soft dots across the dish (where the knife will go; she need not follow them). */
-  private drawGuide() {
+  /**
+   * The next cut, as soft dots across the dish with arrows the way the knife goes (from where the knife waits);
+   * stronger while the knife is in her hand. Gameplay round 4: the cut follows her finger along it (`LineCut`).
+   */
+  private drawGuide(strong = this.cutHeld) {
     const g = this.guide;
     if (!g) return;
     g.clear();
     const l = this.cutLines()[this.cutsDone];
     if (!l) return;
-    const d = Phaser.Math.Distance.Between(l.a.x, l.a.y, l.b.x, l.b.y);
-    const n = Math.max(2, Math.floor(d / (34 * this.k)));
-    for (let i = 0; i <= n; i++) {
-      const x = Phaser.Math.Linear(l.a.x, l.b.x, i / n);
-      const y = Phaser.Math.Linear(l.a.y, l.b.y, i / n);
-      g.fillStyle(0x6b3b1f, 0.35).fillCircle(x, y, 7 * this.k);
-      g.fillStyle(0xffffff, 0.85).fillCircle(x, y, 4.5 * this.k);
+    if (!this.line || this.line.a.x !== l.a.x || this.line.a.y !== l.a.y) {
+      const R = this.dish.R * this.dish.scaleX * (this.params.cutRadius ?? 1);
+      this.line = new LineCut(l.a, l.b, Math.max(TUNING.cut.minBand * this.k, 2 * R * TUNING.cut.band), TUNING.cut.gap, TUNING.cut.angle);
+      this.partG?.clear();
     }
+    drawCutGuide(g, l.a, l.b, this.k, strong);
+  }
+
+  /** The cut so far, from its start to her finger. */
+  private drawPart() {
+    if (!this.line || !this.partG) return;
+    const g = this.partG;
+    g.clear();
+    const a = this.line.a;
+    const p = this.line.point();
+    const w = CUT_W * this.k;
+    g.lineStyle(w * 1.9, 0x5a3218, 0.35).lineBetween(a.x, a.y, p.x, p.y);
+    g.lineStyle(w, 0x5a3218, 0.75).lineBetween(a.x, a.y, p.x, p.y);
+  }
+
+  /** A gentle "not like that": the dish wiggles on its board (a miss; three in a row show Mom's hand). */
+  private wobbleDish() {
+    this.miss();
+    const targets = [this.dish, this.cutsG, this.partG, this.guide].filter(Boolean);
+    this.scene.tweens.add({ targets, x: `+=${6 * this.k}`, duration: 60, yoyo: true, repeat: 1 });
   }
 
   /** The knife's tip, kept low enough for its handle to stay on screen. */
@@ -281,28 +309,43 @@ export class ShareStep extends Step<ShareParams> {
     this.hand.stop();
     this.poke();
     this.cutHeld = true;
-    this.travel = 0;
+    this.wrongRun = 0;
+    this.wobbled = false;
+    this.cutThisTouch = false;
     this.last = { x, y };
     this.scene.tweens.killTweensOf(this.knife);
     this.knife.setAngle(-8);
     this.knifeAt(x, y);
+    this.drawGuide(true);
     sfx(this.scene, 'tap');
   }
 
   /**
-   * Any stroke over the dish cuts: she need not follow the dots or cut straight. Once her finger has travelled
-   * `TUNING.share.cutSwipe` over the dish, the next cut goes all the way across along its line.
+   * Gameplay round 4: the knife cuts only along the dotted line, the way its arrows point (TUNING.cut: near it, roughly
+   * that way). The cut follows her finger from the line's start and may stop and go on; once it is `through`, it runs
+   * to the rim by itself. The other way, sideways or elsewhere over the dish cuts nothing: the dish wobbles (a miss).
    */
   private cutMove(x: number, y: number) {
-    if (!this.cutHeld || !this.knife) return;
+    if (!this.cutHeld || !this.knife || !this.line) return;
     this.knifeAt(x, y);
-    this.poke();
-    if (this.dish.reach(x, y) < 1.15) this.travel += Phaser.Math.Distance.Between(x, y, this.last.x, this.last.y);
-    this.last = { x, y };
-    if (this.travel >= TUNING.share.cutSwipe * this.k && !this.cutBusy) {
-      this.travel = 0;
-      this.hit();
-      this.cutNext();
+    const at = { x, y };
+    const step = Phaser.Math.Distance.Between(x, y, this.last.x, this.last.y);
+    const r = this.cutBusy ? 'none' : this.line.feed(this.last, at);
+    this.last = at;
+    if (r === 'cut') {
+      this.cutThisTouch = true;
+      this.poke();
+      this.drawPart();
+      if (this.line.progress >= TUNING.cut.through) {
+        this.hit();
+        this.cutNext();
+      }
+    } else if ((r === 'wrong' || r === 'off') && this.dish.reach(x, y) < 1.15) {
+      this.wrongRun += step;
+      if (!this.wobbled && !this.cutThisTouch && this.wrongRun >= TUNING.cut.wobbleAfter * this.k) {
+        this.wobbled = true;
+        this.wobbleDish();
+      }
     }
   }
 
@@ -310,7 +353,10 @@ export class ShareStep extends Step<ShareParams> {
     if (!this.cutHeld) return;
     this.cutHeld = false;
     this.knife?.setAngle(0);
-    if (!this.cutBusy) this.restKnife();
+    if (!this.cutBusy) {
+      this.restKnife();
+      this.drawGuide(false);
+    }
   }
 
   /** The next cut appears along its line, drawn from end to end (with the knife, when her finger is not on it). */
@@ -329,9 +375,17 @@ export class ShareStep extends Step<ShareParams> {
       const y = Phaser.Math.Linear(l.a.y, l.b.y, t);
       return { x, y };
     };
-    let prev = draw(0);
+    const from = this.line?.progress ?? 0;
+    this.partG?.clear();
+    if (from > 0) {
+      const p0 = draw(0);
+      const p1 = draw(from);
+      g.lineStyle(w * 1.9, 0x5a3218, 0.35).lineBetween(p0.x, p0.y, p1.x, p1.y);
+      g.lineStyle(w, 0x5a3218, 0.75).lineBetween(p0.x, p0.y, p1.x, p1.y);
+    }
+    let prev = draw(from);
     this.scene.tweens.addCounter({
-      from: 0,
+      from,
       to: 1,
       duration: 280,
       ease: 'Sine.easeIn',
@@ -397,11 +451,14 @@ export class ShareStep extends Step<ShareParams> {
   }
 
   protected showHint() {
-    if (this.cutting) this.knife?.setVisible(false);
+    if (this.cutting) {
+      this.knife?.setVisible(false);
+      this.drawGuide(true);
+    }
     super.showHint();
   }
 
-  /** Mom helps cut: her knife hand draws each cut in turn; then the sharing is hers again. */
+  /** Mom helps cut: her knife hand draws the next cut; then the knife (or, after the last, the sharing) is hers again. */
   private cutHelp() {
     this.cutHeld = false;
     this.knife?.setVisible(false);
@@ -422,12 +479,11 @@ export class ShareStep extends Step<ShareParams> {
           at.y = Phaser.Math.Linear(l.a.y, l.b.y, t);
         },
         onComplete: () => {
+          // Gameplay round 4: one cut, then the knife is hers again (the next help after the usual hint and wait).
           this.cutNext(false);
-          const last = this.cutsDone >= this.cutLines().length;
-          if (last) {
-            this.hand.stop();
-            this.resumeAfterAuto();
-          } else this.scene.time.delayedCall(400, one);
+          this.hand.stop();
+          if (this.cutting) this.knife?.setVisible(true);
+          this.resumeAfterAuto();
         },
       });
     };

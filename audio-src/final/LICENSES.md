@@ -249,6 +249,19 @@ This file covers only the files in this folder. Every file is either CC0 1.0 (pu
 | voice/vo-garden-pick.ogg | Let's pick them! Into the basket! | 2.09 | -18.3 | 16543 |
 | voice/vo-garden-pull.ogg | Let's pull the carrots out! | 1.54 | -18.0 | 13110 |
 | voice/vo-garden-done.ogg | What a lovely harvest! We grew it together! | 2.56 | -18.0 | 19315 |
+| voice/vo-find-grater.ogg | Which one is the grater? Can you find it? | 2.55 | -18.2 | 18806 |
+| voice/vo-find-pin.ogg | Which one is the rolling pin? Can you find it? | 2.79 | -19.1 | 19730 |
+| voice/vo-find-spoon.ogg | Which one is the wooden spoon? Can you find it? | 2.83 | -19.0 | 20787 |
+| voice/name-grater.ogg | Grater! | 0.78 | -18.0 | 8026 |
+| voice/name-rolling-pin.ogg | Rolling pin! | 0.99 | -18.7 | 9043 |
+| voice/name-spoon.ogg | Spoon! | 0.77 | -18.0 | 8115 |
+| voice/name-whisk.ogg | Whisk! | 0.66 | -18.0 | 7344 |
+| voice/name-spatula.ogg | Spatula! | 0.88 | -18.0 | 8722 |
+| voice/vo-pipa-order.ogg | Look! Pipa wants two things, in order. First... | 2.82 | -19.8 | 20439 |
+| voice/vo-then.ogg | and then... | 0.77 | -18.0 | 8149 |
+| voice/vo-first-this.ogg | Pipa wants this one first! | 1.77 | -18.0 | 14155 |
+| voice/vo-stir-arrow.ogg | Stir round and round, the way the arrow goes! | 2.83 | -18.0 | 20780 |
+| voice/vo-other-way.ogg | Now stir the other way! | 1.43 | -20.0 | 12420 |
 
 ## music/ (1 file)
 
