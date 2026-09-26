@@ -104,7 +104,7 @@ DynamicTexture needs `.render()`).
    are life, not lures: Mom breathing and blinking, Pipa breathing (round 13) and blinking, the soft background music, the loading spinner,
    the text-free rotate animation, and the living window (visual round 4, the owner's request: now and then a few birds fly
    past the window, one cloud drifts across it, the sunbeam dims while it covers the sun; only inside the window's glass,
-   slow, muted, silent, never tappable; `core/scenery.ts`). Pipa's thought bubble (her wish) pops in once when a step starts and then stays
+   slow, muted, silent, never tappable; `core/scenery.ts`); visual round 5 added the chimney smoke of the little house in the garden, the sky warming towards sunset over a recipe, and a cat asleep on the sill that breathes and, every 14-30 s, looks up, yawns or swishes its tail; the wall clock shows the real time). Pipa's thought bubble (her wish) pops in once when a step starts and then stays
    still; the kitchen's jars, utensils, pots and sun move only when she taps them. The oven's glow and steam while baking are the result of her putting the
    pizza in. (Round 4 removed: the play button's endless pulse, the recipe card's endless bobbing, the bins' endless
    wiggle, the done button's endless pulse, the oven's endless "tap me" hop, stars around Pipa's head at every step.)
@@ -193,6 +193,7 @@ src/core/
   ui.ts                    iconButton (padded hit circle, fires on press, optional two-tap confirm)
   tuning.ts                THE TUNING TABLE: every count, threshold and idle timing (and Pipa's wishes: `wish`, `taste`)
   kitchen.ts               the living kitchen: the wall's tappable pieces over the background, and their answers
+  scenery.ts               the living window (birds, cloud, sunbeam), the garden, sunset, the cat, the clock, per-recipe sill
   tastes.ts                Pipa's tastes: love (her wish) / sneeze / wow / giggle / plain, from what is on a piece
   update.ts                service worker registration and the safe update (only at the title, see "Deployment")
 src/recipes/
@@ -657,7 +658,25 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 0000000000000000. Visual round 5 (more around the kitchen)
+The owner asked for "a lot more scenery, much more interest in the steps". Art: `assets-src/images-b/tools/gen_kitchen_view.py`
+(21 pieces, each SVG's viewBox is its own box in the 2400x1080 frame, like the living kitchen's); code: `addKitchenLife`
+in `core/scenery.ts` (keys `SCENERY_KEYS` in assets.ts: core, loaded after the title's art; each piece joins as soon
+as its texture is in). Everything is on the wall, under what the game puts there (depth -99.8 .. -98.2), slow, never flashing.
+- **Garden** (`kitchen-garden`, lower panes, clipped to the glass): a fence, flowers, a sunflower, a bush, a little
+  house; its chimney smokes softly (`FX_SOFT` puffs every 2.8 s, cropped to the panes like the birds).
+- **Sunset:** in a recipe the window's glass warms over `SUNSET_MS` (5 min; a canvas gradient `fx-sky-warm` up to
+  alpha 0.4) and the sunbeam's tint with it. Title, home and the album stay in the afternoon (no recipe id).
+- **The cat** on the sill (body, tail, heads asleep / awake / yawning): breathes; every 14-30 s it looks up and blinks,
+  yawns or swishes its hanging tail. In a recipe a tap on it (`Tappable`, passed to `liveKitchen`) wakes it for a yawn
+  and a swish (soft pop); never a miss or progress.
+- **Clock** above the right end of the rail: the real time. **A child's drawing** taped on the right cabinet (20:9 only).
+- **Per recipe:** one thing on the sill (`SILL_BY_RECIPE`: tomato plant, lemons, cookie jar, fruit, honey, carrots,
+  a present, strawberries; daisies elsewhere) and, for the cake, paper bunting across the wall. `addBackground(scene,
+  layout, recipeId)` passes the recipe.
+- The dish and the sink often cover the sill in the middle steps; the choose, prep-bowl and board-aside steps show it.
+- **Needs a real child:** does the cat pull her away from the step (then lengthen `CAT_WAIT_MS`)? Does she find tapping it?
 ### 000000000000000. Visual round 4 (the living window)
 The owner asked for "birds flying past the window, and anything that makes the scenery nicer". `core/scenery.ts`
 (`addScenery`, called by `addBackground`, so title, home, album and every recipe have it):

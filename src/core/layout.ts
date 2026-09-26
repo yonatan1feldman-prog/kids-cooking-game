@@ -100,14 +100,15 @@ export const ORIENTATION_RESUME = 'orientation-resume';
  * never crops the top and a narrower one only loses the sides. If the screen is wider
  * than the art, it grows uniformly just enough to cover the width (still bottom-anchored).
  */
-export function addBackground(scene: Phaser.Scene, layout: Layout) {
+/** `recipeId`: the recipe on screen, if any (its own thing on the window sill, its sky, the cake's bunting). */
+export function addBackground(scene: Phaser.Scene, layout: Layout, recipeId?: string) {
   scene.cameras.main.setBackgroundColor('#f8ddae');
   const bg = scene.add.image(layout.cx, layout.H, 'bg-kitchen-landscape').setOrigin(0.5, 1);
   bg.setScale(Math.max(layout.H / bg.frame.realHeight, layout.W / bg.frame.realWidth));
   // The things on the kitchen wall she can tap are their own pictures, laid over it (core/kitchen.ts); `liveKitchen`
   // makes them answer taps where a scene wants that (the recipe).
   bg.setData('kitchen', addKitchenPieces(scene, bg));
-  // Birds and a cloud outside the window, the sunbeam on the counter (core/scenery.ts).
-  addScenery(scene, bg);
+  // Birds and a cloud outside the window, the sunbeam on the counter, the garden, the cat, the clock (core/scenery.ts).
+  addScenery(scene, bg, recipeId);
   return bg.setDepth(-100);
 }
