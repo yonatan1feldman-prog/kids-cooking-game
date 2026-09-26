@@ -215,6 +215,8 @@ src/scenes/
   TitleScene               play button at once; logo, Mom, Pipa fade in when loaded; the tap: audio, fullscreen, lock, wake lock, music, vo-hello + wave; the update check
   HomeScene                one card per recipe, Mom (and Pipa), vo-what-make; waits for the art before starting a recipe
   RecipeScene              runs any recipe's steps in order; board under the dish; Mom, Pipa, Mom's hand; demo counter; home button
+  AlbumScene               the memory book (round 9); an enlarged photo has the puzzle button beside it
+  PuzzleScene              the puzzle from a memory-book photo (pieces cut at runtime by core/puzzle.ts)
 ```
 
 ## Recipes are data
@@ -653,7 +655,32 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 0000000000000. The puzzle (a memory-book photo as a jigsaw)
+Spec and research: `/mnt/project-files/research/puzzle-spec.md`. No new art: everything is cut and drawn at runtime.
+- **Way in:** in the album, a tap on a photo enlarges it (as before) and the puzzle button (`PUZZLE_ICON`, a piece on
+  the album's cream disc, `makePuzzleIcon`) stands beside it; a tap starts `Puzzle` with `{ photoId, page }`. The home
+  button (two taps) and the finale both go back to the album on that page (`Album` `init({ page })`).
+- **Pieces (`core/puzzle.ts`):** `cutGrid` gives every inner edge a random tab/hole; `piecePath` is the outline (a neck
+  and a round head, tabs sized from the cell's shorter side); `makePieceTextures` draws each piece from the photo on its
+  own canvas (cell + `pad`, light and shade edges, ink outline) and the board's guide (the photo at `TUNING.puzzle.ghost`
+  with dashed outlines). Sizes by a local count of finished puzzles (`cooking.puzzles`, never shown):
+  `TUNING.puzzle.grids` 2x2, 3x2, 3x3, then 4x3 for good.
+- **Scene:** the whole photo shows, "Let's make a puzzle from your picture!", then the pieces fly to the tray left of
+  the board (the largest size up to `trayMax` at which they fit without overlapping, clear of the home button). A piece
+  grows to its board size when lifted; let go within `snap` x the cell's shorter side of its place it clicks in (click,
+  pop, stars), anywhere else it floats back (over the board that is a quiet miss; 3 in a row show the hint). First
+  puzzle on a device: Mom's grab hand shows one piece's way (see-through). Hint after `HINT_AFTER_MS`, help after
+  `AUTO_AFTER_HINT_MS` more: "Let me help you!" and her hand puts ONE piece in (corners, border, middle), then it is
+  hers again. All in: the clean photo over the pieces, jingle, stars, confetti, Mom celebrates, Pipa hops, "You put it
+  all together!", back to the album 2.2 s after the line. Rotation mid-drag drops the piece back gently.
+- **Touch:** every piece's touch area is at least 200 x 200 world units (x k) around its cell. On 4:3 (k 0.75) the
+  12-piece board is 568 units and a cell 134 x 178.
+- **Checked (cloud, virtual clock):** 20:9, 16:9, 4:3 with 12 pieces: no tray overlap, nothing on the home button,
+  Mom's face or Pipa, no touch start in the strips; solved to the end and back in the album; a miss; rotation while
+  held (dropped back, resumed); the idle hint and Mom's help; textures freed on leaving. Voice lines not heard by an agent.
+- **Needs a real child:** is 12 pieces right at the end (`grids`)? Does she find the button beside the big photo?
+
 ### 00000000000000. Gameplay round 3 (everyone eats; a bit more to do in every step)
 - **Everyone eats** (`ShareStep`): the step ends only when Mom, Pipa and the guest have each had a piece. `hungry` = who
   has not eaten (the guest counts from her invitation, before she has walked in); `mayHave(who, s)`: a second piece is
