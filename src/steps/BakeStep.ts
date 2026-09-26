@@ -73,6 +73,8 @@ export class BakeStep extends Step<BakeParams> {
     const s0 = this.params.startsAs;
     if (s0) this.dish.setBase(s0.base, s0.size ?? 1);
     // (a step before may have hidden the dish, `workspace('none')`: the cake's pan was poured into on its own)
+    // (a fade still running from that step would fight this one: it goes first)
+    this.scene.tweens.killTweensOf(this.dish);
     if (this.dish.alpha < 1) this.scene.tweens.add({ targets: this.dish, alpha: 1, duration: 300 });
     const L = this.layout;
     this.k = L.k;
@@ -94,7 +96,7 @@ export class BakeStep extends Step<BakeParams> {
         this.dragging = true;
         this.grab = { dx: this.dish.x - p.worldX, dy: this.dish.y - p.worldY };
         this.scene.tweens.killTweensOf(this.dish);
-        this.dish.setScale(1.06);
+        this.dish.setAlpha(1).setScale(1.06);
         sfx(this.scene, 'tap');
         this.poke();
       } else if (this.phase === 'mitts' && this.onMitts(p.worldX, p.worldY)) {
