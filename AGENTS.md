@@ -468,7 +468,7 @@ fallback if the capture fails.
   is core (loaded at boot: title, home, Mom, Pipa, kitchen, demo hands, buttons, cards; every sound no recipe lists) and
   what belongs to a recipe (its images and own sounds). A card tap loads the recipe's part (`recipeAssets` in
   BootScene; Mom waves, a small spinner over the card after 250 ms); the home screen releases every non-core texture
-  and the recipe's sounds (`releaseRecipe`). A new recipe MUST add its entry; a key asked for but not loaded warns
+  and the recipe's sounds (`releaseRecipe`). A new recipe MUST add its entry (including every shared line or effect another recipe lists: a listed sound is not core); a key asked for but not loaded warns
   `[assets] not loaded yet: <key>` in the console, a key in no list warns at boot. The service worker still precaches
   everything. Measured (desktop, hidden automated tab): home textures 177 -> 41; all art ready 4.6 s -> core 1.4 s;
   a recipe loads in 1.6-1.9 s. Harness: `__infra8()` (enter / leave / re-enter runs), `__loadStats()`, `__bg8()`.
@@ -653,7 +653,21 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 0000000000000. The final QA round (all eight recipes)
+- **A sound some recipe lists is loaded only for the recipes that list it** (`RECIPE_SOUNDS`). vo-cut / vo-cut-careful
+  and name-tomato / name-onion were listed by the soup (and the skewers), so the pizza, salad and smoothie cut in silence
+  and named no tomato or onion; the cake never said vo-temp; the pancakes' banana wish had no name. A recipe that uses
+  a line or effect another recipe lists must list it too. Now a line or effect asked for but never loaded warns once:
+  `[assets] voice not loaded: <key>` / `[assets] sound not loaded: <key>`.
+- **Candles:** after Mom's help stood the candles up the step stayed in help mode (`auto`), so nobody could blow the
+  flames out: a child who waited was stuck forever. `resumeAfterAuto()` when the flames are lit.
+- Checked (virtual clock, simulated voice, `headlessStep`): every recipe with demos at 20:9 (voice in order, no overlap,
+  photo in the book), with no touch at 4:3 (Mom helps to the end, home), layout audits at 20:9 and 4:3 (only the known
+  finale sway and Mom's step aside), rotate and background with the mitts, the pulled dish, the knife and a fruit held,
+  hint at 8 s and help 20 s later, object and particle counts flat over a whole recipe, and the update flow against two
+  production builds (a new version waits through a recipe and the home screen, and is on at the next start).
+
 ### 000000000000. The guests round (who comes to eat)
 The owner's idea: each meal she picks who comes to eat. Pipa stays the pet; a guest joins Mom and Pipa in `share`.
 - **Data:** `src/core/guests.ts` (`GUESTS`: turtle, giraffe, penguin): layers like Pipa's (`CharacterDef` + `back` for
