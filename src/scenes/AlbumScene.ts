@@ -83,10 +83,13 @@ export class AlbumScene extends Phaser.Scene {
       const mom = new Mom(this, S.mom);
       mom.rest();
       if (S.pet) new Character(this, RECIPES[0].character, S.pet, S.feedPet).enter(150);
-      this.events.on(Phaser.Scenes.Events.UPDATE, () => {
+      const look = () => {
         const p = this.input.manager.pointers.find((q) => q.isDown);
         mom.lookAt(p ? p.worldX : L.cx, p ? p.worldY : L.cy);
-      });
+      };
+      // (the scene object lives on across visits: without the off, every visit would add one more watcher)
+      this.events.on(Phaser.Scenes.Events.UPDATE, look);
+      this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.events.off(Phaser.Scenes.Events.UPDATE, look));
     });
 
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {

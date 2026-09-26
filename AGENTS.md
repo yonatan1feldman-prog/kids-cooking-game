@@ -718,6 +718,12 @@ Spec and research: `/mnt/project-files/research/puzzle-spec.md`. No new art: eve
 - **Needs a real child:** does she understand the piece coming back (the hungry one hopping, Mom's line)? Are the longer
   steps still fun (the recipe's length; tune `TUNING` down if she drifts off)?
 ### 0000000000000. The final QA round (all eight recipes)
+- **QA round 2 (after gameplay round 3, the living window, the puzzle):** Title, Home and the album each added a watcher
+  for Mom's eyes on the scene's update at every visit and never removed it (the scene object lives on), so they piled
+  up; now removed on shutdown. Checked flat over four Home -> recipe -> album -> puzzle cycles: update/input listeners,
+  tweens, textures, heap. The window's own watcher was already clean. Harness note: with `headlessStep` the guest's
+  layers load in real time while the virtual clock races, so a harness child may wait "28 s" for the guest and get
+  Mom's help; with rendering on it does not happen.
 - **A sound some recipe lists is loaded only for the recipes that list it** (`RECIPE_SOUNDS`). vo-cut / vo-cut-careful
   and name-tomato / name-onion were listed by the soup (and the skewers), so the pizza, salad and smoothie cut in silence
   and named no tomato or onion; the cake never said vo-temp; the pancakes' banana wish had no name. A recipe that uses

@@ -57,10 +57,13 @@ export class HomeScene extends Phaser.Scene {
       const pet = S.pet ? new Character(this, RECIPES[0].character, S.pet, S.feedPet) : null;
       pet?.enter(150);
       tickles(this, () => [m, pet], () => !going);
-      this.events.on(Phaser.Scenes.Events.UPDATE, () => {
+      const look = () => {
         const p = this.input.manager.pointers.find((q) => q.isDown);
         m.lookAt(p ? p.worldX : L.cx, p ? p.worldY : L.cy);
-      });
+      };
+      // (the scene object lives on across visits: without the off, every visit would add one more watcher)
+      this.events.on(Phaser.Scenes.Events.UPDATE, look);
+      this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.events.off(Phaser.Scenes.Events.UPDATE, look));
     });
 
     const n = RECIPES.length;
