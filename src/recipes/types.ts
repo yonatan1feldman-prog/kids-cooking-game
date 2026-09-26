@@ -521,8 +521,11 @@ export interface BakeParams {
    * on it (`dish.cookies`) turns golden, not the tray. Without it the pizza fills `ART.ovenPizza`.
    */
   tray?: { x: number; y: number; scale: number };
-  /** Put on the oven mitts before taking it out (optional): after the ding the mitts lie on the counter; a tap puts them on. */
-  mitts?: { pair: ImageKey; single: ImageKey; line: VoiceKey };
+  /**
+   * Take it out with the oven mitts (optional): after the ding the mitts lie on the counter; she drags them to the oven
+   * (the door opens, a mitt holds the dish) and then pulls the dish out onto the board.
+   */
+  mitts?: { pair: ImageKey; single: ImageKey; line: VoiceKey; /** Said when the door opens and the mitt holds it: "Now pull it out!". */ pull?: VoiceKey };
   /**
    * Round 9 (the cake): what went in is not what comes out. Once it is on the counter the dish's base becomes `base`
    * (the baked cake instead of the pan of batter) and, with `board`, it is standing on that (its plate). The steps
@@ -592,6 +595,12 @@ export interface ShareParams {
   pieces?: boolean;
   /** The slices are cut from this part of the dish's radius (the pancake, smaller than a pizza: 290 / 350). Default 1. */
   cutRadius?: number;
+  /**
+   * She cuts it herself first (optional): the whole dish on its board, a dotted line where the next cut goes, the knife
+   * beside it. Any stroke over the dish cuts the next line all the way across (no precision); Mom counts the cuts.
+   * Then the pieces come apart and `line` is said.
+   */
+  cut?: { knife: ImageKey; line: VoiceKey };
 }
 
 /**

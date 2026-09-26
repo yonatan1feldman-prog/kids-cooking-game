@@ -132,6 +132,7 @@ export const pancakes: Recipe = {
       params: {
         slice: 'pancake-golden',
         slices: T.share.slices,
+        cut: { knife: 'knife', line: 'vo-cut-slices' },
         cutRadius: ART.pancakes.plateTop / ART.doughRadius,
         line: 'vo-share-pancakes',
         forMom: 'vo-pancake-mom',

@@ -288,6 +288,7 @@ Same engine, voice and processing as every line above.
 |---|---|
 | vo-pipa-wants · vo-pipa-got-it | Look! Pipa wants... · Just what Pipa wanted! |
 | vo-pipa-loves · vo-bless-you | Pipa loves it! · Bless you, Pipa! |
+| vo-pull-out · vo-cut-slices | Now pull it out, nice and slow! · Let's cut it into slices! |
 
 ## Graphics (`images/`)
 

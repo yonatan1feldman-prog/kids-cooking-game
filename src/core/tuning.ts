@@ -68,8 +68,13 @@ export const TUNING = {
    * baking starts at `target` (the art's panel prints 50-250). Baking: ms in the oven after the start.
    */
   oven: { from: 50, step: 50, min: 50, max: 250, target: 200, bakeMs: 5000 },
-  /** Share: slices the pizza is cut into (shared between Mom and Pipa, any way she likes). */
-  share: { slices: 6 },
+  /** Taking it out: let go once it is this far out of the oven (0 in it .. 1 on the board), it lands on the board. */
+  bake: { pullAt: 0.4 },
+  /**
+   * Share: slices the pizza is cut into (shared between Mom and Pipa, any way she likes); `cutSwipe`: finger travel over
+   * the dish (x k) that makes the next cut.
+   */
+  share: { slices: 6, cutSwipe: 200 },
   /**
    * The salad (round 6; aim: 4-5 minutes from the card to home). Wash the vegetables: drops (bursts) of rubbing, as
    * `wash.bubbles`. Tear the lettuce: presses per stage (head -> tear-1 -> 2 -> 3: 3 changes). Chop: cuts per vegetable.
@@ -162,7 +167,7 @@ export const TUNING = {
     frost: { rubWidths: 4 },
     decorate: { items: 4 },
     candles: { count: 5 },
-    share: { slices: 6 },
+    share: { slices: 6, cutSwipe: 200 },
   },
   /**
    * The fruit skewers (round 13; aim: about 4 minutes from the card to home). Wash and chop: as the smoothie. Thread:

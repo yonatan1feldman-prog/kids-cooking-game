@@ -10,7 +10,7 @@ import type { BakeParams } from '../recipes/types';
 import { MADE_KEY } from './Dish';
 import { Step } from './Step';
 
-type Phase = 'toOven' | 'temp' | 'baking' | 'mitts' | 'ready' | 'out';
+type Phase = 'toOven' | 'temp' | 'baking' | 'mitts' | 'pull' | 'ready' | 'out';
 
 /** Cool to warm, for the oven's glow and its gentle tint while she sets the temperature. */
 const COOL = 0x9fc4ff;
@@ -32,8 +32,10 @@ const mix = (a: number, b: number, t: number) => {
  *    button waits for her (it only starts at the target; there is no wrong value and the pizza never burns: at the
  *    highest value Mom says it's too hot and points at the down button). Start: beep, it lights up, the baking begins.
  * 3. The pizza turns golden through the window, the oven glows and steams, a ding.
- * 4. (`mitts`) The oven mitts lie on the counter; a tap puts them on (they go to her hands). Then a tap on the oven,
- *    or a drag from it, opens it and the pizza comes out onto its board, pulled by her mitt.
+ * 4. (`mitts`) The oven mitts lie on the counter. She drags them to the oven: the door opens, hot air puffs out, and
+ *    a mitt takes hold of the pizza's rim. Then she pulls the pizza out (it follows her finger, growing as it comes
+ *    out of the oven) and lets it go over the board: it lands there. Let go too early, it slides gently back in.
+ *    Nothing can go wrong: the mitts dropped anywhere else go back to their place, and so does the pizza.
  */
 export class BakeStep extends Step<BakeParams> {
   private open!: Phaser.GameObjects.Image;
@@ -60,11 +62,20 @@ export class BakeStep extends Step<BakeParams> {
   // mitts
   private mitts?: Phaser.GameObjects.Image;
   private wearing = false;
+  /** What her finger carries in the mitts part: the mitts to the oven, or the pizza out of it. */
+  private carry: 'mitts' | 'dish' | null = null;
+  /** The mitt holding the pizza's rim while it comes out. */
+  private holdMitt?: Phaser.GameObjects.Image;
+  private puffAt = 0;
 
   start() {
     // The cake: the pan of batter the step before filled becomes the dish, so it is what goes into the oven.
     const s0 = this.params.startsAs;
     if (s0) this.dish.setBase(s0.base, s0.size ?? 1);
+    // (a step before may have hidden the dish, `workspace('none')`: the cake's pan was poured into on its own)
+    // (a fade still running from that step would fight this one: it goes first)
+    this.scene.tweens.killTweensOf(this.dish);
+    if (this.dish.alpha < 1) this.scene.tweens.add({ targets: this.dish, alpha: 1, duration: 300 });
     const L = this.layout;
     this.k = L.k;
     this.os = this.ctx.stage.ovenScale;
@@ -85,11 +96,13 @@ export class BakeStep extends Step<BakeParams> {
         this.dragging = true;
         this.grab = { dx: this.dish.x - p.worldX, dy: this.dish.y - p.worldY };
         this.scene.tweens.killTweensOf(this.dish);
-        this.dish.setScale(1.06);
+        this.dish.setAlpha(1).setScale(1.06);
         sfx(this.scene, 'tap');
         this.poke();
       } else if (this.phase === 'mitts' && this.onMitts(p.worldX, p.worldY)) {
-        this.wearMitts();
+        this.grabMitts(p.worldX, p.worldY);
+      } else if (this.phase === 'pull' && this.onPull(p.worldX, p.worldY)) {
+        this.grabDish(p.worldX, p.worldY);
       } else if (this.phase === 'ready' && this.nearOven(p.worldX, p.worldY)) {
         // A tap on the oven, or the start of a drag from it, opens it.
         this.openOven();
@@ -100,11 +113,13 @@ export class BakeStep extends Step<BakeParams> {
       }
     });
     this.onMove((p) => {
+      if (this.carry) return this.moveCarry(p.worldX, p.worldY);
       if (!this.dragging) return;
       this.dish.setPosition(p.worldX + this.grab.dx, p.worldY + this.grab.dy);
       this.poke();
     });
     this.onUp((_p, cancelled) => {
+      if (this.carry) return this.dropCarry(cancelled);
       if (!this.dragging) return;
       this.dragging = false;
       // Forgiving: carried well toward the oven, or dropped near it, counts.
@@ -382,6 +397,7 @@ export class BakeStep extends Step<BakeParams> {
     this.scene.tweens.add({ targets: this.mitts, scale: m.scale, duration: 420, delay: 300, ease: 'Back.easeOut' });
     voice.say(this.params.mitts!.line, { valid: () => this.phase === 'mitts', ttlMs: 4000 });
     this.scene.time.delayedCall(700, () => this.setIdle(true));
+    this.firstRunShow('mitts');
   }
 
   private onMitts(x: number, y: number) {
@@ -391,17 +407,173 @@ export class BakeStep extends Step<BakeParams> {
     return x > b.x - pad && x < b.right + pad && y > b.y - pad && y < b.bottom + pad;
   }
 
-  /** On they go: the mitts fly down to her hands (off the bottom of the screen) with a pop. */
-  private wearMitts() {
+  /** She takes hold of the mitts (they lift a little). */
+  private grabMitts(x: number, y: number) {
+    if (!this.mitts) return;
+    this.hand.stop();
+    this.poke();
+    this.carry = 'mitts';
+    this.grab = { dx: this.mitts.x - x, dy: this.mitts.y - y };
+    this.scene.tweens.killTweensOf(this.mitts);
+    this.mitts.setScale(this.ctx.stage.mitts.scale * 1.1).setAngle(-6).setDepth(25);
+    sfx(this.scene, 'tap');
+  }
+
+  /** Where the pizza sits in the oven, and how far it has come out of it (0 in the oven .. 1 on the board). */
+  private pullProgress() {
+    const from = this.inOven().spot;
+    const all = Phaser.Math.Distance.Between(from.x, from.y, this.rest.x, this.rest.y) || 1;
+    return Phaser.Math.Clamp(1 - Phaser.Math.Distance.Between(this.dish.x, this.dish.y, this.rest.x, this.rest.y) / all, 0, 1);
+  }
+
+  /** The pizza is grabbed anywhere on it (or on the mitt holding it): generous, it is small in the oven. */
+  private onPull(x: number, y: number) {
+    const r = Math.max(this.dish.R * this.dish.scaleX * 1.4, 170 * this.k);
+    if (Phaser.Math.Distance.Between(x, y, this.dish.x, this.dish.y) < r) return true;
+    return !!this.holdMitt && this.holdMitt.getBounds().contains(x, y);
+  }
+
+  private grabDish(x: number, y: number) {
+    this.hand.stop();
+    this.poke();
+    this.carry = 'dish';
+    this.grab = { dx: this.dish.x - x, dy: this.dish.y - y };
+    this.scene.tweens.killTweensOf(this.dish);
+    sfx(this.scene, 'tap');
+    this.hot(true);
+  }
+
+  private moveCarry(x: number, y: number) {
+    this.poke();
+    if (this.carry === 'mitts' && this.mitts) {
+      this.mitts.setPosition(x + this.grab.dx, y + this.grab.dy);
+      return;
+    }
+    // The pizza follows her finger; it grows back to its size on the board as it comes out of the oven.
+    this.dish.setPosition(x + this.grab.dx, y + this.grab.dy);
+    const t = this.pullProgress();
+    this.dish.setScale(Phaser.Math.Linear(this.inOven().scale, 1, t));
+    this.dish.setDepth(t > 0.15 ? 12 : 10);
+    this.placeMitt();
+    this.hot();
+  }
+
+  private dropCarry(cancelled: boolean) {
+    const what = this.carry;
+    this.carry = null;
+    if (what === 'mitts' && this.mitts) {
+      // Forgiving: carried well toward the oven, or let go near it, counts.
+      const m = this.ctx.stage.mitts;
+      const dist = (x: number, y: number) => Phaser.Math.Distance.Between(x, y, this.open.x, this.open.y);
+      const toward = dist(m.x, m.y) - dist(this.mitts.x, this.mitts.y);
+      if (!cancelled && (toward > 220 * this.k || this.nearOven(this.mitts.x, this.mitts.y))) {
+        this.hit();
+        this.mittsOn();
+      } else {
+        if (!cancelled) this.miss();
+        sfx(this.scene, 'whoosh', { volume: 0.4 });
+        this.scene.tweens.add({ targets: this.mitts, x: m.x, y: m.y, scale: m.scale, duration: 380, ease: 'Sine.easeOut', onComplete: () => this.mitts?.setDepth(12) });
+      }
+      return;
+    }
+    if (what === 'dish') {
+      if (!cancelled && this.pullProgress() > TUNING.bake.pullAt) {
+        this.hit();
+        this.landDish();
+      } else {
+        // Back into the oven, gently (the mitt keeps hold of it).
+        if (!cancelled) this.miss();
+        const { spot, scale } = this.inOven();
+        sfx(this.scene, 'whoosh', { volume: 0.4 });
+        this.scene.tweens.add({ targets: this.dish, x: spot.x, y: spot.y, scale, duration: 420, ease: 'Sine.easeOut', onUpdate: () => this.placeMitt(), onComplete: () => this.dish.setDepth(10) });
+      }
+    }
+  }
+
+  /** Hot air: a soft puff off the pizza now and then while it comes out (an answer to her pulling). */
+  private hot(now = false) {
+    const t = this.scene.time.now;
+    if (!now && t - this.puffAt < 260) return;
+    this.puffAt = t;
+    puff(this.scene, this.dish.x + Phaser.Math.Between(-40, 40) * this.k, this.dish.y - this.dish.R * this.dish.scaleY * 0.6, 0xffffff, 2, 70 * this.k);
+  }
+
+  /** The mitt on the pizza's rim (the art agent's take-out scene: the rim on the oven's side). */
+  private placeMitt() {
+    this.holdMitt?.setPosition(this.dish.x - this.dish.halfWidth * this.dish.scaleX * 0.95, this.dish.y + 20 * this.k * this.dish.scaleY);
+    this.holdMitt?.setScale(0.66 * this.k * Phaser.Math.Linear(0.8, 1, this.pullProgress()));
+  }
+
+  /**
+   * The mitts reach the oven: the door opens, hot air puffs out, and a mitt takes hold of the pizza. Mom: "Now pull it
+   * out, nice and slow!" (the first time a recipe is played, her mitt shows it once).
+   */
+  private mittsOn() {
     if (this.phase !== 'mitts' || !this.mitts) return;
     this.poke();
-    this.hit();
     this.hand.stop();
     this.wearing = true;
-    this.phase = 'ready';
+    this.phase = 'pull';
+    this.setIdle(false);
+    const w = this.ovenPoint(350, 465);
     sfx(this.scene, 'pop');
-    burst(this.scene, this.mitts.x, this.mitts.y, { count: 10, size: 18 * this.k, tint: [0x4fb0a8, 0xffffff], speed: 320 * this.k, gravityY: 300 });
-    this.scene.tweens.add({ targets: this.mitts, y: this.layout.H + 200 * this.k, scale: this.mitts.scale * 1.4, duration: 450, ease: 'Quad.easeIn', onComplete: () => this.mitts?.setVisible(false) });
+    this.scene.tweens.add({ targets: this.mitts, x: w.x, y: w.y, scale: this.mitts.scale * 0.6, alpha: 0, duration: 260, ease: 'Quad.easeIn', onComplete: () => this.mitts?.setVisible(false) });
+    this.scene.time.delayedCall(220, () => {
+      if (this.phase !== 'pull') return;
+      this.stopLoops();
+      this.inside.setVisible(false);
+      this.closed.setVisible(false);
+      this.open.setVisible(true).setScale(this.os);
+      this.dish.setDepth(10);
+      sfx(this.scene, 'whoosh');
+      puff(this.scene, this.open.x, this.open.y - 60 * this.os, 0xffffff, 12, 150 * this.os);
+      boing(this.scene, this.open, 0.05);
+      this.holdMitt = this.own(this.scene.add.image(0, 0, this.params.mitts!.single).setAngle(90).setDepth(13).setAlpha(0));
+      this.placeMitt();
+      this.scene.tweens.add({ targets: this.holdMitt, alpha: 1, duration: 250 });
+      const pull = this.params.mitts!.pull;
+      if (pull) voice.say(pull, { valid: () => this.phase === 'pull', ttlMs: 4000 });
+      this.scene.time.delayedCall(600, () => this.phase === 'pull' && this.setIdle(true));
+      this.firstRunShow('pull');
+    });
+  }
+
+  /** The first time a recipe is played Mom shows this new moment once (as her demo does at the start of a step). */
+  private firstRunShow(phase: Phase) {
+    if (this.ctx.run.runNo > 0) return;
+    this.scene.time.delayedCall(1300, () => {
+      if (this.phase !== phase || this.carry || this.isAuto || this.aborted) return;
+      const m = this.demo();
+      if (m) this.hand.play({ ...m, glow: undefined });
+    });
+  }
+
+  /** Over the board: the pizza settles there, the mitt lets go. */
+  private landDish() {
+    this.phase = 'out';
+    this.setIdle(false);
+    this.hand.stop();
+    this.ctx.mom.armTo(0);
+    this.scene.tweens.add({ targets: this.ctx.board, alpha: 1, duration: 200 });
+    this.dish.setDepth(12);
+    this.scene.tweens.add({
+      targets: this.dish,
+      x: this.rest.x,
+      y: this.rest.y,
+      scale: 1,
+      duration: 380,
+      ease: 'Back.easeOut',
+      onUpdate: () => this.placeMitt(),
+      onComplete: () => {
+        this.dish.setDepth(10);
+        sfx(this.scene, 'pop');
+        stars(this.scene, this.dish.x, this.dish.y, 12, 70 * this.k);
+        const m = this.holdMitt;
+        if (m) this.scene.tweens.add({ targets: m, alpha: 0, x: m.x - 60 * this.k, delay: 250, duration: 350 });
+        this.becomes();
+        this.scene.time.delayedCall(500, () => this.complete());
+      },
+    });
   }
 
   // ------------------------------------------------------------------ out
@@ -486,7 +658,38 @@ export class BakeStep extends Step<BakeParams> {
    */
   protected demo(): HandMotion | null {
     if (this.phase === 'ready') return this.ovenTap();
-    if (this.phase === 'mitts' && this.mitts) return tapMotion({ x: this.mitts.x, y: this.mitts.y }, this.k);
+    if (this.phase === 'mitts' && this.mitts) {
+      // Her hand carries a see-through pair of mitts to the oven's door.
+      const m = { x: this.mitts.x, y: this.mitts.y };
+      const w = this.ovenPoint(380, 440);
+      const sc = this.ctx.stage.mitts.scale;
+      return {
+        kind: 'grab',
+        keys: [
+          { x: m.x, y: m.y, t: 0 },
+          { x: m.x, y: m.y, t: 350, press: true },
+          { x: w.x, y: w.y, t: 1600 },
+          { x: w.x, y: w.y, t: 2100 },
+        ],
+        props: [{ key: this.params.mitts!.pair, scale: sc, alpha: 0.55, angle: -6, fadeFrom: 1700 }],
+        glow: m,
+      };
+    }
+    if (this.phase === 'pull') {
+      // Her mitt takes the pizza's rim in the oven and pulls it out onto the board (the pizza itself stays).
+      const from = { x: this.dish.x - this.dish.halfWidth * this.dish.scaleX * 0.95, y: this.dish.y };
+      const to = { x: this.rest.x - this.dish.halfWidth * 0.95, y: this.rest.y };
+      return {
+        kind: 'mitt',
+        keys: [
+          { x: from.x - 40 * this.k, y: from.y, t: 0 },
+          { x: from.x, y: from.y, t: 350, press: true },
+          { x: to.x, y: to.y, t: 1700 },
+          { x: to.x, y: to.y, t: 2200 },
+        ],
+        glow: { x: this.dish.x, y: this.dish.y },
+      };
+    }
     if (this.phase === 'temp') {
       const P = this.params.panel!;
       const b = this.temp === P.target ? this.btnStart! : this.temp > P.target ? this.btnDown! : this.btnUp!;
@@ -548,11 +751,45 @@ export class BakeStep extends Step<BakeParams> {
       };
       one();
     } else if (this.phase === 'mitts' && this.mitts) {
-      // She puts the mitts on for her, then takes the pizza out.
-      this.hand.play({ ...tapMotion({ x: this.mitts.x, y: this.mitts.y }, this.k), glow: undefined }, {
-        onDone: () => {
-          this.wearMitts();
-          this.scene.time.delayedCall(400, () => this.hand.play(this.ovenTap(), { onDone: () => (this.resumeAfterAuto(), this.openOven()) }));
+      // Mom carries the mitts to the oven for her; the pulling is hers again.
+      this.carry = null;
+      const mitts = this.mitts;
+      const w = this.ovenPoint(380, 440);
+      this.hand.follow('grab', () => ({ x: mitts.x, y: mitts.y }));
+      this.scene.tweens.add({
+        targets: mitts,
+        x: w.x,
+        y: w.y,
+        duration: 1100,
+        ease: 'Sine.easeInOut',
+        onComplete: () => {
+          this.hand.stop();
+          this.resumeAfterAuto();
+          this.mittsOn();
+        },
+      });
+    } else if (this.phase === 'pull') {
+      // Her mitt pulls it out and sets it on the board.
+      this.carry = null;
+      this.hand.follow('mitt', () => (this.holdMitt ? { x: this.holdMitt.x, y: this.holdMitt.y } : null));
+      this.dish.setDepth(12);
+      const s0 = this.dish.scaleX;
+      this.scene.tweens.addCounter({
+        from: 0,
+        to: 1,
+        duration: 1300,
+        ease: 'Sine.easeInOut',
+        onUpdate: (tw) => {
+          const t = tw.getValue() ?? 0;
+          const { spot } = this.inOven();
+          this.dish.setPosition(Phaser.Math.Linear(spot.x, this.rest.x, t), Phaser.Math.Linear(spot.y, this.rest.y, t));
+          this.dish.setScale(Phaser.Math.Linear(s0, 1, t));
+          this.placeMitt();
+          this.hot();
+        },
+        onComplete: () => {
+          this.hand.stop();
+          this.landDish();
         },
       });
     } else if (this.phase === 'ready') {

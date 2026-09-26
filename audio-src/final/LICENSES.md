@@ -219,6 +219,8 @@ This file covers only the files in this folder. Every file is either CC0 1.0 (pu
 | voice/vo-pipa-got-it.ogg | Just what Pipa wanted! | 1.56 | -18.0 | 12815 |
 | voice/vo-pipa-loves.ogg | Pipa loves it! | 1.10 | -18.0 | 10120 |
 | voice/vo-bless-you.ogg | Bless you, Pipa! | 1.14 | -18.0 | 10188 |
+| voice/vo-pull-out.ogg | Now pull it out, nice and slow! | 2.03 | -18.0 | 15350 |
+| voice/vo-cut-slices.ogg | Let's cut it into slices! | 1.71 | -18.4 | 13820 |
 
 ## music/ (1 file)
 

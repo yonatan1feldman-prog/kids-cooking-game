@@ -281,9 +281,9 @@ feedback on every touch, Mom's demo, the 5 s hint from her hand, her help after 
   says `temp-N`, the oven glows and tints from cool to warm. At `target`: the glow ring over its number, "Perfect! Now
   press start!", the hand on start; at `max`: "Oops, too hot!" and the hand on down; idle below the target: "A little
   more!" and the hand on up. Start only works at the target (elsewhere it wiggles: a miss), then beep, `startOn`, the
-  old baking. The pizza never burns. `mitts`: after the ding the mitts lie on the board, "Put on your oven mitts!"; a
-  tap puts them on (they fly down to her hands); a tap on the oven or a drag from it takes the pizza out, her mitt
-  pulling its rim. Mom's hand: pointing at the buttons and the mitts, `mom-hand-mitt` pulling it out.
+  old baking. The pizza never burns. `mitts`: after the ding the mitts lie on the board, "Put on your oven mitts!"; she
+  drags them to the oven (the door opens, a mitt holds the rim), then drags the pizza out onto the board (gameplay
+  round 2, see its handoff note). Mom's hand: pointing at the buttons and the mitts, `mom-hand-mitt` pulling it out.
 - `share` (`ShareStep`, `ShareParams`): her pizza cut into slices (as `feed`), Pipa big on the board's rim, Mom a step
   aside (`stage.feedPet`, `feedMomShift`). A slice goes to whoever's mouth it is let go near (or, right of Pipa's
   edge, the nearer one). The one it comes near opens wide (Mom: surprised eyes, open mouth, `Mom.expectFood`); Mom
@@ -652,7 +652,24 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; round 14, the polish round, and round 13, the fruit skewers, on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 00000000000. Gameplay round 2 (the owner: "she should cut it herself; drag the mitts, pull it out")
+- **Taking it out of the oven** (`BakeStep`, every baked recipe: pizza, cookies, cake, since they share the pizza's
+  `mitts`): after the ding the mitts lie on the board; she DRAGS them to the oven (dropped near it or carried well toward
+  it counts; anywhere else they slide back, a miss). The door opens with hot air, a mitt holds the dish's rim, Mom:
+  "Now pull it out, nice and slow!" (`mitts.pull`, vo-pull-out). She drags the dish out: it follows her finger and grows
+  from its oven size to its board size; let go past `TUNING.bake.pullAt` (0.4 of the way) it lands on the board, earlier
+  it slides gently back in (a miss). Puffs of hot air answer the pulling. First run: Mom's hand shows each of the two
+  moments once (`firstRunShow`); the 8 s hint loops it; her help carries the mitts (then gives it back), then pulls it out.
+- **Cutting before sharing** (`ShareStep`, `cut: { knife, line }`: pizza, cake, pancakes): the whole dish on its board, a
+  dotted guide where the next cut goes, the knife (tip-anchored, as in `chop`) beside it. Any stroke over the dish of
+  `TUNING.share.cutSwipe` (200 x k) makes the next cut all the way across its line (no precision, no wrong direction),
+  chop, Mom counts; 6 slices = 3 diameters (an odd number: radii). Then the pieces come apart and the share line plays.
+  Demo / hint: Mom's knife hand draws the next cut (size 0.75); help: her hand cuts the rest, then sharing is hers.
+- **Finale glitch fixed:** `render.maxTextures: 8` in main.ts (with 16, a crowded screen lost pieces of Mom in WebGL).
+- Voice: vo-pull-out, vo-cut-slices (Kokoro, `make_vo.py mom-a`), not heard by an agent.
+- **Needs a real child:** does she drag the mitts or tap them (a tap does nothing now: the hint comes after 3 taps or 8 s)?
+  Is the pull clear? Is a 200-unit stroke per cut right?
 ### 0000000000. Round 14, the polish round ("juice", all recipes)
 State: branch `claude/project-thread-k5x3u3`; `rollback-pre-juice` = master before it (see PROJECT-KNOWLEDGE.md's
 pending tags). No new art or sound: everything is drawn in code (`fx-ring`, `fx-paper` in `makeFxTextures`, kept by
