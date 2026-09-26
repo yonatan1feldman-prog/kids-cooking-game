@@ -656,7 +656,7 @@ explicitly approved that one push in the current round (see "Working rules" and 
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
 ## Handoff notes (written for the next agent; visual round 4 (the living window), gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
-### 0000000000000. Visual round 4 (the living window)
+### 000000000000000. Visual round 4 (the living window)
 The owner asked for "birds flying past the window, and anything that makes the scenery nicer". `core/scenery.ts`
 (`addScenery`, called by `addBackground`, so title, home, album and every recipe have it):
 - **Birds:** every 18-34 s (first after 3-7 s) one to three birds (`kitchen-bird-up` / `-down`, 58x44, flapping 1.2 s,
