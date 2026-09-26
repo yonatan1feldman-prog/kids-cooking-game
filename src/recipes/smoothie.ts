@@ -7,7 +7,7 @@ import { pizza } from './pizza';
 /**
  * The fruit smoothie: the fourth recipe, data on the step types of the others plus `blend` (README-smoothie.md for the
  * art). Wash hands, wash the fruit, choose three of four fruits, cut each, put it all in the blender jar, pour in the
- * milk, put the lid on and blend, pour it into two glasses, share them with Mom and Pipa, the photo.
+ * milk, put the lid on and blend, pour it into three glasses, share them with Mom, Pipa and the guest, the photo.
  */
 
 const JAR = { back: 'blender-jar-back', front: 'blender-jar-front' } as const;
@@ -140,14 +140,14 @@ export const smoothie: Recipe = {
         ...TUNING.open,
         pourMs: TUNING.smoothie.glass.ms,
         keep: {},
-        glasses: { empty: 'glass-empty', full: 'glass-full', count: 2 },
+        glasses: { empty: 'glass-empty', full: 'glass-full', count: TUNING.smoothie.glass.count },
       },
     },
     {
       type: 'share',
       params: {
         slice: 'glass-full',
-        slices: 2,
+        slices: TUNING.smoothie.glass.count,
         line: 'vo-share-smoothie',
         forMom: 'vo-glass-mom',
         momYum: 'vo-smoothie-yum',

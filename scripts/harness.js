@@ -177,7 +177,18 @@
       const s = st.slices.find((x) => !x.eaten);
       if (s) {
         const mode = window.__shareTo || 'alt', n = st.slices.filter((x) => x.eaten).length;
-        const who = mode === 'alt' ? (st.guestIn ? ['guest', 'mom', 'pet'][n % 3] : n % 2 ? 'pet' : 'mom') : mode;
+        let who = mode === 'alt' ? (st.guestIn ? ['guest', 'mom', 'pet'][n % 3] : n % 2 ? 'pet' : 'mom') : mode;
+        // Gameplay round 3: everyone eats. A piece for one who has eaten while the rest are needed for the hungry is
+        // tried once per piece (it comes back, window.__redirects counts it), then it goes to one who has not eaten.
+        if (mode === 'guest' && !st.guestIn) { await __run(500); return; }
+        if (!st.mayHave(who, s)) {
+          if (st.__tried !== s) { st.__tried = s; window.__redirects = (window.__redirects || 0) + 1; }
+          else {
+            const h = st.hungry.filter((w) => w !== 'guest' || st.guestIn);
+            if (!h.length) { await __run(500); return; }
+            who = h[0];
+          }
+        }
         const c = st.sliceCenter(s), m = st.targetOf(who);
         await __drag([[c.x, c.y], [(c.x + m.x) / 2, (c.y + m.y) / 2 - 40], [m.x, m.y]]); await __run(1250);
       }
@@ -733,8 +744,9 @@ window.__fullRun5 = async (demos, mode = 'child', picks = ['tomato', 'corn', 'ol
     const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === `card-${window.__recipe || 'pizza'}`);
     const n0 = __voLog.length; const t0 = T(); const steps = []; const at = {};
     __tap(c.x, c.y); await __run(1800); await __waitRecipe();
-    for (let g = 0; g < 4000 && game.scene.isActive('Recipe'); g++) {
+    for (let g = 0; g < 12000 && game.scene.isActive('Recipe'); g++) {
       const s = __type(); const st = __R().step;
+      if (s === 'share') window.__fed = { ...st.fed };
       if (st && st !== window.__lastStep) {
         window.__lastStep = st; steps.push(s); at[steps.length - 1 + ':' + s] = +((T() - t0) / 1000).toFixed(1);
         await __waitDemo(); await __run(mode === 'child' ? 1000 : 300);
