@@ -791,6 +791,13 @@ Spec and research: `/mnt/project-files/research/puzzle-spec.md`. No new art: eve
 - **Needs a real child:** does she understand the piece coming back (the hungry one hopping, Mom's line)? Are the longer
   steps still fun (the recipe's length; tune `TUNING` down if she drifts off)?
 ### 0000000000000. The final QA round (all eight recipes)
+- **QA round 3 (after the garden, gameplay round 4, visual round 5):** all eight recipes (20:9 child pace with demos,
+  4:3 no touch), the garden (20:9 child, 4:3 no touch) and the puzzle (4 and 12 pieces) reach the end with no voice
+  problems. Fixed: with the garden card the home grid put a card (the album button, or the garden card itself) under
+  Mom's pointing hand on 4:3. `stage.card` / `cardScale` now keep every card clear of her hand and forearm (`arm` in
+  stage.ts), choosing two or three rows (three from 7 cards), whichever gives bigger cards; 20:9 is unchanged.
+  Known layout-checker hits that are not bugs: the grater fading while the pizza slides back (end of grate), a picked
+  can or jar lifted into the bin above it (choose).
 - **QA round 2 (after gameplay round 3, the living window, the puzzle):** Title, Home and the album each added a watcher
   for Mom's eyes on the scene's update at every visit and never removed it (the scene object lives on), so they piled
   up; now removed on shutdown. Checked flat over four Home -> recipe -> album -> puzzle cycles: update/input listeners,
@@ -1103,7 +1110,7 @@ tag)`), to compare with `../cooking-game-assets/images-b-salad/shots/`.
 - **The big bowl across steps:** `PrepBowl` knows two bowls by their back layer (`BOWLS`): the prep bowl in the middle
   (`stage.prepBowl`) and the salad bowl on the right of the prep area (`stage.saladBowl`); `stage.pourFrom` is the room
   on its left for the things poured in (and the salt shaker's rest). Each salad step `take`s it and `keep`s it.
-- **Home:** `stage.card(i, n)` / `cardScale(n)`: one row up to 3 cards, else two rows (up to 8), left of Mom and Pipa.
+- **Home:** `stage.card(i, n)` / `cardScale(n)`: one row up to 3 cards, else two or three rows, clear of Mom's pointing hand, left of Mom and Pipa.
   `Recipe.pickLine` is said on the tap. Demo counters stay per recipe (`cooking.runs.<id>`).
 - **Checked (virtual clock, simulated voice):** full salad at the child model's pace with demos (cucumber, carrot,
   tomato): 190 s from the card to home, voice in order, no overlap, no forbidden cut, vo-cut-careful once. Pizza
