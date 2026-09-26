@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import type { SoundKey } from './assets';
+import { RECIPE_SOUNDS, type SoundKey } from './assets';
 import { LEVEL } from './audio';
 
 /** Per-effect gain on top of LEVEL.sfx (MIXING.md: munch is 5 dB quieter in the file, so it plays at 1.0). */
@@ -22,6 +22,7 @@ const KEY_GAIN: Partial<Record<SoundKey, number>> = {
 const gainOf = (key: SoundKey, rel = 1) => Math.min(1, rel * LEVEL.sfx * (KEY_GAIN[key] ?? 1));
 
 const lastPlayed = new Map<string, number>();
+const unloadedTold = new Set<string>();
 
 /**
  * Plays a contract sound if it was loaded. A missing sound is silently skipped.
@@ -29,7 +30,14 @@ const lastPlayed = new Map<string, number>();
  * `volume` is relative (1 = the normal effect level, LEVEL.sfx ~0.65 of Mom's voice); `rate` pitches it (a guest's voice).
  */
 export function sfx(scene: Phaser.Scene, key: SoundKey, opts: { volume?: number; minGapMs?: number; vary?: boolean; rate?: number } = {}) {
-  if (!scene.cache.audio.exists(key)) return;
+  if (!scene.cache.audio.exists(key)) {
+    // (an effect some other recipe lists but this one doesn't: never loaded here)
+    if (RECIPE_SOUNDS.has(key) && !unloadedTold.has(key)) {
+      unloadedTold.add(key);
+      console.warn(`[assets] sound not loaded: ${key} (add it to this recipe's RECIPE_ASSETS sounds)`);
+    }
+    return;
+  }
   const now = performance.now();
   const gap = opts.minGapMs ?? 60;
   if (now - (lastPlayed.get(key) ?? -Infinity) < gap) return;

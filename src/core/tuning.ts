@@ -27,7 +27,7 @@ export const TUNING = {
   /** Wash hands: tap the tap, then rub the hands until the bubbles are there; then the water rinses them. */
   wash: {
     /** Bubbles that grow on the hands before they are rinsed. */
-    bubbles: 12,
+    bubbles: 14,
     /** Rubbing distance (finger travel over the hands) per new bubble. */
     rubPerBubble: 300,
     /** After this many bubbles Mom says "Rub, rub, rub!". */
@@ -36,45 +36,46 @@ export const TUNING = {
     rinseMs: 1500,
   },
   /** Knead: presses on the dough per stage (dough-knead-1 -> 2 -> 3 -> dough-ball: 3 changes). */
-  knead: { pressesPerStage: 3 },
+  knead: { pressesPerStage: 4 },
   /** Crush: presses on the tomatoes per stage (sauce-stage-0 -> 1 -> 2: 2 changes). */
-  crush: { pressesPerStage: 3 },
+  crush: { pressesPerStage: 4 },
   /** Stir: finger travel inside the bowl to go from chunky (stage 2) to smooth sauce (stage 3). About 2-3 laps. */
-  stir: { distance: 3600 },
+  stir: { distance: 4200 },
   /** Grate: rubbing travel on the grater (up and down counts fully, sideways a third) for the whole block. */
-  grate: { distance: 3600, shredEvery: 60 },
+  grate: { distance: 4200, shredEvery: 60 },
   /** Roll: rubbing distance in dough widths. */
-  roll: { rubWidths: 5 },
+  roll: { rubWidths: 6 },
   /** Spread: share of the dough that must be painted (the game fills the rest). */
-  spread: { coverage: 0.7 },
+  spread: { coverage: 0.78 },
   /** Sprinkle: cheese pieces that land before the step is done. */
-  sprinkle: { count: 45 },
+  sprinkle: { count: 55 },
   /** Choose the toppings: how many she picks, and the pause after the last pick (she sees her three). */
   choose: { pick: 3, pauseMs: 900 },
   /**
    * Chop: cuts per vegetable (the end that is left becomes one more slice), and how far (world units) a finger must
    * move down over the vegetable for one cut: short and forgiving, wherever it is sideways.
    */
-  chop: { cuts: 5, minSwipe: 50 },
+  chop: { cuts: 6, minSwipe: 70 },
   /**
    * Open a can or a jar, then pour it into the bowl. Can: `taps` taps on the lid, or one move up of `swipe` units.
    * Jar: sideways rubbing on the lid adds up to `twist` units (a tap counts a quarter of it). Pour: ms of holding the
    * open can or jar over the bowl (the pouring stops when it is moved away and goes on when it comes back).
    */
-  open: { taps: 3, swipe: 80, twist: 900 },
-  pour: { ms: 2500 },
+  open: { taps: 4, swipe: 110, twist: 1100 },
+  pour: { ms: 2800 },
   /**
    * The oven's temperature: the needle starts at `from`, each press moves it by `step` between `min` and `max`, and
    * baking starts at `target` (the art's panel prints 50-250). Baking: ms in the oven after the start.
    */
   oven: { from: 50, step: 50, min: 50, max: 250, target: 200, bakeMs: 5000 },
   /** Taking it out: let go once it is this far out of the oven (0 in it .. 1 on the board), it lands on the board. */
-  bake: { pullAt: 0.4 },
+  bake: { pullAt: 0.55 },
   /**
+   * Gameplay round 3 raised most counts here a little (a bit more to do in every step, never harder to do).
    * Share: slices the pizza is cut into (shared between Mom and Pipa, any way she likes); `cutSwipe`: finger travel over
    * the dish (x k) that makes the next cut.
    */
-  share: { slices: 6, cutSwipe: 200 },
+  share: { slices: 6, cutSwipe: 260 },
   /**
    * The salad (round 6; aim: 4-5 minutes from the card to home). Wash the vegetables: drops (bursts) of rubbing, as
    * `wash.bubbles`. Tear the lettuce: presses per stage (head -> tear-1 -> 2 -> 3: 3 changes). Chop: cuts per vegetable.
@@ -82,14 +83,14 @@ export const TUNING = {
    * (3 states: 2 changes). Oil: ms of pouring. Salt: shakes. Mix: finger travel in the bowl. Serve: portions.
    */
   salad: {
-    washVeg: { bubbles: 8, rubPerBubble: 300, rubLineAt: 99, rinseMs: 1200 },
-    tear: { pressesPerStage: 3 },
-    chop: { cuts: 4, minSwipe: 50 },
+    washVeg: { bubbles: 10, rubPerBubble: 300, rubLineAt: 99, rinseMs: 1200 },
+    tear: { pressesPerStage: 4 },
+    chop: { cuts: 5, minSwipe: 70 },
     transfer: { ms: 1300 },
-    lemon: { pressesPerStage: 3 },
+    lemon: { pressesPerStage: 4 },
     oil: { ms: 1800 },
-    salt: { shakes: 5 },
-    mix: { distance: 3000 },
+    salt: { shakes: 6 },
+    mix: { distance: 3600 },
     serve: { portions: 4 },
   },
   /**
@@ -102,10 +103,10 @@ export const TUNING = {
   cookies: {
     flour: { ms: 2000 },
     sugar: { ms: 1500 },
-    egg: { pressesPerStage: 2 },
-    stir: { distance: 3600 },
-    knead: { pressesPerStage: 3 },
-    roll: { rubWidths: 4 },
+    egg: { pressesPerStage: 3 },
+    stir: { distance: 4200 },
+    knead: { pressesPerStage: 4 },
+    roll: { rubWidths: 5 },
     cut: { pressMs: 520 },
     oven: { target: 150 },
   },
@@ -115,12 +116,12 @@ export const TUNING = {
    * run in all (holding the button or tapping it: a tap runs it at least `tapMs`). Glass: ms of pouring to fill one glass.
    */
   smoothie: {
-    washFruit: { bubbles: 10, rubPerBubble: 300, rubLineAt: 99, rinseMs: 1200 },
-    chop: { cuts: 5, minSwipe: 50 },
+    washFruit: { bubbles: 12, rubPerBubble: 300, rubLineAt: 99, rinseMs: 1200 },
+    chop: { cuts: 6, minSwipe: 70 },
     transfer: { ms: 1500 },
     milk: { ms: 2200 },
-    blend: { runMs: 6000, tapMs: 450 },
-    glass: { ms: 2400 },
+    blend: { runMs: 7000, tapMs: 450 },
+    glass: { ms: 2400, count: 3 },
   },
   /**
    * The pancakes (round 8; aim: 4-5 minutes from the card to home). Into the bowl: ms of pouring the flour and the milk.
@@ -131,8 +132,8 @@ export const TUNING = {
     flour: { ms: 2500 },
     milk: { ms: 2500 },
     egg: { pressesPerStage: 3 },
-    stir: { distance: 4200 },
-    flip: { count: 3, pourMs: 3500, cookMs: 3000, minSwipe: 60 },
+    stir: { distance: 4800 },
+    flip: { count: 3, pourMs: 3500, cookMs: 3000, minSwipe: 90 },
     share: { slices: 4 },
   },
   /**
@@ -142,13 +143,13 @@ export const TUNING = {
    * the three soup stages. Serve: one ladle per bowl, two bowls.
    */
   soup: {
-    washVeg: { bubbles: 10, rubPerBubble: 300, rubLineAt: 99, rinseMs: 1200 },
-    peel: { strips: 5, minSwipe: 110 },
-    chop: { cuts: 4, minSwipe: 50 },
+    washVeg: { bubbles: 12, rubPerBubble: 300, rubLineAt: 99, rinseMs: 1200 },
+    peel: { strips: 6, minSwipe: 130 },
+    chop: { cuts: 5, minSwipe: 70 },
     transfer: { ms: 1400 },
     water: { ms: 2400 },
-    stir: { distance: 4200 },
-    serve: { bowls: 2 },
+    stir: { distance: 4800 },
+    serve: { bowls: 3 },
   },
   /**
    * The birthday cake (round 9; aim: 4-5 minutes from the card to home). Into the bowl: ms of pouring the flour, the
@@ -161,13 +162,13 @@ export const TUNING = {
     sugar: { ms: 2000 },
     milk: { ms: 2400 },
     egg: { pressesPerStage: 3 },
-    stir: { distance: 4200 },
+    stir: { distance: 4800 },
     pan: { ms: 2600 },
     oven: { target: 200 },
-    frost: { rubWidths: 4 },
+    frost: { rubWidths: 5 },
     decorate: { items: 4 },
     candles: { count: 5 },
-    share: { slices: 6, cutSwipe: 200 },
+    share: { slices: 6, cutSwipe: 260 },
   },
   /**
    * The fruit skewers (round 13; aim: about 4 minutes from the card to home). Wash and chop: as the smoothie. Thread:
@@ -175,8 +176,8 @@ export const TUNING = {
    * dragged piece still lands (x k), the pause between skewers (ms). Share: the three skewers.
    */
   skewers: {
-    washFruit: { bubbles: 10, rubPerBubble: 300, rubLineAt: 99, rinseMs: 1200 },
-    chop: { cuts: 5, minSwipe: 50 },
+    washFruit: { bubbles: 12, rubPerBubble: 300, rubLineAt: 99, rinseMs: 1200 },
+    chop: { cuts: 6, minSwipe: 70 },
     thread: { pieces: 5, given: 3, reach: 260, pauseMs: 900 },
   },
   /** Mom's help (after the idle hint): the pace of her own presses, rubs and strokes. */
@@ -186,7 +187,7 @@ export const TUNING = {
    * of one thing to put on (Mom says the number). Both grow with how often this recipe has been played on this device
    * (the run's number: index 0 = the first run; past the end, the last value). Nothing happens if she does otherwise.
    */
-  wish: { chooseItems: [1, 1, 2], decorateCount: [3, 3, 4, 4, 5], sayAfterMs: 900 },
+  wish: { chooseItems: [1, 2, 2], decorateCount: [3, 4, 4, 5, 5], sayAfterMs: 900 },
   /** Pipa's tastes when she eats: at most this many sneezes in one sharing (then she just giggles). */
   taste: { maxSneezes: 2 },
   /**

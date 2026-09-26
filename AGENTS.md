@@ -468,7 +468,7 @@ fallback if the capture fails.
   is core (loaded at boot: title, home, Mom, Pipa, kitchen, demo hands, buttons, cards; every sound no recipe lists) and
   what belongs to a recipe (its images and own sounds). A card tap loads the recipe's part (`recipeAssets` in
   BootScene; Mom waves, a small spinner over the card after 250 ms); the home screen releases every non-core texture
-  and the recipe's sounds (`releaseRecipe`). A new recipe MUST add its entry; a key asked for but not loaded warns
+  and the recipe's sounds (`releaseRecipe`). A new recipe MUST add its entry (including every shared line or effect another recipe lists: a listed sound is not core); a key asked for but not loaded warns
   `[assets] not loaded yet: <key>` in the console, a key in no list warns at boot. The service worker still precaches
   everything. Measured (desktop, hidden automated tab): home textures 177 -> 41; all art ready 4.6 s -> core 1.4 s;
   a recipe loads in 1.6-1.9 s. Harness: `__infra8()` (enter / leave / re-enter runs), `__loadStats()`, `__bg8()`.
@@ -653,7 +653,42 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 00000000000000. Gameplay round 3 (everyone eats; a bit more to do in every step)
+- **Everyone eats** (`ShareStep`): the step ends only when Mom, Pipa and the guest have each had a piece. `hungry` = who
+  has not eaten (the guest counts from her invitation, before she has walked in); `mayHave(who, s)`: a second piece is
+  fine while enough pieces are left for every hungry one. A piece brought to one who has eaten when it is needed for
+  another comes back gently (`stillHungry`): the full one smiles and does a little squish (no "no", nobody sad), the
+  hungry one opens wide and hops, Mom names her once with the recipe's own line ("Some for Pipa!", `forPet` /
+  `forGuest`; her first-bite line is then not repeated), and Mom's hand shows it at once (`Step.hintNow`). Mom's help
+  (`helpFor`) waits for a guest still walking in. The smoothie pours three glasses (`TUNING.smoothie.glass.count`) and
+  the soup serves three bowls, so every recipe has at least three pieces. `MOUTH_REACH` 380 -> 320 (a slightly
+  smaller target; right of Pipa's edge still counts).
+- **More to do, never harder** (`core/tuning.ts`, age 4-5, no time pressure, hint 8 s and help 20 s unchanged): wash
+  bubbles 12->14 (the fruit/veg washes +2), knead/crush/tear/lemon 3->4 presses per stage, cookie egg 2->3, stir and
+  grate +600 (pancakes/soup/cake 4200->4800, salad mix 3000->3600), roll 5->6 widths (cookies 4->5, frosting 4->5),
+  spread coverage 0.70->0.78, sprinkle 45->55, salt 5->6, chop 5->6 cuts (salad/soup 4->5) with a longer stroke
+  (minSwipe 50->70), can 3->4 taps / swipe 80->110, jar twist 900->1100, pour 2.5->2.8 s, blend 6->7 s, pancake flip
+  swipe 60->90, peel 5->6 strips (stroke 110->130), pulling out of the oven 0.4->0.55 of the way, the cut stroke
+  200->260, Pipa's wishes grow sooner (choose 1,2,2 things; decorate 3,4,4,5,5).
+- Harness: `__gesture` in share tries a full one once per piece (`window.__redirects`) then feeds a hungry one;
+  `__fullRun5` records `window.__fed` and runs up to 12000 rounds (Mom's help to the end takes longer now).
+- **Needs a real child:** does she understand the piece coming back (the hungry one hopping, Mom's line)? Are the longer
+  steps still fun (the recipe's length; tune `TUNING` down if she drifts off)?
+### 0000000000000. The final QA round (all eight recipes)
+- **A sound some recipe lists is loaded only for the recipes that list it** (`RECIPE_SOUNDS`). vo-cut / vo-cut-careful
+  and name-tomato / name-onion were listed by the soup (and the skewers), so the pizza, salad and smoothie cut in silence
+  and named no tomato or onion; the cake never said vo-temp; the pancakes' banana wish had no name. A recipe that uses
+  a line or effect another recipe lists must list it too. Now a line or effect asked for but never loaded warns once:
+  `[assets] voice not loaded: <key>` / `[assets] sound not loaded: <key>`.
+- **Candles:** after Mom's help stood the candles up the step stayed in help mode (`auto`), so nobody could blow the
+  flames out: a child who waited was stuck forever. `resumeAfterAuto()` when the flames are lit.
+- Checked (virtual clock, simulated voice, `headlessStep`): every recipe with demos at 20:9 (voice in order, no overlap,
+  photo in the book), with no touch at 4:3 (Mom helps to the end, home), layout audits at 20:9 and 4:3 (only the known
+  finale sway and Mom's step aside), rotate and background with the mitts, the pulled dish, the knife and a fruit held,
+  hint at 8 s and help 20 s later, object and particle counts flat over a whole recipe, and the update flow against two
+  production builds (a new version waits through a recipe and the home screen, and is on at the next start).
+
 ### 000000000000. The guests round (who comes to eat)
 The owner's idea: each meal she picks who comes to eat. Pipa stays the pet; a guest joins Mom and Pipa in `share`.
 - **Data:** `src/core/guests.ts` (`GUESTS`: turtle, giraffe, penguin): layers like Pipa's (`CharacterDef` + `back` for
