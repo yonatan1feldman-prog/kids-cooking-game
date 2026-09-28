@@ -63,6 +63,10 @@ export type VoiceKey =
   // the garden (not cooking: plant, water, grow, pick)
   | 'vo-pick-garden' | 'vo-garden-seeds' | 'vo-garden-plant' | 'vo-garden-water' | 'vo-garden-sprout' | 'vo-garden-cloud'
   | 'vo-garden-sun' | 'vo-garden-snail' | 'vo-garden-snail-yum' | 'vo-garden-pick' | 'vo-garden-pull' | 'vo-garden-done'
+  // two mini-games that are not cooking: the market, washing up
+  | 'vo-pick-market' | 'vo-market-list' | 'vo-market-remember' | 'vo-market-not' | 'vo-market-pipa' | 'vo-market-two'
+  | 'vo-market-done' | 'vo-pick-dishes' | 'vo-dishes-start' | 'vo-dishes-scrub' | 'vo-dishes-clean' | 'vo-dishes-rack'
+  | 'vo-dishes-rack-2' | 'vo-dishes-colour' | 'vo-dishes-done'
   | 'vo-garden-weeds' | 'vo-garden-enough' | 'vo-garden-cloud-2' | 'vo-garden-bunny' | 'vo-garden-bunny-this' | 'vo-garden-bunny-yum'
   // gameplay round 4: find the tool, Pipa's order, stir with the arrow
   | 'vo-find-grater' | 'vo-find-pin' | 'vo-find-spoon' | 'vo-pipa-order' | 'vo-then' | 'vo-first-this' | 'vo-stir-arrow'
@@ -75,7 +79,7 @@ export type VoiceKey =
 export type CountKey = `count-${1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10}`;
 export type TempKey = `temp-${50 | 100 | 150 | 200 | 250}`;
 /** Mom naming what she picked (the choose step: a new name may cut the name playing, never another line). */
-export type NameKey = `name-${'tomato' | 'mushroom' | 'pepper' | 'onion' | 'corn' | 'olives' | 'cucumber' | 'carrot' | 'lemon' | 'lettuce' | 'star' | 'heart' | 'circle' | 'flower' | 'banana' | 'strawberry' | 'mango' | 'kiwi' | 'potato' | 'zucchini' | 'pink' | 'white' | 'chocolate' | 'grater' | 'rolling-pin' | 'spoon' | 'whisk' | 'spatula'}`;
+export type NameKey = `name-${'tomato' | 'mushroom' | 'pepper' | 'onion' | 'corn' | 'olives' | 'cucumber' | 'carrot' | 'lemon' | 'lettuce' | 'star' | 'heart' | 'circle' | 'flower' | 'banana' | 'strawberry' | 'mango' | 'kiwi' | 'potato' | 'zucchini' | 'pink' | 'white' | 'blue' | 'yellow' | 'chocolate' | 'grater' | 'rolling-pin' | 'spoon' | 'whisk' | 'spatula'}`;
 export const countKey = (n: number): CountKey => `count-${Math.max(1, Math.min(10, Math.round(n)))}` as CountKey;
 
 const PRAISE: VoiceKey[] = ['vo-praise-1', 'vo-praise-2', 'vo-praise-3', 'vo-praise-4', 'vo-praise-5', 'vo-praise-6', 'vo-praise-7'];

@@ -1326,3 +1326,86 @@ window.__gardenRun = async (level = 1, mode = 'child', w = 900, h = 405, demos =
       helps: log.filter((e) => e.key === 'vo-help').length, check: __voCheck(log), keys: log.map((e) => e.key + '@' + ((e.start - l0) / 1000).toFixed(1)) };
   } finally { window.__drag = drag0; }
 };
+
+// ---- The mini-games round (market, washing up): __mini(id, level, {first}), __marketPlay / __dishesPlay({wrong, drag, none, gap}),
+// __verify(id, level, opts): a whole game on the virtual clock with the simulated voice (raf stopped: in a visible page
+// the browser's own frames would step the game with real timestamps too), __fast(on): headlessStep.
+window.__mini = async (id, level = 1, opts = {}) => {
+  window.__level = level;
+  if (opts.first === false) localStorage.setItem('cooking.runs.' + id, '3'); else if (opts.first) localStorage.removeItem('cooking.runs.' + id);
+  // (not a literal import: the dev server would rewrite this file)
+  const B = await new Function('u', 'return import(u)')('/kids-cooking-game/src/scenes/BootScene.ts');
+  game.scene.getScenes(true).forEach((s) => s.scene.stop());
+  game.scene.start('Home', {});
+  await __run(800);
+  await B.recipeAssets(game, id);
+  game.scene.getScenes(true).forEach((s) => s.scene.stop());
+  const name = { market: 'Market', dishes: 'Dishes', garden: 'Garden' }[id];
+  game.scene.start(name);
+  await __run(opts.wait ?? 3000);
+  return game.scene.getScene(name);
+};
+window.__marketPlay = async (opts = {}) => {
+  const m = game.scene.getScene('Market');
+  const log = [];
+  for (let i = 0; i < 1200 && m.scene.isActive(); i++) {
+    if (m.shown.phase === 'shop' && !m.helping) {
+      const w = m.wants.find((q) => !q.got);
+      if (opts.none) { await __run(500); continue; }
+      if (w) {
+        if (opts.wrong && !m.__wrongDone) { m.__wrongDone = true; const c = m.crates.find((q) => !m.wants.some((z) => z.good === q.good)); log.push('wrong ' + c.good.id); __tap(c.item.x, c.item.y); await __run(opts.gap ?? 900); continue; }
+        const c = m.crates.find((q) => q.good === w.good);
+        if (opts.drag) await __drag([[c.item.x, c.item.y], [(c.item.x + m.basket.x) / 2, c.item.y - 50], [m.basket.x, m.basket.y - 30]]);
+        else __tap(c.item.x, c.item.y);
+        log.push(w.good.id);
+      }
+      await __run(opts.gap ?? 900);
+    } else await __run(300);
+    if (!m.scene.isActive() || game.scene.isActive('Home')) break;
+  }
+  return { log, shown: m.shown, home: game.scene.isActive('Home') };
+};
+window.__dishesPlay = async (opts = {}) => {
+  const m = game.scene.getScene('Dishes');
+  const log = [];
+  let wrongDone = false;
+  for (let i = 0; i < 2400 && m.scene.isActive(); i++) {
+    const ph = m.shown.phase;
+    if (opts.none || m.helping) { await __run(500); continue; }
+    if (ph === 'take') {
+      const d = m.top();
+      if (opts.drag) await __drag([[d.box.x, d.box.y], [m.sink.in.x, m.sink.in.y - 40]]);
+      else __tap(d.box.x, d.box.y);
+      log.push('take ' + d.colour + '-' + d.kind);
+      await __run(opts.gap ?? 1200);
+    } else if (ph === 'scrub') {
+      const d = m.cur; const pts = [];
+      for (let a = 0; a < Math.PI * 2 * 5; a += 0.5) pts.push([d.box.x + Math.cos(a) * 80, d.box.y + Math.sin(a) * 60]);
+      await __drag(pts);
+      log.push('scrub ' + m.shown.scrub);
+      await __run(opts.gap ?? 600);
+    } else if (ph === 'rack') {
+      const d = m.cur;
+      let to = m.place(d.colour, d.kind);
+      if (opts.wrong && !wrongDone) { wrongDone = true; const c = ['blue', 'yellow', 'pink'].find((c) => c !== d.colour); to = m.place(c, d.kind); log.push('wrong'); }
+      await __drag([[d.box.x, d.box.y], [(d.box.x + to.x) / 2, (d.box.y + to.y) / 2], [to.x, to.y]]);
+      log.push('rack ' + d.colour + '-' + d.kind);
+      await __run(opts.gap ?? 1200);
+    } else await __run(300);
+    if (game.scene.isActive('Home')) break;
+  }
+  return { log, shown: m.shown, home: game.scene.isActive('Home') };
+};
+window.__fast = (on) => { if (!window.__stepCb) window.__stepCb = game.loop.callback; game.loop.callback = on ? game.headlessStep.bind(game) : window.__stepCb; };
+window.__verify = async (id, level, opts = {}) => {
+  for (let i = 0; i < 60 && !__voice.allLoaded; i++) await new Promise((r) => setTimeout(r, 250));
+  game.loop.raf.stop(); __voSim(true); __fast(true);
+  await __mini(id, level, { first: !!opts.first, wait: 200 });
+  __voLog.length = 0;
+  const t0 = __voice.now();
+  const r = id === 'market' ? await __marketPlay(opts) : await __dishesPlay(opts);
+  for (let i = 0; i < 40 && !game.scene.isActive('Home'); i++) await __run(500);
+  const vc = __voCheck(__voLog);
+  __fast(false);
+  return { id, level, opts, secs: Math.round((__voice.now() - t0) / 1000), home: game.scene.isActive('Home'), shown: r.shown, problems: vc.problems, keys: __voLog.map((e) => e.key).join(' ') };
+};

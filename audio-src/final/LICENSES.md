@@ -19,6 +19,7 @@ This file covers only the files in this folder. Every file is either CC0 1.0 (pu
 - **Birthday cake (added 2026-09-20):** 19 more lines (16 `vo-*` cake lines and 3 `name-*` frosting colours), same engine, voice, speed and processing. **Targeted fix (`scripts/fix_vo_cake.py`, a copy of fix_vo_soup.py reusing the same functions):** name-pink and name-chocolate had a loud voiced "uh" before the opening consonant (-4.4 / -2.7 dB under the peak; the free recognizer heard "the tank" / "a chocolate"): start cut at the "p" / "ch" (3 ms fade-in, 20 ms silence in front, as name-carrot), then -18 LUFS; vo-pick-frosting had a fainter version of the same noise before the "p" (-14.2 dB): the same start cut, which raised the recognizer's confidence on "pick" from 0.64 to 0.81; vo-pour-pan had a breathy exhale after "pan" (the recognizer heard "pans"): end cut 5 ms into the exhale with a 25 ms fade-out, as vo-flour, after which it hears "pan" at 1.0; vo-decorate-cake, vo-photo-cake and vo-cake-pipa hit the -1.5 dBFS peak cap first (-19.0 / -18.6 / -18.2 LUFS): the same gentle soft limiter as vo-temp-more (max 1.3 / 1.1 / 0.6 dB), then -18 LUFS. After the fixes the speech recognizer hears every sentence as written ("Yay!" as its homophone "yea"; "Pipa" is not in its vocabulary, and it runs "A slice" together as "as slice", exactly as it does on the shipped vo-glass-mom / vo-cookie-mom lines), and, limited to the three frosting colours as for the salad names, each colour at confidence 1.0. The other 12 lines measured clean and were not changed. Originals of the changed lines are in `work/vo/pre-fix-cake/`.
 - **Fruit skewers (added 2026-09-25, in a cloud session with the pinned packages of AGENTS.md):** 14 more `vo-*` lines, same engine, voice, speed and processing. **Targeted fix (`scripts/fix_vo_skewers.py`, the fix_vo.py functions unchanged):** vo-skewer-mom, vo-skewer-yum and vo-photo-skewers hit the -1.5 dBFS peak cap first (-18.5 / -19.2 / -18.6 LUFS): the gentle soft limiter of vo-temp-more (0.45 / 1.56 / 0.83 dB), then -18 LUFS. vo-new-pattern was first generated as "Ooh, a brand new pattern!" and came out at -22.9 LUFS (the "Ooh" took the peak); written "Ooh! A brand new pattern!" it is -18.0. The speech-recognizer check of earlier rounds was not run: its model download was blocked in the cloud session. Originals of the limited lines are in `work/vo/pre-fix-skewers/`.
 - **The garden (added 2026-09-26, in a cloud session with the pinned packages of AGENTS.md):** 12 more `vo-*` lines (`make_vo.py mom-a`), same engine, voice, speed and processing; no fix was needed (all -18.0 to -18.9 LUFS). The speech-recognizer check was not run.
+- **Two mini-games, the market and washing up (added 2026-09-28, in a cloud session with the pinned packages of AGENTS.md):** 17 more lines (15 `vo-*` and name-blue, name-yellow), same engine, voice, speed and processing. **Targeted fix (`scripts/fix_vo_minigames.py`, the fix_vo.py functions unchanged):** vo-market-done, vo-dishes-colour and vo-dishes-done hit the -1.5 dBFS peak cap first (-21.1 / -19.4 / -18.8 LUFS): the gentle soft limiter of vo-temp-more (2.98 / 1.6 / 0.62 dB), then -18 LUFS. The speech-recognizer check was not run (its model download is blocked in the cloud session). Originals of the limited lines are in `work/vo/pre-fix-minigames/`.
 - **The garden, round 2 (added 2026-09-28, in a cloud session with the pinned packages of AGENTS.md):** 6 more `vo-garden-*` lines (weeds, enough water, a second cloud, the bunny), same engine, voice, speed and processing; all -18.0 LUFS, no fix needed. The speech-recognizer check was not run (its model download is blocked in the cloud).
 | file | text | duration (s) | loudness (LUFS) | size (bytes) |
 |---|---|---|---|---|
@@ -269,6 +270,23 @@ This file covers only the files in this folder. Every file is either CC0 1.0 (pu
 | voice/vo-first-this.ogg | Pipa wants this one first! | 1.77 | -18.0 | 14155 |
 | voice/vo-stir-arrow.ogg | Stir round and round, the way the arrow goes! | 2.83 | -18.0 | 20780 |
 | voice/vo-other-way.ogg | Now stir the other way! | 1.43 | -20.0 | 12420 |
+| voice/vo-pick-market.ogg | Let's go to the market! | 1.46 | -18.0 | 12652 |
+| voice/vo-market-list.ogg | Here's our shopping list! Let's find everything. | 2.86 | -18.2 | 21378 |
+| voice/vo-market-remember.ogg | Can you remember the list? | 1.43 | -18.0 | 12215 |
+| voice/vo-market-not.ogg | Hmm, is that on our list? | 1.66 | -18.0 | 13362 |
+| voice/vo-market-pipa.ogg | Now Pipa's list! What does Pipa want? | 2.54 | -18.0 | 19102 |
+| voice/vo-market-two.ogg | We need two! | 1.02 | -18.0 | 9351 |
+| voice/vo-market-done.ogg | We found everything! What a lovely shopping trip! | 3.06 | -18.0 | 20803 |
+| voice/vo-pick-dishes.ogg | Let's wash the dishes! | 1.46 | -18.3 | 12246 |
+| voice/vo-dishes-start.ogg | Put a dish in the sink! | 1.38 | -18.0 | 11582 |
+| voice/vo-dishes-scrub.ogg | Scrub, scrub, scrub! | 1.43 | -18.0 | 12950 |
+| voice/vo-dishes-clean.ogg | Sparkly clean! | 1.16 | -18.0 | 10505 |
+| voice/vo-dishes-rack.ogg | Now put it on the rack, with the same colour! | 2.53 | -18.0 | 18879 |
+| voice/vo-dishes-rack-2.ogg | Cups go on the hooks, and plates go below! | 2.59 | -18.0 | 19022 |
+| voice/vo-dishes-colour.ogg | Find the same colour! | 1.29 | -18.0 | 10733 |
+| voice/vo-dishes-done.ogg | All clean! Thank you for helping! | 2.04 | -18.0 | 15231 |
+| voice/name-blue.ogg | Blue! | 0.67 | -18.0 | 7431 |
+| voice/name-yellow.ogg | Yellow! | 0.72 | -18.0 | 7744 |
 | voice/vo-little-chef.ogg | Little chef! | 0.93 | -18.0 | 8884 |
 | voice/vo-big-chef.ogg | Big chef! | 0.88 | -18.0 | 8616 |
 | voice/vo-pipa-order-3.ogg | Look! Pipa wants three things, in order. First... | 2.97 | -19.6 | 21150 |

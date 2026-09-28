@@ -6,6 +6,8 @@ import { BASE_H, BASE_W } from './core/layout';
 import { BootScene } from './scenes/BootScene';
 import { AlbumScene } from './scenes/AlbumScene';
 import { GardenScene } from './scenes/GardenScene';
+import { MarketScene } from './scenes/MarketScene';
+import { DishesScene } from './scenes/DishesScene';
 import { HomeScene } from './scenes/HomeScene';
 import { PuzzleScene } from './scenes/PuzzleScene';
 import { RecipeScene } from './scenes/RecipeScene';
@@ -31,7 +33,7 @@ const game = new Phaser.Game({
   // Three touch slots so a resting palm can't take the only slot. Which touch "owns" an
   // action is decided in Step / iconButton: the first finger rules until it is lifted.
   input: { activePointers: 3 },
-  scene: [BootScene, TitleScene, HomeScene, RecipeScene, AlbumScene, PuzzleScene, GardenScene],
+  scene: [BootScene, TitleScene, HomeScene, RecipeScene, AlbumScene, PuzzleScene, GardenScene, MarketScene, DishesScene],
 });
 
 blockBrowserGestures();

@@ -311,6 +311,19 @@ Same engine, voice and processing as every line above (Kokoro af_heart, `make_vo
 
 The last six (the garden's second round, 2026-09-28) are the same engine, voice and processing.
 
+### New in the mini-games round (the market and washing up, two games that are not cooking, 17 lines)
+
+Same engine, voice and processing as every line above (Kokoro af_heart, `make_vo.py mom-a`); three lines got the gentle
+soft limiter of vo-temp-more (`fix_vo_minigames.py`). The other names are the salad's, the smoothie's and the soup's.
+
+| Key | Line |
+|---|---|
+| vo-pick-market · vo-market-list · vo-market-remember | Let's go to the market! · Here's our shopping list! Let's find everything. · Can you remember the list? |
+| vo-market-not · vo-market-pipa · vo-market-two · vo-market-done | Hmm, is that on our list? · Now Pipa's list! What does Pipa want? · We need two! · We found everything! What a lovely shopping trip! |
+| vo-pick-dishes · vo-dishes-start · vo-dishes-scrub · vo-dishes-clean | Let's wash the dishes! · Put a dish in the sink! · Scrub, scrub, scrub! · Sparkly clean! |
+| vo-dishes-rack · vo-dishes-rack-2 · vo-dishes-colour · vo-dishes-done | Now put it on the rack, with the same colour! · Cups go on the hooks, and plates go below! · Find the same colour! · All clean! Thank you for helping! |
+| name-blue · name-yellow | Blue! · Yellow! |
+
 ### New in the guests round (who comes to eat, 13 lines)
 
 Same engine, voice and processing as every line above.
@@ -354,5 +367,5 @@ layers like Pipa's, the giraffe's neck and the three invitation badges) are draw
 `assets-src/images-b/tools/gen_kitchen_sky.py`, and the 21 files of visual round 5 (the garden, the cat, the clock, the
 child's drawing, the sill's things, the bunting) from `gen_kitchen_view.py` beside it. The 30 garden-stage files (the garden background, the raised
 bed, holes, seeds and packets, the plants, fruit and carrots, the watering can, sun, cloud, snail, leaf, basket and the
-garden card) are drawn by `assets-src/images-b-garden/tools/gen_garden.py` on the same kit. No third-party art, fonts or images.
+garden card) are drawn by `assets-src/images-b-garden/tools/gen_garden.py` on the same kit. The 18 files of the two mini-games (the market's background, awning, shelf, counter, poles, crates and list, the dishes, the food on them, the sponge, the drying rack and the two cards) are drawn by `assets-src/images-b-minigames/tools/gen_minigames.py` on the same kit. No third-party art, fonts or images.
 `images/webp/` holds WebP renderings of those same SVGs, made by `scripts/bake-webp.js`.
