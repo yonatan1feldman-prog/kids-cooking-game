@@ -20,6 +20,7 @@ This file covers only the files in this folder. Every file is either CC0 1.0 (pu
 - **Fruit skewers (added 2026-09-25, in a cloud session with the pinned packages of AGENTS.md):** 14 more `vo-*` lines, same engine, voice, speed and processing. **Targeted fix (`scripts/fix_vo_skewers.py`, the fix_vo.py functions unchanged):** vo-skewer-mom, vo-skewer-yum and vo-photo-skewers hit the -1.5 dBFS peak cap first (-18.5 / -19.2 / -18.6 LUFS): the gentle soft limiter of vo-temp-more (0.45 / 1.56 / 0.83 dB), then -18 LUFS. vo-new-pattern was first generated as "Ooh, a brand new pattern!" and came out at -22.9 LUFS (the "Ooh" took the peak); written "Ooh! A brand new pattern!" it is -18.0. The speech-recognizer check of earlier rounds was not run: its model download was blocked in the cloud session. Originals of the limited lines are in `work/vo/pre-fix-skewers/`.
 - **The garden (added 2026-09-26, in a cloud session with the pinned packages of AGENTS.md):** 12 more `vo-*` lines (`make_vo.py mom-a`), same engine, voice, speed and processing; no fix was needed (all -18.0 to -18.9 LUFS). The speech-recognizer check was not run.
 - **Two mini-games, the market and washing up (added 2026-09-28, in a cloud session with the pinned packages of AGENTS.md):** 17 more lines (15 `vo-*` and name-blue, name-yellow), same engine, voice, speed and processing. **Targeted fix (`scripts/fix_vo_minigames.py`, the fix_vo.py functions unchanged):** vo-market-done, vo-dishes-colour and vo-dishes-done hit the -1.5 dBFS peak cap first (-21.1 / -19.4 / -18.8 LUFS): the gentle soft limiter of vo-temp-more (2.98 / 1.6 / 0.62 dB), then -18 LUFS. The speech-recognizer check was not run (its model download is blocked in the cloud session). Originals of the limited lines are in `work/vo/pre-fix-minigames/`.
+- **The garden, round 2 (added 2026-09-28, in a cloud session with the pinned packages of AGENTS.md):** 6 more `vo-garden-*` lines (weeds, enough water, a second cloud, the bunny), same engine, voice, speed and processing; all -18.0 LUFS, no fix needed. The speech-recognizer check was not run (its model download is blocked in the cloud).
 | file | text | duration (s) | loudness (LUFS) | size (bytes) |
 |---|---|---|---|---|
 | voice/vo-welcome.ogg | Let's cook together! | 1.25 | -18.0 | 11773 |
@@ -250,6 +251,12 @@ This file covers only the files in this folder. Every file is either CC0 1.0 (pu
 | voice/vo-garden-pick.ogg | Let's pick them! Into the basket! | 2.09 | -18.3 | 16543 |
 | voice/vo-garden-pull.ogg | Let's pull the carrots out! | 1.54 | -18.0 | 13110 |
 | voice/vo-garden-done.ogg | What a lovely harvest! We grew it together! | 2.56 | -18.0 | 19315 |
+| voice/vo-garden-weeds.ogg | Oh no, weeds! Let's pull them out first! | 2.65 | -18.0 | 19160 |
+| voice/vo-garden-enough.ogg | That's enough water! Now the next one. | 2.21 | -18.0 | 16896 |
+| voice/vo-garden-cloud-2.ogg | Another cloud! Push it away too! | 2.16 | -18.0 | 16193 |
+| voice/vo-garden-bunny.ogg | Here comes a bunny! What does it want to eat? | 2.56 | -18.0 | 18920 |
+| voice/vo-garden-bunny-this.ogg | The bunny wants this one! | 1.46 | -18.0 | 12362 |
+| voice/vo-garden-bunny-yum.ogg | Yum! Thank you! The bunny is happy. | 2.55 | -18.0 | 19516 |
 | voice/vo-find-grater.ogg | Which one is the grater? Can you find it? | 2.55 | -18.2 | 18806 |
 | voice/vo-find-pin.ogg | Which one is the rolling pin? Can you find it? | 2.79 | -19.1 | 19730 |
 | voice/vo-find-spoon.ogg | Which one is the wooden spoon? Can you find it? | 2.83 | -19.0 | 20787 |

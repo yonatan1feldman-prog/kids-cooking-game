@@ -244,8 +244,14 @@ export const TUNING = {
    * plant (the sprout at `sproutAt` of it). `cloudPush`: how far she moves the cloud before it drifts off on its own (a tap
    * pushes it `cloudTap`). `pull`: how far up a carrot is pulled (times its root) before it comes out. `perPlant`: fruit on a
    * grown tomato or strawberry plant (carrots: `carrotsPerPlant`). `reach`: a thing let go this near its target counts.
+   * Level 2 (`hard`, garden round 2): a weed in every hole to pull first (`weedPull` x its root), `waterMs` of water per
+   * plant, a plant that has had its water makes a puddle and droops while more is poured on it (full after `puddleMs`; it
+   * soaks away by itself in `drainMs`), a second cloud, and a bunny that wants one of `bunnyFoods` things.
    */
-  garden: { waterMs: 2200, sproutAt: 0.35, cloudPush: 260, cloudTap: 90, pull: 0.75, perPlant: 3, carrotsPerPlant: 2, reach: 230, helpMs: 1100 },
+  garden: {
+    waterMs: 2200, sproutAt: 0.35, cloudPush: 260, cloudTap: 90, pull: 0.75, perPlant: 3, carrotsPerPlant: 2, reach: 230, helpMs: 1100,
+    hard: { waterMs: 3000, weedPull: 0.7, puddleMs: 700, drainMs: 1400, clouds: 2, bunnyFoods: 3 },
+  },
   /**
    * The market (MarketScene, research/minigames-spec.md). `listItems`: pictures on each list at level 1 / 2 (level 2: one
    * of them twice, `pair`); `rounds` lists (the second is Pipa's). Level 2's paper list folds `foldAfterMs` after it

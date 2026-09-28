@@ -492,6 +492,11 @@ export const IMAGES = {
   'dish-sponge': { size: [240, 150] },
   /** The drying rack: a column per colour (blue, yellow, pink), a hook on top (cups), a slot of dowels below (plates). */
   'dish-rack': { size: [960, 720] },
+  /** Level 2 (garden round 2): a weed standing in a hole (the soil line at ART.garden.weedTop, its root below), the
+   *  puddle of too much water, and the bunny (facing left, sitting on its feet at the bottom) with its wish. */
+  'garden-weed': { size: [200, 320] },
+  'garden-puddle': { size: [260, 80] },
+  'garden-bunny': { size: [320, 300] },
 } as const satisfies Record<string, { size: readonly [number, number]; raster?: number }>;
 
 /** Texture size of an image: its native size, times its `raster` factor if it is shown bigger than native. */
@@ -712,12 +717,13 @@ RECIPE_ASSETS.garden = {
     'seed-packet-strawberry', 'seed-packet-carrot', 'garden-sprout', 'plant-tomato-1', 'plant-strawberry-1', 'plant-carrot-1',
     'plant-tomato-2', 'plant-strawberry-2', 'garden-flower', 'garden-tomato', 'garden-strawberry', 'garden-carrot',
     'watering-can', 'garden-sun', 'garden-cloud', 'garden-snail', 'garden-leaf', 'garden-basket', 'garden-basket-front',
-    'water-drop',
+    'water-drop', 'garden-weed', 'garden-puddle', 'garden-bunny',
   ],
   sounds: [
     'vo-garden-seeds', 'vo-garden-plant', 'vo-garden-water', 'vo-garden-sprout', 'vo-garden-cloud', 'vo-garden-sun',
     'vo-garden-snail', 'vo-garden-snail-yum', 'vo-garden-pick', 'vo-garden-pull', 'vo-garden-done', 'name-tomato',
-    'name-strawberry', 'name-carrot', 'tear',
+    'name-strawberry', 'name-carrot', 'tear', 'name-lettuce', 'vo-garden-weeds', 'vo-garden-enough', 'vo-garden-cloud-2',
+    'vo-garden-bunny', 'vo-garden-bunny-this', 'vo-garden-bunny-yum',
   ],
 };
 /** The two mini-games that are not cooking (MarketScene, DishesScene): loaded on their cards like a recipe. A sound some
@@ -977,6 +983,10 @@ export const ART = {
     snailMouth: { x: 30, y: 150 },
     /** garden-basket (440x320): the middle of the heap inside. */
     basketIn: { x: 220, y: 128 },
+    /** garden-weed (200x320): the soil line (its leaves above, its root below). */
+    weedTop: 170,
+    /** garden-bunny (320x300, facing left): its mouth. */
+    bunnyMouth: { x: 58, y: 158 },
   },
   /** Washing up (assets-src/images-b-minigames/tools/gen_minigames.py prints it). */
   dishes: {

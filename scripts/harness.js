@@ -1227,6 +1227,106 @@ window.__pancakeMoments = () => [
   ['share (a wedge held mid-drag)', 'share', async (st) => { const s = st.slices.find((x) => !x.eaten), c = st.sliceCenter(s); await __drag([[c.x, c.y], [c.x + 150, c.y - 80]], { hold: true }); }, (st) => st.slices.filter((x) => x.eaten).length, (st) => !!st.held],
 ];
 
+// ---------------------------------------------------------------- The garden (GardenScene; garden round 2 adds level 2)
+// window.__gardenLevel = 1 | 2 picks the level; __gardenSeed = 'tomato' | 'strawberry' | 'carrot' picks the packet
+// (default: Pipa's wish); __overWater = true pours on a grown plant once (level 2); __bunnyWrong = true offers the bunny
+// a wrong thing first.
+window.__GS = () => game.scene.getScene('Garden');
+/** One round of whatever the garden's current part expects (with the child __drag of __gardenRun, at her pace). */
+window.__gardenGesture = async () => {
+  const g = __GS(), k = g.L.k, bs = g.bed.s, soil = g.bed.soil;
+  switch (g.phase) {
+    case 'seeds': {
+      const want = window.__gardenSeed || g.wish || 'tomato';
+      const pk = g.packets.find((p) => p.getData('kind') === want) || g.packets[0];
+      __tap(pk.x, pk.y); return;
+    }
+    case 'weeds': {
+      const sp = g.spots.find((s) => s.weed); if (!sp) return;
+      await __drag([[sp.x, soil - 90 * bs], [sp.x, soil - 300 * bs]]); return;
+    }
+    case 'plant': {
+      const h = g.nextHole(); if (!h) return;
+      if (g.spots.filter((s) => s.stage > 0).length % 2) __tap(h.x, soil);
+      else await __drag([[g.packet.x, g.packet.y], [h.x, soil - 30 * k]]);
+      return;
+    }
+    case 'water': {
+      const grown = g.spots.find((s) => s.stage >= 3);
+      const s = window.__overWater && grown && !window.__overDone ? grown : g.nextDry(); if (!s) return;
+      if (s === grown) window.__overDone = true;
+      const c = g.can, off = c.x - g.spoutAt().x;
+      await __drag([[c.x, c.y], [s.x + off * 0.9, soil - 190 * k]], { hold: true });
+      await __run(s === grown ? 1500 : g.needMs() + 500);
+      __touch('end', 1, s.x + off * 0.9, soil - 190 * k); return;
+    }
+    case 'cloud': {
+      const c = g.cloud; if (!c) return;
+      await __drag([[c.x, c.y], [c.x + g.cloudDir() * (g.L.k * 330), c.y]]); return;
+    }
+    case 'snail': {
+      if (!g.leaf || !g.snail) return;
+      const m = g.snailAt(); await __drag([[g.leaf.x, g.leaf.y], [m.x, m.y]]); return;
+    }
+    case 'bunny': {
+      if (!g.bunny) return;
+      const f = window.__bunnyWrong && !g.shown.bunnyWrong ? g.foods.find((q) => !q.want) : g.wantedFood();
+      const m = g.bunnyMouth(); await __drag([[f.img.x, f.img.y], [m.x, m.y]]); return;
+    }
+    case 'pick': {
+      const f = g.nextFruit(); if (!f) return;
+      if (f.carrot) await __drag([[f.home.x, f.home.y - 60 * bs], [f.home.x, f.home.y - 320 * bs]]);
+      else await __drag([[f.img.x, f.img.y], [g.basket.x, g.basket.y]]);
+      return;
+    }
+  }
+};
+/**
+ * The whole garden on the virtual clock with the simulated voice: mode 'child' (her pace, like __fullRun5) or 'none'
+ * (no touch: Mom helps with everything). Returns the parts with their start times, the length, what was shown, the voice
+ * log's problems. Start without awaiting and read window.__gr.
+ */
+window.__gardenRun = async (level = 1, mode = 'child', w = 900, h = 405, demos = false) => {
+  const drag0 = window.__drag0 || (window.__drag0 = __drag);
+  // (level 0: the level chosen on the title, core/level.ts)
+  if (level) window.__gardenLevel = level; else delete window.__gardenLevel;
+  window.__overDone = false;
+  for (let i = 0; i < 60 && !__voice.allLoaded; i++) await new Promise((r) => setTimeout(r, 250));
+  localStorage.setItem('cooking.runs.garden', demos ? '0' : '5');
+  await __setup(w, h); __voSim(true);
+  window.__drag = async (pts, opts = {}) => {
+    __touch('start', 1, ...pts[0]);
+    for (let i = 1; i < pts.length; i++) {
+      const [a, b] = pts[i - 1], [c, d] = pts[i], L = Math.hypot(c - a, d - b), n = Math.max(2, Math.ceil(L / 40));
+      for (let k = 1; k <= n; k++) { __touch('move', 1, a + ((c - a) * k) / n, b + ((d - b) * k) / n); await __run((L / 650) * 1000 / n); }
+    }
+    if (!opts.hold) __touch('end', 1, ...pts[pts.length - 1]);
+  };
+  const T = () => __T;
+  try {
+    const b = game.scene.getScene('Title').children.list.find((o) => o.texture?.key === 'btn-play');
+    __tap(b.x, b.y); await __run(2500);
+    const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-garden');
+    const n0 = __voLog.length, t0 = T(), l0 = game.loop.time, at = {}, gest = {};
+    __tap(c.x, c.y);
+    for (let i = 0; i < 300 && !game.scene.isActive('Garden'); i++) { await __run(50); await new Promise((r) => setTimeout(r, 20)); }
+    let last = '';
+    for (let i = 0; i < 12000 && game.scene.isActive('Garden'); i++) {
+      const g = __GS(), ph = g.phase;
+      if (ph !== last && ph !== 'intro') { last = ph; at[ph] = at[ph] ?? +((T() - t0) / 1000).toFixed(1); if (mode === 'child') await __run(1000); }
+      if (mode === 'none' || g.owner || g.helping || g.demoOn || ['intro', 'done'].includes(g.phase)) { await __run(100); continue; }
+      gest[g.phase] = (gest[g.phase] || 0) + 1;
+      await __gardenGesture();
+      await __run(450);
+    }
+    const shown = { ...(game.scene.getScene('Garden').shown) };
+    await __run(500);
+    const log = __voLog.slice(n0);
+    return { level, mode, parts: at, gestures: gest, seconds: +((T() - t0) / 1000).toFixed(1), home: game.scene.isActive('Home'), shown,
+      helps: log.filter((e) => e.key === 'vo-help').length, check: __voCheck(log), keys: log.map((e) => e.key + '@' + ((e.start - l0) / 1000).toFixed(1)) };
+  } finally { window.__drag = drag0; }
+};
+
 // ---- The mini-games round (market, washing up): __mini(id, level, {first}), __marketPlay / __dishesPlay({wrong, drag, none, gap}),
 // __verify(id, level, opts): a whole game on the virtual clock with the simulated voice (raf stopped: in a visible page
 // the browser's own frames would step the game with real timestamps too), __fast(on): headlessStep.

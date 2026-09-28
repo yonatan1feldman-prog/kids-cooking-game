@@ -67,6 +67,7 @@ export type VoiceKey =
   | 'vo-pick-market' | 'vo-market-list' | 'vo-market-remember' | 'vo-market-not' | 'vo-market-pipa' | 'vo-market-two'
   | 'vo-market-done' | 'vo-pick-dishes' | 'vo-dishes-start' | 'vo-dishes-scrub' | 'vo-dishes-clean' | 'vo-dishes-rack'
   | 'vo-dishes-rack-2' | 'vo-dishes-colour' | 'vo-dishes-done'
+  | 'vo-garden-weeds' | 'vo-garden-enough' | 'vo-garden-cloud-2' | 'vo-garden-bunny' | 'vo-garden-bunny-this' | 'vo-garden-bunny-yum'
   // gameplay round 4: find the tool, Pipa's order, stir with the arrow
   | 'vo-find-grater' | 'vo-find-pin' | 'vo-find-spoon' | 'vo-pipa-order' | 'vo-then' | 'vo-first-this' | 'vo-stir-arrow'
   | 'vo-other-way'
