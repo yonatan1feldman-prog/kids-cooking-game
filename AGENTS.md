@@ -680,6 +680,10 @@ The owner: "Mom should have several poses in the cooking, not one pose all the t
   sway and fade) when she pulls the dish out of the oven (`BakeStep.landDish`) and when a pancake lands golden
   (`FlipStep`); paper confetti from the photo's two top corners at the finale, twice (`PhotoStep.party`); a turned album
   page slides in from the side it was turned to, with a soft whoosh (`AlbumScene`).
+- **Checked (cloud, Canvas renderer, virtual clock, simulated voice):** pizza, cookies and salad at 20:9, pizza, salad and
+  pancakes at 4:3, card to home with no console errors; screenshots in `/mnt/project-files/research/screens-visual6/`.
+  New layout-checker hit, not a bug: "cut: mom" while she leans in to watch (her frame's bottom corners dip up to 8
+  units below the screen edge, like the known finale sway; she is cut at the waist anyway).
 - **Cloud screenshots:** SwiftShader WebGL loses pieces of Mom while her container scales (the cheer's stretch): master
   shows it too (a neck-shaped patch, a missing body). With the Canvas renderer every pose draws whole. Check on the phone.
 - **Needs a real child:** does the chin-on-hand read as "Mom is watching me"? Is the switch from pointing to the open
