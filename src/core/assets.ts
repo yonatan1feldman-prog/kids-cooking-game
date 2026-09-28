@@ -109,6 +109,13 @@ export const IMAGES = {
    * mom-arm-right waves (hello, a step done, the finale). The reaching arm goes down to the counter while her demo hand shows. */
   'mom-arm-right-rest': { size: [800, 800] },
   'mom-arm-left-reach': { size: [800, 800] },
+  /** Visual round 6: more poses on the same pivots (Mom.ts `pose`): watching with her chin on her hand, a thumbs-up,
+   * clapping (both arms), an open palm held out while she talks to the child. */
+  'mom-arm-right-chin': { size: [800, 800] },
+  'mom-arm-right-thumb': { size: [800, 800] },
+  'mom-arm-right-clap': { size: [800, 800] },
+  'mom-arm-left-clap': { size: [800, 800] },
+  'mom-arm-left-open': { size: [800, 800] },
   /** Mom's demo hands, 400x400; the anchor (ART.momHands) is the point placed on the target. */
   'mom-hand-point': { size: [400, 400] },
   'mom-hand-roll': { size: [400, 400] },
@@ -543,6 +550,7 @@ export const CORE_IMAGES: readonly ImageKey[] = [
   'mom-arm-right', 'mom-body', 'mom-head', 'mom-hair', 'mom-eyes-open', 'mom-eyes-blink', 'mom-eyes-happy',
   'mom-eyes-surprised', 'mom-mouth-smile', 'mom-mouth-talk', 'mom-mouth-open', 'mom-mouth-chew', 'mom-arm-left',
   'mom-arm-right-rest', 'mom-arm-left-reach',
+  'mom-arm-right-chin', 'mom-arm-right-thumb', 'mom-arm-right-clap', 'mom-arm-left-clap', 'mom-arm-left-open',
   'mom-hand-point', 'mom-hand-roll', 'mom-hand-spread', 'mom-hand-sprinkle', 'mom-hand-grab', 'mom-hand-press',
   'mom-hand-knife', 'mom-hand-mitt',
 ];
