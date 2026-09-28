@@ -727,7 +727,7 @@ RECIPE_ASSETS.garden = {
   ],
 };
 /** The two mini-games that are not cooking (MarketScene, DishesScene): loaded on their cards like a recipe. A sound some
- * recipe lists is listed here too (a listed sound is not core); name-pepper and name-lettuce are core. */
+ * recipe lists is listed here too (a listed sound is not core; the garden lists name-lettuce); name-pepper is core. */
 RECIPE_ASSETS.market = {
   images: [
     'bg-market', 'market-awning', 'market-shelf', 'market-counter', 'market-pole', 'market-crate', 'market-list',
@@ -738,7 +738,7 @@ RECIPE_ASSETS.market = {
   sounds: [
     'vo-market-list', 'vo-market-remember', 'vo-market-not', 'vo-market-pipa', 'vo-market-two', 'vo-market-done',
     'name-tomato', 'name-carrot', 'name-cucumber', 'name-onion', 'name-potato', 'name-mushroom', 'name-zucchini',
-    'name-banana', 'name-kiwi', 'name-mango', 'name-strawberry',
+    'name-banana', 'name-kiwi', 'name-mango', 'name-strawberry', 'name-lettuce',
   ],
 };
 RECIPE_ASSETS.dishes = {
