@@ -1288,7 +1288,9 @@ window.__gardenGesture = async () => {
  */
 window.__gardenRun = async (level = 1, mode = 'child', w = 900, h = 405, demos = false) => {
   const drag0 = window.__drag0 || (window.__drag0 = __drag);
-  window.__gardenLevel = level; window.__overDone = false;
+  // (level 0: the level chosen on the title, core/level.ts)
+  if (level) window.__gardenLevel = level; else delete window.__gardenLevel;
+  window.__overDone = false;
   for (let i = 0; i < 60 && !__voice.allLoaded; i++) await new Promise((r) => setTimeout(r, 250));
   localStorage.setItem('cooking.runs.garden', demos ? '0' : '5');
   await __setup(w, h); __voSim(true);
