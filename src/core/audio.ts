@@ -63,6 +63,7 @@ export type VoiceKey =
   // the garden (not cooking: plant, water, grow, pick)
   | 'vo-pick-garden' | 'vo-garden-seeds' | 'vo-garden-plant' | 'vo-garden-water' | 'vo-garden-sprout' | 'vo-garden-cloud'
   | 'vo-garden-sun' | 'vo-garden-snail' | 'vo-garden-snail-yum' | 'vo-garden-pick' | 'vo-garden-pull' | 'vo-garden-done'
+  | 'vo-garden-weeds' | 'vo-garden-enough' | 'vo-garden-cloud-2' | 'vo-garden-bunny' | 'vo-garden-bunny-this' | 'vo-garden-bunny-yum'
   // gameplay round 4: find the tool, Pipa's order, stir with the arrow
   | 'vo-find-grater' | 'vo-find-pin' | 'vo-find-spoon' | 'vo-pipa-order' | 'vo-then' | 'vo-first-this' | 'vo-stir-arrow'
   | 'vo-other-way'

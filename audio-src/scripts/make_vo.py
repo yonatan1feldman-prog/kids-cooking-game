@@ -287,6 +287,14 @@ MOM_LINES = {
     "vo-first-this": "Pipa wants this one first!",
     "vo-stir-arrow": "Stir round and round, the way the arrow goes!",
     "vo-other-way": "Now stir the other way!",
+    # The garden, round 2 (added 2026-09-28; Voice A only: python make_vo.py mom-a <names>): weeds, just enough water,
+    # a second cloud, the bunny's wish
+    "vo-garden-weeds": "Oh no, weeds! Let's pull them out first!",
+    "vo-garden-enough": "That's enough water! Now the next one.",
+    "vo-garden-cloud-2": "Another cloud! Push it away too!",
+    "vo-garden-bunny": "Here comes a bunny! What does it want to eat?",
+    "vo-garden-bunny-this": "The bunny wants this one!",
+    "vo-garden-bunny-yum": "Yum! Thank you! The bunny is happy.",
 }
 SUFFIX = ""
 if len(sys.argv) > 1 and sys.argv[1] in ("mom", "mom-a"):
