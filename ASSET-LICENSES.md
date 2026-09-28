@@ -305,6 +305,11 @@ Same engine, voice and processing as every line above (Kokoro af_heart, `make_vo
 | vo-garden-cloud · vo-garden-sun | Oh, a cloud! Can you push it away? · Hello, sunshine! |
 | vo-garden-snail · vo-garden-snail-yum | A hungry snail! Let's give it a leaf. · Munch, munch! The snail is happy. |
 | vo-garden-pick · vo-garden-pull · vo-garden-done | Let's pick them! Into the basket! · Let's pull the carrots out! · What a lovely harvest! We grew it together! |
+| vo-garden-weeds · vo-garden-enough | Oh no, weeds! Let's pull them out first! · That's enough water! Now the next one. |
+| vo-garden-cloud-2 · vo-garden-bunny | Another cloud! Push it away too! · Here comes a bunny! What does it want to eat? |
+| vo-garden-bunny-this · vo-garden-bunny-yum | The bunny wants this one! · Yum! Thank you! The bunny is happy. |
+
+The last six (the garden's second round, 2026-09-28) are the same engine, voice and processing.
 
 ### New in the guests round (who comes to eat, 13 lines)
 
@@ -347,7 +352,7 @@ The 31 guest files of the guests round (the turtle, the giraffe and the penguin,
 layers like Pipa's, the giraffe's neck and the three invitation badges) are drawn by
 `assets-src/images-b-guests/tools/gen_guests.py` on the same kit. The living window's birds and cloud come from
 `assets-src/images-b/tools/gen_kitchen_sky.py`, and the 21 files of visual round 5 (the garden, the cat, the clock, the
-child's drawing, the sill's things, the bunting) from `gen_kitchen_view.py` beside it. The 27 garden-stage files (the garden background, the raised
+child's drawing, the sill's things, the bunting) from `gen_kitchen_view.py` beside it. The 30 garden-stage files (the garden background, the raised
 bed, holes, seeds and packets, the plants, fruit and carrots, the watering can, sun, cloud, snail, leaf, basket and the
 garden card) are drawn by `assets-src/images-b-garden/tools/gen_garden.py` on the same kit. No third-party art, fonts or images.
 `images/webp/` holds WebP renderings of those same SVGs, made by `scripts/bake-webp.js`.

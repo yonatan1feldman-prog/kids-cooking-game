@@ -437,6 +437,72 @@ def card_garden():
     return svg(400, 520, defs, G("".join(L), p + "gr"))
 
 
+# ---------------------------------------------------------------- level 2 (garden round 2): weeds, a puddle, a bunny
+# garden-weed (200x320): a dandelion-ish weed; the soil line at WEED_TOP (its root hangs below, hidden by the bed front).
+WEED_TOP = 170
+WEED = "#7FA84A"; WEED_D = "#5C7F32"; WEED_L = "#A3C66E"; DANDY = "#FFC93A"; DANDY_D = "#E59E1C"
+
+
+def jag_leaf(cx, base, L, W, ang, col, seed):
+    a = math.radians(ang)
+    ux, uy = math.sin(a), -math.cos(a)
+    vx, vy = -uy, ux
+    pts = [(cx, base)]
+    for i in range(1, 6):
+        t = i / 6
+        w = W * math.sin(t * math.pi) * (1.0 if i % 2 else .55)
+        pts.append((cx + ux * L * t + vx * w, base + uy * L * t + vy * w))
+    pts.append((cx + ux * L, base + uy * L))
+    for i in range(5, 0, -1):
+        t = i / 6
+        w = W * math.sin(t * math.pi) * (.55 if i % 2 else 1.0)
+        pts.append((cx + ux * L * t - vx * w, base + uy * L * t - vy * w))
+    return P(smooth(pts, 1 / 8), col)
+
+
+def garden_weed():
+    p = "gwd-"
+    rr = random.Random(301)
+    root = stroke(f"M100,{WEED_TOP - 4} Q96,{WEED_TOP + 50} 104,{WEED_TOP + 90} Q98,{WEED_TOP + 120} 100,{WEED_TOP + 140}", "#C9A77A", 12)
+    root += stroke(f"M101,{WEED_TOP + 40} q-26,20 -34,52", "#C9A77A", 5) + stroke(f"M102,{WEED_TOP + 70} q24,16 30,44", "#C9A77A", 5)
+    leaves = ""
+    for i, a in enumerate((-62, -34, -8, 20, 48, 70)):
+        leaves += jag_leaf(100, WEED_TOP, rr.uniform(95, 125), 22, a, (WEED_D, WEED, WEED_L)[i % 3], 302 + i)
+    stem = stroke(f"M100,{WEED_TOP} Q108,90 98,44", WEED_D, 7)
+    flower = spiky(98, 40, 16, 34, 0, 360, 14, 310, 1.0)
+    head = P(flower, DANDY_D) + P(spiky(98, 38, 12, 27, 10, 370, 12, 311, 1.0), DANDY) + C(98, 38, 9, "#FFE27E")
+    s = G(root, p + "sh") + G(leaves + stem, p + "cut") + G(head, p + "sh")
+    return doc(p, 200, 320, s, seed=312, sh=(3, 3, .3), cut={"rim": 2.4, "rough": 3.5})
+
+
+def garden_puddle():
+    p = "gpd-"
+    s = G(P(wob(130, 40, 118, 26, .07, 321, 24), "#5E9FC4"), p + "cut") + P(wob(128, 38, 104, 20, .08, 322, 22), "#7FBCDD")
+    s += P(wob(96, 32, 34, 7, .1, 323, 12), "#CFE8F4", ' opacity="0.9"') + P(wob(172, 44, 20, 5, .1, 324, 12), "#CFE8F4", ' opacity="0.8"')
+    return doc(p, 260, 80, s, seed=325, sh=(2, 2, .2), cut={"rim": 2, "rough": 3})
+
+
+# garden-bunny (320x300, facing left; sits on its feet at y 290): its mouth.
+BUNNY_MOUTH = (58, 158)
+FUR = "#E9E2D6"; FUR_D = "#C9BBA8"; FUR_L = "#FBF7F0"; EAR_IN = "#F3B5B0"
+
+
+def garden_bunny():
+    p = "gbn-"
+    ears = (P("M92,112 Q66,40 80,10 Q98,-2 110,30 Q118,70 112,112Z", FUR_D) + P("M94,104 Q76,44 86,20 Q98,14 104,38 Q110,72 106,104Z", EAR_IN)
+            + P("M120,114 Q116,40 138,16 Q156,10 158,40 Q154,82 136,118Z", FUR_D) + P("M124,106 Q124,48 140,28 Q150,26 150,46 Q146,82 132,108Z", EAR_IN))
+    body = P(wob(196, 214, 104, 78, .03, 331, 24), FUR_D) + P(wob(194, 210, 96, 70, .03, 332, 24), FUR)
+    tail = P(wob(292, 196, 26, 24, .12, 333, 14), FUR_D) + P(wob(290, 194, 21, 19, .12, 334, 14), FUR_L)
+    head = P(wob(100, 150, 62, 56, .03, 335, 22), FUR_D) + P(wob(98, 146, 56, 50, .03, 336, 22), FUR)
+    feet = P(wob(120, 280, 40, 12, .06, 337, 14), FUR_D) + P(wob(232, 282, 56, 12, .06, 338, 14), FUR_D) + P(wob(118, 277, 34, 9, .06, 339, 14), FUR_L)
+    face = C(80, 134, 8, EYE) + C(78, 131, 2.5, WHITE) + P("M42,146 Q48,138 56,146 Q50,154 42,146Z", PINK_D)
+    face += stroke("M50,150 Q52,162 62,164", EYE, 3.4) + stroke("M50,150 Q46,162 38,162", EYE, 3.4) + C(96, 156, 11, CHEEK, ' opacity="0.5"')
+    face += "".join(stroke(f"M60,{y} l-40,{d}", EYE, 1.6, ' opacity="0.45"') for y, d in ((150, -6), (154, 2), (158, 10)))
+    s = G(ears, p + "cut") + G(body + tail, p + "cut") + G(feet, p + "sh") + G(head, p + "cut") + face
+    s += P("M180,160 Q214,150 250,168 Q214,160 186,172Z", FUR_L, ' opacity="0.9"')
+    return doc(p, 320, 300, s, seed=340, sh=(3, 3, .3), cut={"rim": 2.4, "rough": 3.5})
+
+
 ITEMS = {
     "bg-garden": bg_garden, "garden-bed": garden_bed, "garden-bed-front": garden_bed_front, "garden-hole": garden_hole,
     "garden-mound": garden_mound, "garden-seed": garden_seed,
@@ -448,6 +514,7 @@ ITEMS = {
     "garden-carrot": garden_carrot, "watering-can": watering_can, "garden-sun": garden_sun, "garden-cloud": garden_cloud,
     "garden-snail": garden_snail, "garden-leaf": garden_leaf, "garden-basket": garden_basket,
     "garden-basket-front": garden_basket_front, "card-garden": card_garden,
+    "garden-weed": garden_weed, "garden-puddle": garden_puddle, "garden-bunny": garden_bunny,
 }
 
 
@@ -465,4 +532,5 @@ if __name__ == "__main__":
         if not only or k in only:
             save(k, fn())
     print("anchors: SOIL_Y", SOIL_Y, "HOLES", HOLES, "TOMATO_FRUITS", TOMATO_FRUITS, "STRAW_FRUITS", STRAW_FRUITS,
-          "CARROT_TOP", CARROT_TOP, "SPOUT", SPOUT, "SNAIL_MOUTH", SNAIL_MOUTH, "BASKET_IN", BASKET_IN)
+          "CARROT_TOP", CARROT_TOP, "SPOUT", SPOUT, "SNAIL_MOUTH", SNAIL_MOUTH, "BASKET_IN", BASKET_IN,
+          "WEED_TOP", WEED_TOP, "BUNNY_MOUTH", BUNNY_MOUTH)

@@ -6,6 +6,7 @@ import { MomHandView, tapMotion, type HandMotion } from '../core/hand';
 import { confetti, settle, sway, tickles, touchRipples } from '../core/juice';
 import { getLayout, inNoTouchZone, keepLayoutOnResize, ORIENTATION_PAUSE, type Layout } from '../core/layout';
 import { sfx } from '../core/sfx';
+import { getLevel } from '../core/level';
 import { getStage } from '../core/stage';
 import { AUTO_AFTER_HINT_MS, DEMO_MAX_MS, HINT_AFTER_MS, TUNING } from '../core/tuning';
 import { iconButton, otherPointerDown } from '../core/ui';
@@ -16,11 +17,20 @@ import { assetsReady } from './BootScene';
 
 type P = { x: number; y: number };
 type Kind = 'tomato' | 'strawberry' | 'carrot';
-type Phase = 'intro' | 'seeds' | 'plant' | 'water' | 'cloud' | 'snail' | 'pick' | 'done';
+type Phase = 'intro' | 'seeds' | 'weeds' | 'plant' | 'water' | 'cloud' | 'snail' | 'bunny' | 'pick' | 'done';
 
 const KINDS: Kind[] = ['tomato', 'strawberry', 'carrot'];
 const G = ART.garden;
 const T = TUNING.garden;
+const H = T.hard;
+/** Level 2: how long the can must stay over a plant that has had its fill before it pours there. */
+const LINGER_MS = 450;
+/** What the bunny may wish for (level 2): the pictures in the garden's own art, and Mom's name for each. */
+const FOODS: { key: ImageKey; name: NameKey }[] = [
+  { key: 'garden-carrot', name: 'name-carrot' },
+  { key: 'garden-leaf', name: 'name-lettuce' },
+  { key: 'garden-strawberry', name: 'name-strawberry' },
+];
 
 interface Spot {
   x: number;
@@ -29,6 +39,22 @@ interface Spot {
   water: number;
   hole: Phaser.GameObjects.Image;
   plant: Phaser.GameObjects.Image | null;
+  /** Level 2: the weed in the hole (pulled out before planting). */
+  weed: Phaser.GameObjects.Image | null;
+  /** Level 2: water poured on a plant that has had its fill (ms, it soaks away by itself), its puddle, and whether it
+   *  is being poured on this frame; `said`: Mom said "That's enough water!" for this puddle. */
+  wet: number;
+  puddle: Phaser.GameObjects.Image | null;
+  wetting: boolean;
+  said: boolean;
+}
+
+interface Food {
+  img: Phaser.GameObjects.Image;
+  key: ImageKey;
+  rest: P;
+  scale: number;
+  want: boolean;
 }
 
 interface Fruit {
@@ -39,6 +65,12 @@ interface Fruit {
   /** A carrot out of the ground (it is carried like the others from then on). */
   out: boolean;
   picked: boolean;
+}
+
+/** The difficulty level (core/level.ts); `window.__gardenLevel` (the harness) wins. */
+function gardenLevel(): 1 | 2 {
+  const w = (window as unknown as { __gardenLevel?: number }).__gardenLevel;
+  return w === 1 || w === 2 ? w : getLevel();
 }
 
 /** How many times the garden has been visited on this device (only to show Mom's demos the first time; never shown). */
@@ -77,7 +109,17 @@ export class GardenScene extends Phaser.Scene {
   private misses = 0;
   private leaving = false;
   private owner: Phaser.Input.Pointer | null = null;
-  private held: { what: 'seed' | 'can' | 'cloud' | 'leaf' | 'fruit'; img: Phaser.GameObjects.Image; fruit?: Fruit; dx: number; dy: number; x0: number } | null = null;
+  private held: { what: 'seed' | 'can' | 'cloud' | 'leaf' | 'fruit' | 'weed' | 'food'; img: Phaser.GameObjects.Image; fruit?: Fruit; spot?: Spot; food?: Food; dx: number; dy: number; x0: number } | null = null;
+  private hard = false;
+  private linger = 0;
+  private lingerAt: Spot | null = null;
+  /** Pipa's wish at the seeds (the kind in her bubble), if she is on screen. */
+  private wish: Kind | null = null;
+  private weeded = false;
+  private clouds = 0;
+  private bunny: Phaser.GameObjects.Image | null = null;
+  private bubble: Phaser.GameObjects.Container | null = null;
+  private foods: Food[] = [];
   private hand!: MomHandView;
   private mom: Mom | null = null;
   private pipa: Character | null = null;
@@ -100,7 +142,7 @@ export class GardenScene extends Phaser.Scene {
   private dropT = 0;
   private bg!: Phaser.GameObjects.Image;
   /** For the test harness. */
-  shown = { phase: 'intro' as Phase, kind: '' as string, planted: 0, grown: 0, picked: 0, fruits: 0, helped: 0, missed: 0, done: false };
+  shown = { phase: 'intro' as Phase, kind: '' as string, planted: 0, grown: 0, picked: 0, fruits: 0, helped: 0, missed: 0, done: false, level: 1, wish: '' as string, wishGot: false, weeds: 0, clouds: 0, puddles: 0, bunnyWant: '' as string, bunnyWrong: 0, bunnyFed: false };
 
   constructor() {
     super('Garden');
@@ -118,7 +160,14 @@ export class GardenScene extends Phaser.Scene {
     this.fruits = [];
     this.packet = this.can = this.cloud = this.snail = this.leaf = null;
     this.basket = null;
-    this.shown = { phase: 'intro', kind: '', planted: 0, grown: 0, picked: 0, fruits: 0, helped: 0, missed: 0, done: false };
+    this.hard = gardenLevel() === 2;
+    this.wish = null;
+    this.weeded = false;
+    this.clouds = 0;
+    this.bunny = null;
+    this.bubble = null;
+    this.foods = [];
+    this.shown = { phase: 'intro', kind: '', planted: 0, grown: 0, picked: 0, fruits: 0, helped: 0, missed: 0, done: false, level: this.hard ? 2 : 1, wish: '', wishGot: false, weeds: 0, clouds: 0, puddles: 0, bunnyWant: '', bunnyWrong: 0, bunnyFed: false };
   }
 
   create() {
@@ -153,7 +202,7 @@ export class GardenScene extends Phaser.Scene {
     this.spots = G.holes.map((hx) => {
       const x = bedX + (hx - 650) * bs;
       const hole = this.add.image(x, soil + 4 * bs, 'garden-hole').setScale(bs).setDepth(11).setAlpha(0);
-      return { x, stage: 0, water: 0, hole, plant: null };
+      return { x, stage: 0, water: 0, hole, plant: null, weed: null, wet: 0, puddle: null, wetting: false, said: false };
     });
 
     // The sun, above the bed between the first two plants; the cloud will come over it.
@@ -267,6 +316,25 @@ export class GardenScene extends Phaser.Scene {
     });
     sfx(this, 'whoosh');
     this.time.delayedCall(500, () => this.begin('seeds', 'vo-garden-seeds'));
+    this.time.delayedCall(1100, () => this.makeWish());
+  }
+
+  /** Pipa's wish (as in every recipe's choosing): one of the three in her bubble. Any packet is fine; hers makes her day. */
+  private makeWish() {
+    if (this.phase !== 'seeds' || !this.pipa || this.leaving) return;
+    const k = this.L.k;
+    const kind = KINDS[Phaser.Math.Between(0, KINDS.length - 1)];
+    const S = getStage(this.L);
+    if (!this.pipa.showWish([`garden-${kind}`], [kind], { maxRight: S.momFace.x0 - 12 * k, k })) return;
+    this.wish = kind;
+    this.shown.wish = kind;
+    this.say('vo-pipa-wants', { ttlMs: 9000 });
+    this.say(`name-${kind}` as NameKey, { ttlMs: 11000 });
+  }
+
+  /** The packet Mom's hand goes to: Pipa's wish first. */
+  private wishedPacket() {
+    return this.packets.find((pk) => pk.getData('kind') === this.wish) ?? null;
   }
 
   private pickSeeds(img: Phaser.GameObjects.Image) {
@@ -280,6 +348,11 @@ export class GardenScene extends Phaser.Scene {
     stars(this, img.x, img.y, 8, 50 * this.L.k);
     voice.say(`name-${this.kind}` as NameKey, { group: 'name', ttlMs: 2500 });
     this.mom?.happy();
+    if (this.wish && this.kind === this.wish) {
+      this.shown.wishGot = true;
+      this.pipa?.wishGranted();
+      this.say('vo-pipa-got-it', { ttlMs: 4000 });
+    } else this.pipa?.hideWish();
     for (const other of this.packets) {
       if (other === img) continue;
       this.tweens.add({ targets: other, alpha: 0, scale: other.scale * 0.6, y: other.y - 80 * this.L.k, duration: 350, onComplete: () => other.destroy() });
@@ -292,9 +365,68 @@ export class GardenScene extends Phaser.Scene {
   // ---------------------------------------------------------------- 2. planting
 
   private startPlant() {
+    if (this.hard && !this.weeded) return this.startWeeds();
     for (const [i, sp] of this.spots.entries()) this.tweens.add({ targets: sp.hole, alpha: 1, duration: 300, delay: 150 * i });
     this.mom?.rest();
     this.begin('plant', 'vo-garden-plant');
+  }
+
+  // ---------------------------------------------------------------- 2a. the weeds (level 2)
+
+  private weedY() {
+    return this.bed.soil + 6 * this.bed.s;
+  }
+
+  /** A weed has come up in every hole: she pulls each one straight up (like a carrot) before planting. */
+  private startWeeds() {
+    const bs = this.bed.s;
+    for (const [i, sp] of this.spots.entries()) {
+      const w = this.add.image(sp.x, this.bed.soil + 300 * bs, 'garden-weed').setOrigin(0.5, G.weedTop / 320).setScale(0.9 * bs).setDepth(21);
+      this.tweens.add({ targets: w, y: this.weedY(), duration: 600, delay: 220 * i, ease: 'Back.easeOut' });
+      this.tweens.add({ targets: sp.hole, alpha: 1, duration: 300, delay: 220 * i });
+      sp.weed = w;
+    }
+    sfx(this, 'whoosh');
+    this.mom?.surprised();
+    this.time.delayedCall(1000, () => {
+      this.mom?.rest();
+      this.begin('weeds', 'vo-garden-weeds');
+    });
+  }
+
+  private nextWeed() {
+    return this.spots.find((s) => s.weed && s !== this.held?.spot) ?? null;
+  }
+
+  /** Out it comes: soil flies, it is tossed away over the fence, Mom counts. */
+  private pullWeed(sp: Spot) {
+    const L = this.L;
+    const w = sp.weed;
+    if (!w) return;
+    sp.weed = null;
+    if (this.held?.spot === sp) {
+      this.held = null;
+      this.owner = null;
+    }
+    this.tweens.killTweensOf(w);
+    w.setDepth(600);
+    sfx(this, 'tear');
+    puff(this, sp.x, this.bed.soil, 0x98663f, 6, 60 * L.k);
+    burst(this, sp.x, this.bed.soil, { texture: 'fx-dot', count: 8, tint: [0x7a4e32, 0x98663f], size: 16 * L.k, speed: 280, gravityY: 700, lifespan: 500, depth: 30 });
+    this.tweens.add({ targets: w, x: -300 * L.k, duration: 900, ease: 'Sine.easeIn' });
+    this.tweens.add({ targets: w, y: w.y - 260 * L.k, duration: 450, yoyo: true, ease: 'Sine.easeOut' });
+    this.tweens.add({ targets: w, angle: -300, alpha: 0.2, duration: 900, onComplete: () => w.destroy() });
+    const n = this.spots.filter((q) => !q.weed).length;
+    this.shown.weeds = n;
+    this.say(countKey(n), { group: 'count', sequence: true, ttlMs: 8000 });
+    this.idle = this.misses = 0;
+    this.mom?.happy();
+    this.time.delayedCall(700, () => this.mom?.rest());
+    if (n === this.spots.length) {
+      this.setPhase('intro');
+      this.weeded = true;
+      this.praise(() => this.startPlant(), 300);
+    }
   }
 
   private nextHole() {
@@ -325,7 +457,7 @@ export class GardenScene extends Phaser.Scene {
         burst(this, sp.x, this.bed.soil, { texture: 'fx-dot', count: 8, tint: [0x7a4e32, 0x98663f], size: 16 * L.k, speed: 260, gravityY: 700, lifespan: 500, depth: 30 });
         const n = this.spots.filter((q) => q.stage >= 1).length;
         this.shown.planted = n;
-        this.say(countKey(n), { group: 'count', sequence: true });
+        this.say(countKey(n), { group: 'count', sequence: true, ttlMs: 8000 });
         this.idle = 0;
         if (n === this.spots.length) this.praise(() => this.startWater());
       },
@@ -355,7 +487,8 @@ export class GardenScene extends Phaser.Scene {
     let best: Spot | null = null;
     let d = 190 * this.bed.s + 40 * this.L.k;
     for (const s of this.spots) {
-      if (s.stage >= 3) continue;
+      // (level 2: a plant that has had its fill still gets the water, and a puddle)
+      if (s.stage >= 3 && !this.hard) continue;
       const dx = Math.abs(s.x - sp.x);
       if (dx < d) {
         d = dx;
@@ -366,19 +499,78 @@ export class GardenScene extends Phaser.Scene {
   }
 
   /** Water on one plant for `ms`: drops, and it comes up: the mound sprouts, then a young plant. */
+  private needMs() {
+    return this.hard ? H.waterMs : T.waterMs;
+  }
+
+  /** The drops from the spout, every 70 ms of pouring. */
+  private drip(ms: number) {
+    const L = this.L;
+    this.dropT -= ms;
+    if (this.dropT > 0) return;
+    this.dropT = 70;
+    const at = this.spoutAt();
+    const d = this.add.image(at.x + Phaser.Math.Between(-12, 12) * L.k, at.y, 'water-drop').setScale(0.22 * L.k).setDepth(45).setAlpha(0.9);
+    this.tweens.add({ targets: d, y: this.bed.soil - 10 * this.bed.s, x: d.x - Phaser.Math.Between(0, 30) * L.k, duration: 380, ease: 'Quad.easeIn', onComplete: () => d.destroy() });
+  }
+
+  /**
+   * Level 2: water on a plant that has had its fill. A puddle spreads and the plant droops a little; the first time
+   * for this puddle Mom says "That's enough water! Now the next one." (a quiet miss). Nothing is lost: when the can
+   * moves on, the puddle soaks away and the plant stands up again (`drain`).
+   */
+  private overWater(sp: Spot, ms: number) {
+    const bs = this.bed.s;
+    this.drip(ms);
+    sp.wetting = true;
+    sp.wet = Math.min(H.puddleMs, sp.wet + ms);
+    if (!sp.puddle) {
+      sp.puddle = this.add.image(sp.x, this.bed.soil + 16 * bs, 'garden-puddle').setScale(0).setDepth(12.5).setAlpha(0.95);
+      sfx(this, 'squish', { volume: 0.5 });
+      this.shown.puddles++;
+    }
+    this.wetLook(sp);
+    if (!sp.said && sp.wet >= H.puddleMs * 0.45) {
+      sp.said = true;
+      this.say('vo-garden-enough', { ttlMs: 3000 });
+      this.miss();
+    }
+  }
+
+  /** The puddle's size and the plant's droop follow the water on it. */
+  private wetLook(sp: Spot) {
+    const bs = this.bed.s;
+    const t = sp.wet / H.puddleMs;
+    sp.puddle?.setScale(bs * (0.35 + 0.65 * t), bs * (0.3 + 0.7 * t));
+    const young = sp.hole.getData('plant') as Phaser.GameObjects.Image | undefined;
+    if (young?.active) young.setAngle(-12 * t).setScale(0.9 * bs * (1 - 0.08 * t), 0.9 * bs * (1 - 0.12 * t));
+  }
+
+  /** Every frame: a puddle not poured on soaks away, and its plant stands up again. */
+  private drain(delta: number) {
+    for (const sp of this.spots) {
+      if (sp.wetting || !sp.puddle) {
+        sp.wetting = false;
+        continue;
+      }
+      sp.wet = Math.max(0, sp.wet - (delta * H.puddleMs) / H.drainMs);
+      this.wetLook(sp);
+      if (sp.wet <= 0) {
+        const pd = sp.puddle;
+        sp.puddle = null;
+        sp.said = false;
+        this.tweens.add({ targets: pd, alpha: 0, duration: 250, onComplete: () => pd.destroy() });
+      }
+    }
+  }
+
   private water(sp: Spot, ms: number) {
     const L = this.L;
     const bs = this.bed.s;
-    const need = T.waterMs;
+    const need = this.needMs();
     const before = sp.water;
     sp.water += ms;
-    this.dropT -= ms;
-    if (this.dropT <= 0) {
-      this.dropT = 70;
-      const at = this.spoutAt();
-      const d = this.add.image(at.x + Phaser.Math.Between(-12, 12) * L.k, at.y, 'water-drop').setScale(0.22 * L.k).setDepth(45).setAlpha(0.9);
-      this.tweens.add({ targets: d, y: this.bed.soil - 10 * bs, x: d.x - Phaser.Math.Between(0, 30) * L.k, duration: 380, ease: 'Quad.easeIn', onComplete: () => d.destroy() });
-    }
+    this.drip(ms);
     if (before < need * T.sproutAt && sp.water >= need * T.sproutAt) {
       const sprout = this.add.image(sp.x, this.bed.soil + 10 * bs, 'garden-sprout').setOrigin(0.5, 1).setScale(0).setDepth(13);
       this.tweens.add({ targets: sprout, scale: 0.9 * bs, duration: 380, ease: 'Back.easeOut' });
@@ -398,7 +590,7 @@ export class GardenScene extends Phaser.Scene {
       stars(this, sp.x, this.bed.soil - 200 * bs, 6, 40 * L.k);
       const n = this.spots.filter((q) => q.stage >= 3).length;
       this.shown.grown = n;
-      this.say(countKey(n), { group: 'count', sequence: true });
+      this.say(countKey(n), { group: 'count', sequence: true, ttlMs: 8000 });
       this.idle = 0;
       if (n === this.spots.length) {
         this.setPhase('intro');
@@ -422,9 +614,16 @@ export class GardenScene extends Phaser.Scene {
 
   // ---------------------------------------------------------------- 4. the cloud
 
+  /** The side the cloud is pushed to in Mom's demo and help: the first one back left, a second one (level 2) right. */
+  private cloudDir() {
+    return this.clouds === 0 ? -1 : 1;
+  }
+
   private startCloud() {
     const L = this.L;
-    const cl = (this.cloud = this.add.image(L.W + 400 * L.k, this.sunAt.y + 10 * L.k, 'garden-cloud').setScale(0.8 * L.k).setDepth(3.5));
+    // (the first comes in from the right; a second one, level 2, from the left)
+    const from = this.clouds === 0 ? L.W + 400 * L.k : -400 * L.k;
+    const cl = (this.cloud = this.add.image(from, this.sunAt.y + 10 * L.k, 'garden-cloud').setScale(0.8 * L.k).setDepth(3.5));
     this.tweens.add({ targets: cl, x: this.sunAt.x, duration: 1400, ease: 'Sine.easeOut' });
     this.bg.setTint(0xffffff);
     this.tweens.addCounter({ from: 0, to: 1, duration: 1200, onUpdate: (t) => this.bg.setTint(Phaser.Display.Color.GetColor(255 - 43 * t.getValue()!, 255 - 36 * t.getValue()!, 255 - 31 * t.getValue()!)) });
@@ -432,7 +631,7 @@ export class GardenScene extends Phaser.Scene {
     this.mom?.surprised();
     this.time.delayedCall(1300, () => {
       this.mom?.rest();
-      this.begin('cloud', 'vo-garden-cloud');
+      this.begin('cloud', this.clouds === 0 ? 'vo-garden-cloud' : 'vo-garden-cloud-2');
     });
   }
 
@@ -452,9 +651,22 @@ export class GardenScene extends Phaser.Scene {
     this.tweens.add({ targets: cl, x: to, duration: 1600, ease: 'Sine.easeIn', onComplete: () => cl.destroy() });
     this.cloud = null;
     this.tweens.addCounter({ from: 1, to: 0, duration: 800, onUpdate: (t) => this.bg.setTint(Phaser.Display.Color.GetColor(255 - 43 * t.getValue()!, 255 - 36 * t.getValue()!, 255 - 31 * t.getValue()!)) });
+    this.clouds++;
+    this.shown.clouds = this.clouds;
+    if (this.hard && this.clouds < H.clouds) {
+      // Level 2: the sun peeks out for a moment, and here comes another cloud.
+      this.time.delayedCall(500, () => {
+        sfx(this, 'star');
+        stars(this, this.sunAt.x, this.sunAt.y, 6, 50 * L.k);
+        this.mom?.happy();
+        this.tweens.add({ targets: this.sun, angle: this.sun.angle + 360, duration: 800, ease: 'Sine.easeInOut' });
+      });
+      this.time.delayedCall(1700, () => !this.leaving && this.startCloud());
+      return;
+    }
     this.time.delayedCall(500, () => {
       sfx(this, 'star');
-      this.tweens.add({ targets: this.sun, angle: 360, scale: 0.85 * L.k, duration: 900, ease: 'Sine.easeInOut', yoyo: false, onComplete: () => this.tweens.add({ targets: this.sun, scale: 0.7 * L.k, duration: 400 }) });
+      this.tweens.add({ targets: this.sun, angle: this.sun.angle + 360, scale: 0.85 * L.k, duration: 900, ease: 'Sine.easeInOut', yoyo: false, onComplete: () => this.tweens.add({ targets: this.sun, scale: 0.7 * L.k, duration: 400 }) });
       stars(this, this.sunAt.x, this.sunAt.y, 10, 60 * L.k);
       this.mom?.happy();
       this.say('vo-garden-sun', { ttlMs: 5000 });
@@ -563,7 +775,145 @@ export class GardenScene extends Phaser.Scene {
       sn.setFlipX(true);
       const away = this.bed.left - 400 * L.k;
       this.tweens.add({ targets: [sn, lf], x: `-=${sn.x - away}`, duration: 2600, delay: 400, ease: 'Sine.easeIn', onComplete: () => (sn.destroy(), lf.destroy()) });
-      this.time.delayedCall(1200, () => this.praise(() => this.startPick(), 400));
+      this.time.delayedCall(1200, () => this.praise(() => (this.hard ? this.startBunny() : this.startPick()), 400));
+    });
+  }
+
+  // ---------------------------------------------------------------- 5b. the bunny (level 2)
+
+  private bunnyMouth(): P {
+    const b = this.bunny!;
+    return { x: b.x + (G.bunnyMouth.x - 160) * b.scaleX, y: b.y + (G.bunnyMouth.y - 290) * b.scaleY };
+  }
+
+  /**
+   * A bunny hops in and sits at the bed's left end with a thought bubble: one of three things (a carrot, a lettuce leaf,
+   * a strawberry) that wait in the tool column. She carries the one it wants to its mouth. Another one: the bunny sniffs
+   * it, it floats back, "The bunny wants this one!" and Mom's hand shows it at once (a quiet miss). No wrong answer
+   * stays wrong; nobody is sad.
+   */
+  private startBunny() {
+    const L = this.L;
+    const k = L.k;
+    const s = Math.max(this.bed.s, 0.8 * k) * 1.1;
+    const x = this.bed.left + 150 * s;
+    const y = this.bed.soil + 34 * this.bed.s;
+    const b = (this.bunny = this.add.image(-260 * k, y, 'garden-bunny').setOrigin(0.5, 290 / 300).setScale(s).setDepth(23).setFlipX(true));
+    // three hops in
+    const hops = 3;
+    this.tweens.add({ targets: b, x, duration: 1500, ease: 'Linear' });
+    this.tweens.add({ targets: b, y: y - 70 * k, duration: 1500 / hops / 2, yoyo: true, repeat: hops - 1, ease: 'Sine.easeOut' });
+    sfx(this, 'whoosh', { volume: 0.5 });
+    const order = Phaser.Utils.Array.Shuffle(FOODS.slice(0, H.bunnyFoods));
+    const want = order[Phaser.Math.Between(0, order.length - 1)];
+    this.shown.bunnyWant = want.key;
+    const fit = 170 * k;
+    this.foods = order.map((f, i) => {
+      const img = this.add.image(this.tool.x, 0, f.key);
+      const sc = Math.min(fit / img.frame.realWidth, fit / img.frame.realHeight) * (f.key === 'garden-carrot' ? 1.25 : 1);
+      const rest = { x: this.tool.x, y: L.Y(440 + i * 190) };
+      img.setPosition(rest.x - 400 * k, rest.y).setScale(sc).setDepth(40).setAngle(f.key === 'garden-carrot' ? -35 : 0);
+      this.tweens.add({ targets: img, x: rest.x, duration: 450, delay: 900 + 120 * i, ease: 'Back.easeOut' });
+      return { img, key: f.key, rest, scale: sc, want: f === want };
+    });
+    this.time.delayedCall(1600, () => {
+      if (this.leaving) return;
+      b.setFlipX(false);
+      boing(this, b, 0.12);
+      this.bubble = this.thought(b.x + 110 * s, b.y - 300 * s - 110 * k, want.key);
+      this.begin('bunny', 'vo-garden-bunny');
+    });
+  }
+
+  /** A thought bubble with one picture in it (drawn like Pipa's), its puffs leading down-left to the head below. */
+  private thought(x: number, y: number, key: ImageKey) {
+    const k = this.L.k;
+    const w = 220 * k;
+    const h = 190 * k;
+    const g = this.add.graphics();
+    g.lineStyle(5 * k, 0x8a6a55, 1);
+    g.fillStyle(0xfffdf7, 1);
+    for (const t of [
+      { x: -80 * k, y: h / 2 + 50 * k, r: 13 * k },
+      { x: -50 * k, y: h / 2 + 12 * k, r: 20 * k },
+    ]) {
+      g.fillCircle(t.x, t.y, t.r);
+      g.strokeCircle(t.x, t.y, t.r);
+    }
+    g.fillEllipse(0, 0, w, h);
+    g.strokeEllipse(0, 0, w, h);
+    const img = this.add.image(0, 0, key);
+    img.setScale((140 * k) / Math.max(img.frame.realWidth, img.frame.realHeight) * (key === 'garden-carrot' ? 1.2 : 1));
+    const box = this.add.container(x, y, [g, img]).setDepth(45).setScale(0);
+    this.tweens.add({ targets: box, scale: 1, duration: 380, ease: 'Back.easeOut' });
+    sfx(this, 'pop', { volume: 0.5 });
+    return box;
+  }
+
+  private wantedFood() {
+    return this.foods.find((f) => f.want) ?? null;
+  }
+
+  private foodBack(f: Food) {
+    this.tweens.killTweensOf(f.img);
+    this.tweens.add({ targets: f.img, x: f.rest.x, y: f.rest.y, scale: f.scale, angle: f.key === 'garden-carrot' ? -35 : 0, duration: 380, ease: 'Back.easeOut', onComplete: () => f.img.setDepth(40) });
+  }
+
+  /** Not the one in the bubble: the bunny sniffs it curiously, it floats back, and Mom shows the right one. */
+  private wrongFood(f: Food) {
+    const b = this.bunny!;
+    this.shown.bunnyWrong++;
+    boing(this, b, 0.1);
+    this.tweens.add({ targets: b, angle: -6, duration: 160, yoyo: true, repeat: 1 });
+    sfx(this, 'squish', { volume: 0.5 });
+    this.foodBack(f);
+    this.say('vo-garden-bunny-this', { ttlMs: 3000 });
+    this.shown.missed++;
+    this.misses = 0;
+    this.idle = 0;
+    this.stopHint();
+    this.time.delayedCall(400, () => this.phase === 'bunny' && !this.owner && !this.helping && this.showWay(true));
+  }
+
+  /** The one it wanted: it munches it, hearts, the bubble bursts, and it hops happily away. */
+  private feedBunny(f: Food) {
+    const L = this.L;
+    const b = this.bunny!;
+    this.setPhase('intro');
+    this.shown.bunnyFed = true;
+    const m = this.bunnyMouth();
+    this.tweens.killTweensOf(f.img);
+    f.img.setDepth(24);
+    this.tweens.add({ targets: f.img, x: m.x - 30 * L.k, y: m.y, scale: f.scale * 0.8, angle: f.key === 'garden-carrot' ? -80 : 0, duration: 250, ease: 'Quad.easeOut' });
+    for (const o of this.foods) if (o !== f) this.tweens.add({ targets: o.img, alpha: 0, x: o.img.x - 200 * L.k, duration: 400, onComplete: () => o.img.destroy() });
+    const bub = this.bubble;
+    this.bubble = null;
+    if (bub) {
+      stars(this, bub.x, bub.y, 8, 50 * L.k);
+      this.tweens.add({ targets: bub, scale: 1.25, alpha: 0, duration: 260, onComplete: () => bub.destroy() });
+    }
+    for (let i = 0; i < 3; i++) {
+      this.time.delayedCall(350 + 380 * i, () => {
+        sfx(this, 'munch', { volume: 0.7 });
+        boing(this, b, 0.1);
+        f.img.setScale(f.img.scale * 0.78);
+        burst(this, m.x - 20 * L.k, m.y, { texture: 'fx-dot', count: 4, tint: f.key === 'garden-strawberry' ? 0xe8433a : f.key === 'garden-carrot' ? 0xf28a2e : 0x8fcb6c, size: 12 * L.k, speed: 160, gravityY: 500, lifespan: 400, depth: 30 });
+      });
+    }
+    this.time.delayedCall(1500, () => {
+      f.img.destroy();
+      burst(this, b.x, b.y - 200 * b.scaleY, { texture: 'fx-heart', count: 6, tint: [0xf06a8a, 0xf5a3b5], size: 34 * L.k, speed: 220, gravityY: -120, lifespan: 900, depth: 60 });
+      this.say('vo-garden-bunny-yum', { ttlMs: 3500 });
+      this.mom?.happy();
+      this.pipa?.cheer();
+      // a happy hop on the spot, then away to the left
+      this.tweens.add({ targets: b, y: b.y - 90 * L.k, duration: 220, yoyo: true, ease: 'Sine.easeOut' });
+      this.time.delayedCall(700, () => {
+        const y0 = b.y;
+        this.tweens.add({ targets: b, x: -300 * L.k, duration: 1600, ease: 'Linear', onComplete: () => b.destroy() });
+        this.tweens.add({ targets: b, y: y0 - 70 * L.k, duration: 270, yoyo: true, repeat: 2, ease: 'Sine.easeOut' });
+      });
+      this.time.delayedCall(1300, () => this.praise(() => this.startPick(), 400));
     });
   }
 
@@ -618,7 +968,7 @@ export class GardenScene extends Phaser.Scene {
         burst(this, tx, ty, { texture: 'star', count: 4, size: 28 * L.k, speed: 260, gravityY: 500, lifespan: 500, depth: 70 });
       },
     });
-    this.say(countKey(this.picked), { group: 'count', sequence: true });
+    this.say(countKey(this.picked), { group: 'count', sequence: true, ttlMs: 8000 });
     this.idle = this.misses = 0;
     if (this.picked % 3 === 0) this.pipa?.cheer();
     if (this.fruits.every((q) => q.picked)) {
@@ -679,8 +1029,42 @@ export class GardenScene extends Phaser.Scene {
     const k = L.k;
     switch (this.phase) {
       case 'seeds': {
-        const m = tapMotion({ x: this.packets[0].x, y: this.packets[0].y }, k);
-        return m;
+        const pk = this.wishedPacket() ?? this.packets[0];
+        return tapMotion({ x: pk.x, y: pk.y }, k);
+      }
+      case 'weeds': {
+        const sp = this.nextWeed();
+        if (!sp) return null;
+        const from = { x: sp.x, y: this.bed.soil - 110 * this.bed.s };
+        const up = { x: sp.x, y: from.y - 260 * this.bed.s };
+        return {
+          kind: 'grab',
+          keys: [
+            { ...from, t: 0 },
+            { ...from, t: 300 },
+            { ...up, t: 1300 },
+            { x: up.x - 120 * k, y: up.y - 40 * k, t: 1800 },
+            { x: up.x - 120 * k, y: up.y - 40 * k, t: 2100 },
+          ],
+          props: [{ key: 'garden-weed', scale: 0.9 * this.bed.s, alpha: 0.6, originY: G.weedTop / 320, dy: 110 * this.bed.s }],
+          glow: from,
+        };
+      }
+      case 'bunny': {
+        const f = this.wantedFood();
+        if (!f || !this.bunny) return null;
+        const to = this.bunnyMouth();
+        return {
+          kind: 'grab',
+          keys: [
+            { ...f.rest, t: 0 },
+            { ...f.rest, t: 300 },
+            { ...to, t: 1600 },
+            { ...to, t: 2000 },
+          ],
+          props: [{ key: f.key, scale: f.scale, alpha: 0.6 }],
+          glow: f.rest,
+        };
       }
       case 'plant': {
         const h = this.nextHole();
@@ -720,7 +1104,7 @@ export class GardenScene extends Phaser.Scene {
         const c = this.cloud;
         if (!c) return null;
         const from = { x: c.x, y: c.y };
-        const to = { x: c.x - T.cloudPush * k * 1.1, y: c.y };
+        const to = { x: c.x + this.cloudDir() * T.cloudPush * k * 1.1, y: c.y };
         return {
           kind: 'grab',
           keys: [
@@ -815,13 +1199,32 @@ export class GardenScene extends Phaser.Scene {
       fn();
     };
     if (phase === 'seeds') {
-      const pk = this.packets[Phaser.Math.Between(0, 2)];
+      const pk = this.wishedPacket() ?? this.packets[Phaser.Math.Between(0, 2)];
       return go(() => {
         this.hand.play(tapMotion({ x: pk.x, y: pk.y }, k));
         this.time.delayedCall(700, () => {
           done();
           this.pickSeeds(pk);
         });
+      });
+    }
+    if (phase === 'weeds') {
+      const sp = this.nextWeed();
+      const w = sp?.weed;
+      if (!sp || !w) return;
+      return go(() => {
+        this.hand.follow('grab', () => ({ x: w.x, y: w.y - 110 * this.bed.s }));
+        this.tweens.add({ targets: w, y: this.weedY() - 260 * this.bed.s, duration: T.helpMs, delay: 250, ease: 'Sine.easeInOut', onComplete: () => (done(), this.pullWeed(sp)) });
+      });
+    }
+    if (phase === 'bunny' && this.bunny) {
+      const f = this.wantedFood();
+      if (!f) return;
+      return go(() => {
+        f.img.setDepth(600);
+        this.hand.follow('grab', () => ({ x: f.img.x, y: f.img.y }));
+        const to = this.bunnyMouth();
+        this.tweens.add({ targets: f.img, x: to.x, y: to.y, duration: T.helpMs, delay: 250, ease: 'Sine.easeInOut', onComplete: () => (done(), this.feedBunny(f)) });
       });
     }
     if (phase === 'plant') {
@@ -852,8 +1255,8 @@ export class GardenScene extends Phaser.Scene {
             waterLoop.start();
             this.tweens.addCounter({
               from: 0,
-              to: T.waterMs,
-              duration: T.waterMs + 100,
+              to: this.needMs(),
+              duration: this.needMs() + 100,
               onUpdate: (t, _v) => {
                 const last = (c.getData('help') as number) ?? 0;
                 const v = t.getValue()!;
@@ -877,7 +1280,7 @@ export class GardenScene extends Phaser.Scene {
         this.hand.follow('grab', () => ({ x: c.x, y: c.y }));
         this.tweens.add({
           targets: c,
-          x: this.sunAt.x - (T.cloudPush + 20) * k,
+          x: this.sunAt.x + this.cloudDir() * (T.cloudPush + 20) * k,
           duration: T.helpMs * 1.3,
           delay: 250,
           ease: 'Sine.easeInOut',
@@ -932,6 +1335,43 @@ export class GardenScene extends Phaser.Scene {
       case 'seeds': {
         const hit = this.packets.find((pk) => Math.abs(pk.x - at.x) < Math.max(110 * k, pk.displayWidth / 2 + 20 * k) && Math.abs(pk.y - at.y) < pk.displayHeight / 2 + 30 * k);
         if (hit) this.pickSeeds(hit);
+        return;
+      }
+      case 'weeds': {
+        // Take hold of a weed (its leaves or the soil around it) to pull it up.
+        let best: Spot | null = null;
+        let d = 140 * k;
+        for (const sp of this.spots) {
+          if (!sp.weed) continue;
+          const dd = Math.hypot(sp.x - at.x, this.bed.soil - 90 * this.bed.s - at.y);
+          if (dd < d) {
+            d = dd;
+            best = sp;
+          }
+        }
+        if (!best?.weed) return;
+        this.tweens.killTweensOf(best.weed);
+        best.weed.setY(this.weedY());
+        sfx(this, 'tap', { volume: 0.7 });
+        boing(this, best.weed, 0.08);
+        this.owner = p;
+        this.held = { what: 'weed', img: best.weed, spot: best, dx: 0, dy: best.weed.y - at.y, x0: at.x };
+        return;
+      }
+      case 'bunny': {
+        const f = this.foods.find((q) => this.near(at, q.img, reach(q.img)));
+        if (f) {
+          this.tweens.killTweensOf(f.img);
+          sfx(this, 'tap', { volume: 0.7 });
+          this.owner = p;
+          this.held = { what: 'food', img: f.img, food: f, dx: f.img.x - at.x, dy: f.img.y - at.y, x0: f.img.x };
+          f.img.setDepth(600);
+        } else if (this.bunny && this.near(at, this.bunny, reach(this.bunny))) {
+          // It twitches its nose at her (it wants something to eat): a quiet miss.
+          boing(this, this.bunny, 0.1);
+          sfx(this, 'squish', { volume: 0.5 });
+          this.miss();
+        }
         return;
       }
       case 'plant': {
@@ -1019,6 +1459,15 @@ export class GardenScene extends Phaser.Scene {
       h.img.y = Phaser.Math.Clamp(y, this.sunAt.y - 40 * L.k, this.sunAt.y + 60 * L.k);
       return this.cloudMoved();
     }
+    if (h.what === 'weed') {
+      // A weed comes up only straight up, until its root is out.
+      const sp = h.spot!;
+      const home = this.weedY();
+      const up = Phaser.Math.Clamp(home - (p.worldY + h.dy), 0, 400 * this.bed.s);
+      h.img.setPosition(sp.x + Phaser.Math.Clamp(p.worldX - h.x0, -12, 12) * L.k, home - up);
+      if (up >= 150 * h.img.scaleY * H.weedPull) this.pullWeed(sp);
+      return;
+    }
     if (h.what === 'fruit' && h.fruit!.carrot && !h.fruit!.out) {
       // A carrot comes up only straight up, until enough of it is out of the ground.
       const f = h.fruit!;
@@ -1048,7 +1497,7 @@ export class GardenScene extends Phaser.Scene {
     const L = this.L;
     const k = L.k;
     const at = { x: h.img.x, y: h.img.y };
-    if (h.what !== 'cloud') settle(this, h.img);
+    if (h.what !== 'cloud' && h.what !== 'weed') settle(this, h.img);
     switch (h.what) {
       case 'seed': {
         const hole = this.spots.filter((s) => s.stage === 0).sort((a, b) => Math.abs(a.x - at.x) - Math.abs(b.x - at.x))[0];
@@ -1061,6 +1510,17 @@ export class GardenScene extends Phaser.Scene {
         waterLoop.stop();
         if (this.phase === 'water') this.tweens.add({ targets: h.img, x: this.canRest.x, y: this.canRest.y, angle: 0, duration: 380, ease: 'Back.easeOut' });
         return;
+      case 'weed':
+        // Not out yet: it slips gently back into its hole (the pulling so far was fine, not a miss).
+        this.tweens.add({ targets: h.img, x: h.spot!.x, y: this.weedY(), angle: 0, duration: 300, ease: 'Back.easeOut', onComplete: () => h.img.setDepth(21) });
+        return;
+      case 'food': {
+        const f = h.food!;
+        if (!cancelled && this.bunny && this.phase === 'bunny' && this.near(at, this.bunnyMouth(), T.reach * k)) return f.want ? this.feedBunny(f) : this.wrongFood(f);
+        if (!cancelled) this.miss();
+        this.foodBack(f);
+        return;
+      }
       case 'cloud':
         // She let go before it is off the sun: it stays where she left it (her push counts).
         return;
@@ -1095,21 +1555,28 @@ export class GardenScene extends Phaser.Scene {
   update(_t: number, delta: number) {
     // Watering: while the can is held with its spout over a plant, it tips and pours.
     if (this.held?.what === 'can' && this.can) {
-      const sp = this.phase === 'water' ? this.underSpout() : null;
+      let sp = this.phase === 'water' ? this.underSpout() : null;
+      // (level 2: a plant that has had its fill gets water only when the can stays over it, not when she carries the
+      // can past it to the next one)
+      this.linger = sp && sp.stage >= 3 && sp === this.lingerAt ? this.linger + delta : 0;
+      this.lingerAt = sp;
+      if (sp && sp.stage >= 3 && this.linger < LINGER_MS) sp = null;
       const want = sp ? -28 : 0;
       this.can.angle += (want - this.can.angle) * Math.min(1, delta / 90);
       if (sp && this.can.angle < -18) {
         if (!waterLoop.on) waterLoop.start();
-        this.water(sp, delta);
+        if (sp.stage >= 3) this.overWater(sp, delta);
+        else this.water(sp, delta);
       } else if (waterLoop.on && !this.helping) waterLoop.stop();
     }
+    if (this.hard) this.drain(delta);
     const p = this.owner ?? this.input.manager.pointers.find((q) => q.isDown);
     const at = this.held ? { x: this.held.img.x, y: this.held.img.y } : (this.hand.position ?? (p ? { x: p.worldX, y: p.worldY } : null));
     if (at) {
       this.mom?.lookAt(at.x, at.y);
       this.pipa?.lookAt(at.x, at.y);
     }
-    const active = ['seeds', 'plant', 'water', 'cloud', 'snail', 'pick'].includes(this.phase);
+    const active = ['seeds', 'weeds', 'plant', 'water', 'cloud', 'snail', 'bunny', 'pick'].includes(this.phase);
     if (!active || this.helping || this.demoOn || this.owner) return;
     this.idle += delta;
     if (!this.hintOn && this.idle >= HINT_AFTER_MS) this.showWay(true);
