@@ -9,6 +9,7 @@ import { liveKitchen } from '../core/kitchen';
 import { getStage } from '../core/stage';
 import { iconButton } from '../core/ui';
 import { getRecipe } from '../recipes';
+import { levelStep, levelSteps } from '../recipes/bigChef';
 import { prepSteps, type ChooseParams, type Recipe, type StepDef } from '../recipes/types';
 import { Character } from '../steps/Character';
 import { Dish } from '../steps/Dish';
@@ -62,7 +63,8 @@ export class RecipeScene extends Phaser.Scene {
 
   init(data: { id?: string }) {
     this.recipe = getRecipe(data.id ?? 'pizza');
-    this.steps = [...this.recipe.steps];
+    // (a big chef gets the recipe's level-2 steps too: recipes/bigChef.ts)
+    this.steps = levelSteps(this.recipe);
     this.step = undefined;
     this.stepDef = undefined;
     this.built = false;
@@ -132,6 +134,8 @@ export class RecipeScene extends Phaser.Scene {
   }
 
   private runStep(i: number) {
+    // Each step as the chosen level plays it (level 1: as written).
+    this.steps[i] = levelStep(this.steps[i], (key) => this.textures.exists(key));
     this.stepDef = this.steps[i];
     this.step = createStep(this.steps[i], this.ctx, () => this.stepDone(i));
     this.step.start();

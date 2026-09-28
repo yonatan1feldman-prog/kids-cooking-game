@@ -270,7 +270,13 @@ export interface ChooseParams {
    * ("Look! Pipa wants two things, in order. First..." name, "and then..." name). Tapping the second before the first
    * does not pick it: it wiggles and Mom says `first` while her hand shows the first one. Anything else is free.
    */
-  order?: { line: VoiceKey; then: VoiceKey; first: VoiceKey };
+  order?: {
+    line: VoiceKey;
+    then: VoiceKey;
+    first: VoiceKey;
+    /** Gameplay round 5 (big chef): how many things are in her order (default 2); with 3, `line` says "three things". */
+    count?: number;
+  };
 }
 
 /**
@@ -700,4 +706,10 @@ export interface Recipe {
   /** Who stands on the right, watches, cheers each step and eats the result. */
   character: CharacterDef;
   steps: StepDef[];
+  /**
+   * Gameplay round 5: steps only a big chef gets (core/level.ts), each put right before the first step of the type
+   * `before` (the pancakes and the cake: find the wooden spoon before stirring the batter). The rest of the big-chef
+   * level is the same for every recipe (recipes/bigChef.ts).
+   */
+  bigExtra?: { before: StepType; step: StepDef }[];
 }

@@ -2,7 +2,10 @@ import Phaser from 'phaser';
 import manifest from 'virtual:asset-manifest';
 import { music, voice } from '../core/audio';
 import { requestWakeLock, resumeAudio } from '../core/device';
+import { FX_SOFT } from '../core/assets';
 import { stars } from '../core/fx';
+import { getLevel, setLevel, type Level } from '../core/level';
+import { LEVEL_ICON, makeLevelTextures } from '../core/placeholders';
 import { screenHint } from '../core/hand';
 import { addBackground, getLayout, keepLayoutOnResize } from '../core/layout';
 import { sfx } from '../core/sfx';
@@ -42,6 +45,7 @@ export class TitleScene extends Phaser.Scene {
     // Its touch circle stops above the palm strip.
     const btn = iconButton(this, L, 'btn-play', S.play.x, S.play.y, () => this.go(btn.x, btn.y), { fireOn: 'up', hitPad: 80 });
     this.tweens.add({ targets: btn, alpha: { from: 0, to: 1 }, duration: 400 });
+    this.levelPick(L, S);
 
     const fadeIn = (t: { setAlpha: (a: number) => unknown }) => {
       t.setAlpha(0);
@@ -68,6 +72,59 @@ export class TitleScene extends Phaser.Scene {
 
     // Idle 5 s: Mom's pointing hand taps the play button.
     const hint = screenHint(this, L, () => (this.leaving ? null : { x: btn.x, y: btn.y }), titleArtLoaded);
+  }
+
+  /**
+   * Gameplay round 5: the difficulty, two wordless chef hats beside the play button (core/level.ts). The little chef's
+   * hat (the game as it was) and the big chef's tall one with a star (more to find, remember and follow). The chosen one
+   * glows; a tap on the other one chooses it (pop, stars, Mom says "Little chef!" / "Big chef!"). It is remembered on
+   * this device. Nothing else changes on the title; the play button starts the game at the chosen level.
+   * (They fire on release, like the play button: that tap may be the one that unlocks the sound.)
+   */
+  private levelPick(L: ReturnType<typeof getLayout>, S: ReturnType<typeof getStage>) {
+    makeLevelTextures(this.game);
+    const glows = new Map<Level, Phaser.GameObjects.Image>();
+    const hats = new Map<Level, Phaser.GameObjects.Image>();
+    const show = (animate: boolean) => {
+      for (const level of [1, 2] as const) {
+        const on = getLevel() === level;
+        const g = glows.get(level)!;
+        this.tweens.killTweensOf(g);
+        if (animate) this.tweens.add({ targets: g, alpha: on ? 0.85 : 0, duration: 220 });
+        else g.setAlpha(on ? 0.85 : 0);
+        hats.get(level)!.setAlpha(on ? 1 : 0.8);
+      }
+    };
+    for (const level of [1, 2] as const) {
+      const at = S.levelPick[level];
+      const glow = this.add.image(at.x, at.y, FX_SOFT).setTint(0xffd65a).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0);
+      glow.setScale((240 * S.levelScale * 1.5) / glow.frame.realWidth);
+      glows.set(level, glow);
+      const hat = iconButton(
+        this,
+        L,
+        LEVEL_ICON[level],
+        at.x,
+        at.y,
+        () => {
+          if (this.leaving) return;
+          resumeAudio(this.game);
+          this.sound.unlock();
+          stars(this, hat.x, hat.y - 60 * L.k, 8, 50 * L.k);
+          if (getLevel() === level) return;
+          setLevel(level);
+          show(true);
+          sfx(this, 'pop');
+          voice.say(level === 2 ? 'vo-big-chef' : 'vo-little-chef', { group: 'level', ttlMs: 2500 });
+          this.mom?.happy();
+        },
+        { fireOn: 'up', hitPad: 12, scale: S.levelScale },
+      );
+      hat.setAlpha(0);
+      this.tweens.add({ targets: hat, alpha: getLevel() === level ? 1 : 0.8, duration: 400 });
+      hats.set(level, hat);
+    }
+    show(false);
   }
 
   private go(x: number, y: number) {

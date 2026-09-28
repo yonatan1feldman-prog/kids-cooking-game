@@ -108,14 +108,16 @@ export class FindStep extends Step<FindParams> {
     });
   }
 
-  /** Mom's finger looks over the three (it does not tap the answer: that is the hint's). */
+  /** Mom's finger looks over the tools (it does not tap the answer: that is the hint's). */
   protected demo(): HandMotion | null {
     if (this.done) return null;
     const ts = [...this.tools].sort((a, b) => a.x - b.x || a.y - b.y);
     const up = 90 * this.k;
-    const keys = ts.map((t, i) => ({ x: t.x, y: t.itemY - up, t: 200 + i * 600 }));
+    // (600 ms a tool; with a big chef's four a little quicker, so the demo stays within DEMO_MAX_MS)
+    const each = Math.min(600, 2200 / ts.length);
+    const keys = ts.map((t, i) => ({ x: t.x, y: t.itemY - up, t: 200 + i * each }));
     keys.unshift({ ...keys[0], t: 0 });
-    keys.push({ ...keys[keys.length - 1], t: 200 + ts.length * 600 });
+    keys.push({ ...keys[keys.length - 1], t: 200 + ts.length * each });
     return { kind: 'point', keys };
   }
 
