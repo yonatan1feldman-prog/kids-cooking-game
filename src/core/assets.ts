@@ -570,7 +570,6 @@ export const RECIPE_ASSETS: Record<string, { images: readonly ImageKey[]; sounds
       'can-open', 'jar-open', 'grate', 'name-corn', 'name-mushroom', 'name-olives', 'vo-choose', 'vo-crush', 'vo-grate',
       'vo-knead', 'vo-mom-yum', 'vo-open-can', 'vo-open-jar', 'vo-photo', 'vo-pour', 'vo-share', 'vo-slice-mom',
       'vo-slice-pipa', 'vo-stir', 'vo-temp', 'vo-cut', 'vo-cut-careful', 'name-tomato', 'name-onion',
-      'vo-find-grater', 'name-grater', 'name-spoon', 'name-whisk',
     ],
   },
   salad: {
@@ -586,7 +585,7 @@ export const RECIPE_ASSETS: Record<string, { images: readonly ImageKey[]; sounds
       'tear', 'squeeze', 'drizzle', 'crunch', 'name-carrot', 'name-cucumber', 'vo-bowl-mom', 'vo-bowl-pipa',
       'vo-choose-veg', 'vo-finale-salad', 'vo-fresh', 'vo-into-bowl', 'vo-mix', 'vo-oil', 'vo-photo-salad', 'vo-salt',
       'vo-serve', 'vo-squeeze', 'vo-tear', 'vo-wash-veg', 'vo-wash-veg-done', 'vo-cut', 'vo-cut-careful', 'name-tomato',
-      'name-onion', 'vo-pipa-order', 'vo-then', 'vo-first-this',
+      'name-onion',
     ],
   },
   cookies: {
@@ -603,7 +602,6 @@ export const RECIPE_ASSETS: Record<string, { images: readonly ImageKey[]; sounds
       'vo-butter', 'vo-cookie-mom', 'vo-cookie-pipa', 'vo-cookie-yum', 'vo-decorate-cookies', 'vo-egg',
       'vo-finale-cookies', 'vo-flour', 'vo-knead-cookies', 'vo-photo-cookies', 'vo-pick-cutter', 'vo-roll-cookies',
       'vo-share-cookies', 'vo-stamp', 'vo-stir-dough', 'vo-sugar', 'vo-temp-150', 'vo-tray',
-      'vo-find-pin', 'name-rolling-pin', 'name-whisk', 'name-spatula',
     ],
   },
 };
@@ -619,7 +617,7 @@ RECIPE_ASSETS.smoothie = {
     'blender', 'lid-click', 'slurp', 'glass-pour', 'name-banana', 'name-strawberry', 'name-mango', 'name-kiwi',
     'vo-wash-fruit', 'vo-wash-veg-done', 'vo-choose-fruit', 'vo-into-blender', 'vo-milk', 'vo-lid', 'vo-blend', 'vo-blend-done',
     'vo-pour-glass', 'vo-share-smoothie', 'vo-glass-mom', 'vo-glass-pipa', 'vo-smoothie-yum', 'vo-photo-smoothie',
-    'vo-finale-smoothie', 'vo-cut', 'vo-cut-careful', 'vo-pipa-order', 'vo-then', 'vo-first-this',
+    'vo-finale-smoothie', 'vo-cut', 'vo-cut-careful',
   ],
 };
 
@@ -630,13 +628,15 @@ RECIPE_ASSETS.pancakes = {
     'stove-knob-on', 'flame', 'pan', 'ladle', 'batter-puddle-1', 'batter-puddle-2', 'batter-puddle-3', 'pancake-bubbles',
     'pancake-golden', 'plate-big', 'syrup-bottle', 'syrup-blob', 'berry', 'banana-coin', 'butter-pat',
     'photo-frame-pancakes',
+    // (the big-chef level's "find the tool" shows it beside the wooden spoon)
+    'grater',
   ],
   sounds: [
     'sizzle', 'egg-crack', 'flour-poof', 'glass-pour', 'vo-flour', 'vo-milk', 'vo-egg', 'vo-stir-batter', 'vo-stove',
     'vo-ladle', 'vo-bubbles', 'vo-flip', 'vo-flip-done', 'vo-more-pancake', 'vo-decorate-pancakes', 'vo-share-pancakes',
     'vo-pancake-mom', 'vo-pancake-pipa', 'vo-pancake-yum', 'vo-photo-pancakes', 'vo-finale-pancakes',
     // (Pipa's wish in decorating names the banana: DECORATE_NAMES in DecorateStep)
-    'name-banana', 'vo-stir-arrow', 'vo-other-way',
+    'name-banana',
   ],
 };
 
@@ -653,13 +653,14 @@ RECIPE_ASSETS.soup = {
     'pot-back', 'pot-front', 'pot-heap-1', 'pot-heap-2', 'pot-heap-3',
     'soup-stage-1', 'soup-stage-2', 'soup-stage-3', 'stove-top', 'stove-knob-off', 'stove-knob-on', 'flame',
     'water-jug', 'spoon-wood', 'soup-bowl-empty', 'soup-bowl-full', 'soup-portion', 'photo-frame-soup',
+    // (the big-chef level's "find the tool": a fourth tool)
+    'grater',
   ],
   sounds: [
     'peel', 'slurp', 'vo-wash-veg', 'vo-wash-veg-done', 'vo-choose-veg', 'vo-cut', 'vo-cut-careful', 'vo-salt',
     'vo-stove', 'name-carrot', 'name-onion', 'name-tomato', 'name-potato', 'name-zucchini',
     'vo-peel', 'vo-peel-done', 'vo-into-pot', 'vo-water', 'vo-stir-soup', 'vo-soup-ready', 'vo-serve-soup',
     'vo-soup-mom', 'vo-soup-pipa', 'vo-soup-yum', 'vo-photo-soup', 'vo-finale-soup',
-    'vo-find-spoon', 'name-spoon', 'name-whisk', 'name-spatula',
   ],
 };
 
@@ -671,13 +672,14 @@ RECIPE_ASSETS.cake = {
     'cake-baked', 'cake-plate', 'frosting-tub-pink', 'frosting-tub-white', 'frosting-tub-choc', 'frosting-blob',
     'sprinkles-cluster', 'candy-dot', 'berry', 'choc-chip',
     'candle', 'flame-candle', 'smoke-puff', 'photo-frame-cake',
+    // (the big-chef level's "find the tool" shows it beside the wooden spoon)
+    'grater',
   ],
   sounds: [
     'blow', 'egg-crack', 'flour-poof', 'glass-pour', 'vo-flour', 'vo-sugar', 'vo-milk', 'vo-egg',
     'vo-stir-cake', 'vo-pour-pan', 'vo-pick-frosting', 'name-pink', 'name-white', 'name-chocolate',
     'vo-frost', 'vo-decorate-cake', 'vo-candles', 'vo-wish', 'vo-blow-more', 'vo-blown',
     'vo-share-cake', 'vo-cake-mom', 'vo-cake-pipa', 'vo-cake-yum', 'vo-photo-cake', 'vo-finale-cake', 'vo-temp',
-    'vo-stir-arrow', 'vo-other-way',
   ],
 };
 
@@ -690,7 +692,6 @@ RECIPE_ASSETS.skewers = {
     'name-banana', 'name-strawberry', 'name-mango', 'name-kiwi', 'vo-wash-fruit', 'vo-wash-veg-done', 'vo-choose-fruit',
     'vo-cut', 'vo-cut-careful', 'vo-thread', 'vo-copy', 'vo-same', 'vo-next', 'vo-pattern', 'vo-new-pattern', 'vo-own',
     'vo-share-skewers', 'vo-skewer-mom', 'vo-skewer-pipa', 'vo-skewer-yum', 'vo-photo-skewers', 'vo-finale-skewers',
-    'vo-pipa-order', 'vo-then', 'vo-first-this',
   ],
 };
 /** The invitation badges of the guests: every recipe ends by sharing, so every recipe loads them. */

@@ -1233,7 +1233,8 @@ window.__pancakeMoments = () => [
 window.__mini = async (id, level = 1, opts = {}) => {
   window.__level = level;
   if (opts.first === false) localStorage.setItem('cooking.runs.' + id, '3'); else if (opts.first) localStorage.removeItem('cooking.runs.' + id);
-  const B = await import('/kids-cooking-game/src/scenes/BootScene.ts');
+  // (not a literal import: the dev server would rewrite this file)
+  const B = await new Function('u', 'return import(u)')('/kids-cooking-game/src/scenes/BootScene.ts');
   game.scene.getScenes(true).forEach((s) => s.scene.stop());
   game.scene.start('Home', {});
   await __run(800);

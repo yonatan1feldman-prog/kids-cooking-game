@@ -70,6 +70,8 @@ export type VoiceKey =
   // gameplay round 4: find the tool, Pipa's order, stir with the arrow
   | 'vo-find-grater' | 'vo-find-pin' | 'vo-find-spoon' | 'vo-pipa-order' | 'vo-then' | 'vo-first-this' | 'vo-stir-arrow'
   | 'vo-other-way'
+  // gameplay round 5: the chef hats on the title (the level), Pipa's longer order, remembering her wish
+  | 'vo-little-chef' | 'vo-big-chef' | 'vo-pipa-order-3' | 'vo-remember' | 'vo-and'
   | CountKey | TempKey | NameKey;
 
 /** Mom counting (count-1..10) and saying the oven temperature (temp-50..250). */

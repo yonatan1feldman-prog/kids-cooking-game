@@ -3,6 +3,7 @@ import { voice, type VoiceKey } from '../core/audio';
 import { MomHandView, type HandMotion } from '../core/hand';
 import { confetti, tickles, touchRipples } from '../core/juice';
 import { getLayout, inNoTouchZone, keepLayoutOnResize, ORIENTATION_PAUSE, type Layout } from '../core/layout';
+import { getLevel, type Level } from '../core/level';
 import { getStage, type Stage } from '../core/stage';
 import { AUTO_AFTER_HINT_MS, DEMO_MAX_MS, HINT_AFTER_MS } from '../core/tuning';
 import { iconButton, otherPointerDown } from '../core/ui';
@@ -25,18 +26,10 @@ function visits(id: string): number {
   }
 }
 
-/**
- * The difficulty the mini-games play at: 1 gentle, 2 with the extra challenge. It follows the game's own setting;
- * `window.__level` (the test harness) overrides it.
- */
-export function gameLevel(): 1 | 2 {
+/** The difficulty the mini-games play at: the game's own level (`core/level.ts`); `window.__level` (the test harness) overrides it. */
+export function gameLevel(): Level {
   const w = (globalThis as { __level?: number }).__level;
-  if (w === 1 || w === 2) return w;
-  try {
-    return localStorage.getItem('cooking.level') === '2' ? 2 : 1;
-  } catch {
-    return 1;
-  }
+  return w === 1 || w === 2 ? w : getLevel();
 }
 
 /**

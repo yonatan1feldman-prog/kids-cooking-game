@@ -5,7 +5,7 @@ import { boing, burst, puff } from '../core/fx';
 import { tapMotion } from '../core/hand';
 import type { HandMotion } from '../core/hand';
 import { sfx } from '../core/sfx';
-import { TUNING } from '../core/tuning';
+import { stirFlips, TUNING } from '../core/tuning';
 import type { StirParams } from '../recipes/types';
 import { BOWL_DEPTH, PrepBowl } from './PrepBowl';
 import { Step } from './Step';
@@ -38,7 +38,8 @@ export class StirStep extends Step<StirParams> {
   /** Stir with the arrow (gameplay round 4): 1 = clockwise, -1 = the other way; the arrows drawn in the bowl. */
   private dir = 1;
   private arrows?: Phaser.GameObjects.Graphics;
-  private flipped = false;
+  /** How many times the arrows have turned round (at each of `stirFlips()`: once on level 1, twice for a big chef). */
+  private flips = 0;
   private wrongRun = 0;
   private wobbled = false;
 
@@ -190,7 +191,7 @@ export class StirStep extends Step<StirParams> {
         puff(this.scene, o.x + (Math.random() - 0.5) * o.rx, o.y - o.ry * 0.4, 0xffffff, 3, 90 * this.k).setDepth(BOWL_DEPTH.front + 0.2);
       }
     }
-    if (this.params.arrow && !this.flipped && this.progress >= TUNING.stirArrow.flipAt) this.flipArrows();
+    this.maybeFlip();
     if (this.progress >= 1) this.finish();
   }
 
@@ -246,10 +247,16 @@ export class StirStep extends Step<StirParams> {
     }
   }
 
-  /** Half-way: the arrows turn round, and Mom says so. */
+  /** The arrows turn round when the stirring passes the next of `stirFlips()`. */
+  private maybeFlip() {
+    const at = stirFlips()[this.flips];
+    if (this.params.arrow && at !== undefined && this.progress >= at) this.flipArrows();
+  }
+
+  /** Half-way (a big chef: at a third and at two thirds): the arrows turn round, and Mom says so. */
   private flipArrows() {
-    if (this.flipped || !this.params.arrow) return;
-    this.flipped = true;
+    if (!this.params.arrow) return;
+    this.flips++;
     this.dir = -this.dir;
     this.wrongRun = 0;
     this.wobbled = true;
@@ -385,7 +392,7 @@ export class StirStep extends Step<StirParams> {
       duration: TUNING.help.stirMs,
       onUpdate: (tw) => {
         this.progress = tw.getValue() ?? 1;
-        if (this.params.arrow && !this.flipped && this.progress >= TUNING.stirArrow.flipAt) this.flipArrows();
+        this.maybeFlip();
         this.render();
         const p = at();
         if (Math.random() < 0.15) this.drops(p.x, p.y, 2);

@@ -280,6 +280,11 @@ This file covers only the files in this folder. Every file is either CC0 1.0 (pu
 | voice/vo-dishes-done.ogg | All clean! Thank you for helping! | 2.04 | -18.0 | 15231 |
 | voice/name-blue.ogg | Blue! | 0.67 | -18.0 | 7431 |
 | voice/name-yellow.ogg | Yellow! | 0.72 | -18.0 | 7744 |
+| voice/vo-little-chef.ogg | Little chef! | 0.93 | -18.0 | 8884 |
+| voice/vo-big-chef.ogg | Big chef! | 0.88 | -18.0 | 8616 |
+| voice/vo-pipa-order-3.ogg | Look! Pipa wants three things, in order. First... | 2.97 | -19.6 | 21150 |
+| voice/vo-remember.ogg | Can you remember what Pipa wants? | 1.81 | -18.0 | 14092 |
+| voice/vo-and.ogg | and... | 0.63 | -18.0 | 7198 |
 
 ## music/ (1 file)
 
