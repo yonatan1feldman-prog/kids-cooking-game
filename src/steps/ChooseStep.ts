@@ -90,8 +90,8 @@ export class ChooseStep extends Step<ChooseParams> {
     const run = this.ctx.run;
     const W = TUNING.wish.chooseItems;
     const order = this.params.order;
-    // Pipa's order (gameplay round 4): always two things, the first one first.
-    const n = Math.min(order ? 2 : W[Math.min(run.runNo, W.length - 1)], this.params.pick, this.choices.length);
+    // Pipa's order (gameplay round 4): always two things, the first one first (a big chef: `order.count`, up to three).
+    const n = Math.min(order ? (order.count ?? 2) : W[Math.min(run.runNo, W.length - 1)], this.params.pick, this.choices.length);
     const pick = Phaser.Utils.Array.Shuffle([...this.choices]).slice(0, n);
     const S = this.ctx.stage;
     const shown = this.ctx.character.showWish(
@@ -104,15 +104,19 @@ export class ChooseStep extends Step<ChooseParams> {
     run.wishes.push(...pick.map((c) => c.opt.topping as string));
     this.scene.time.delayedCall(TUNING.wish.sayAfterMs, () => {
       if (this.aborted || this.finishing) return;
-      if (order && pick.length === 2) {
+      if (order && pick.length >= 2) {
+        // "Look! Pipa wants two things, in order. First..." tomato "and then..." olives ("and then..." again for a third)
         voice.say(order.line, { ttlMs: 9000 });
-        if (pick[0].opt.name) voice.say(pick[0].opt.name, { ttlMs: 11000 });
-        voice.say(order.then, { ttlMs: 12000 });
-        if (pick[1].opt.name) voice.say(pick[1].opt.name, { ttlMs: 13000 });
-        return;
+        pick.forEach((c, i) => {
+          if (i > 0) voice.say(order.then, { ttlMs: 12000 + i * 1500 });
+          if (c.opt.name) voice.say(c.opt.name, { ttlMs: 13000 + i * 1500 });
+        });
+      } else {
+        voice.say('vo-pipa-wants', { ttlMs: 9000 });
+        for (const c of pick) if (c.opt.name) voice.say(c.opt.name, { ttlMs: 11000 });
       }
-      voice.say('vo-pipa-wants', { ttlMs: 9000 });
-      for (const c of pick) if (c.opt.name) voice.say(c.opt.name, { ttlMs: 11000 });
+      // A big chef remembers it: the pictures leave the bubble a little later.
+      this.rememberWish(() => this.finishing);
     });
   }
 
@@ -145,15 +149,17 @@ export class ChooseStep extends Step<ChooseParams> {
       boing(this.scene, c.bin, 0.1);
       return;
     }
-    // Pipa's order: her second thing before her first one is not picked yet. It wiggles, Mom says "Pipa wants this one
+    // Pipa's order: her second (or third) thing before the one it comes after is not picked yet. It wiggles, Mom says "Pipa wants this one
     // first!" and her hand shows the first one (a gentle redirect, never a "no").
     const order = this.params.order;
-    if (order && this.wished.length === 2 && c === this.wished[1] && !this.found.has(this.wished[0])) {
+    const wj = this.wished.indexOf(c);
+    const before = this.wished.find((w, j) => j < wj && !this.found.has(w));
+    if (order && wj > 0 && before) {
       sfx(this.scene, 'tap');
       this.scene.tweens.add({ targets: c.item, angle: { from: -7, to: 7 }, duration: 90, yoyo: true, repeat: 1, onComplete: () => c.item.setAngle(0) });
       boing(this.scene, c.bin, 0.08);
       voice.say(order.first, { ttlMs: 3000 });
-      const f = this.wished[0];
+      const f = before;
       if (f.opt.name) voice.say(f.opt.name, { ttlMs: 4500 });
       this.hintNow();
       return;

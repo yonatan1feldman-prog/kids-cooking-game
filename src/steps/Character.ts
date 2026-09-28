@@ -214,7 +214,14 @@ export class Character {
     return 900;
   }
 
-  private wish?: { box: Phaser.GameObjects.Container; keys: string[]; items: Phaser.GameObjects.Image[] };
+  private wish?: {
+    box: Phaser.GameObjects.Container;
+    keys: string[];
+    items: Phaser.GameObjects.Image[];
+    /** Big chef (gameplay round 5): the pictures have gone, she remembers them; a peek shows them for a while. */
+    memory?: 'waiting' | 'hidden' | 'peek';
+    peekTimer?: Phaser.Time.TimerEvent;
+  };
 
   /** What she wishes for right now (the keys her bubble shows), if anything. */
   get wishing() {
@@ -283,6 +290,9 @@ export class Character {
     if (!img) return;
     const m = img.getWorldTransformMatrix();
     stars(this.scene, m.tx, m.ty, 5, 30 * (this.scale / 0.4));
+    // (found: it shows faintly from now on, also in a bubble she is remembering)
+    img.setData('on', 0.35);
+    this.scene.tweens.killTweensOf(img);
     this.scene.tweens.add({ targets: img, alpha: 0.35, duration: 250 });
     boing(this.scene, img, 0.3);
   }
@@ -299,11 +309,51 @@ export class Character {
     if (this._mood === 'rest' || this._mood === 'happy') this.react('love');
   }
 
+  /**
+   * Big chef: remember what she wants. After `ms` the pictures in the bubble fade away (the bubble stays, empty; what she
+   * has already found stays faintly). A tap on Pipa or Mom's hint shows them again for `peekMs` (`peekWish`).
+   */
+  rememberWish(ms: number, peekMs: number) {
+    const w = this.wish;
+    if (!w || w.memory) return;
+    w.memory = 'waiting';
+    w.box.setData('peekMs', peekMs);
+    this.scene.time.delayedCall(ms, () => {
+      if (this.wish !== w || w.memory !== 'waiting') return;
+      this.fadeWish(w);
+    });
+  }
+
+  private fadeWish(w: NonNullable<Character['wish']>) {
+    w.memory = 'hidden';
+    for (const img of w.items) {
+      this.scene.tweens.killTweensOf(img);
+      const on = (img.getData('on') as number | undefined) ?? 0;
+      this.scene.tweens.add({ targets: img, alpha: on, duration: 600, ease: 'Sine.easeInOut' });
+    }
+  }
+
+  /** The remembered bubble shows its pictures again for a while (a tap on Pipa, Mom's hint). */
+  peekWish() {
+    const w = this.wish;
+    if (!w || (w.memory !== 'hidden' && w.memory !== 'peek')) return;
+    w.memory = 'peek';
+    w.peekTimer?.remove();
+    for (const img of w.items) {
+      this.scene.tweens.killTweensOf(img);
+      const on = (img.getData('on') as number | undefined) ?? 1;
+      this.scene.tweens.add({ targets: img, alpha: on, duration: 250 });
+    }
+    boing(this.scene, w.box, 0.08);
+    w.peekTimer = this.scene.time.delayedCall((w.box.getData('peekMs') as number) ?? 2500, () => this.wish === w && this.fadeWish(w));
+  }
+
   /** The bubble goes quietly (the step is over): nothing is said, nobody is sad. */
   hideWish(now = false) {
     const w = this.wish;
     if (!w) return;
     this.wish = undefined;
+    w.peekTimer?.remove();
     if (now) return w.box.destroy();
     this.scene.tweens.killTweensOf(w.box);
     this.scene.tweens.add({ targets: w.box, alpha: 0, scale: 0.8, duration: 300, onComplete: () => w.box.destroy() });
@@ -338,6 +388,8 @@ export class Character {
 
   /** A tap on her: she giggles and squishes up and down (never sideways: Mom's face is close). */
   tickle() {
+    // (a big chef remembering Pipa's wish: a tap on her shows it again)
+    this.peekWish();
     const now = this.scene.time.now;
     if (this._mood !== 'rest' || !this.box.visible || now - this.tickledAt < 700 || this.scene.tweens.isTweening(this.box)) return;
     this.tickledAt = now;

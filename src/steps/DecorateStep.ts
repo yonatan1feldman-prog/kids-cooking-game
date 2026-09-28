@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { countKey, voice, type NameKey } from '../core/audio';
 import { TUNING } from '../core/tuning';
+import { isBigChef } from '../core/level';
 import { boing, burst, stars } from '../core/fx';
 import { sway } from '../core/juice';
 import type { HandMotion } from '../core/hand';
@@ -136,45 +137,61 @@ export class DecorateStep extends Step<DecorateParams> {
     this.makeWish();
   }
 
-  /** Pipa's wish here: `count` of what `key` puts on the dish; `said` = how far Mom has counted. */
-  private wish?: { puts: string; count: number; said: number };
+  /**
+   * Pipa's wish here: `count` of what each `puts` on the dish (one kind; a big chef: two kinds); `said` = how far Mom
+   * has counted it; `at` = where its pictures start in her bubble.
+   */
+  private wish?: { puts: string; count: number; said: number; at: number }[];
 
   /**
    * Pipa's counting wish (the gameplay round's small challenge): her bubble shows N of one thing (3 at first, up to 5
    * after a few runs), Mom says "Look! Pipa wants..." and the number (and its name when she has one). Mom counts each
    * one of it put on the dish, and at N Pipa is overjoyed. More is fine, fewer is fine: nothing else changes, the bubble
    * goes quietly with the done button. What she wished for in choosing comes first, when she has it here.
+   * Big chef (gameplay round 5): two kinds, `TUNING.big.wish.decorate` of each ("three olives and three tomatoes"), and
+   * she remembers them (the pictures leave the bubble); each one put on lights its picture up again.
    */
   private makeWish() {
     const run = this.ctx.run;
-    const W = TUNING.wish.decorateCount;
+    const big = isBigChef();
+    const W = big ? TUNING.big.wish.decorate : TUNING.wish.decorateCount;
     const count = W[Math.min(run.runNo, W.length - 1)];
     const keys = this.bins.map((b) => b.key);
     if (!keys.length) return;
-    const key = keys.find((k) => run.wishes.includes(k)) ?? keys[Phaser.Math.Between(0, keys.length - 1)];
+    const first = keys.find((k) => run.wishes.includes(k)) ?? keys[Phaser.Math.Between(0, keys.length - 1)];
+    const others = Phaser.Utils.Array.Shuffle(keys.filter((k) => k !== first));
+    const wanted = big && others.length ? [first, others[0]] : [first];
     const S = this.ctx.stage;
-    const shown = this.ctx.character.showWish([key], [key], { count, maxRight: Math.min(S.momFace.x0, S.done.x - 130 * this.k) - 12 * this.k, k: this.k });
+    const shown = this.ctx.character.showWish(wanted, wanted, { count, maxRight: Math.min(S.momFace.x0, S.done.x - 130 * this.k) - 12 * this.k, k: this.k });
     if (!shown) return;
-    this.wish = { puts: this.puts(key), count, said: 0 };
-    run.wishes.push(this.puts(key));
-    const name = (run.chosen.find((o) => o.topping === key)?.name ?? DECORATE_NAMES[key]) as NameKey | undefined;
+    this.wish = wanted.map((key, i) => ({ puts: this.puts(key), count, said: 0, at: i * count }));
+    run.wishes.push(...wanted.map((key) => this.puts(key)));
+    const nameOf = (key: string) => (run.chosen.find((o) => o.topping === key)?.name ?? DECORATE_NAMES[key]) as NameKey | undefined;
     this.scene.time.delayedCall(TUNING.wish.sayAfterMs, () => {
       if (this.aborted || this.finishing) return;
       voice.say('vo-pipa-wants', { ttlMs: 9000 });
-      voice.say(countKey(count), { ttlMs: 11000 });
-      if (name) voice.say(name, { ttlMs: 12000 });
+      wanted.forEach((key, i) => {
+        if (i > 0) voice.say('vo-and', { ttlMs: 12000 });
+        voice.say(countKey(count), { ttlMs: 11000 + i * 2000 });
+        const name = nameOf(key);
+        if (name) voice.say(name, { ttlMs: 12000 + i * 2000 });
+      });
+      this.rememberWish(() => this.finishing);
     });
   }
 
-  /** After something lands: Mom counts Pipa's wished thing on the dish, and at her number the wish comes true. */
+  /** After something lands: Mom counts Pipa's wished thing on the dish, and at her number(s) the wish comes true. */
   private countWish(key: string) {
-    const w = this.wish;
-    if (!w || key !== w.puts || w.said >= w.count) return;
+    const w = this.wish?.find((q) => q.puts === key);
+    if (!w || w.said >= w.count) return;
     const n = (this.dish.toppings.list as Phaser.GameObjects.Image[]).filter((t) => t.getData('key') === key).length;
     if (n <= w.said) return;
+    const was = w.said;
     w.said = Math.min(n, w.count);
     voice.say(countKey(w.said), { group: 'count', sequence: true, ttlMs: 5000 });
-    if (w.said >= w.count) {
+    // (two kinds: each one put on lights its own picture in the bubble)
+    if (this.wish!.length > 1) for (let i = was; i < w.said; i++) this.ctx.character.wishFound(w.at + i);
+    if (this.wish!.every((q) => q.said >= q.count)) {
       this.ctx.character.wishGranted();
       voice.say('vo-pipa-got-it', { ttlMs: 5000 });
     }
@@ -384,6 +401,7 @@ export class DecorateStep extends Step<DecorateParams> {
   protected showHint() {
     if (this.placed === 0 || !this.done?.active) return super.showHint();
     // Something is on the pizza: Mom points at the done button and says so.
+    this.ctx.character.peekWish();
     voice.say('vo-done-hint', { valid: () => !this.finishing });
     this.hand.play(this.doneTap(), { loop: true, gapMs: 1200 });
   }

@@ -1,6 +1,7 @@
 import { ART } from '../core/assets';
 import { TUNING } from '../core/tuning';
 import { pizza } from './pizza';
+import { FIND_SPOON } from './bigChef';
 import type { BakeParams, Recipe } from './types';
 
 /**
@@ -218,4 +219,7 @@ export const cake: Recipe = {
       },
     },
   ],
+  // The big-chef level (recipes/bigChef.ts): first find the wooden spoon the batter will be stirred with (before the
+  // bowl stands in the middle, where the tools are shown).
+  bigExtra: [{ before: 'open-pour', step: FIND_SPOON }],
 };

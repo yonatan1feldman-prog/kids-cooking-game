@@ -4,7 +4,7 @@ import { countKey, lineMs, voice } from '../core/audio';
 import { boing, burst } from '../core/fx';
 import type { HandMotion } from '../core/hand';
 import { sfx } from '../core/sfx';
-import { TUNING } from '../core/tuning';
+import { cutTuning, TUNING } from '../core/tuning';
 import { VEG, vegColumn } from '../core/vegArt';
 import type { ChopParams } from '../recipes/types';
 import { drawCutGuide, LineCut } from './lineCut';
@@ -114,11 +114,11 @@ export class ChopStep extends Step<ChopParams> {
         this.cutThisTouch = true;
         this.poke();
         this.drawCutSoFar();
-        if (this.line.progress >= TUNING.cut.through) this.cut();
+        if (this.line.progress >= cutTuning().through) this.cut();
       } else if (r === 'off' && this.inCutZone(at.x, at.y)) {
         // (Up again, to start the next stroke, is natural: only sideways, or down away from the line, is "not like that".)
         this.wrongRun += step;
-        if (!this.wobbled && !this.cutThisTouch && this.wrongRun >= TUNING.cut.wobbleAfter * this.layout.k) {
+        if (!this.wobbled && !this.cutThisTouch && this.wrongRun >= cutTuning().wobbleAfter * this.layout.k) {
           this.wobbled = true;
           this.wobble();
         }
@@ -145,7 +145,7 @@ export class ChopStep extends Step<ChopParams> {
   private nextLine() {
     const x = this.cutX(Math.min(this.cutsDone + 1, this.params.cuts));
     const col = vegColumn(this.params.veg, x);
-    this.line = new LineCut({ x: this.X(x), y: this.Yf(col.top) - 30 * this.u }, { x: this.X(x), y: this.Yf(col.bottom) }, this.bandW(), TUNING.cut.gap, TUNING.cut.angle);
+    this.line = new LineCut({ x: this.X(x), y: this.Yf(col.top) - 30 * this.u }, { x: this.X(x), y: this.Yf(col.bottom) }, this.bandW(), cutTuning().gap, cutTuning().angle);
     this.cutG?.clear();
   }
 
@@ -231,7 +231,7 @@ export class ChopStep extends Step<ChopParams> {
 
   private bandW() {
     const [s0, s1] = this.span;
-    return Math.max(TUNING.cut.minBand * this.layout.k, (s1 - s0) * this.vs * TUNING.cut.vegBand);
+    return Math.max(cutTuning().minBand * this.layout.k, (s1 - s0) * this.vs * cutTuning().vegBand);
   }
 
   private cut() {

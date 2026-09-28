@@ -262,6 +262,11 @@ This file covers only the files in this folder. Every file is either CC0 1.0 (pu
 | voice/vo-first-this.ogg | Pipa wants this one first! | 1.77 | -18.0 | 14155 |
 | voice/vo-stir-arrow.ogg | Stir round and round, the way the arrow goes! | 2.83 | -18.0 | 20780 |
 | voice/vo-other-way.ogg | Now stir the other way! | 1.43 | -20.0 | 12420 |
+| voice/vo-little-chef.ogg | Little chef! | 0.93 | -18.0 | 8884 |
+| voice/vo-big-chef.ogg | Big chef! | 0.88 | -18.0 | 8616 |
+| voice/vo-pipa-order-3.ogg | Look! Pipa wants three things, in order. First... | 2.97 | -19.6 | 21150 |
+| voice/vo-remember.ogg | Can you remember what Pipa wants? | 1.81 | -18.0 | 14092 |
+| voice/vo-and.ogg | and... | 0.63 | -18.0 | 7198 |
 
 ## music/ (1 file)
 
