@@ -3,6 +3,7 @@ import { listPhotos, type AlbumPhoto } from '../core/album';
 import { IMAGES, type ImageKey } from '../core/assets';
 import { voice } from '../core/audio';
 import { boing } from '../core/fx';
+import { sfx } from '../core/sfx';
 import { addBackground, getLayout, keepLayoutOnResize } from '../core/layout';
 import { ALBUM_ARROW, makeAlbumTextures } from '../core/placeholders';
 import { getStage } from '../core/stage';
@@ -43,6 +44,8 @@ export class AlbumScene extends Phaser.Scene {
   private mine: string[] = [];
   private photos: AlbumPhoto[] = [];
   private page = 0;
+  /** The direction of the page just turned (1 = forward: the new page comes in from the right), 0 = none. */
+  private slide = 0;
   /** The grid's objects, rebuilt for each page. */
   private tiles: Phaser.GameObjects.GameObject[] = [];
   /** The enlarged photo (and its frame), or null while the grid is shown. */
@@ -167,11 +170,23 @@ export class AlbumScene extends Phaser.Scene {
       const y = area.y0 + chh * (row + 0.5);
       this.tiles.push(...this.frameAt(p, keys[i], x, y, s, () => this.enlarge(L, S, p, keys[i])));
     });
+    // Visual round 6: a turned page slides in from the side she turned it to, like a page of a real book.
+    if (this.slide) {
+      const dx = this.slide * 140 * L.k;
+      for (const o of this.tiles as Phaser.GameObjects.Image[]) {
+        const x = o.x;
+        o.x = x + dx;
+        this.tweens.add({ targets: o, x, duration: 320, ease: 'Cubic.easeOut' });
+      }
+      this.slide = 0;
+    }
 
     if (pages > 1) {
       const y = (area.y0 + area.y1) / 2;
       const turn = (d: number) => {
         this.page = (this.page + d + pages) % pages;
+        this.slide = d;
+        sfx(this, 'whoosh', { volume: 0.5 });
         void this.showPage(L, S);
       };
       const left = iconButton(this, L, ALBUM_ARROW, A.x0 + arrowW / 2, y, () => turn(-1), { scale: 0.85 * L.k, hitPad: 40 });

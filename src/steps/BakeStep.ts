@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { ART, FX_SOFT, IMAGES } from '../core/assets';
 import { bakeLoop, voice, type TempKey } from '../core/audio';
-import { boing, burst, puff, stars } from '../core/fx';
+import { boing, burst, puff, stars, steam } from '../core/fx';
 import { tapMotion, type HandMotion } from '../core/hand';
 import { sfx } from '../core/sfx';
 import { TUNING } from '../core/tuning';
@@ -568,6 +568,8 @@ export class BakeStep extends Step<BakeParams> {
         this.dish.setDepth(10);
         sfx(this.scene, 'pop');
         stars(this.scene, this.dish.x, this.dish.y, 12, 70 * this.k);
+        // Visual round 6: it is hot from the oven: a few wisps of steam rise from what she pulled out.
+        steam(this.scene, this.dish.x, this.dish.y - 40 * this.k, this.k, 6, 180 * this.k);
         const m = this.holdMitt;
         if (m) this.scene.tweens.add({ targets: m, alpha: 0, x: m.x - 60 * this.k, delay: 250, duration: 350 });
         this.becomes();

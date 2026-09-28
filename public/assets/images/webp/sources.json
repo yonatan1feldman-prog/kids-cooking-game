@@ -1134,6 +1134,16 @@
   "w": 800,
   "h": 800
  },
+ "mom-arm-left-clap": {
+  "sha1": "300e25c0170990116adf3bb512e90060ad4d7e95",
+  "w": 800,
+  "h": 800
+ },
+ "mom-arm-left-open": {
+  "sha1": "82c8f07ee0689d226dbe4db555c6f3e1df047602",
+  "w": 800,
+  "h": 800
+ },
  "mom-arm-left-reach": {
   "sha1": "baa64f9d11f86a0bddbd35cce87caa57552c6d22",
   "w": 800,
@@ -1144,8 +1154,23 @@
   "w": 800,
   "h": 800
  },
+ "mom-arm-right-chin": {
+  "sha1": "2ee7452a1dcc576422857d30cd0c0780414f2947",
+  "w": 800,
+  "h": 800
+ },
+ "mom-arm-right-clap": {
+  "sha1": "2092c153667faa790d6cb232fc4ef2fae4d2a7ba",
+  "w": 800,
+  "h": 800
+ },
  "mom-arm-right-rest": {
   "sha1": "dde4fc0bf959739be42c55cb4d2c8329cfd341fa",
+  "w": 800,
+  "h": 800
+ },
+ "mom-arm-right-thumb": {
+  "sha1": "9217a41a93402d40ffcd261df121783397f2beed",
   "w": 800,
   "h": 800
  },

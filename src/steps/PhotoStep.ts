@@ -4,6 +4,7 @@ import { keepPhoto } from '../core/album';
 import { ART, IMAGES } from '../core/assets';
 import { voice } from '../core/audio';
 import { boing } from '../core/fx';
+import { confetti } from '../core/juice';
 import type { HandMotion } from '../core/hand';
 import { sfx, sfxThen } from '../core/sfx';
 import type { Box } from '../core/stage';
@@ -202,6 +203,18 @@ export class PhotoStep extends Step<PhotoParams> {
       });
     voice.say(this.params.finale, { ttlMs: 5000, done: () => !this.aborted && sfxThen(this.scene, 'cheer', bye) });
     this.showerStars();
+    // Visual round 6: paper confetti pops up from the photo's two top corners (it falls back over the photo and the
+    // counter, left of Mom), once and again with the cheer.
+    const f = this.frameBox;
+    if (f) {
+      const pop = () => {
+        if (this.aborted) return;
+        confetti(this.scene, f.x0 + (f.x1 - f.x0) * 0.1, f.y0, 22, 34 * k);
+        confetti(this.scene, f.x0 + (f.x1 - f.x0) * 0.9, f.y0, 22, 34 * k);
+      };
+      pop();
+      this.scene.time.delayedCall(1300, pop);
+    }
   }
 
   /** Stars pop in one after another, drift down a little and fade: never over a face, the photo or the home button. */
