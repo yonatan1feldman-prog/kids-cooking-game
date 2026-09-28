@@ -23,6 +23,11 @@ Brows are part of the eyes files. Glasses, when enabled, are drawn inside every 
 ## Arm pivots (frame coordinates, the same for every variant)
 - **mom-arm-left** shoulder pivot: **(350, 505)**. Default pose: pointing LEFT and about 12° above horizontal, toward the pizza. The arm goes shoulder → elbow (264, 428) → wrist (160, 405) → **index fingertip ≈ (37, 378)**. The forearm stays above y ≈ 450 from x ≈ 290 leftwards, so it clears the hedgehog area (x 50–290, y 420–700).
 - **mom-arm-right** shoulder pivot: **(650, 505)**. Default pose: a friendly wave, with the open hand beside her head (palm about (739, 462)). It fits inside the frame.
+- **More poses on the same pivots** (round 11: `mom-arm-right-rest` hand on the hip, `mom-arm-left-reach` down to the
+  counter; visual round 6, `gen_mom.py`: `mom-arm-right-chin` chin on the hand (front of the body), `mom-arm-right-thumb`
+  thumbs-up beside the shoulder (behind the body, like the wave), `mom-arm-left-clap` + `mom-arm-right-clap` both hands
+  meeting in front of the chest (front), `mom-arm-left-open` an open palm raised toward the work (front; it stays above
+  y 450 left of x 290, clear of the hedgehog area). The game shows one drawing per arm and cross-fades between them.
 - Each arm file includes its own puffed sleeve, which is centred on the shoulder, so the sleeve turns with the arm. Rotating ±20° around the pivots shows no gap (see `shots/mom-rot.png`). At +20° the waving hand's fingertips reach the right edge of the frame.
 
 ## Demo hands (400x400, from the lower right, blouse cuff with a rounded end inside the box, drop shadow +10,+16 blurred)

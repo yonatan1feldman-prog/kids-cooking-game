@@ -72,3 +72,25 @@ export function boing(scene: Phaser.Scene, target: Boingable, amount = 0.12) {
 export function setRestScale(target: Boingable) {
   target.setData({ restScaleX: target.scaleX, restScaleY: target.scaleY });
 }
+
+/**
+ * Visual round 6: a few soft wisps of steam rise from something hot she has just made (the dish pulled out of the
+ * oven, a pancake landing golden): each one rises, sways a little, grows and fades. Only ever an answer to her action.
+ * `spread` is the half-width of the hot thing (world units).
+ */
+export function steam(scene: Phaser.Scene, x: number, y: number, k = 1, wisps = 5, spread = 120) {
+  const frame = scene.textures.getFrame(FX_SOFT);
+  if (!frame) return;
+  const base = (54 * k) / Math.max(1, frame.realWidth);
+  for (let i = 0; i < wisps; i++) {
+    scene.time.delayedCall(i * 240, () => {
+      if (!scene.sys.isActive()) return;
+      const x0 = x + Phaser.Math.FloatBetween(-spread, spread) * 0.8;
+      const img = scene.add.image(x0, y, FX_SOFT).setScale(base).setAlpha(0).setDepth(55).setTint(0xfffaf2);
+      const rise = Phaser.Math.Between(200, 260) * k;
+      scene.tweens.add({ targets: img, y: y - rise, scale: base * 2.2, duration: 1700, ease: 'Sine.easeOut', onComplete: () => img.destroy() });
+      scene.tweens.add({ targets: img, x: x0 + Phaser.Math.Between(-30, 30) * k, duration: 850, yoyo: true, ease: 'Sine.easeInOut' });
+      scene.tweens.add({ targets: img, alpha: { from: 0, to: 0.55 }, duration: 380, yoyo: true, hold: 500, ease: 'Sine.easeInOut' });
+    });
+  }
+}

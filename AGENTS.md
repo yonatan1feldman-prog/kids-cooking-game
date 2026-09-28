@@ -659,7 +659,31 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; visual round 6 (Mom's poses), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 0000000000000000000. Visual round 6 (Mom's poses; small answers that make the kitchen livelier)
+The owner: "Mom should have several poses in the cooking, not one pose all the time". Branch `claude/visual-6-mom-poses-wvdule`.
+- **Art** (`assets-src/images-b/tools/gen_mom.py`, look A, the same pivots and 800 frame; README-mom.md): five new arm
+  drawings, `mom-arm-right-chin`, `mom-arm-right-thumb`, `mom-arm-right-clap`, `mom-arm-left-clap`, `mom-arm-left-open`
+  (core images, loaded with the title's Mom). Every new arm stays inside the old arms' envelope (the open palm is
+  raised to the pointing hand's height so it never reaches Pipa's head; the thumb is 12 frame units above the wave).
+- **Code** (`steps/Mom.ts`): each arm has a set of drawings (`right` / `left`), one shown at a time, 160 ms cross-fades
+  (`setRight` / `setLeft`). In `Recipe`, `Garden` and `Puzzle` (`AUTO_SCENES`) she picks her pose by herself every frame
+  (`autoPose`), in this order: a gesture running (`gestureUntil`: wave, clap, thumbs-up, the finale) wins; her demo hand
+  on screen = the reaching arm (as round 11); a finger held down longer than 350 ms (a drag, a rub, a hold, not a tap) =
+  she watches, chin on her hand, the other hand on the counter, leaning 1.2 degrees toward the work, until 2 s after it
+  lifts; Mom talking (any line but `count-` / `temp-` / `name-`) = the open palm, 0.7 s past the line; else pointing
+  with her hand on the hip. Not in `share` / `feed` (she is a mouth there: no chin near her mouth) and not while she
+  chews or holds a mouth. Title, home and album keep the old fixed pose (their cards are laid out around her pointing
+  arm). A step done: a wave, a clap (both arms swing 7 degrees on their shoulders, three claps) or a thumbs-up, from a
+  shuffled deck, never the same twice in a row.
+- **Answers to what she did** (wellbeing rule 5: nothing moves by itself): `steam()` in core/fx.ts (soft wisps rise,
+  sway and fade) when she pulls the dish out of the oven (`BakeStep.landDish`) and when a pancake lands golden
+  (`FlipStep`); paper confetti from the photo's two top corners at the finale, twice (`PhotoStep.party`); a turned album
+  page slides in from the side it was turned to, with a soft whoosh (`AlbumScene`).
+- **Cloud screenshots:** SwiftShader WebGL loses pieces of Mom while her container scales (the cheer's stretch): master
+  shows it too (a neck-shaped patch, a missing body). With the Canvas renderer every pose draws whole. Check on the phone.
+- **Needs a real child:** does the chin-on-hand read as "Mom is watching me"? Is the switch from pointing to the open
+  palm while she talks calm enough, or does she look busy (then raise `TALK_HOLD_MS` or drop the talk pose)?
 ### 000000000000000000. The garden (a stage that is not cooking)
 Spec and research: `/mnt/project-files/research/new-stage-2-spec.md`. Branch `claude/new-stage-garden-6ev1by`.
 - **Way in:** a card after the recipes on the home screen (`card-garden`; the album's button moves one cell on). Its tap

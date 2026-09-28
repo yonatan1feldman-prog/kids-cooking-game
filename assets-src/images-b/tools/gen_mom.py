@@ -544,6 +544,93 @@ def arm_left_reach(c, pr):
     return layer(p, G("".join(L), p + "cut"), "smooth", 37)
 
 
+# ---------- visual round 6: more poses (same pivots, same 800 frame; the game cross-fades between them) ----------
+def fist(c, x, y, ang, sc=1.0, seed=0):
+    """A soft rounded fist, knuckles along local -y, the thumb across the front of the fingers, the wrist leaving
+    along +y."""
+    s, sh, lt = c["skin"], c["skin_sh"], c["skin_lt"]
+    g = P(wrect(-26, 20, 52, 62, 22, .8, 110 + seed), sh)                                          # wrist
+    body = wob(0, 0, 44, 40, .04, 111 + seed)
+    g += P(body, sh, ' transform="translate(2.5 3)"') + P(body, s)
+    for i, x0 in enumerate((-30, -10, 10, 30)):                                                   # knuckles
+        kn = wob(x0, -30, 13, 12, .06, 112 + seed + i)
+        g += P(kn, sh, ' transform="translate(1.5 2)"') + P(kn, s) + E(x0 - 2, -34, 5, 4, lt, ' opacity="0.75"')
+    for x0 in (-20, 0, 20):
+        g += P(f"M{x0},-26 Q{x0 + 1},-12 {x0},-2", "none", f' stroke="{sh}" stroke-width="3" stroke-linecap="round" opacity="0.5"')
+    th = smooth([(-40, 12), (-30, -4), (0, -8), (22, -2), (20, 10), (-6, 14)])
+    g += P(th, sh, ' transform="translate(2 2.5)"') + P(th, s) + E(10, 2, 6, 4.5, lt, ' opacity="0.85"')
+    g += E(8, 6, 20, 14, lt, ' opacity="0.3"')
+    return f'<g transform="translate({n(x)} {n(y)}) rotate({n(ang)}) scale({sc})">{g}</g>'
+
+
+def thumbs_up(c, x, y, ang, sc=1.0, seed=0):
+    """A thumbs-up seen from the front: the curled fingers as four rolls stacked on the viewer's left, the back of the
+    hand behind them, the thumb standing up from the top. Centre of the fist at local (0,0), the wrist along +y."""
+    s, sh, lt = c["skin"], c["skin_sh"], c["skin_lt"]
+    g = P(wrect(-22, 30, 50, 60, 22, .8, 130 + seed), sh)                                           # wrist
+    back = wrect(-30, -40, 66, 84, 28, .8, 131 + seed)
+    g += P(back, sh, ' transform="translate(2.5 3)"') + P(back, s)
+    th = wrect(-4, -104, 30, 84, 15, .5, 132 + seed)                                              # thumb, up
+    g += P(th, sh, ' transform="translate(2 2.5)"') + P(th, s) + E(11, -92, 7, 8, lt, ' opacity="0.9"')
+    for i in range(4):                                                                            # curled fingers
+        y0 = -36 + i * 19
+        f = wrect(-44, y0, 50, 21, 10.5, .5, 133 + seed + i)
+        g += P(f, sh, ' transform="translate(1.5 2)"') + P(f, s) + E(-36, y0 + 8, 4.5, 3.5, lt, ' opacity="0.75"')
+    g += E(16, 4, 12, 18, lt, ' opacity="0.3"')
+    return f'<g transform="translate({n(x)} {n(y)}) rotate({n(ang)}) scale({sc})">{g}</g>'
+
+
+def arm_right_chin(c, pr):
+    """Watching her work: the hand under the chin (a soft fist at her jaw), the elbow down at her side. In front of the
+    body (the game shows it in the front slot). Same pivot as mom-arm-right."""
+    p = "mp-arc-"
+    sx, sy = PIVOT_RIGHT
+    S, Ee, W = (sx + 4, sy + 26), (678, 664), (590, 482)
+    L = [arm_shape(c, S, Ee, W, ws=((0, 56), (.4, 52), (.5, 48), (.7, 44), (1, 38)))]
+    L.append(G(fist(c, 562, 434, -12, .84, seed=0), p + "sh"))
+    L.append(G(sleeve(c, sx + 12, sy + 22, 80, 80, 30), p + "sh"))
+    return layer(p, G("".join(L), p + "cut"), "smooth", 39)
+
+
+def arm_right_thumb(c, pr):
+    """Praise: a thumbs-up beside her shoulder (like the wave, behind the body)."""
+    p = "mp-art-"
+    sx, sy = PIVOT_RIGHT
+    S, Ee, W = (sx + 6, sy + 24), (738, 626), (744, 516)
+    L = [arm_shape(c, S, Ee, W, ws=((0, 54), (.4, 50), (.5, 46), (.65, 44), (1, 36)))]
+    L.append(G(thumbs_up(c, 742, 482, 4, .86, seed=10), p + "sh"))
+    L.append(G(sleeve(c, sx + 14, sy + 20, 58, 80, 30), p + "sh"))
+    return layer(p, G("".join(L), p + "cut"), "smooth", 41)
+
+
+def arm_clap(c, pr, side):
+    """Clapping: both hands meet in front of her chest. side 'l' (viewer's left, mom-arm-left's pivot) or 'r'."""
+    left = side == "l"
+    p = "mp-acl-" if left else "mp-acr-"
+    if left:
+        S, Ee, W, H, a = (344, 509), (322, 660), (446, 600), (470, 552), 24
+    else:
+        S, Ee, W, H, a = (PIVOT_RIGHT[0] + 4, PIVOT_RIGHT[1] + 26), (680, 662), (556, 602), (532, 554), -24
+    L = [arm_shape(c, S, Ee, W, ws=((0, 60), (.35, 54), (.5, 48), (.7, 44), (1, 38)))]
+    L.append(G(open_hand(c, H[0], H[1], a, .74), p + "sh"))
+    ua = math.degrees(math.atan2(Ee[1] - S[1], Ee[0] - S[0]))
+    L.append(G(sleeve(c, S[0] + 2 if left else S[0] + 8, S[1] - 2 if left else S[1] - 4, ua, 72 if left else 80, 34), p + "sh"))
+    return layer(p, G("".join(L), p + "cut"), "smooth", 43 if left else 45)
+
+
+def arm_left_open(c, pr):
+    """Talking to her ("Now you try!"): the pointing arm's side, an open palm held out toward the work at the pointing
+    hand's height, inside its reach; like the pointing forearm it stays above y 450 left of x 290 (clear of Pipa's
+    head, README-mom.md). Same pivot as mom-arm-left."""
+    p = "mp-alo-"
+    S, Ee, W = (344, 509), (272, 462), (190, 428)
+    L = [arm_shape(c, S, Ee, W, ws=((0, 62), (.35, 56), (.5, 50), (.7, 46), (1, 40)))]
+    L.append(G(open_hand(c, 158, 402, -48, .8), p + "sh"))
+    ua = math.degrees(math.atan2(Ee[1] - S[1], Ee[0] - S[0]))
+    L.append(G(sleeve(c, S[0] + 2, S[1] - 2, ua, 74, 36), p + "sh"))
+    return layer(p, G("".join(L), p + "cut"), "smooth", 47)
+
+
 # ---------- demo hands (400x400, from the lower right, hovering) ----------
 def hand_file(p, inner, seed, extra=""):
     defs = std_defs(p, "smooth", seed, sh=(3, 2.5, .28), sh2=(6, 5, .25), cut=dict(dx=10, dy=16, blur=7, op=.3))
@@ -667,7 +754,10 @@ def build(out, pr):
     al, tip = arm_left(c, pr)
     files = {"mom-body": mom_body(c, pr), "mom-head": mom_head(c, pr), "mom-hair": mom_hair(c, pr),
              "mom-arm-left": al, "mom-arm-right": arm_right(c, pr),
-             "mom-arm-left-reach": arm_left_reach(c, pr), "mom-arm-right-rest": arm_right_rest(c, pr)}
+             "mom-arm-left-reach": arm_left_reach(c, pr), "mom-arm-right-rest": arm_right_rest(c, pr),
+             "mom-arm-right-chin": arm_right_chin(c, pr), "mom-arm-right-thumb": arm_right_thumb(c, pr),
+             "mom-arm-left-clap": arm_clap(c, pr, "l"), "mom-arm-right-clap": arm_clap(c, pr, "r"),
+             "mom-arm-left-open": arm_left_open(c, pr)}
     for k in ("open", "blink", "happy", "surprised"):
         files["mom-eyes-" + k] = eyes(c, pr, k)
     for k in ("smile", "open", "talk"):
