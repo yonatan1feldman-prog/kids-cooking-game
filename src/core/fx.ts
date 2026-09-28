@@ -81,7 +81,7 @@ export function setRestScale(target: Boingable) {
 export function steam(scene: Phaser.Scene, x: number, y: number, k = 1, wisps = 5, spread = 120) {
   const frame = scene.textures.getFrame(FX_SOFT);
   if (!frame) return;
-  const base = (54 * k) / Math.max(1, frame.realWidth);
+  const base = (64 * k) / Math.max(1, frame.realWidth);
   for (let i = 0; i < wisps; i++) {
     scene.time.delayedCall(i * 240, () => {
       if (!scene.sys.isActive()) return;
@@ -90,7 +90,7 @@ export function steam(scene: Phaser.Scene, x: number, y: number, k = 1, wisps = 
       const rise = Phaser.Math.Between(200, 260) * k;
       scene.tweens.add({ targets: img, y: y - rise, scale: base * 2.2, duration: 1700, ease: 'Sine.easeOut', onComplete: () => img.destroy() });
       scene.tweens.add({ targets: img, x: x0 + Phaser.Math.Between(-30, 30) * k, duration: 850, yoyo: true, ease: 'Sine.easeInOut' });
-      scene.tweens.add({ targets: img, alpha: { from: 0, to: 0.55 }, duration: 380, yoyo: true, hold: 500, ease: 'Sine.easeInOut' });
+      scene.tweens.add({ targets: img, alpha: { from: 0, to: 0.7 }, duration: 380, yoyo: true, hold: 500, ease: 'Sine.easeInOut' });
     });
   }
 }
