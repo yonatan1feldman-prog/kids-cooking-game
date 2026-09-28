@@ -459,6 +459,32 @@ export const IMAGES = {
   'garden-leaf': { size: [240, 190] },
   'garden-basket': { size: [440, 320] },
   'garden-basket-front': { size: [440, 320] },
+  // ---- Two mini-games that are not cooking (research/minigames-spec.md; assets-src/images-b-minigames,
+  // tools/gen_minigames.py). The market reuses the whole vegetables and fruit and the garden's basket. Anchors: ART.dishes.
+  'card-market': { size: [400, 520] },
+  'bg-market': { size: [2400, 1080] },
+  /** The stall, stretched uniformly over its width: the striped awning, the upper shelf (its top at y 16), the counter
+   * (its top at y 30), a pole at each end, and the front of a crate for every good. */
+  'market-awning': { size: [1600, 260] },
+  'market-shelf': { size: [1600, 90] },
+  'market-counter': { size: [1600, 300] },
+  'market-pole': { size: [54, 900] },
+  'market-crate': { size: [300, 150] },
+  /** The shopping list: a note on a peg; the pictures are laid on it in code. */
+  'market-list': { size: [600, 320] },
+  'card-dishes': { size: [400, 520] },
+  'dish-plate-blue': { size: [300, 300] },
+  'dish-plate-yellow': { size: [300, 300] },
+  'dish-plate-pink': { size: [300, 300] },
+  /** A mug, side view, handle on the right; it hangs from its handle's top (ART.dishes.cupHook). */
+  'dish-cup-blue': { size: [280, 260] },
+  'dish-cup-yellow': { size: [280, 260] },
+  'dish-cup-pink': { size: [280, 260] },
+  /** The food on a dirty dish (it fades as she scrubs). */
+  'dish-mess': { size: [300, 300] },
+  'dish-sponge': { size: [240, 150] },
+  /** The drying rack: a column per colour (blue, yellow, pink), a hook on top (cups), a slot of dowels below (plates). */
+  'dish-rack': { size: [960, 720] },
 } as const satisfies Record<string, { size: readonly [number, number]; raster?: number }>;
 
 /** Texture size of an image: its native size, times its `raster` factor if it is shown bigger than native. */
@@ -511,7 +537,7 @@ export const SCENERY_KEYS: readonly ImageKey[] = [
 export const CORE_IMAGES: readonly ImageKey[] = [
   'bg-kitchen-landscape', ...KITCHEN_KEYS, ...SCENERY_KEYS, 'logo-cooking-with-mom', 'star', 'btn-play', 'btn-home', 'btn-done', 'hand-hint',
   'card-pizza', 'card-salad', 'card-cookies', 'card-smoothie', 'card-pancakes', 'card-soup', 'card-cake',
-  'card-skewers', 'card-garden',
+  'card-skewers', 'card-garden', 'card-market', 'card-dishes',
   'character-body', 'character-eyes-open', 'character-eyes-blink', 'character-eyes-surprised', 'character-eyes-happy',
   'character-mouth-closed', 'character-mouth-open', 'character-mouth-chew',
   'mom-arm-right', 'mom-body', 'mom-head', 'mom-hair', 'mom-eyes-open', 'mom-eyes-blink', 'mom-eyes-happy',
@@ -683,6 +709,31 @@ RECIPE_ASSETS.garden = {
     'vo-garden-seeds', 'vo-garden-plant', 'vo-garden-water', 'vo-garden-sprout', 'vo-garden-cloud', 'vo-garden-sun',
     'vo-garden-snail', 'vo-garden-snail-yum', 'vo-garden-pick', 'vo-garden-pull', 'vo-garden-done', 'name-tomato',
     'name-strawberry', 'name-carrot', 'tear',
+  ],
+};
+/** The two mini-games that are not cooking (MarketScene, DishesScene): loaded on their cards like a recipe. A sound some
+ * recipe lists is listed here too (a listed sound is not core); name-pepper and name-lettuce are core. */
+RECIPE_ASSETS.market = {
+  images: [
+    'bg-market', 'market-awning', 'market-shelf', 'market-counter', 'market-pole', 'market-crate', 'market-list',
+    'garden-basket', 'garden-basket-front', 'veg-tomato-whole', 'veg-carrot-whole', 'veg-cucumber-whole', 'veg-pepper-whole',
+    'veg-onion-whole', 'veg-potato-whole', 'veg-mushroom-whole', 'veg-zucchini-whole', 'fruit-banana-whole',
+    'fruit-kiwi-whole', 'fruit-mango-whole', 'fruit-strawberry-whole', 'lettuce-head',
+  ],
+  sounds: [
+    'vo-market-list', 'vo-market-remember', 'vo-market-not', 'vo-market-pipa', 'vo-market-two', 'vo-market-done',
+    'name-tomato', 'name-carrot', 'name-cucumber', 'name-onion', 'name-potato', 'name-mushroom', 'name-zucchini',
+    'name-banana', 'name-kiwi', 'name-mango', 'name-strawberry',
+  ],
+};
+RECIPE_ASSETS.dishes = {
+  images: [
+    ...WASH, 'dish-plate-blue', 'dish-plate-yellow', 'dish-plate-pink', 'dish-cup-blue', 'dish-cup-yellow', 'dish-cup-pink',
+    'dish-mess', 'dish-sponge', 'dish-rack', 'water-drop',
+  ],
+  sounds: [
+    'vo-dishes-start', 'vo-dishes-scrub', 'vo-dishes-clean', 'vo-dishes-rack', 'vo-dishes-rack-2', 'vo-dishes-colour',
+    'vo-dishes-done', 'name-blue', 'name-yellow', 'name-pink',
   ],
 };
 /** A guest's own layers: loaded when the sharing starts (all three, the two not invited are freed at once). */
@@ -917,6 +968,17 @@ export const ART = {
     snailMouth: { x: 30, y: 150 },
     /** garden-basket (440x320): the middle of the heap inside. */
     basketIn: { x: 220, y: 128 },
+  },
+  /** Washing up (assets-src/images-b-minigames/tools/gen_minigames.py prints it). */
+  dishes: {
+    /** dish-rack (960x720): the colour columns' centres (blue, yellow, pink), where a hook holds a cup's handle, and a
+     * plate's centre in its slot. */
+    cols: [170, 480, 790],
+    hook: { dx: 62, y: 118 },
+    slotY: 520,
+    /** dish-cup-* (280x260): the top of the handle (it hangs there). dish-plate-*: the plate's radius. */
+    cupHook: { x: 232, y: 90 },
+    plateR: 136,
   },
 } as const;
 

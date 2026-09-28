@@ -59,6 +59,11 @@
   "w": 2400,
   "h": 1080
  },
+ "bg-market": {
+  "sha1": "f272e9e7ca7aa37bc1fdc9b358edfcfad5054721",
+  "w": 2400,
+  "h": 1080
+ },
  "blend-stage-1": {
   "sha1": "406b34049d97dc74195bd893bbf3f42ea224e742",
   "w": 600,
@@ -219,8 +224,18 @@
   "w": 400,
   "h": 520
  },
+ "card-dishes": {
+  "sha1": "121ea1891876335aa587efaf1334179d909299f8",
+  "w": 400,
+  "h": 520
+ },
  "card-garden": {
   "sha1": "eab13997e76c0315ffe31805c6b514e23023c411",
+  "w": 400,
+  "h": 520
+ },
+ "card-market": {
+  "sha1": "8409e8ffcfadc843b16858f0cf9d8c8f30f719b0",
   "w": 400,
   "h": 520
  },
@@ -413,6 +428,51 @@
   "sha1": "2949f9614ea953f33d187aba3e0e8c890f84c5ba",
   "w": 1000,
   "h": 600
+ },
+ "dish-cup-blue": {
+  "sha1": "32a56f347c6a306bda9a76f1db48b994ea3bdf17",
+  "w": 280,
+  "h": 260
+ },
+ "dish-cup-pink": {
+  "sha1": "53b0125530d06c3cc7555daa703a780f23f93eaa",
+  "w": 280,
+  "h": 260
+ },
+ "dish-cup-yellow": {
+  "sha1": "2d6c2b39e4939b15b6e2e8e29d091358ac667ce9",
+  "w": 280,
+  "h": 260
+ },
+ "dish-mess": {
+  "sha1": "d2252bb99972dea35d32e08bc7f37c7be3236dad",
+  "w": 300,
+  "h": 300
+ },
+ "dish-plate-blue": {
+  "sha1": "b578d1ca324ae3f6f491b5b6d73e373fcee7ddb4",
+  "w": 300,
+  "h": 300
+ },
+ "dish-plate-pink": {
+  "sha1": "cae7021c0c7d2c5d5973c9274198bd1083f90fdd",
+  "w": 300,
+  "h": 300
+ },
+ "dish-plate-yellow": {
+  "sha1": "8ee75eb351bb8498a28ea1a21f5732bd565879e0",
+  "w": 300,
+  "h": 300
+ },
+ "dish-rack": {
+  "sha1": "d04ae1a1db63852a94af6db40baa2e6d48f6cb51",
+  "w": 960,
+  "h": 720
+ },
+ "dish-sponge": {
+  "sha1": "fbd707c6e40869c3c2c6e01dbfc2ee412ee0eee6",
+  "w": 240,
+  "h": 150
  },
  "dough-ball": {
   "sha1": "42282b854d76724b0efe3b1bec911f7ff23060b8",
@@ -1098,6 +1158,36 @@
   "sha1": "535bb225921486031340c7fa58e5701e97d74f9a",
   "w": 900,
   "h": 400
+ },
+ "market-awning": {
+  "sha1": "69eddb5d841411c8778a4c12fd8b8045d3685403",
+  "w": 1600,
+  "h": 260
+ },
+ "market-counter": {
+  "sha1": "38481a7a1c2652fe15265a7447d73ef77e2da2d2",
+  "w": 1600,
+  "h": 300
+ },
+ "market-crate": {
+  "sha1": "2b1ac1619dfcc5cb3ee534e6db7f7576744e9a2a",
+  "w": 300,
+  "h": 150
+ },
+ "market-list": {
+  "sha1": "d8d800f086be68e9bca5ce29b9f84f4f052a20b0",
+  "w": 600,
+  "h": 320
+ },
+ "market-pole": {
+  "sha1": "d323d10454ba8d877916d47fbf5baab86d30c381",
+  "w": 54,
+  "h": 900
+ },
+ "market-shelf": {
+  "sha1": "4daf315dcf61fefedf6b8da928a93d0ba3308de4",
+  "w": 1600,
+  "h": 90
  },
  "milk-carton": {
   "sha1": "5138a695096f18727a15b4cc93879ec35ae7b9eb",

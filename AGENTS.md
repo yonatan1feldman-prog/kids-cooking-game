@@ -4,8 +4,9 @@
 - **What:** a text-free, English-speaking cooking game for a 5-year-old (Android phone, landscape): she cooks with
   Mom, Pipa the hedgehog watches and eats. Phaser 4 + Vite + TypeScript PWA, deployed to GitHub Pages from `master`.
   Eight recipes: pizza, salad, cookies, smoothie, pancakes, vegetable soup, birthday cake and fruit skewers (`src/recipes/<name>.ts`),
-  cards in a grid on the home screen, then the garden's card (a stage that is not cooking: `scenes/GardenScene.ts`), with
-  the memory book's button in one more cell once there is a photo in it.
+  cards in a grid on the home screen, then three cards for games that are not cooking (the garden `scenes/GardenScene.ts`,
+  the market `MarketScene.ts`, washing up `DishesScene.ts`; the last two share `scenes/MiniGame.ts`), with the memory
+  book's button in one more cell once there is a photo in it.
 - **Where things are:** `src/recipes/` recipes as pure data (`types.ts` = every step type's params); `src/steps/` one
   reusable class per step type (`registry.ts` maps names to classes); `src/core/tuning.ts` every count and threshold;
   `src/core/stage.ts` every position; `src/core/assets.ts` the asset contract (image keys, sizes, art anchors `ART`);
@@ -221,6 +222,9 @@ src/scenes/
   RecipeScene              runs any recipe's steps in order; board under the dish; Mom, Pipa, Mom's hand; demo counter; home button
   AlbumScene               the memory book (round 9); an enlarged photo has the puzzle button beside it
   PuzzleScene              the puzzle from a memory-book photo (pieces cut at runtime by core/puzzle.ts)
+  GardenScene              Mom's garden (a stage that is not cooking)
+  MiniGame                 the frame the market and washing up share: home button, Mom, Pipa, demo / hint / help, one finger
+  MarketScene / DishesScene  the market (shopping from a list) and washing up (scrub, rack by colour)
 ```
 
 ## Recipes are data
@@ -659,7 +663,31 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; the mini-games round, the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 0000000000000000000. The mini-games round (the market, washing up)
+Spec: `/mnt/project-files/research/minigames-spec.md`. Branch `claude/minigames-2-vegscq`.
+- **Way in:** two more cards after the garden (`card-market`, `card-dishes`, core); HomeScene's `PLAY` list (garden,
+  market, dishes) puts them after the recipes, the album one cell further. Each loads `RECIPE_ASSETS.<id>` like a recipe.
+- **Frame (`scenes/MiniGame.ts`):** a game names its parts (`phase`), which of them wait for her (`waiting`), Mom's hand
+  motion for the current part (`way`) and one piece of help (`helpOnce`, then `helped()`); touches come to `down` /
+  `move` / `up` (one finger owns it, rotation drops it back). First visit (`cooking.runs.<id>`): the demo once; hint
+  after 8 s, help 20 s later, 3 misses show the hint. `gameLevel()` = the difficulty (1 gentle, 2 the challenge).
+- **The market:** a stall of crates (goods from the recipes' own art), a basket on the left. A paper list shows what to
+  buy (L1: 3 things; L2: 4 with a pair, Mom counts it); drag or tap a good to the basket. Round 2 is Pipa's list in her
+  wish bubble (4:3: paper). L2 folds the list after `foldAfterMs` (remember it); a tap on the list (or a wrong good)
+  peeks. A wrong good hops back and Mom names it ("Hmm, is that on our list?" every other time), a miss. Finale: a strawberry to Pipa.
+- **Washing up:** a dirty stack (L1: 4 of 6, L2 all 6: blue / yellow / pink, plate or cup) left of the sink. Tap or drag
+  the top one into the sink (Mom names its colour), scrub it (finger or sponge, `scrub` distance), it rinses and
+  sparkles, drag it to the rack's column of its colour (L2: cups on the hooks, plates in the slots below). Wrong: it
+  slides back to the sink and Mom: "Find the same colour!" and the colour, a miss. Finale: a bubble on Pipa's nose.
+- **Art:** `assets-src/images-b-minigames/tools/gen_minigames.py` (18 SVGs, anchors = `ART.dishes`). Voice: 17 lines
+  (`make_vo.py mom-a`, three soft-limited by `fix_vo_minigames.py`), not heard by an agent. Counts: `TUNING.market`,
+  `TUNING.dishes` (per level: `[L1, L2]`).
+- **Checked (cloud, virtual clock, simulated voice; harness `__verify`, `__mini`, `__marketPlay`, `__dishesPlay`):**
+  both games, both levels, at 20:9 and 4:3: child pace (taps, drags, a wrong pick) and no touch (Mom helps to the end),
+  first visit with demos; all end at home, no voice overlap or forbidden cut; rotation mid-drag drops it back and the
+  game finishes; home cards at 4:3 clear of Mom's hand; the market stall keeps clear of it (`stage.momArm`).
+- **Needs a real child:** is the folded list (L2) fun or frustrating? Does she find the rack by colour? The scrub length.
 ### 000000000000000000. The garden (a stage that is not cooking)
 Spec and research: `/mnt/project-files/research/new-stage-2-spec.md`. Branch `claude/new-stage-garden-6ev1by`.
 - **Way in:** a card after the recipes on the home screen (`card-garden`; the album's button moves one cell on). Its tap

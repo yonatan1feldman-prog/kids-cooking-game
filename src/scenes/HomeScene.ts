@@ -20,6 +20,13 @@ import { assetsReady, recipeAssets, releaseRecipe } from './BootScene';
  * Arriving from the title (or by the home button) Mom asks "What shall we make today?"; after a finished
  * recipe the home screen stays quiet (the finale already said goodbye). Idle 5 s: her hand taps the card.
  */
+/** The games on the home screen that are not recipes (each its own scene, its assets under RECIPE_ASSETS[id]). */
+const PLAY: { id: string; card: 'card-garden' | 'card-market' | 'card-dishes'; line: 'vo-pick-garden' | 'vo-pick-market' | 'vo-pick-dishes'; scene: string }[] = [
+  { id: 'garden', card: 'card-garden', line: 'vo-pick-garden', scene: 'Garden' },
+  { id: 'market', card: 'card-market', line: 'vo-pick-market', scene: 'Market' },
+  { id: 'dishes', card: 'card-dishes', line: 'vo-pick-dishes', scene: 'Dishes' },
+];
+
 export interface HomeData {
   from?: 'title' | 'recipe' | 'finale' | 'album';
   /** Set once Mom has asked, so a rebuild at a new size (relayout) doesn't ask again. */
@@ -69,8 +76,8 @@ export class HomeScene extends Phaser.Scene {
     const n = RECIPES.length;
     // The memory book takes one more cell in the same grid, and only once there is something in it: never an empty
     // slot waiting to be filled (Child wellbeing rules). The cards get a touch smaller the day it appears.
-    // The garden (not a recipe, its own scene) takes the cell after the recipes.
-    const cells = n + 1 + (albumCount() > 0 ? 1 : 0);
+    // The games that are not recipes (the garden, the market, washing up) take the cells after the recipes.
+    const cells = n + PLAY.length + (albumCount() > 0 ? 1 : 0);
     const cards: Phaser.GameObjects.Image[] = [];
     RECIPES.forEach((recipe, i) => {
       const at = S.card(i, cells);
@@ -92,29 +99,30 @@ export class HomeScene extends Phaser.Scene {
       this.tweens.add({ targets: card, alpha: { from: 0, to: 1 }, duration: 400 });
       cards.push(card);
     });
-    {
-      // The garden: out of the kitchen door to plant, water and pick (GardenScene). Loaded on its tap like a recipe.
-      const at = S.card(n, cells);
-      const card = iconButton(this, L, 'card-garden', at.x, at.y, () => {
+    // The games that are not cooking, after the recipes: the garden (plant, water, pick), the market (a picture list)
+    // and washing up (scrub, sort by colour). Each loads on its tap like a recipe and is its own scene.
+    PLAY.forEach((g, j) => {
+      const at = S.card(n + j, cells);
+      const card = iconButton(this, L, g.card, at.x, at.y, () => {
         if (going) return;
         going = true;
         hint?.stop();
         stars(this, card.x, card.y, 14, 70 * L.k);
-        voice.say('vo-pick-garden', { ttlMs: 3000 });
+        voice.say(g.line, { ttlMs: 3000 });
         mom?.wave();
         const spin = this.time.delayedCall(250, () => loading(card.x, card.y + card.displayHeight * 0.1));
-        Promise.all([recipeAssets(this.game, 'garden'), new Promise((r) => this.time.delayedCall(350, r))]).then(() => {
+        Promise.all([recipeAssets(this.game, g.id), new Promise((r) => this.time.delayedCall(350, r))]).then(() => {
           spin.remove();
-          if (this.scene.isActive()) this.scene.start('Garden');
+          if (this.scene.isActive()) this.scene.start(g.scene);
         });
       }, { hitPad: 30, scale: S.cardScale(cells) });
       this.tweens.add({ targets: card, alpha: { from: 0, to: 1 }, duration: 400 });
       cards.push(card);
-    }
-    if (cells > n + 1) {
+    });
+    if (cells > n + PLAY.length) {
       // The album button: no text, the same size as a card, its picture drawn in code (a little stack of photos).
       makeAlbumTextures(this.game);
-      const at = S.card(n + 1, cells);
+      const at = S.card(n + PLAY.length, cells);
       const btn = iconButton(this, L, ALBUM_ICON, at.x, at.y, () => {
         if (going) return;
         going = true;

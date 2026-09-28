@@ -287,6 +287,24 @@ MOM_LINES = {
     "vo-first-this": "Pipa wants this one first!",
     "vo-stir-arrow": "Stir round and round, the way the arrow goes!",
     "vo-other-way": "Now stir the other way!",
+    # Two mini-games (added 2026-09-28; Voice A only: python make_vo.py mom-a <names>): the market, washing up
+    "vo-pick-market": "Let's go to the market!",
+    "vo-market-list": "Here's our shopping list! Let's find everything.",
+    "vo-market-remember": "Can you remember the list?",
+    "vo-market-not": "Hmm, is that on our list?",
+    "vo-market-pipa": "Now Pipa's list! What does Pipa want?",
+    "vo-market-two": "We need two!",
+    "vo-market-done": "We found everything! What a lovely shopping trip!",
+    "vo-pick-dishes": "Let's wash the dishes!",
+    "vo-dishes-start": "Put a dish in the sink!",
+    "vo-dishes-scrub": "Scrub, scrub, scrub!",
+    "vo-dishes-clean": "Sparkly clean!",
+    "vo-dishes-rack": "Now put it on the rack, with the same colour!",
+    "vo-dishes-rack-2": "Cups go on the hooks, and plates go below!",
+    "vo-dishes-colour": "Find the same colour!",
+    "vo-dishes-done": "All clean! Thank you for helping!",
+    "name-blue": "Blue!",
+    "name-yellow": "Yellow!",
 }
 SUFFIX = ""
 if len(sys.argv) > 1 and sys.argv[1] in ("mom", "mom-a"):

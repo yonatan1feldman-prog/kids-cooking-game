@@ -60,6 +60,7 @@ export interface Stage {
    */
   mom: Spot;
   momFace: Box;
+  momArm: { x0: number; y0: number; y1: number };
   /**
    * Pipa the hedgehog, small, sitting on the counter beside Mom for the whole recipe (frame centre and scale).
    * Null where there is no room for her (4:3): there she only comes for the feeding step.
@@ -495,6 +496,8 @@ export function getStage(L: Layout): Stage {
     charLeft,
     mom,
     momFace,
+    /** Mom's pointing hand and forearm in her drawn pose (nothing she touches goes under it). */
+    momArm: arm,
     pet,
     feedPet,
     feedMomShift,

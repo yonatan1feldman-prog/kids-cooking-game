@@ -222,5 +222,19 @@ export const TUNING = {
    * grown tomato or strawberry plant (carrots: `carrotsPerPlant`). `reach`: a thing let go this near its target counts.
    */
   garden: { waterMs: 2200, sproutAt: 0.35, cloudPush: 260, cloudTap: 90, pull: 0.75, perPlant: 3, carrotsPerPlant: 2, reach: 230, helpMs: 1100 },
+  /**
+   * The market (MarketScene, research/minigames-spec.md). `listItems`: pictures on each list at level 1 / 2 (level 2: one
+   * of them twice, `pair`); `rounds` lists (the second is Pipa's). Level 2's paper list folds `foldAfterMs` after it
+   * shows and a tap opens it for `peekMs`. `slot`: the narrowest a crate may be (world units x k; 3-5 in a row), `itemH`
+   * the tallest a good is drawn. `tapMove`: a press that moves less than this is a tap (the good goes in by itself);
+   * `reach`: a good let go this near the basket goes in.
+   */
+  market: { listItems: [3, 4], pair: true, rounds: 2, foldAfterMs: 4200, peekMs: 3000, slot: 215, itemH: 180, tapMove: 40, reach: 220, helpMs: 1100 },
+  /**
+   * Washing up (DishesScene, research/minigames-spec.md). `dishes`: how many at level 1 / 2. `scrub`: finger travel on a
+   * dish (world units x k) to wash it clean at level 1 / 2; a bubble every `bubbleEvery`. `reach`: a dish let go this
+   * near its place on the rack goes there (or, near a wrong one, back to the sink).
+   */
+  dishes: { dishes: [4, 6], scrub: [1500, 2200], bubbleEvery: 90, reach: 150, helpMs: 1100, scrubMs: 2200 },
   help: { pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150, chopEveryMs: 950, openMs: 1500, tempEveryMs: 1100, peelEveryMs: 900, candleEveryMs: 700, threadEveryMs: 700 },
 } as const;
