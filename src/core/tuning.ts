@@ -1,3 +1,5 @@
+import { isBigChef } from './level';
+
 /**
  * THE TUNING TABLE: every count, threshold and timing that decides how long a step takes or how much work
  * it needs, in one place, so it is easy to change after watching the child play. Recipes read their
@@ -192,6 +194,28 @@ export const TUNING = {
    * `wobbleAfter`: stirring the other way round (x k) before the bowl's contents wobble (a miss).
    */
   stirArrow: { flipAt: 0.5, wobbleAfter: 160 },
+  /**
+   * Gameplay round 5, the big-chef level (core/level.ts; level 1 = everything above, unchanged). What level 2 adds to
+   * every recipe (recipes/bigChef.ts) and how much tighter its targets are. Never a timer, never a failure: Mom's hint
+   * and help come as on level 1.
+   * - `cut`: overrides of `cut` (a straighter stroke, closer to the line); `chopExtra`: one more cut per vegetable.
+   * - `stirFlips`: every stirring step has the arrows, and they turn round at each of these shares of the stirring.
+   * - `findTools`: tools to look over in "find the tool" (pancakes and cake get one too: the wooden spoon).
+   * - `order`: Pipa's order in choosing: things in it where a recipe already has an order on level 1 (the others get 2).
+   * - `wish.rememberMs`: after Mom has said Pipa's wish, her bubble empties after this long: remember it (a tap on Pipa or
+   *   Mom's hint shows it again for `peekMs`). `wish.decorate`: in decorating she wants two kinds, this many of each (by run).
+   * - `thread`: the skewers have 6 pieces (the copied skewer ABC ABC when she has three fruits), and a dragged piece must
+   *   come a little closer to the stick.
+   */
+  big: {
+    cut: { angle: 26, band: 0.12, vegBand: 0.24, minBand: 90 },
+    chopExtra: 1,
+    stirFlips: [0.34, 0.67] as readonly number[],
+    findTools: 4,
+    order: 3,
+    wish: { rememberMs: 3500, peekMs: 2500, decorate: [2, 2, 3] as readonly number[] },
+    thread: { pieces: 6, reach: 200 },
+  },
   /** Mom's help (after the idle hint): the pace of her own presses, rubs and strokes. */
   /**
    * Pipa's wishes (the gameplay round: a small challenge for a 4-5-year-old, never a test). Her thought bubble shows
@@ -224,3 +248,13 @@ export const TUNING = {
   garden: { waterMs: 2200, sproutAt: 0.35, cloudPush: 260, cloudTap: 90, pull: 0.75, perPlant: 3, carrotsPerPlant: 2, reach: 230, helpMs: 1100 },
   help: { pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150, chopEveryMs: 950, openMs: 1500, tempEveryMs: 1100, peelEveryMs: 900, candleEveryMs: 700, threadEveryMs: 700 },
 } as const;
+
+/** How a cut is made on the current level (`cut`, with `big.cut` on the big-chef level). */
+export function cutTuning() {
+  return isBigChef() ? { ...TUNING.cut, ...TUNING.big.cut } : TUNING.cut;
+}
+
+/** Where the stirring arrows turn round on the current level (shares of the stirring). */
+export function stirFlips(): readonly number[] {
+  return isBigChef() ? TUNING.big.stirFlips : [TUNING.stirArrow.flipAt];
+}

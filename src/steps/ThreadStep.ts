@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { isBigChef } from '../core/level';
 import { ART, IMAGES, type ImageKey } from '../core/assets';
 import { voice, type VoiceKey } from '../core/audio';
 import { boing, burst, stars } from '../core/fx';
@@ -164,7 +165,9 @@ export class ThreadStep extends Step<ThreadParams> {
   }
 
   private slotX(i: number) {
-    return this.tray.x + (ART.skewers.slot0 + i * ART.skewers.pitch) * this.tray.s;
+    // (the art's five places; more pieces, a big chef's six, sit a little closer together on the same length)
+    const pitch = (ART.skewers.pitch * 4) / Math.max(4, this.params.pieces - 1);
+    return this.tray.x + (ART.skewers.slot0 + i * pitch) * this.tray.s;
   }
 
   /** The stick's point on a row (where every piece goes on). */
@@ -203,7 +206,18 @@ export class ThreadStep extends Step<ThreadParams> {
     const a = f[0];
     const b = f[1] ?? a;
     const c = f[2] ?? b;
-    const unit = mode === 'extend' ? (c !== b ? [a, b, c] : [a, a, b]) : [a, b];
+    // A big chef (gameplay round 5): Mom's skewer to copy is ABC ABC (with three different fruits), then AAB AAB goes on.
+    const unit = isBigChef()
+      ? mode === 'extend'
+        ? [a, a, b]
+        : c !== b
+          ? [a, b, c]
+          : [a, b]
+      : mode === 'extend'
+        ? c !== b
+          ? [a, b, c]
+          : [a, a, b]
+        : [a, b];
     return Array.from({ length: this.params.pieces }, (_, i) => unit[i % unit.length]);
   }
 

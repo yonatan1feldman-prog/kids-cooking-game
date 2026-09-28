@@ -1,5 +1,6 @@
 import { ART } from '../core/assets';
 import { TUNING } from '../core/tuning';
+import { FIND_SPOON } from './bigChef';
 import type { Recipe } from './types';
 import { pizza } from './pizza';
 
@@ -147,4 +148,7 @@ export const pancakes: Recipe = {
       params: { frame: 'photo-frame-pancakes', backdrop: 'bg-kitchen-landscape', line: 'vo-photo-pancakes', finale: 'vo-finale-pancakes', bye: 'vo-bye' },
     },
   ],
+  // The big-chef level (recipes/bigChef.ts): first find the wooden spoon the batter will be stirred with (before the
+  // bowl stands in the middle, where the tools are shown).
+  bigExtra: [{ before: 'open-pour', step: FIND_SPOON }],
 };
