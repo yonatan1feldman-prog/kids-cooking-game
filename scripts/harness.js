@@ -1309,7 +1309,7 @@ window.__gardenRun = async (level = 1, mode = 'child', w = 900, h = 405, demos =
     __tap(c.x, c.y);
     for (let i = 0; i < 300 && !game.scene.isActive('Garden'); i++) { await __run(50); await new Promise((r) => setTimeout(r, 20)); }
     let last = '';
-    for (let i = 0; i < 6000 && game.scene.isActive('Garden'); i++) {
+    for (let i = 0; i < 12000 && game.scene.isActive('Garden'); i++) {
       const g = __GS(), ph = g.phase;
       if (ph !== last && ph !== 'intro') { last = ph; at[ph] = at[ph] ?? +((T() - t0) / 1000).toFixed(1); if (mode === 'child') await __run(1000); }
       if (mode === 'none' || g.owner || g.helping || g.demoOn || ['intro', 'done'].includes(g.phase)) { await __run(100); continue; }

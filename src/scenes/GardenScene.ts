@@ -425,7 +425,7 @@ export class GardenScene extends Phaser.Scene {
     this.tweens.add({ targets: w, angle: -300, alpha: 0.2, duration: 900, onComplete: () => w.destroy() });
     const n = this.spots.filter((q) => !q.weed).length;
     this.shown.weeds = n;
-    this.say(countKey(n), { group: 'count', sequence: true });
+    this.say(countKey(n), { group: 'count', sequence: true, ttlMs: 8000 });
     this.idle = this.misses = 0;
     this.mom?.happy();
     this.time.delayedCall(700, () => this.mom?.rest());
@@ -464,7 +464,7 @@ export class GardenScene extends Phaser.Scene {
         burst(this, sp.x, this.bed.soil, { texture: 'fx-dot', count: 8, tint: [0x7a4e32, 0x98663f], size: 16 * L.k, speed: 260, gravityY: 700, lifespan: 500, depth: 30 });
         const n = this.spots.filter((q) => q.stage >= 1).length;
         this.shown.planted = n;
-        this.say(countKey(n), { group: 'count', sequence: true });
+        this.say(countKey(n), { group: 'count', sequence: true, ttlMs: 8000 });
         this.idle = 0;
         if (n === this.spots.length) this.praise(() => this.startWater());
       },
@@ -597,7 +597,7 @@ export class GardenScene extends Phaser.Scene {
       stars(this, sp.x, this.bed.soil - 200 * bs, 6, 40 * L.k);
       const n = this.spots.filter((q) => q.stage >= 3).length;
       this.shown.grown = n;
-      this.say(countKey(n), { group: 'count', sequence: true });
+      this.say(countKey(n), { group: 'count', sequence: true, ttlMs: 8000 });
       this.idle = 0;
       if (n === this.spots.length) {
         this.setPhase('intro');
@@ -666,7 +666,7 @@ export class GardenScene extends Phaser.Scene {
         sfx(this, 'star');
         stars(this, this.sunAt.x, this.sunAt.y, 6, 50 * L.k);
         this.mom?.happy();
-        this.tweens.add({ targets: this.sun, angle: this.sun.angle + 90, duration: 700, ease: 'Sine.easeInOut' });
+        this.tweens.add({ targets: this.sun, angle: this.sun.angle + 360, duration: 800, ease: 'Sine.easeInOut' });
       });
       this.time.delayedCall(1700, () => !this.leaving && this.startCloud());
       return;
@@ -802,8 +802,8 @@ export class GardenScene extends Phaser.Scene {
   private startBunny() {
     const L = this.L;
     const k = L.k;
-    const s = Math.max(this.bed.s, 0.8 * k) * 0.85;
-    const x = this.bed.left + 170 * s;
+    const s = Math.max(this.bed.s, 0.8 * k) * 1.1;
+    const x = this.bed.left + 150 * s;
     const y = this.bed.soil + 34 * this.bed.s;
     const b = (this.bunny = this.add.image(-260 * k, y, 'garden-bunny').setOrigin(0.5, 290 / 300).setScale(s).setDepth(23).setFlipX(true));
     // three hops in
@@ -975,7 +975,7 @@ export class GardenScene extends Phaser.Scene {
         burst(this, tx, ty, { texture: 'star', count: 4, size: 28 * L.k, speed: 260, gravityY: 500, lifespan: 500, depth: 70 });
       },
     });
-    this.say(countKey(this.picked), { group: 'count', sequence: true });
+    this.say(countKey(this.picked), { group: 'count', sequence: true, ttlMs: 8000 });
     this.idle = this.misses = 0;
     if (this.picked % 3 === 0) this.pipa?.cheer();
     if (this.fruits.every((q) => q.picked)) {
