@@ -21,6 +21,12 @@ export interface Stage {
   play: Pt;
   titleLogo: Pt;
   /**
+   * Title (gameplay round 5): the two chef hats (core/level.ts) in a row left of the play button, the little chef's
+   * on the left; `levelScale` is their scale (a 240 disc; at least 200 units at k = 1).
+   */
+  levelPick: { 1: Pt; 2: Pt };
+  levelScale: number;
+  /**
    * Home: where recipe card i of n sits, and the cards' scale. A grid left of Mom (and Pipa): one row up to 3 cards,
    * else two or three rows, clear of Mom's pointing hand, every card as big as its cell allows, never scrolling.
    */
@@ -469,8 +475,16 @@ export function getStage(L: Layout): Stage {
   // of Mom's face on narrow ones (the art agent's title scene).
   const titleX = W >= PET_MIN_W ? dishHome.x - 80 * k : (m + momLeft + MOM_FACE.x0 * s) / 2;
 
+  // The chef hats: right beside the play button, the big chef's nearest it, clear of the thumb strip.
+  const levelScale = (205 / 240) * k;
+  const levelR = 120 * levelScale;
+  const bigX = titleX - (240 / 2) * 1.4 * k - 50 * k - levelR;
+  const littleX = Math.max(m + levelR + 20 * k, bigX - 2 * levelR - 36 * k);
+
   return {
     play: { x: titleX, y: Y(740) },
+    levelPick: { 1: { x: littleX, y: Y(740) }, 2: { x: Math.max(bigX, littleX + 2 * levelR + 20 * k), y: Y(740) } },
+    levelScale,
     titleLogo: { x: titleX, y: Y(330) },
     card,
     cardScale: (n) => (n === 1 ? k : cardScale(n)),

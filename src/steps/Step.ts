@@ -8,7 +8,8 @@ import type { Character } from './Character';
 import type { Dish } from './Dish';
 import type { Mom } from './Mom';
 
-import { AUTO_AFTER_HINT_MS, DEMO_MAX_MS, DEMO_WAIT_MS, HINT_AFTER_MS } from '../core/tuning';
+import { AUTO_AFTER_HINT_MS, DEMO_MAX_MS, DEMO_WAIT_MS, HINT_AFTER_MS, TUNING } from '../core/tuning';
+import { isBigChef } from '../core/level';
 
 // (The idle and demo timings live in the tuning table, core/tuning.ts.)
 export { AUTO_AFTER_HINT_MS, DEMO_MAX_MS, HINT_AFTER_MS };
@@ -119,6 +120,8 @@ export abstract class Step<P> {
 
   /** The idle hint: Mom's hand shows the gesture again, looping until there is progress. */
   protected showHint() {
+    // (a big chef remembering Pipa's wish sees it again with the hint)
+    this.ctx.character.peekWish();
     const m = this.demo();
     if (m) this.hand.play(m, { loop: true, gapMs: 900 });
   }
@@ -253,6 +256,25 @@ export abstract class Step<P> {
     this.hinting = true;
     this.idleMs = this.hintAfterMs;
     this.showHint();
+  }
+
+  /**
+   * Big chef (gameplay round 5): after Mom has said Pipa's wish, "Remember what Pipa wants!", and a moment later the
+   * pictures leave her bubble (Character.rememberWish; a tap on Pipa or Mom's hint shows them again). `over`: the step
+   * is finishing (nothing to remember any more). Level 1: nothing.
+   */
+  protected rememberWish(over: () => boolean) {
+    if (!isBigChef() || !this.ctx.character.wishing.length) return;
+    const W = TUNING.big.wish;
+    let started = false;
+    const go = () => {
+      if (started || this.aborted || over()) return;
+      started = true;
+      this.ctx.character.rememberWish(W.rememberMs, W.peekMs);
+    };
+    voice.say('vo-remember', { ttlMs: 16000, valid: () => !over() && !this.aborted, done: go });
+    // (should the line be dropped, the bubble still empties)
+    this.scene.time.delayedCall(18000, go);
   }
 
   /** A try that landed: the miss streak starts over. */

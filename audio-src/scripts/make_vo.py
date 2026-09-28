@@ -287,6 +287,13 @@ MOM_LINES = {
     "vo-first-this": "Pipa wants this one first!",
     "vo-stir-arrow": "Stir round and round, the way the arrow goes!",
     "vo-other-way": "Now stir the other way!",
+    # Gameplay round 5 (added 2026-09-28; Voice A only: python make_vo.py mom-a <names>): the chef hats on the title
+    # (the difficulty), Pipa's order of three, remembering her wish, two kinds in her decorating wish
+    "vo-little-chef": "Little chef!",
+    "vo-big-chef": "Big chef!",
+    "vo-pipa-order-3": "Look! Pipa wants three things, in order. First...",
+    "vo-remember": "Can you remember what Pipa wants?",
+    "vo-and": "and...",
     # The garden, round 2 (added 2026-09-28; Voice A only: python make_vo.py mom-a <names>): weeds, just enough water,
     # a second cloud, the bunny's wish
     "vo-garden-weeds": "Oh no, weeds! Let's pull them out first!",

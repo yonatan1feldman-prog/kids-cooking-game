@@ -21,6 +21,7 @@
   - new recipe or step type: "Recipes are data", "Asset contract", Handoff notes 00000 (cookies), 0000 (salad) and 000 (part B).
   - layout / positions: "Landscape layout", Handoff notes 2; tuning after watching her play: `core/tuning.ts` only.
   - voice or sound: "Asset contract" (levels), "Recipes are data" (voice lines per event, the queue rules).
+  - the difficulty level (little chef / big chef): Handoff notes, gameplay round 5 (`core/level.ts`, `recipes/bigChef.ts`).
   - testing: "Testing notes for agents", Handoff notes 1 (harness) and 5 (Phaser pitfalls).
   - working in the cloud, art or voice sources: "Cloud workflow".
   - deploying: "Deployment" (every push needs the owner's explicit approval for that round).
@@ -192,7 +193,9 @@ src/core/
   juice.ts                 the polish round: touch ripples, paper confetti, sway of a held thing, Mom and Pipa tickles
   hand.ts                  MomHandView: Mom's 5 demo hands, keyframed motions (demo / looping hint), follow (help), props
   ui.ts                    iconButton (padded hit circle, fires on press, optional two-tap confirm)
-  tuning.ts                THE TUNING TABLE: every count, threshold and idle timing (and Pipa's wishes: `wish`, `taste`)
+  tuning.ts                THE TUNING TABLE: every count, threshold and idle timing (and Pipa's wishes: `wish`, `taste`;
+                           the big-chef level: `big`, `cutTuning()`, `stirFlips()`)
+  level.ts                 the difficulty level (little chef 1 / big chef 2), chosen on the title, kept on the device
   kitchen.ts               the living kitchen: the wall's tappable pieces over the background, and their answers
   scenery.ts               the living window (birds, cloud, sunbeam), the garden, sunset, the cat, the clock, per-recipe sill
   tastes.ts                Pipa's tastes: love (her wish) / sneeze / wow / giggle / plain, from what is on a piece
@@ -201,6 +204,7 @@ src/recipes/
   types.ts                 Recipe + StepDef + CharacterDef types (one params type per step type)
   pizza.ts                 the pizza recipe, pure data
   index.ts                 RECIPES list shown on the home screen
+  bigChef.ts               what the big-chef level (2) changes in any recipe (levelSteps / levelStep)
 src/core/vegArt.ts         the whole vegetables' measured body profiles (cutting: slice positions, cut-face strips)
 src/steps/
   Step.ts                  base: intro (demo + voice), idle timer, hint, Mom's help, finger ownership, miss streak, cancelGesture
@@ -659,7 +663,39 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 0000000000000000000. Gameplay round 5 (the difficulty: little chef / big chef)
+The owner: "more challenge in the cooking; if it is too hard for a 5-year-old, let her choose the level at the start".
+- **The level** (`src/core/level.ts`): `getLevel()` (1 | 2), `isBigChef()`, `byLevel(little, big)`, `setLevel(l)`.
+  Stored on the device only (`localStorage` `cooking.level`), default 1. Level 1 = the game exactly as before. Any scene
+  (the garden, a mini-game) reads it the same way; nothing needs to listen, it only changes on the title.
+- **The choice** (`TitleScene.levelPick`): two chef hats drawn in code (`makeLevelTextures`, `LEVEL_ICON` in
+  placeholders.ts) left of the play button (`stage.levelPick`, `levelScale`: 205 units at k 1): a small hat (little
+  chef) and a tall one with a star (big chef). The chosen one glows; a tap on the other chooses it (pop, stars, Mom
+  "Little chef!" / "Big chef!", group 'level'). They fire on release, like the play button (the tap may unlock sound).
+- **Level 2 in the recipes** (`src/recipes/bigChef.ts`, applied by RecipeScene: `levelSteps` on the recipe's list,
+  `levelStep` as each step starts, so the chosen options' prep steps get it too) and `TUNING.big`:
+  every `stir` has the arrows and they turn round twice (`stirFlips()`); `chop` +1 cut; cuts (vegetables and the dish)
+  are tighter (`cutTuning()`: 26 degrees, band 0.12 / 0.24, at least 90 x k); `find` shows four tools (the pool in
+  bigChef.ts, only loaded images); a `choose` with an order asks for three things in order (`vo-pipa-order-3`, "and
+  then..." twice), one without (pizza, soup) gets an order of two; `thread` has 6 pieces (ABC ABC to copy, then AAB AAB
+  goes on; the places closer together), a dragged piece must land a little closer. A recipe's own level-2 steps are
+  data: `Recipe.bigExtra` (pancakes and cake: "find the wooden spoon" before the first pour, before any bowl stands
+  where the tools are shown).
+- **Remember Pipa's wish** (level 2, `Step.rememberWish`, `Character.rememberWish / peekWish`): after Mom has said the
+  wish, "Can you remember what Pipa wants?", and `rememberMs` later the pictures leave the bubble (found ones stay
+  faint). A tap on Pipa and Mom's hint show them again for `peekMs`. Choose and decorate.
+- **Decorating wish** (level 2): two kinds, `TUNING.big.wish.decorate` of each ("Pipa wants... two olives, and... two
+  corn"); each one put on lights its picture; the wish comes true when both are complete.
+- Unchanged on both levels: no timers, no failing, the hint after 8 s and help 20 s later, 4:3 has no Pipa (no wish,
+  no order). Sounds: the round-4 challenge lines and the find names are core now (not in any recipe's list), so any
+  recipe can use them on level 2; `grater` is also in the pancakes', soup's and cake's images (a fourth tool).
+- Voice: 5 lines (Kokoro af_heart, `make_vo.py mom-a`), not heard by a human.
+- Harness: the level is read at page load, so set it before: `localStorage.setItem('cooking.level', '2')` and reload
+  (or `import('/kids-cooking-game/src/core/level.ts').then((m) => m.setLevel(2))` in dev). `__gesture` follows Pipa's
+  order of any length (`st.wished`).
+- **Needs a real child:** can she hold three things in order? Does she remember the empty bubble, and does she find the
+  tap on Pipa? Is 26 degrees too strict on the phone (then `TUNING.big.cut`)? Does she pick the big hat at all?
 ### 000000000000000000. The garden (a stage that is not cooking)
 Spec and research: `/mnt/project-files/research/new-stage-2-spec.md`. Branch `claude/new-stage-garden-6ev1by`.
 - **Way in:** a card after the recipes on the home screen (`card-garden`; the album's button moves one cell on). Its tap

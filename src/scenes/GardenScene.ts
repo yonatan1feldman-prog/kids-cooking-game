@@ -6,6 +6,7 @@ import { MomHandView, tapMotion, type HandMotion } from '../core/hand';
 import { confetti, settle, sway, tickles, touchRipples } from '../core/juice';
 import { getLayout, inNoTouchZone, keepLayoutOnResize, ORIENTATION_PAUSE, type Layout } from '../core/layout';
 import { sfx } from '../core/sfx';
+import { getLevel } from '../core/level';
 import { getStage } from '../core/stage';
 import { AUTO_AFTER_HINT_MS, DEMO_MAX_MS, HINT_AFTER_MS, TUNING } from '../core/tuning';
 import { iconButton, otherPointerDown } from '../core/ui';
@@ -66,18 +67,10 @@ interface Fruit {
   picked: boolean;
 }
 
-/**
- * The difficulty level: 1 = the garden as it was, 2 = its challenges (weeds, just enough water, a second cloud, the
- * bunny's wish). `window.__gardenLevel` (the harness) wins; otherwise the level chosen on the title screen.
- */
+/** The difficulty level (core/level.ts); `window.__gardenLevel` (the harness) wins. */
 function gardenLevel(): 1 | 2 {
   const w = (window as unknown as { __gardenLevel?: number }).__gardenLevel;
-  if (w === 1 || w === 2) return w;
-  try {
-    return localStorage.getItem('cooking.level') === '2' ? 2 : 1;
-  } catch {
-    return 1;
-  }
+  return w === 1 || w === 2 ? w : getLevel();
 }
 
 /** How many times the garden has been visited on this device (only to show Mom's demos the first time; never shown). */

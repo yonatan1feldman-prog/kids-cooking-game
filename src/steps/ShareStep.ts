@@ -6,7 +6,7 @@ import { GUESTS, guestLayers, type GuestDef } from '../core/guests';
 import { tapMotion, type HandMotion } from '../core/hand';
 import { sfx } from '../core/sfx';
 import { tasteOf } from '../core/tastes';
-import { TUNING } from '../core/tuning';
+import { cutTuning, TUNING } from '../core/tuning';
 import type { ShareParams } from '../recipes/types';
 import { loadImages, releaseImages } from '../scenes/BootScene';
 import type { Character } from './Character';
@@ -262,7 +262,7 @@ export class ShareStep extends Step<ShareParams> {
     if (!l) return;
     if (!this.line || this.line.a.x !== l.a.x || this.line.a.y !== l.a.y) {
       const R = this.dish.R * this.dish.scaleX * (this.params.cutRadius ?? 1);
-      this.line = new LineCut(l.a, l.b, Math.max(TUNING.cut.minBand * this.k, 2 * R * TUNING.cut.band), TUNING.cut.gap, TUNING.cut.angle);
+      this.line = new LineCut(l.a, l.b, Math.max(cutTuning().minBand * this.k, 2 * R * cutTuning().band), cutTuning().gap, cutTuning().angle);
       this.partG?.clear();
     }
     drawCutGuide(g, l.a, l.b, this.k, strong);
@@ -336,13 +336,13 @@ export class ShareStep extends Step<ShareParams> {
       this.cutThisTouch = true;
       this.poke();
       this.drawPart();
-      if (this.line.progress >= TUNING.cut.through) {
+      if (this.line.progress >= cutTuning().through) {
         this.hit();
         this.cutNext();
       }
     } else if ((r === 'wrong' || r === 'off') && this.dish.reach(x, y) < 1.15) {
       this.wrongRun += step;
-      if (!this.wobbled && !this.cutThisTouch && this.wrongRun >= TUNING.cut.wobbleAfter * this.k) {
+      if (!this.wobbled && !this.cutThisTouch && this.wrongRun >= cutTuning().wobbleAfter * this.k) {
         this.wobbled = true;
         this.wobbleDish();
       }

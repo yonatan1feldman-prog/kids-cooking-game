@@ -292,6 +292,7 @@ Same engine, voice and processing as every line above.
 | vo-puzzle · vo-puzzle-done | Let's make a puzzle from your picture! · You put it all together! |
 | vo-find-grater · vo-find-pin · vo-find-spoon · name-grater · name-rolling-pin · name-spoon · name-whisk · name-spatula | Which one is the grater? Can you find it? · Which one is the rolling pin? Can you find it? · Which one is the wooden spoon? Can you find it? · Grater! · Rolling pin! · Spoon! · Whisk! · Spatula! |
 | vo-pipa-order · vo-then · vo-first-this · vo-stir-arrow · vo-other-way | Look! Pipa wants two things, in order. First... · and then... · Pipa wants this one first! · Stir round and round, the way the arrow goes! · Now stir the other way! |
+| vo-little-chef · vo-big-chef · vo-pipa-order-3 · vo-remember · vo-and | Little chef! · Big chef! · Look! Pipa wants three things, in order. First... · Can you remember what Pipa wants? · and... |
 
 ### New in the garden round (a stage that is not cooking, 12 lines)
 
