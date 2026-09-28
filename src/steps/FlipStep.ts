@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { ART, IMAGES } from '../core/assets';
 import { countKey, sizzleLoop, voice } from '../core/audio';
-import { boing, burst } from '../core/fx';
+import { boing, burst, steam } from '../core/fx';
 import { tapMotion, type HandMotion } from '../core/hand';
 import { sfx } from '../core/sfx';
 import type { FlipParams } from '../recipes/types';
@@ -306,6 +306,7 @@ export class FlipStep extends Step<FlipParams> {
         onComplete: () => {
           if (this.aborted) return;
           burst(this.scene, this.at.x, this.at.y, { count: 10, size: 16 * k, tint: [0xffe07a, 0xffffff], speed: 320 * k, gravityY: 600 });
+          steam(this.scene, this.at.x, this.at.y - 20 * k, k, 3, 80 * k);
           if (this.made === 0) voice.say(p.flipDoneLine, { ttlMs: 4000 });
           this.scene.time.delayedCall(450, () => !this.aborted && this.toStack());
         },
