@@ -266,6 +266,22 @@ export const TUNING = {
    * near its place on the rack goes there (or, near a wrong one, back to the sink).
    */
   dishes: { dishes: [4, 6], scrub: [1500, 2200], bubbleEvery: 90, reach: 150, helpMs: 1100, scrubMs: 2200 },
+  /**
+   * The art corner (ArtScene, research/drawing-stages-spec.md). Distances are world units x k, [level 1, level 2] where two.
+   * `brushR` the crayon's radius; a sparkle every `sparkleEvery` of stroke; `grid` coverage cells across the sheet.
+   * Trace: a stroke within `traceBand` x the sheet's short side (at least `traceMin`) of the outline counts and glows;
+   * `checkpoints` points per picture, `traceDone` of them lit (and every part at least `partDone`) finishes it.
+   * Dots: `dotTouch` touch radius, `dotR` drawn radius (level 2 bigger: it carries the dice pips). Colour: `fillMs` the
+   * paint spreading. Mirror: `mirrorInk` of the shape covered before the done button. Steam: `steamClear` of the glass
+   * clear (level 1), a thing is found when `findClear` of its box is clear, wiped glass fogs over again after `refogMs`
+   * (level 2). Idle: free drawing (mirror) waits `freeHintMs` / `freeHelpMs`. `aliveMs`: the picture coming alive.
+   */
+  art: {
+    brushR: 22, sparkleEvery: 160, grid: 24,
+    traceBand: [0.09, 0.06], traceMin: [70, 55], checkpoints: 24, traceDone: [0.75, 0.85], partDone: 0.5,
+    dotTouch: 160, dotR: [32, 44], fillMs: 450, mirrorInk: [0.25, 0.35], steamClear: 0.6, findClear: 0.4, refogMs: 9000,
+    freeHintMs: 15000, freeHelpMs: 15000, aliveMs: 2500, helpMs: 1300,
+  },
   help: { pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150, chopEveryMs: 950, openMs: 1500, tempEveryMs: 1100, peelEveryMs: 900, candleEveryMs: 700, threadEveryMs: 700 },
 } as const;
 

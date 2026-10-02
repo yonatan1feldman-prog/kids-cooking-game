@@ -497,6 +497,33 @@ export const IMAGES = {
   'garden-weed': { size: [200, 320] },
   'garden-puddle': { size: [260, 80] },
   'garden-bunny': { size: [320, 300] },
+  // ---- The art corner (research/drawing-stages-spec.md; assets-src/images-b-art, tools/gen_art.py). The pictures she
+  // traces, joins and colours are drawn in code (core/artPictures.ts). Anchors: ART.art.
+  'card-art': { size: [400, 520] },
+  /** The easel: the sheet lies on its board at ART.art.sheet, the legs reach down past the counter. */
+  'art-easel': { size: [1000, 1000] },
+  'photo-frame-art': { size: [700, 780] },
+  'art-pick-trace': { size: [300, 300] },
+  'art-pick-dots': { size: [300, 300] },
+  'art-pick-colour': { size: [300, 300] },
+  'art-pick-mirror': { size: [300, 300] },
+  'art-pick-steam': { size: [300, 300] },
+  /** A pot of paint with a brush in it (the paint's top at about y 100). */
+  'art-pot-red': { size: [220, 240] },
+  'art-pot-yellow': { size: [220, 240] },
+  'art-pot-blue': { size: [220, 240] },
+  'art-pot-green': { size: [220, 240] },
+  'art-pot-pink': { size: [220, 240] },
+  'art-pot-purple': { size: [220, 240] },
+  'art-pot-orange': { size: [220, 240] },
+  'art-pot-rainbow': { size: [220, 240] },
+  /** The steamy window: the view (sky, garden, fence), and the frame over it with the glass open (ART.art.glass). */
+  'art-window-view': { size: [800, 640] },
+  'art-window-frame': { size: [800, 640] },
+  'art-find-sun': { size: [240, 240] },
+  'art-find-bird': { size: [200, 160] },
+  'art-find-cat': { size: [260, 220] },
+  'art-find-rainbow': { size: [360, 210] },
 } as const satisfies Record<string, { size: readonly [number, number]; raster?: number }>;
 
 /** Texture size of an image: its native size, times its `raster` factor if it is shown bigger than native. */
@@ -549,7 +576,7 @@ export const SCENERY_KEYS: readonly ImageKey[] = [
 export const CORE_IMAGES: readonly ImageKey[] = [
   'bg-kitchen-landscape', ...KITCHEN_KEYS, ...SCENERY_KEYS, 'logo-cooking-with-mom', 'star', 'btn-play', 'btn-home', 'btn-done', 'hand-hint',
   'card-pizza', 'card-salad', 'card-cookies', 'card-smoothie', 'card-pancakes', 'card-soup', 'card-cake',
-  'card-skewers', 'card-garden', 'card-market', 'card-dishes',
+  'card-skewers', 'card-garden', 'card-market', 'card-dishes', 'card-art',
   'character-body', 'character-eyes-open', 'character-eyes-blink', 'character-eyes-surprised', 'character-eyes-happy',
   'character-mouth-closed', 'character-mouth-open', 'character-mouth-chew',
   'mom-arm-right', 'mom-body', 'mom-head', 'mom-hair', 'mom-eyes-open', 'mom-eyes-blink', 'mom-eyes-happy',
@@ -751,6 +778,21 @@ RECIPE_ASSETS.dishes = {
     'vo-dishes-done', 'name-blue', 'name-yellow', 'name-pink',
   ],
 };
+/** The art corner (ArtScene): loaded on its card like a recipe. Names some recipe lists are listed here too. */
+RECIPE_ASSETS.art = {
+  images: [
+    'art-easel', 'photo-frame-art', 'art-pick-trace', 'art-pick-dots', 'art-pick-colour', 'art-pick-mirror', 'art-pick-steam',
+    'art-pot-red', 'art-pot-yellow', 'art-pot-blue', 'art-pot-green', 'art-pot-pink', 'art-pot-purple', 'art-pot-orange',
+    'art-pot-rainbow', 'art-window-view', 'art-window-frame', 'art-find-sun', 'art-find-bird', 'art-find-cat', 'art-find-rainbow',
+  ],
+  sounds: [
+    'vo-art-what', 'vo-trace', 'vo-trace-done', 'vo-dots', 'vo-dots-done', 'vo-colour', 'vo-colour-copy', 'vo-colour-mom',
+    'vo-colour-done', 'vo-mirror', 'vo-mirror-done', 'vo-mirror-plate', 'vo-steam', 'vo-steam-find', 'vo-steam-done',
+    'name-sun', 'name-egg', 'name-fish', 'name-ball', 'name-rainbow', 'name-house', 'name-tree', 'name-boat', 'name-butterfly',
+    'name-crown', 'name-bird', 'name-cat', 'name-red', 'name-green', 'name-purple', 'name-orange', 'name-heart', 'name-star',
+    'name-blue', 'name-yellow', 'name-pink', 'crayon', 'xylo', 'splosh', 'squeak',
+  ],
+};
 /** A guest's own layers: loaded when the sharing starts (all three, the two not invited are freed at once). */
 export const GUEST_LAYERS: readonly ImageKey[] = IMAGE_KEYS.filter((k) => k.startsWith('guest-') && !k.startsWith('guest-card-'));
 
@@ -776,6 +818,8 @@ export const SOUND_KEYS = [
   'peel', 'blow',
   // the gameplay round: Pipa's own voice when she tastes (wordless; audio-src/character, CHARACTER-NOTES.md) and her sneeze
   'char-yay', 'char-giggle', 'char-wow', 'pipa-sneeze',
+  // the art corner (synthesised: audio-src/scripts/make_art_sfx.py)
+  'crayon', 'xylo', 'splosh', 'squeak',
 ] as const;
 export type SoundKey = (typeof SOUND_KEYS)[number];
 
@@ -987,6 +1031,13 @@ export const ART = {
     weedTop: 170,
     /** garden-bunny (320x300, facing left): its mouth. */
     bunnyMouth: { x: 58, y: 158 },
+  },
+  /** The art corner (assets-src/images-b-art/tools/gen_art.py prints it). */
+  art: {
+    /** art-easel (1000x1000): where the sheet lies on the board (5:4). */
+    sheet: { x: 112, y: 100, w: 776, h: 620 },
+    /** art-window-frame (800x640): the glass inside the frame (the fog covers it). */
+    glass: { x: 44, y: 44, w: 712, h: 520 },
   },
   /** Washing up (assets-src/images-b-minigames/tools/gen_minigames.py prints it). */
   dishes: {

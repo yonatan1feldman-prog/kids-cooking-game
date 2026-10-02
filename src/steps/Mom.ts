@@ -32,7 +32,7 @@ const LEAN = -1.2;
 const QUIET = /^(count-|temp-|name-)/;
 /** Scenes where Mom picks her poses by herself (title, home and album keep her pointing pose: the cards are laid out
  * around it). */
-const AUTO_SCENES = ['Recipe', 'Garden', 'Puzzle'];
+const AUTO_SCENES = ['Recipe', 'Garden', 'Puzzle', 'Art'];
 
 /**
  * Mom, standing at the counter on the right for the whole recipe. Twelve layers share one 800x800

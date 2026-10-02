@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import manifest from 'virtual:asset-manifest';
 import { refreshAlbumCount } from '../core/album';
+import { refreshWallDrawing, WALL_DRAWING } from '../core/artWall';
 import { CORE_IMAGES, FX_DOT, KITCHEN_KEYS, FX_SOFT, IMAGES, RECIPE_ASSETS, textureSize, unlistedImages, type ImageKey } from '../core/assets';
 import { loadRecipeSounds, loadSounds, releaseSounds } from '../core/audio';
 import { ensurePlaceholders, makeFxTextures, makeUiTextures } from '../core/placeholders';
@@ -84,7 +85,7 @@ export function releaseRecipe(game: Phaser.Game) {
   if (!current) return;
   const own = RECIPE_ASSETS[current.id];
   current = null;
-  const keep = new Set<string>([...CORE_IMAGES, FX_DOT, FX_SOFT, 'fx-heart', 'fx-ring', 'fx-paper', SUNBEAM_KEY]);
+  const keep = new Set<string>([...CORE_IMAGES, FX_DOT, FX_SOFT, 'fx-heart', 'fx-ring', 'fx-paper', SUNBEAM_KEY, WALL_DRAWING]);
   for (const key of game.textures.getTextureKeys()) if (!keep.has(key)) game.textures.remove(key);
   if (own) releaseSounds(own.sounds);
 }
@@ -121,6 +122,7 @@ export class BootScene extends Phaser.Scene {
 
     // The memory book is read once here, so the home screen knows straight away whether to show its button.
     void refreshAlbumCount();
+    void refreshWallDrawing(this.game);
 
     const textures = this.textures;
     const loadOne = (k: ImageKey) => load(textures, k);

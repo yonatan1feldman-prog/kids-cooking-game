@@ -15,7 +15,7 @@ import { assetsReady } from './BootScene';
 export type P = { x: number; y: number };
 
 /** How many times this game has been played on this device (only to show Mom's demos the first time; never shown). */
-function visits(id: string): number {
+export function visits(id: string): number {
   try {
     const key = `cooking.runs.${id}`;
     const n = Number(localStorage.getItem(key)) || 0;
@@ -76,6 +76,13 @@ export abstract class MiniGame extends Phaser.Scene {
     return null;
   }
   protected tick(_delta: number): void {}
+  /** Ms without progress before the hint, and further ms before Mom's help (free drawing waits longer). */
+  protected hintAfter(): number {
+    return HINT_AFTER_MS;
+  }
+  protected helpAfter(): number {
+    return AUTO_AFTER_HINT_MS;
+  }
 
   init() {
     this.phase = 'intro';
@@ -289,7 +296,7 @@ export abstract class MiniGame extends Phaser.Scene {
     }
     if (!this.waiting.includes(this.phase) || this.helping || this.demoOn || this.owner || this.leaving) return;
     this.idle += delta;
-    if (!this.hintOn && this.idle >= HINT_AFTER_MS) this.showWay(true);
-    if (this.idle >= HINT_AFTER_MS + AUTO_AFTER_HINT_MS) this.help();
+    if (!this.hintOn && this.idle >= this.hintAfter()) this.showWay(true);
+    if (this.idle >= this.hintAfter() + this.helpAfter()) this.help();
   }
 }
