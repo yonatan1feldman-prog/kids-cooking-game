@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { FX_SOFT } from './assets';
 import { sfx } from './sfx';
+import { WALL_DRAWING } from './artWall';
 
 /**
  * The living window (visual round 4): life outside the kitchen window, the one thing on screen that moves by itself
@@ -216,7 +217,8 @@ function addKitchenLife(scene: Phaser.Scene, toWorld: (x: number, y: number) => 
 
   // the garden in the lower panes, the drawing, the sill's thing, the cake's bunting
   when(['kitchen-garden'], () => placeAt('kitchen-garden', [960, 136], -99.8));
-  when(['kitchen-drawing'], () => placeAt('kitchen-drawing', [2216, 20], -99));
+  // (her own newest picture from the art corner, if there is one: core/artWall.ts)
+  when(['kitchen-drawing'], () => placeAt(has(WALL_DRAWING) ? WALL_DRAWING : 'kitchen-drawing', [2216, 20], -99));
   const sill = `kitchen-sill-${SILL_BY_RECIPE[recipeId ?? ''] ?? 'flowers'}`;
   when([sill], () => placeAt(sill, [936, 138], -98.2));
   if (recipeId === 'cake') {

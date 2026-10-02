@@ -1340,7 +1340,7 @@ window.__mini = async (id, level = 1, opts = {}) => {
   await __run(800);
   await B.recipeAssets(game, id);
   game.scene.getScenes(true).forEach((s) => s.scene.stop());
-  const name = { market: 'Market', dishes: 'Dishes', garden: 'Garden' }[id];
+  const name = { market: 'Market', dishes: 'Dishes', garden: 'Garden', art: 'Art' }[id];
   game.scene.start(name);
   await __run(opts.wait ?? 3000);
   return game.scene.getScene(name);
@@ -1408,4 +1408,47 @@ window.__verify = async (id, level, opts = {}) => {
   const vc = __voCheck(__voLog);
   __fast(false);
   return { id, level, opts, secs: Math.round((__voice.now() - t0) / 1000), home: game.scene.isActive('Home'), shown: r.shown, problems: vc.problems, keys: __voLog.map((e) => e.key).join(' ') };
+};
+
+// ---- The art corner: __artPlay(kind, level, {first, none, gap, shots}) plays one picture from the easel wall to the
+// picture's coming alive and back to the wall (the scene restarts); __artVerify: the same on the virtual clock with the
+// simulated voice. `none`: the card is tapped, then no touch (Mom helps to the end).
+window.__artPlay = async (kind, opts = {}) => {
+  const a = game.scene.getScene('Art');
+  if (!opts.started) {
+    for (let i = 0; i < 60 && !(a.shown.phase === 'pick' && a.cardOf(kind)); i++) await __run(300);
+    localStorage.setItem('cooking.runs.art-' + kind, '3');
+    if (opts.first) localStorage.removeItem('cooking.runs.art-' + kind);
+    const c = a.cardOf(kind);
+    __tap(c.x, c.y);
+    await __run(1500);
+  }
+  const log = []; let drawn = false; let pic = null; let alive = false;
+  for (let i = 0; i < 3000; i++) {
+    const ph = a.shown.phase;
+    if (ph === 'draw') { drawn = true; pic = a.shown.pic; }
+    if (ph === 'alive' && !alive) { alive = true; if (opts.onAlive) { await __run(opts.aliveAt ?? 600); await opts.onAlive(a); } }
+    if (drawn && ph === 'pick') break;
+    if (!game.scene.isActive('Art')) break;
+    if (ph !== 'draw' || opts.none || a.helping) { await __run(400); continue; }
+    if (opts.demoWait && a.hand && a.hand.active) { await __run(300); continue; }
+    const pl = a.plan();
+    if (!pl) { await __run(400); continue; }
+    if (pl.tap) { __tap(pl.tap.x, pl.tap.y); log.push('t'); }
+    else if (pl.drag) { await __drag(pl.drag.map((q) => [q.x, q.y])); log.push('d'); }
+    await __run(opts.gap ?? 700);
+    if (opts.onGesture) await opts.onGesture(log.length, a);
+  }
+  return { kind, pic, gestures: log.length, back: a.shown.phase === 'pick' };
+};
+window.__artVerify = async (kind, level, opts = {}) => {
+  for (let i = 0; i < 60 && !__voice.allLoaded; i++) await new Promise((r) => setTimeout(r, 250));
+  game.loop.raf.stop(); __voSim(true); __fast(true);
+  if (!game.scene.isActive('Art') || window.__level !== level) await __mini('art', level, { wait: 1500 });
+  __voLog.length = 0;
+  const t0 = __voice.now();
+  const r = await __artPlay(kind, opts);
+  const vc = __voCheck(__voLog);
+  __fast(false);
+  return { ...r, level, secs: Math.round((__voice.now() - t0) / 1000), helps: __voLog.filter((e) => e.key === 'vo-help').length, problems: vc.problems, keys: __voLog.map((e) => e.key).join(' ') };
 };

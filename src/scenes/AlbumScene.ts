@@ -25,6 +25,8 @@ const COLS = 2;
 
 /** Each recipe's photo frame, taken from its own `photo` step, so a new recipe needs nothing here. */
 function frameOf(recipe: string): ImageKey {
+  // (the art corner's pictures, `art-trace`, `art-dots`...: its own frame)
+  if (recipe.startsWith('art-')) return 'photo-frame-art';
   const r = RECIPES.find((x) => x.id === recipe);
   const step = r?.steps.find((s) => s.type === 'photo');
   const key = step && step.type === 'photo' ? step.params.frame : 'photo-frame';

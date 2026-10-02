@@ -229,6 +229,7 @@ src/scenes/
   GardenScene              Mom's garden (a stage that is not cooking)
   MiniGame                 the frame the market and washing up share: home button, Mom, Pipa, demo / hint / help, one finger
   MarketScene / DishesScene  the market (shopping from a list) and washing up (scrub, rack by colour)
+  ArtScene                 the art corner: the easel wall and five ways to draw (trace, dots, colour, mirror, steam)
 ```
 
 ## Recipes are data
@@ -668,7 +669,39 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 00000000000000000000000. The art corner (five ways to draw)
+The owner: "she got bored after a while; add drawing stages, each a different kind of drawing". Spec and research:
+`/mnt/project-files/research/drawing-stages-spec.md`. Branch `claude/drawing-stages-2jsjh3`.
+- **Way in:** a card after the dishes (`card-art`, core; HomeScene `PLAY`), the album one cell on (13 cells). It loads
+  `RECIPE_ASSETS.art` (with the art song) and starts `Art`: the easel wall with five picking cards (3 + 2). A finished
+  picture goes back to the wall (`scene.restart({ back: true })`), never to the next one by itself; home = two taps.
+- **The scene (`scenes/ArtScene.ts`, on `MiniGame`):** the sheet (1000x800 sheet units, `toWorld`) on `art-easel`
+  between the pot column and Mom's face / Pipa / her pointing arm; every layer is a 2D canvas texture (`layer()`),
+  strokes are round crayon lines with a glow (`crayon()`), coverage a 24x19 grid. The pictures are data in
+  `core/artPictures.ts` (outlines, dots, colour areas as SVG paths with Mom's colours, the butterfly, the hidden things).
+  First visit of each kind (`cooking.runs.art-<kind>`): Mom's demo; hint after 8 s (15 s in the open-ended mirror),
+  help 20 s later: one piece (a part, a dot, an area, a patch). Counts: `TUNING.art` (per level `[L1, L2]`).
+  - `trace`: draw anywhere; near the dotted outline (`traceBand`) the ink glows and checkpoints light with rising
+    xylophone notes; any order or direction; done at `traceDone` with every part half lit. L2: corners (star, house...).
+  - `dots`: tap the next glowing dot (L2: dice pips, 9-10 dots); a wrong dot hops (a miss); Mom counts; it closes itself.
+  - `colour`: pick a pot, tap an area, it fills (a growing splosh). L1 free (any colour, done when all are filled);
+    L2 Mom's model beside it: a different colour still fills, then "Hmm, Mom used..." + the colour (a miss).
+  - `mirror`: draw on the left, it appears mirrored on the right (L2: a round plate in four, `xy`); done button
+    after `mirrorInk` of the left is inked.
+  - `steam`: wipe the fogged window (`destination-out`); L1 a garden appears (done at `steamClear`); L2 Pipa's wish
+    bubble asks for a hidden thing ("Can you find the..." + name), wipe it free; the fog creeps back where not wiped.
+- **Finished:** jingle, stars, confetti, it comes alive (the sun spins, the fish swims, the butterfly flies to Pipa,
+  or to Mom on 4:3), the art song's party layer until the wall (`music.party(true)`; the wall's `music.play('art')`
+  calms it). The sheet is captured into the memory book (`keepPhoto('art-<kind>')`, `photo-frame-art`) and taped on
+  the kitchen cabinet (`core/artWall.ts`: `WALL_DRAWING` texture replaces `kitchen-drawing`, rebuilt at boot from the
+  newest `art-*` photo).
+- **Art:** `assets-src/images-b-art/tools/gen_art.py` (22 SVGs, anchors = `ART.art`). Voice: 32 lines (`make_vo.py
+  mom-a`), effects crayon / xylo / splosh / squeak (`make_art_sfx.py`), not heard by a human.
+- **Harness:** `__mini('art', level)`, `__artPlay(kind, {first, none, gap})` (a child's next move from `Art.plan()`),
+  `__artVerify(kind, level, opts)` (virtual clock, simulated voice).
+- **Needs a real child:** is tracing forgiving enough on the phone (`traceBand`)? Does she find the done button in the
+  mirror? Is wiping the steam fun or tiring? Which kinds does she come back to?
 ### 0000000000000000000000. The music round (fun children's songs; more fun when she succeeds)
 The owner: "the music sounds like elevator music; fun children's music, and even more fun when she succeeds". Spec and
 research: `/mnt/project-files/research/music-spec.md`. Branch `claude/music-2-txjy44`.

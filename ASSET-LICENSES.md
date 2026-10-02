@@ -326,6 +326,23 @@ soft limiter of vo-temp-more (`fix_vo_minigames.py`). The other names are the sa
 | vo-dishes-rack · vo-dishes-rack-2 · vo-dishes-colour · vo-dishes-done | Now put it on the rack, with the same colour! · Cups go on the hooks, and plates go below! · Find the same colour! · All clean! Thank you for helping! |
 | name-blue · name-yellow | Blue! · Yellow! |
 
+### New in the art corner (five ways to draw, 32 lines and 4 effects)
+
+Same engine, voice and processing as every line above (Kokoro af_heart, `make_vo.py mom-a`); no fix was needed (-18.0 to
+-19.1 LUFS). The effects crayon, xylo, splosh and squeak are own work, synthesised from noise and sine waves by
+`audio-src/scripts/make_art_sfx.py` (numpy + scipy + ffmpeg; no samples).
+
+| Key | Line |
+|---|---|
+| vo-pick-art · vo-art-what | Let's draw together! · What shall we draw today? |
+| vo-trace · vo-trace-done | Follow the dots with your finger! · You traced it all the way round! |
+| vo-dots · vo-dots-done | Let's join the dots! · Look what we made! |
+| vo-colour · vo-colour-copy · vo-colour-mom · vo-colour-done | Let's colour it in! Pick a colour. · Can you colour it like Mom's? · Hmm, Mom used... · What beautiful colours! |
+| vo-mirror · vo-mirror-done · vo-mirror-plate | Draw on one side, and watch the magic! · A magic butterfly! · A magic party plate! |
+| vo-steam · vo-steam-find · vo-steam-done | Oh, the window is all steamy! Wipe it with your finger. · Can you find the... · Now we can see the whole garden! |
+| name-sun · egg · fish · ball · rainbow · house · tree · boat · butterfly · crown · bird · cat | Sun! · Egg! · Fish! · Ball! · Rainbow! · House! · Tree! · Boat! · Butterfly! · Crown! · Bird! · Cat! |
+| name-red · green · purple · orange | Red! · Green! · Purple! · Orange! |
+
 ### New in the guests round (who comes to eat, 13 lines)
 
 Same engine, voice and processing as every line above.
@@ -369,5 +386,5 @@ layers like Pipa's, the giraffe's neck and the three invitation badges) are draw
 `assets-src/images-b/tools/gen_kitchen_sky.py`, and the 21 files of visual round 5 (the garden, the cat, the clock, the
 child's drawing, the sill's things, the bunting) from `gen_kitchen_view.py` beside it. The 30 garden-stage files (the garden background, the raised
 bed, holes, seeds and packets, the plants, fruit and carrots, the watering can, sun, cloud, snail, leaf, basket and the
-garden card) are drawn by `assets-src/images-b-garden/tools/gen_garden.py` on the same kit. The 18 files of the two mini-games (the market's background, awning, shelf, counter, poles, crates and list, the dishes, the food on them, the sponge, the drying rack and the two cards) are drawn by `assets-src/images-b-minigames/tools/gen_minigames.py` on the same kit. No third-party art, fonts or images.
+garden card) are drawn by `assets-src/images-b-garden/tools/gen_garden.py` on the same kit. The 18 files of the two mini-games (the market's background, awning, shelf, counter, poles, crates and list, the dishes, the food on them, the sponge, the drying rack and the two cards) are drawn by `assets-src/images-b-minigames/tools/gen_minigames.py` on the same kit. The 22 files of the art corner (the easel, the five picking cards, the paint pots, the steamy window's view and frame, the things hidden behind the steam, the art card and photo frame) are drawn by `assets-src/images-b-art/tools/gen_art.py` on the same kit; the pictures she draws, traces, joins and colours are drawn in code (`src/core/artPictures.ts`). No third-party art, fonts or images.
 `images/webp/` holds WebP renderings of those same SVGs, made by `scripts/bake-webp.js`.

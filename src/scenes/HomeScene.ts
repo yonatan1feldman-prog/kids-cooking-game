@@ -21,10 +21,11 @@ import { assetsReady, recipeAssets, releaseRecipe } from './BootScene';
  * recipe the home screen stays quiet (the finale already said goodbye). Idle 5 s: her hand taps the card.
  */
 /** The games on the home screen that are not recipes (each its own scene, its assets under RECIPE_ASSETS[id]). */
-const PLAY: { id: string; card: 'card-garden' | 'card-market' | 'card-dishes'; line: 'vo-pick-garden' | 'vo-pick-market' | 'vo-pick-dishes'; scene: string }[] = [
+const PLAY: { id: string; card: 'card-garden' | 'card-market' | 'card-dishes' | 'card-art'; line: 'vo-pick-garden' | 'vo-pick-market' | 'vo-pick-dishes' | 'vo-pick-art'; scene: string }[] = [
   { id: 'garden', card: 'card-garden', line: 'vo-pick-garden', scene: 'Garden' },
   { id: 'market', card: 'card-market', line: 'vo-pick-market', scene: 'Market' },
   { id: 'dishes', card: 'card-dishes', line: 'vo-pick-dishes', scene: 'Dishes' },
+  { id: 'art', card: 'card-art', line: 'vo-pick-art', scene: 'Art' },
 ];
 
 export interface HomeData {
@@ -100,8 +101,8 @@ export class HomeScene extends Phaser.Scene {
       this.tweens.add({ targets: card, alpha: { from: 0, to: 1 }, duration: 400 });
       cards.push(card);
     });
-    // The games that are not cooking, after the recipes: the garden (plant, water, pick), the market (a picture list)
-    // and washing up (scrub, sort by colour). Each loads on its tap like a recipe and is its own scene.
+    // The games that are not cooking, after the recipes: the garden (plant, water, pick), the market (a picture list),
+    // washing up (scrub, sort by colour) and the art corner (five kinds of drawing). Each loads on its tap like a recipe and is its own scene.
     PLAY.forEach((g, j) => {
       const at = S.card(n + j, cells);
       const card = iconButton(this, L, g.card, at.x, at.y, () => {
