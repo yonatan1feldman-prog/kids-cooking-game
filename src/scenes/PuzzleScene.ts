@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { listPhotos } from '../core/album';
-import { voice } from '../core/audio';
+import { music, voice } from '../core/audio';
 import { burst, stars } from '../core/fx';
 import { MomHandView, type HandMotion } from '../core/hand';
 import { confetti, settle, sway, tickles, touchRipples } from '../core/juice';
@@ -448,6 +448,7 @@ export class PuzzleScene extends Phaser.Scene {
       const whole = this.add.image(bx, by, PHOTO).setDepth(80).setDisplaySize(B, B).setAlpha(0);
       this.tweens.add({ targets: whole, alpha: 1, duration: 450 });
       sfx(this, 'cheer-jingle');
+      music.party(); // a while, then the book again
       stars(this, bx, by, 14, 70 * L.k);
       confetti(this, bx, by - 100 * L.k, 22, 28 * L.k);
       this.mom?.celebrate();

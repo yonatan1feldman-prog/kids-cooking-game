@@ -129,7 +129,9 @@ full notes), copied unchanged; the sneeze is generated.
 
 | File | Title | Author | Source page | License | Processing |
 |---|---|---|---|---|---|
-| music/music-main.ogg | Cozy Puzzle In-Game 1 | MintoDog | https://opengameart.org/content/cozy-puzzle-in-game-1 | CC0 1.0 | none to the loop (exactly 256 beats at 118 BPM, gapless); gain -7.9 dB to -20 LUFS; Vorbis q2 |
+| music/music-kitchen-base / -tune / -party / -up.ogg | Kitchen song (C major, 128 BPM, ukulele, xylophone) | this project | `audio-src/scripts/make_music.py` | own work | own work: synthesised from notes by `audio-src/scripts/make_music.py` (numpy + scipy + ffmpeg; Karplus-Strong ukulele, mallets, whistle, bass and drums made from sine waves and noise; no samples, no third-party recordings); 32 bars, gapless; full mix -20 LUFS; Vorbis q3 |
+| music/music-outside-base / -tune / -party / -up.ogg | Outdoors song (G major, 124 BPM, ukulele, whistle, claps) | this project | `audio-src/scripts/make_music.py` | own work | as above |
+| (audio-src/final/music/music-art-*.ogg, not in the game yet) | Art song (F major, 120 BPM, marimba, glockenspiel) | this project | `audio-src/scripts/make_music.py` | own work | as above |
 
 ## Sounds: Mom's voice (`sounds/voice/`, English)
 

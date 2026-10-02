@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { tickles, touchRipples } from '../core/juice';
 import { albumCount } from '../core/album';
-import { voice } from '../core/audio';
+import { music, voice } from '../core/audio';
 import { stars } from '../core/fx';
 import { screenHint } from '../core/hand';
 import { ALBUM_ICON, makeAlbumTextures } from '../core/placeholders';
@@ -44,6 +44,7 @@ export class HomeScene extends Phaser.Scene {
     let going = false;
     // Back home: the last recipe's art and sounds are released (the recipe scene has already shut down).
     releaseRecipe(this.game);
+    music.play('kitchen');
     let mom: Mom | null = null;
     let hint: ReturnType<typeof screenHint> | undefined;
     if ((data.from === 'title' || data.from === 'recipe') && !data.asked) {

@@ -14,7 +14,7 @@ Recommended playback volumes (gain 0–1, as `GainNode.gain` or `volume`) for a 
 | voice/name-potato, zucchini (soup) | -18 LUFS | vegetable names, same level; 0.82-0.87 s long |
 | voice/name-pink, white, chocolate (cake) | -18 LUFS | frosting colours, same level; 0.60-0.75 s long |
 | voice/vo-album | -18 LUFS | "Look at everything we made!" for the recipe album; 1.62 s |
-| music/music-main.ogg | -20 LUFS | steady level all the way through |
+| music/music-<song>-base + -tune + -party | -20 LUFS (all three together); base + tune about -22 | stems of one song share one gain; make_music.py |
 | sfx/squish, sprinkle, whoosh | -18 LUFS | |
 | sfx/munch | -23 LUFS | a sharp bite; the peak cap kept it about 5 dB quieter than the others |
 | sfx/star, complete | -20 LUFS | intentionally soft |

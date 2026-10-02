@@ -178,7 +178,7 @@ scripts/make-icons.mjs     regenerates the temporary PWA icons (public/icons)
 scripts/harness.js         test harness for the automated Chrome (see "Testing notes")
 scripts/bake-webp.js       pre-renders the SVGs to WebP, run inside the game page (see "Pre-rendered art")
 public/assets/images/      SVG art (the source, from the art agent) + webp/ (pre-rendered, committed)
-public/assets/sounds/      voice/ (Mom, 63 lines), music/ (1 loop), sfx/ (22 effects incl. the bake and water loops)
+public/assets/sounds/      voice/ (Mom, 63 lines), music/ (two songs in stems, made by audio-src/scripts/make_music.py), sfx/ (22 effects incl. the bake and water loops)
 src/main.ts                Phaser config (3 touch pointers), gesture blocking, lifecycle, orientation guard, SW registration
 src/core/
   assets.ts                THE ASSET CONTRACT: image keys + native sizes, sound keys, ART geometry (Mom pivots, hand anchors)
@@ -456,11 +456,12 @@ fallback if the capture fails.
   vo-feed, vo-help, vo-praise-1..7, vo-finale, vo-bye; for part B vo-choose, vo-cut, vo-cut-careful, vo-open-can,
   vo-open-jar, vo-pour, vo-temp, vo-temp-more, vo-temp-hot, vo-temp-done, vo-mitts, vo-share, vo-slice-mom,
   vo-mom-yum, vo-slice-pipa, vo-photo, count-1..10, temp-50/100/150/200/250. A voice line is any file in `voice/`
-  (count-* and temp-* too). Music (`music/`): music-main (a gapless 256-beat loop).
+  (count-* and temp-* too). Music (`music/`): `music-<song>-base / -tune / -party / -up`, see the music round's note.
 - Levels (core/audio.ts `LEVEL`, from the sound agent's MIXING.md with the owner's numbers): voice 1.0; effects 0.65
   (munch 1.0, star 0.6, complete 0.7, jar-open 0.8, camera and beep 0.6, click 0.5); bake loop 0.4 and water loop
-  0.35 (300 ms fades, `bakeLoop` / `waterLoop`); music 0.22, ducked to 0.11 while Mom speaks,
-  back over 0.5 s. Music and the bake loop are AudioBufferSourceNode loops. No mute button.
+  0.35 (300 ms fades, `bakeLoop` / `waterLoop`); music 0.20, ducked to 0.09 while Mom speaks (and -4 dB at 1.8 kHz,
+  the melody stem out for a sentence), back over 0.5 s (`MUSIC` in audio.ts). Music and the bake loop are
+  AudioBufferSourceNode loops. No mute button.
 - Art conventions the code assumes:
   - viewBox = native size in world units (the world is 1080 high).
   - `bg-kitchen-landscape`: 2400x1080; the counter must stay plain across the whole width (it is bottom-anchored).
@@ -667,7 +668,37 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 0000000000000000000000. The music round (fun children's songs; more fun when she succeeds)
+The owner: "the music sounds like elevator music; fun children's music, and even more fun when she succeeds". Spec and
+research: `/mnt/project-files/research/music-spec.md`. Branch `claude/music-2-txjy44`.
+- **Made here, not downloaded:** `audio-src/scripts/make_music.py` (numpy, scipy, ffmpeg; run from audio-src/, takes
+  about a minute) writes `audio-src/final/music/music-<song>-<stem>.ogg` and prints loudness and seam numbers;
+  `--preview DIR` writes one mp3 per song (the party layer comes in mid-way). Songs: `kitchen` (C, 128 BPM, ukulele
+  island strum, xylophone tune), `outside` (G, 124, ukulele with chucks, whistle tune, claps), `art` (F, 120, marimba,
+  glockenspiel, softer). Each: 32 bars A A' B A, about 60 s, gapless (2 bars rendered past the end and folded onto the
+  head). Stems of one length: `base` (stereo, always on), `tune` (mono, the melody), `party` (mono: kick, claps,
+  tambourine, an offbeat counter-melody, a fill every 8 bars) and `up` (a one-bar rising glockenspiel run, the
+  stinger). Full mix -20 LUFS, base + tune -22, true peak about -6 dBTP. To change a tune: its bars in `SONGS`.
+- **The mixer** (`music` in core/audio.ts, tunables `MUSIC`, tempos `SONGS`): the three stems start on one context time
+  and loop together. `music.play(song)`: Home, every MiniGame (`song` field: the market `outside`, washing up
+  `kitchen`) and the garden say which song; a new one crossfades in from bar 1 (1.2 s), the same one only calms the
+  party layer. `music.party()`: every step done (RecipeScene), every garden and mini-game praise: the run up on the next
+  eighth, the party layer on the beat after it, 4 bars, a 2 s fade. `music.party(true)`: the finales (PhotoStep's
+  celebration, the garden, the market, washing up) keep it on until Home. The puzzle's finale: a timed one. Voice:
+  every line ducks the bus to 0.09 with a -4 dB dip at 1.8 kHz; a sentence (not `count-` / `temp-` / `name-`) also
+  takes the melody out (0.2 s, back 0.5 s after).
+- **Loading:** the kitchen song is core (decoded last, after the voice); the outdoors song is in the garden's and the
+  market's `RECIPE_ASSETS` sounds (decoded on the card, freed at home). The art song is only in audio-src/final/music:
+  **the art corner copies its four files into public/assets/sounds/music, lists them in its RECIPE_ASSETS entry and
+  calls `music.play('art')` in its create** (and `music.party()` / `party(true)` on a finished picture). Decoded size:
+  about 46 MB per song at 48 kHz (base stereo, tune and party mono), the old single track was the same.
+- **Harness:** `__music.state()` (song, bus, eq, tune and party gains, partyLeft), `__musicLog` (song / party / hold /
+  calm / duck / duck+tune / unduck). The automated Chrome needs `--autoplay-policy=no-user-gesture-required` for the
+  context to run; otherwise the gains only show the targets.
+- **Needs a human ear:** do the songs sound like fun children's music on the phone speaker (synthesised ukulele and
+  mallets)? Is the party layer clearly "more fun" without being too much after every step? Is Mom always clear over
+  it? Fatigue over 20+ minutes. Knobs: `MUSIC.partyOnStep` (false = finales only), `partyBars`, `LEVEL.music`.
 ### 000000000000000000000. The mini-games round (the market, washing up)
 Spec: `/mnt/project-files/research/minigames-spec.md`. Branch `claude/minigames-2-vegscq`.
 - **Way in:** two more cards after the garden (`card-market`, `card-dishes`, core); HomeScene's `PLAY` list (garden,

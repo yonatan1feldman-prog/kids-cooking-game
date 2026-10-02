@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { drawKitchenPieces } from '../core/kitchen';
 import { keepPhoto } from '../core/album';
 import { ART, IMAGES } from '../core/assets';
-import { voice } from '../core/audio';
+import { music, voice } from '../core/audio';
 import { boing } from '../core/fx';
 import { confetti } from '../core/juice';
 import type { HandMotion } from '../core/hand';
@@ -187,6 +187,7 @@ export class PhotoStep extends Step<PhotoParams> {
   private party() {
     if (this.aborted) return;
     const t0 = this.scene.time.now;
+    music.party(true); // on until home
     this.ctx.mom.celebrate();
     const pet = this.ctx.character;
     pet.setMood('party');
