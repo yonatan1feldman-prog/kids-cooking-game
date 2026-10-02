@@ -710,6 +710,10 @@ RECIPE_ASSETS.skewers = {
 /** The invitation badges of the guests: every recipe ends by sharing, so every recipe loads them. */
 export const GUEST_CARDS: readonly ImageKey[] = ['guest-card-turtle', 'guest-card-giraffe', 'guest-card-penguin'];
 for (const r of Object.values(RECIPE_ASSETS)) r.images = [...r.images, ...GUEST_CARDS];
+/** The outdoors song (core/audio.ts `music`) for the garden and the market: decoded on their cards, freed at home. The
+ * kitchen's song is core. The art song (music-art-*) is made but not in public/ yet: the art corner copies it from
+ * audio-src/final/music and lists it like this. */
+const OUTSIDE_SONG = ['music-outside-base', 'music-outside-tune', 'music-outside-party', 'music-outside-up'];
 /** The garden (not a recipe, its own scene, GardenScene): loaded on its card like a recipe, released at home. */
 RECIPE_ASSETS.garden = {
   images: [
@@ -723,7 +727,7 @@ RECIPE_ASSETS.garden = {
     'vo-garden-seeds', 'vo-garden-plant', 'vo-garden-water', 'vo-garden-sprout', 'vo-garden-cloud', 'vo-garden-sun',
     'vo-garden-snail', 'vo-garden-snail-yum', 'vo-garden-pick', 'vo-garden-pull', 'vo-garden-done', 'name-tomato',
     'name-strawberry', 'name-carrot', 'tear', 'name-lettuce', 'vo-garden-weeds', 'vo-garden-enough', 'vo-garden-cloud-2',
-    'vo-garden-bunny', 'vo-garden-bunny-this', 'vo-garden-bunny-yum',
+    'vo-garden-bunny', 'vo-garden-bunny-this', 'vo-garden-bunny-yum', ...OUTSIDE_SONG,
   ],
 };
 /** The two mini-games that are not cooking (MarketScene, DishesScene): loaded on their cards like a recipe. A sound some
@@ -738,7 +742,7 @@ RECIPE_ASSETS.market = {
   sounds: [
     'vo-market-list', 'vo-market-remember', 'vo-market-not', 'vo-market-pipa', 'vo-market-two', 'vo-market-done',
     'name-tomato', 'name-carrot', 'name-cucumber', 'name-onion', 'name-potato', 'name-mushroom', 'name-zucchini',
-    'name-banana', 'name-kiwi', 'name-mango', 'name-strawberry', 'name-lettuce',
+    'name-banana', 'name-kiwi', 'name-mango', 'name-strawberry', 'name-lettuce', ...OUTSIDE_SONG,
   ],
 };
 RECIPE_ASSETS.dishes = {

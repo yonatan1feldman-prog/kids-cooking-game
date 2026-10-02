@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { voice } from '../core/audio';
+import { music, voice } from '../core/audio';
 import { boing, stars } from '../core/fx';
 import { MomHandView } from '../core/hand';
 import { confetti, tickles, touchRipples } from '../core/juice';
@@ -158,6 +158,7 @@ export class RecipeScene extends Phaser.Scene {
     confetti(this, dish.x, dish.y, 22, 48 * layout.k);
     boing(this, this.ctx.board, 0.06);
     voice.praise({ ttlMs: 3000 });
+    music.party();
     mom.cheer();
     character.cheer();
     this.time.delayedCall(800, () => this.runStep(i + 1));

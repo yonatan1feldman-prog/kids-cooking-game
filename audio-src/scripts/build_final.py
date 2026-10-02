@@ -4,7 +4,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 FINAL = ROOT / "final"
-for d in ("voice", "music", "sfx"):  # MIXING.md is hand-written and kept
+for d in ("voice", "sfx"):  # MIXING.md is hand-written and kept; music/ is make_music.py's
     shutil.rmtree(FINAL / d, ignore_errors=True)
     (FINAL / d).mkdir(parents=True)
 
@@ -12,7 +12,7 @@ for d in ("voice", "music", "sfx"):  # MIXING.md is hand-written and kept
 for f in sorted((ROOT / "voice-a-mom").glob("*.ogg")):
     shutil.copy2(f, FINAL / "voice" / f.name)
 # music
-shutil.copy2(ROOT / "music/music-1.ogg", FINAL / "music/music-main.ogg")
+# (the music is made by scripts/make_music.py straight into final/music since 2026-10-02; music-1 is no longer used)
 # sfx: first candidate of each group, renamed
 SFX = ["munch", "squish", "sprinkle", "whoosh", "bake", "star", "complete"]
 # batch 2 (prep steps, 2026-09-19); a name whose -1 candidate is missing is skipped and listed as missing
