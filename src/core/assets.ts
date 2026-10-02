@@ -738,9 +738,9 @@ RECIPE_ASSETS.skewers = {
 export const GUEST_CARDS: readonly ImageKey[] = ['guest-card-turtle', 'guest-card-giraffe', 'guest-card-penguin'];
 for (const r of Object.values(RECIPE_ASSETS)) r.images = [...r.images, ...GUEST_CARDS];
 /** The outdoors song (core/audio.ts `music`) for the garden and the market: decoded on their cards, freed at home. The
- * kitchen's song is core. The art song (music-art-*) is made but not in public/ yet: the art corner copies it from
- * audio-src/final/music and lists it like this. */
+ * kitchen's song is core. The art song is the art corner's (ArtScene), listed the same way. */
 const OUTSIDE_SONG = ['music-outside-base', 'music-outside-tune', 'music-outside-party', 'music-outside-up'];
+const ART_SONG = ['music-art-base', 'music-art-tune', 'music-art-party', 'music-art-up'];
 /** The garden (not a recipe, its own scene, GardenScene): loaded on its card like a recipe, released at home. */
 RECIPE_ASSETS.garden = {
   images: [
@@ -794,7 +794,7 @@ RECIPE_ASSETS.art = {
     'vo-colour-done', 'vo-mirror', 'vo-mirror-done', 'vo-mirror-plate', 'vo-steam', 'vo-steam-find', 'vo-steam-done',
     'name-sun', 'name-egg', 'name-fish', 'name-ball', 'name-rainbow', 'name-house', 'name-tree', 'name-boat', 'name-butterfly',
     'name-crown', 'name-bird', 'name-cat', 'name-red', 'name-green', 'name-purple', 'name-orange', 'name-heart', 'name-star',
-    'name-blue', 'name-yellow', 'name-pink', 'crayon', 'xylo', 'splosh', 'squeak',
+    'name-blue', 'name-yellow', 'name-pink', 'crayon', 'xylo', 'splosh', 'squeak', ...ART_SONG,
   ],
 };
 /** A guest's own layers: loaded when the sharing starts (all three, the two not invited are freed at once). */

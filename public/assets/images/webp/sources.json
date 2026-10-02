@@ -1,4 +1,104 @@
 {
+ "art-easel": {
+  "sha1": "fc864a238bf8d38ffcca29b313cc006a6f644e9a",
+  "w": 1000,
+  "h": 1000
+ },
+ "art-find-bird": {
+  "sha1": "38004751c9f8148ef38363b7e7f6e608f566b123",
+  "w": 200,
+  "h": 160
+ },
+ "art-find-cat": {
+  "sha1": "29ebcddea9b7ce840ae7631e68c07278d5682376",
+  "w": 260,
+  "h": 220
+ },
+ "art-find-rainbow": {
+  "sha1": "7d912d112ed8eaa2bb0990c88f5f6f539168c341",
+  "w": 360,
+  "h": 210
+ },
+ "art-find-sun": {
+  "sha1": "a80e122c2d17497fba0a841bd057613c0a8661eb",
+  "w": 240,
+  "h": 240
+ },
+ "art-pick-colour": {
+  "sha1": "24edd46b7139e99035eb293e0c6ed0205704272d",
+  "w": 300,
+  "h": 300
+ },
+ "art-pick-dots": {
+  "sha1": "bfa278f9b80a292944c9b249d3c7d8fbaeaffb06",
+  "w": 300,
+  "h": 300
+ },
+ "art-pick-mirror": {
+  "sha1": "09a30d01d904739f3d041c884bfa44764b83ef34",
+  "w": 300,
+  "h": 300
+ },
+ "art-pick-steam": {
+  "sha1": "87c98880544e8dedcb67b179141fa21349ac42aa",
+  "w": 300,
+  "h": 300
+ },
+ "art-pick-trace": {
+  "sha1": "6d238febc22d15060b1ffb5b5b0d938de4ac3fee",
+  "w": 300,
+  "h": 300
+ },
+ "art-pot-blue": {
+  "sha1": "f45d817313937378442e2f85f7ee99cc12963788",
+  "w": 220,
+  "h": 240
+ },
+ "art-pot-green": {
+  "sha1": "4bb78d2f7f122a52d2e548492f6e7d2dd5a48d12",
+  "w": 220,
+  "h": 240
+ },
+ "art-pot-orange": {
+  "sha1": "d03be5e954ad79d75a656d61794184640ebfca9d",
+  "w": 220,
+  "h": 240
+ },
+ "art-pot-pink": {
+  "sha1": "08e5808fa027a2186c04836e1607d55ec6f35ef5",
+  "w": 220,
+  "h": 240
+ },
+ "art-pot-purple": {
+  "sha1": "65606c96dc873ad09fff6d94ae37815d334f1e33",
+  "w": 220,
+  "h": 240
+ },
+ "art-pot-rainbow": {
+  "sha1": "3cb051f57eafe17cae5927486fbb9e38b7dde7c3",
+  "w": 220,
+  "h": 240
+ },
+ "art-pot-red": {
+  "sha1": "280e6eafaa721b984d4f6dbd9170fddb71a2623d",
+  "w": 220,
+  "h": 240
+ },
+ "art-pot-yellow": {
+  "sha1": "9e984767fa0e1ecb51e19e7633c39be329636a0b",
+  "w": 220,
+  "h": 240
+ },
+ "art-window-frame": {
+  "sha1": "f0081a448c0d96191fa713ab10c5d2f2a03620db",
+  "w": 800,
+  "h": 640
+ },
+ "art-window-view": {
+  "sha1": "80b0944b6066588601bed667133757ceaff0472d",
+  "w": 800,
+  "h": 640
+ },
  "baking-tray": {
   "sha1": "4e743365e4ca736fc9e52c1f1a7a7c151b16253c",
   "w": 1000,
@@ -213,6 +313,11 @@
   "sha1": "452967685355daf95382de8262af3772ddc5314d",
   "w": 140,
   "h": 140
+ },
+ "card-art": {
+  "sha1": "e1f0352fc3f4024e615c3f4382cfa89ca6c450c9",
+  "w": 400,
+  "h": 520
  },
  "card-cake": {
   "sha1": "432d6a2b5cbcacbb184dbb77324291cb7ad99b5a",
@@ -1466,6 +1571,11 @@
  },
  "photo-frame": {
   "sha1": "11ba1d46116b80ce86ac9452fb99f67b0b29e1df",
+  "w": 700,
+  "h": 780
+ },
+ "photo-frame-art": {
+  "sha1": "74c4453f577e74dba8aba676135cc9ee631e5aa0",
   "w": 700,
   "h": 780
  },

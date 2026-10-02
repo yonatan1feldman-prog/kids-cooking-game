@@ -6,7 +6,7 @@ import {
   BUTTERFLY_BODY, BUTTERFLY_FEELERS, BUTTERFLY_LEFT, COLOUR, DOTS, HIDDEN, INK_CSS, PAINT, PLATE, POTS, RAINBOW, SHEET_H, SHEET_W, TRACE,
   lengthOf, resample, type Alive, type ColourPic, type DotsPic, type Hidden, type Paint, type Pt, type TracePic,
 } from '../core/artPictures';
-import { countKey, voice, type NameKey, type VoiceKey } from '../core/audio';
+import { countKey, music, voice, type NameKey, type Song, type VoiceKey } from '../core/audio';
 import { boing, burst, stars } from '../core/fx';
 import { tapMotion, type HandKey, type HandMotion } from '../core/hand';
 import { confetti } from '../core/juice';
@@ -82,6 +82,8 @@ interface AreaView {
  */
 export class ArtScene extends MiniGame {
   protected readonly id = 'art';
+  /** The art song (marimba, glockenspiel); its party layer is on for the whole coming alive of a finished picture. */
+  protected readonly song: Song = 'art';
   protected readonly waiting = ['pick', 'draw'] as const;
   private back = false;
   private kind: Kind | null = null;
@@ -100,7 +102,7 @@ export class ArtScene extends MiniGame {
   // trace
   private trace?: { pic: TracePic; dense: Pt[][]; cps: Checkpoint[]; band: number; base: Layer; ink: Layer };
   // dots
-  private dots?: { pic: DotsPic; views: DotView[]; cur: number; next: number; misses: number; glow: Phaser.GameObjects.Image; live: Phaser.GameObjects.Graphics; ink: Layer };
+  private dots?: { pic: DotsPic; views: DotView[]; cur: number; next: number; misses: number; glow: Phaser.GameObjects.Image; live: Phaser.GameObjects.Graphics; ink: Layer; base: Layer };
   // colour
   private colour?: { pic: ColourPic; areas: AreaView[]; fill: Layer; lines: Layer; anim: { i: number; to: Paint; at: Pt; t: number } | null; model?: Phaser.GameObjects.Image };
   // mirror
@@ -585,7 +587,7 @@ export class ArtScene extends MiniGame {
       this.box.add(box);
       return { at, box, joined: false };
     });
-    this.dots = { pic, views, cur: -1, next: 0, misses: 0, glow, live, ink };
+    this.dots = { pic, views, cur: -1, next: 0, misses: 0, glow, live, ink, base };
     this.markNext();
   }
 
@@ -1078,7 +1080,8 @@ export class ArtScene extends MiniGame {
       for (const t of st.things) if (!t.found && this.clearShare(t.h) >= T.findClear) this.found(t);
       const share = this.clearShare();
       this.shown.progress = Math.round(share * 100) / 100;
-      if (share >= T.steamClear) (st.clear = true), this.time.delayedCall(400, () => this.finish());
+      // done when most of the glass is clear, or when everything behind it is found (Mom's help finds them one by one)
+      if (share >= T.steamClear || st.things.every((t) => t.found)) (st.clear = true), this.time.delayedCall(400, () => this.finish());
       return;
     }
     const h = st.targets[st.target];
@@ -1104,8 +1107,8 @@ export class ArtScene extends MiniGame {
     const h = st.targets[st.target];
     if (!h) return;
     if (this.phase !== 'draw') this.setPhase('draw');
-    this.say('vo-steam-find', { ttlMs: 5000 });
-    voice.say(h.name, { ttlMs: 6000, valid: () => this.scene.isActive() && !this.leaving });
+    // the name only after "Can you find the...": a name may cut the name playing, so it is not queued beside it
+    this.say('vo-steam-find', { ttlMs: 5000, done: () => voice.say(h.name, { ttlMs: 4000, valid: () => this.scene.isActive() && !this.leaving && !this.finished }) });
     this.pipa?.showWish([h.key], [h.id], { maxRight: this.S.momFace.x0 - 10 * this.L.k, k: this.L.k });
   }
 
@@ -1166,6 +1169,8 @@ export class ArtScene extends MiniGame {
     this.hand.stop();
     this.doneBtn?.destroy();
     this.doneBtn = undefined;
+    // the party layer until the easel wall comes back (its music.play('art') calms it)
+    music.party(true);
     const L = this.L;
     const k = L.k;
     const mid = { x: this.sheet.x + this.sheet.w / 2, y: this.sheet.y + this.sheet.h / 2 };
@@ -1368,11 +1373,13 @@ export class ArtScene extends MiniGame {
       }
       if (pic.id === 'house') {
         g.fillStyle = '#FFE58A';
-        g.fillRect(350, 460, 90, 80);
-        g.strokeRect(350, 460, 90, 80);
+        // (the big house of level 2 has its door in the middle: the window goes left of it)
+        const wx = pic.dots.length > 5 ? 280 : 350;
+        g.fillRect(wx, 460, 90, 80);
+        g.strokeRect(wx, 460, 90, 80);
       }
     });
-    this.fadeOut([d.ink.img, d.glow, d.live, ...d.views.map((v) => v.box)]);
+    this.fadeOut([d.ink.img, d.base.img, d.glow, d.live, ...d.views.map((v) => v.box)]);
     l.img.setAlpha(0);
     this.tweens.add({ targets: l.img, alpha: 1, duration: 350 });
     const c = this.middle(pic.dots);
@@ -1619,8 +1626,10 @@ export class ArtScene extends MiniGame {
         const n = this.colourNext();
         if (!n) return null;
         const at = this.toWorld(n.area.hint);
-        if (n.pot && n.pot !== this.brush) {
-          const p = this.pots.find((q) => q.brush === n.pot)!;
+        // (on level 1 the harness child likes Mom's colours too, so the picture is not all one colour)
+        const want = n.pot ?? n.area.mom;
+        if (want && want !== this.brush && this.pots.some((q) => q.brush === want)) {
+          const p = this.pots.find((q) => q.brush === want)!;
           return {
             kind: 'point',
             keys: [
@@ -1887,8 +1896,10 @@ export class ArtScene extends MiniGame {
       case 'colour': {
         const n = this.colourNext();
         if (!n) return null;
-        if (n.pot && n.pot !== this.brush) {
-          const p = this.pots.find((q) => q.brush === n.pot)!;
+        // (on level 1 the harness child likes Mom's colours too, so the picture is not all one colour)
+        const want = n.pot ?? n.area.mom;
+        if (want && want !== this.brush && this.pots.some((q) => q.brush === want)) {
+          const p = this.pots.find((q) => q.brush === want)!;
           return { tap: { x: p.x, y: p.y } };
         }
         return { tap: this.toWorld(n.area.hint) };
