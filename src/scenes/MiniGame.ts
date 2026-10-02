@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { voice, type VoiceKey } from '../core/audio';
+import { music, voice, type Song, type VoiceKey } from '../core/audio';
 import { MomHandView, type HandMotion } from '../core/hand';
 import { confetti, tickles, touchRipples } from '../core/juice';
 import { getLayout, inNoTouchZone, keepLayoutOnResize, ORIENTATION_PAUSE, type Layout } from '../core/layout';
@@ -62,6 +62,8 @@ export abstract class MiniGame extends Phaser.Scene {
   shown: Record<string, unknown> & { phase: string; helped: number; missed: number; done: boolean } = { phase: 'intro', helped: 0, missed: 0, done: false };
 
   protected abstract readonly id: string;
+  /** The place's song (core/audio.ts `music`): the market is outdoors, washing up is in the kitchen. */
+  protected readonly song: Song = 'kitchen';
   /** The parts that wait for her (idle clock, hint, help run only in these). */
   protected abstract readonly waiting: readonly string[];
   protected abstract build(): void;
@@ -93,6 +95,7 @@ export abstract class MiniGame extends Phaser.Scene {
     this.first = visits(this.id) === 0;
     this.level = gameLevel();
     this.shown.level = this.level;
+    music.play(this.song);
 
     iconButton(this, L, 'btn-home', S.home.x, S.home.y, () => this.leave('recipe'), { confirm: true, scale: S.homeScale, hitPad: 30 }).setDepth(900);
     this.hand = new MomHandView(this, L);
@@ -175,6 +178,7 @@ export abstract class MiniGame extends Phaser.Scene {
   protected praise(x: number, y: number, then: () => void, wait = 900) {
     const L = this.L;
     voice.praise({ ttlMs: 5000, valid: () => this.scene.isActive() && !this.leaving });
+    music.party();
     this.mom?.happy();
     this.pipa?.cheer();
     confetti(this, x, y, 14, 24 * L.k);

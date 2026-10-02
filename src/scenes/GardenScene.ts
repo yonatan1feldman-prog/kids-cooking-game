@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { ART, type ImageKey } from '../core/assets';
-import { countKey, voice, waterLoop, type NameKey, type VoiceKey } from '../core/audio';
+import { countKey, music, voice, waterLoop, type NameKey, type VoiceKey } from '../core/audio';
 import { boing, burst, puff, stars } from '../core/fx';
 import { MomHandView, tapMotion, type HandMotion } from '../core/hand';
 import { confetti, settle, sway, tickles, touchRipples } from '../core/juice';
@@ -176,6 +176,7 @@ export class GardenScene extends Phaser.Scene {
     keepLayoutOnResize(this, L);
     const S = getStage(L);
     this.first = gardenRuns() === 0;
+    music.play('outside');
 
     // The garden: sky, hills, the fence and the kitchen door at the left, bottom-anchored like the kitchen.
     this.cameras.main.setBackgroundColor('#cfe6ec');
@@ -273,6 +274,7 @@ export class GardenScene extends Phaser.Scene {
   private praise(then: () => void, wait = 900) {
     const L = this.L;
     voice.praise({ ttlMs: 5000, valid: () => this.scene.isActive() && !this.leaving });
+    music.party();
     this.mom?.happy();
     this.pipa?.cheer();
     confetti(this, this.bed.x, L.Y(300), 14, 24 * L.k);
@@ -1006,6 +1008,7 @@ export class GardenScene extends Phaser.Scene {
     }
     this.time.delayedCall(1600, () => {
       sfx(this, 'cheer-jingle');
+      music.party(true); // on until home
       stars(this, b.x, b.y - 60 * L.k, 14, 70 * L.k);
       confetti(this, this.bed.x, L.Y(260), 22, 28 * L.k);
       this.mom?.celebrate();

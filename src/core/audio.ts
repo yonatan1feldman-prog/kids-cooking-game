@@ -6,7 +6,7 @@ import { RECIPE_SOUNDS } from './assets';
  * Every sound, on the one Web Audio context Phaser already made (game.sound.context).
  * Levels follow MIXING.md in the sound folder (the owner's numbers win where they differ):
  *   Mom's voice 1.0 (the reference) · effects ~0.65 (munch 1.0: its file is 5 dB quieter)
- *   · bake sizzle loop 0.4 · music 0.22, ducked to 0.11 while Mom speaks and back over 0.5 s.
+ *   · bake sizzle loop 0.4 · music 0.20, ducked to 0.09 while Mom speaks and back over 0.5 s (see `music`).
  * No mute button. Everything stops on the rotate screen and in the background, and comes back after.
  *
  * - Effects keep going through Phaser (`sfx()` in sfx.ts): their decoded buffers are put in game.cache.audio.
@@ -15,7 +15,37 @@ import { RECIPE_SOUNDS } from './assets';
  * - Music and the bake sizzle are gapless AudioBufferSourceNode loops (not <audio loop>).
  */
 
-export const LEVEL = { voice: 1, sfx: 0.65, loop: 0.4, water: 0.35, music: 0.22, musicDucked: 0.11 } as const;
+export const LEVEL = { voice: 1, sfx: 0.65, loop: 0.4, water: 0.35, music: 0.2, musicDucked: 0.09 } as const;
+
+/**
+ * The music (research/music-spec.md in the project files): three songs made in the repo
+ * (audio-src/scripts/make_music.py), each as three stems of one length that loop together: `base` (always on), `tune`
+ * (the melody: out while Mom says a sentence) and `party` (the "even more fun" layer). Tunables:
+ */
+export const MUSIC = {
+  /** The party stem's gain when on (relative to base and tune). */
+  party: 1,
+  /** The party layer for a few bars after every success (a step done, a garden or mini-game part); false = only finales. */
+  partyOnStep: true,
+  /** How long it stays after a success, in bars, counted from the beat it comes in on. */
+  partyBars: 4,
+  partyInSec: 0.3,
+  partyOutSec: 2,
+  /** The melody goes out while Mom says a sentence (not while she counts or names a thing). */
+  tuneDuck: true,
+  /** A gentle cut in her voice's range on the whole music while she speaks. */
+  voiceEq: { hz: 1800, q: 0.8, db: -4 },
+  /** Crossfade between songs when the place changes (kitchen, garden and market, the art corner). */
+  placeFadeSec: 1.2,
+} as const;
+
+/** The songs (`music.play`); their tempo is set in make_music.py and copied here for the beat. */
+export const SONGS = { kitchen: { bpm: 128 }, outside: { bpm: 124 }, art: { bpm: 120 } } as const;
+export type Song = keyof typeof SONGS;
+const STEMS = ['base', 'tune', 'party'] as const;
+type Stem = (typeof STEMS)[number];
+const stemKey = (song: Song, stem: Stem | 'up') => `music-${song}-${stem}`;
+const isMusic = (k: string) => k.startsWith('music-');
 
 /** Voice-line keys (public/assets/sounds/voice). */
 export type VoiceKey =
@@ -102,9 +132,9 @@ export function loadSounds(g: Phaser.Game, url: (path: string) => string) {
   const sm = g.sound as Phaser.Sound.WebAudioSoundManager;
   sm.pauseOnBlur = false; // the page lifecycle is handled here (holdAudio), not by window blur
   if (!ctx()) return;
-  // Voice first (the hello line comes right after the play tap), then effects, then the long music file.
+  // Voice first (the hello line comes right after the play tap), then effects, then the long music files.
   // A voice line is any file in voice/ (vo-*, and count-* / temp-* for part B). A recipe's own sounds wait for its card.
-  const order = (k: string) => (isVoice(k) ? 0 : k === 'music-main' ? 2 : 1);
+  const order = (k: string) => (isVoice(k) ? 0 : isMusic(k) ? 2 : 1);
   const keys = Object.keys(manifest.sounds).filter((k) => !RECIPE_SOUNDS.has(k)).sort((a, b) => order(a) - order(b));
   decodeAll(keys).then(() => (soundsLoaded = true));
 }
@@ -126,8 +156,8 @@ async function decodeAll(keys: readonly string[]) {
       const res = await fetch(soundUrl(manifest.sounds[key][0]));
       const buf = await c.decodeAudioData(await res.arrayBuffer());
       buffers.set(key, buf);
-      if (!isVoice(key) && !LOOPS.includes(key)) game.cache.audio.add(key, buf);
-      if (key === 'music-main') music.onLoaded();
+      if (!isVoice(key) && !isMusic(key) && !LOOPS.includes(key)) game.cache.audio.add(key, buf);
+      if (isMusic(key)) music.onLoaded();
     } catch {
       missing.push(key);
     }
@@ -147,7 +177,7 @@ export function releaseSounds(keys: readonly string[]) {
 }
 
 /** Played as gapless loops here (not through Phaser). */
-const LOOPS = ['music-main', 'bake', 'water', 'blender', 'sizzle'];
+const LOOPS = ['bake', 'water', 'blender', 'sizzle'];
 
 let soundsLoaded = false;
 export const allSoundsLoaded = () => soundsLoaded;
@@ -197,12 +227,46 @@ const ramp = (g: GainNode, to: number, sec: number) => {
   g.gain.linearRampToValueAtTime(to, t + sec);
 };
 
-/** One background tune, started once on the play tap and never restarted between screens. */
+/** One song playing: its stems started on one context time, so they stay together sample for sample. */
+interface Player {
+  song: Song;
+  /** The song's own fader (crossfades between songs). */
+  out: GainNode;
+  src: Record<Stem, AudioBufferSourceNode>;
+  gain: Record<Stem, GainNode>;
+  /** Context time of the song's first beat. */
+  t0: number;
+}
+
+type MusicEvent = { t: number; ev: string };
+
+/**
+ * The music: started on the play tap, then it follows the place (`play`): the kitchen's song on the title, home,
+ * recipes, album, puzzle and washing up; the outdoors song in the garden and the market; the art song in the art
+ * corner. Inside a place it never restarts. `party()` after every success brings the party layer in for
+ * `MUSIC.partyBars` bars (on the next beat, with a little rising run); `party(true)` keeps it on for a finale, until
+ * the next `play`. While Mom speaks the whole bus is ducked (and its mid range cut a little), and while she says a
+ * sentence the melody stem goes out too.
+ * Graph: stems -> stem gain -> song fader -> bus (level, duck) -> peaking EQ -> destination.
+ */
 export const music = {
-  gain: null as GainNode | null,
-  src: null as AudioBufferSourceNode | null,
+  bus: null as GainNode | null,
+  eq: null as BiquadFilterNode | null,
+  cur: null as Player | null,
+  /** The song wanted now (it starts as soon as its stems are decoded). */
+  song: 'kitchen' as Song,
   wanted: false,
-  /** Called from the play tap (a user gesture). Starts as soon as the file is decoded. */
+  partyHeld: false,
+  partyUntil: 0,
+  tuneOut: false,
+  ducked: false,
+  /** What happened, for the test harness (window.__musicLog): start, song, party, hold, calm, duck. */
+  log: [] as MusicEvent[],
+  note(ev: string) {
+    this.log.push({ t: Math.round(performance.now()), ev });
+    if (this.log.length > 400) this.log.splice(0, 100);
+  },
+  /** Called from the play tap (a user gesture). Starts as soon as the files are decoded. */
   start() {
     this.wanted = true;
     this.tryStart();
@@ -210,18 +274,161 @@ export const music = {
   onLoaded() {
     this.tryStart();
   },
+  /** The place's song: a different one crossfades in from its first bar; the same one only calms the party layer. */
+  play(song: Song) {
+    this.partyHeld = false;
+    if (this.song === song && this.cur?.song === song) return this.calm();
+    this.song = song;
+    this.tryStart();
+  },
+  ready(song: Song) {
+    return STEMS.every((s) => buffers.has(stemKey(song, s)));
+  },
   tryStart() {
     const c = ctx();
-    if (!this.wanted || this.src || !c || !buffers.has('music-main')) return;
-    this.gain = c.createGain();
-    this.gain.gain.value = voice.speaking ? LEVEL.musicDucked : LEVEL.music;
-    this.gain.connect(c.destination);
-    this.src = startLoop('music-main', this.gain);
+    if (!this.wanted || !c || this.cur?.song === this.song || !this.ready(this.song)) return;
+    if (!this.bus) {
+      this.eq = c.createBiquadFilter();
+      this.eq.type = 'peaking';
+      this.eq.frequency.value = MUSIC.voiceEq.hz;
+      this.eq.Q.value = MUSIC.voiceEq.q;
+      this.eq.gain.value = voice.speaking ? MUSIC.voiceEq.db : 0;
+      this.eq.connect(c.destination);
+      this.bus = c.createGain();
+      this.bus.gain.value = voice.speaking ? LEVEL.musicDucked : LEVEL.music;
+      this.bus.connect(this.eq);
+    }
+    const old = this.cur;
+    const fade = old ? MUSIC.placeFadeSec : 0;
+    const out = c.createGain();
+    out.gain.value = fade ? 0 : 1;
+    out.connect(this.bus);
+    const t0 = c.currentTime + 0.05;
+    const gain = {} as Record<Stem, GainNode>;
+    const src = {} as Record<Stem, AudioBufferSourceNode>;
+    for (const s of STEMS) {
+      gain[s] = c.createGain();
+      gain[s].gain.value = s === 'party' ? 0 : s === 'tune' && this.tuneOut ? 0 : 1;
+      gain[s].connect(out);
+      src[s] = c.createBufferSource();
+      src[s].buffer = buffers.get(stemKey(this.song, s))!;
+      src[s].loop = true; // sample-accurate, gapless; all three have the same length
+      src[s].connect(gain[s]);
+      src[s].start(t0);
+    }
+    this.cur = { song: this.song, out, src, gain, t0 };
+    this.partyUntil = 0;
+    this.note(`song ${this.song}`);
+    if (fade) {
+      ramp(out, 1, fade);
+      ramp(old!.out, 0, fade);
+      for (const s of STEMS) {
+        try {
+          old!.src[s].stop(c.currentTime + fade + 0.05);
+        } catch {
+          /* already stopped */
+        }
+      }
+      old!.src.base.onended = () => old!.out.disconnect();
+    }
   },
-  duck(on: boolean) {
-    if (this.gain) ramp(this.gain, on ? LEVEL.musicDucked : LEVEL.music, on ? 0.15 : 0.5);
+  /** Seconds per beat of the song playing, and the context time of its next beat at or after `t`. */
+  nextBeat(t: number, sub = 1) {
+    const p = this.cur!;
+    const spb = 60 / SONGS[p.song].bpm / sub;
+    return p.t0 + Math.ceil((t - p.t0) / spb - 1e-6) * spb;
+  },
+  /**
+   * A success: the party layer comes in on the next beat after a little rising run (in the song's key, on the next
+   * eighth) and stays `MUSIC.partyBars` bars, then fades out. `hold` keeps it on until the next `play` (a finale).
+   * Another success while it is on keeps it on from then.
+   */
+  party(hold = false) {
+    const c = ctx();
+    if (hold) this.partyHeld = true;
+    else if (!MUSIC.partyOnStep) return;
+    this.note(hold ? 'hold' : 'party');
+    const p = this.cur;
+    if (!c || !p) return;
+    const t = c.currentTime;
+    const spb = 60 / SONGS[p.song].bpm;
+    const g = p.gain.party.gain;
+    const on = g.value > 0.5 * MUSIC.party || this.partyUntil > t;
+    if (!on) {
+      // the run up (its 6 notes take a beat and a half), then the layer on the beat after it
+      const upAt = this.nextBeat(t + 0.02, 2);
+      const up = buffers.get(stemKey(p.song, 'up'));
+      if (up) {
+        const s = c.createBufferSource();
+        s.buffer = up;
+        s.connect(p.out);
+        s.start(upAt);
+      }
+      const inAt = up ? this.nextBeat(upAt + 1.5 * spb) : this.nextBeat(t + 0.02);
+      g.cancelScheduledValues(t);
+      g.setValueAtTime(g.value, t);
+      g.setValueAtTime(0, inAt);
+      g.linearRampToValueAtTime(MUSIC.party, inAt + MUSIC.partyInSec);
+      this.partyUntil = inAt + MUSIC.partyBars * 4 * spb;
+    } else {
+      g.cancelScheduledValues(t);
+      g.setValueAtTime(g.value, t);
+      g.linearRampToValueAtTime(MUSIC.party, t + MUSIC.partyInSec);
+      this.partyUntil = this.nextBeat(t) + MUSIC.partyBars * 4 * spb;
+    }
+    if (this.partyHeld) return;
+    g.setValueAtTime(MUSIC.party, this.partyUntil);
+    g.linearRampToValueAtTime(0, this.partyUntil + MUSIC.partyOutSec);
+  },
+  /** Back to the place's normal: the party layer fades out (home after a finale). */
+  calm() {
+    const c = ctx();
+    const p = this.cur;
+    this.partyHeld = false;
+    this.partyUntil = 0;
+    if (!c || !p) return;
+    this.note('calm');
+    ramp(p.gain.party, 0, MUSIC.partyOutSec);
+  },
+  /** Mom speaks (`on`): the bus ducks and its mids dip; `sentence` (not a count or a name) takes the melody out too. */
+  duck(on: boolean, sentence = true) {
+    const c = ctx();
+    const wasDucked = this.ducked;
+    this.ducked = on;
+    const tuneOut = on ? (MUSIC.tuneDuck && sentence) || (this.tuneOut && wasDucked) : false;
+    if (on !== wasDucked || tuneOut !== this.tuneOut) this.note(on ? `duck${tuneOut ? '+tune' : ''}` : 'unduck');
+    if (this.bus) ramp(this.bus, on ? LEVEL.musicDucked : LEVEL.music, on ? 0.15 : 0.5);
+    if (c && this.eq) {
+      const t = c.currentTime;
+      const g = this.eq.gain;
+      g.cancelScheduledValues(t);
+      g.setValueAtTime(g.value, t);
+      g.linearRampToValueAtTime(on ? MUSIC.voiceEq.db : 0, t + (on ? 0.15 : 0.5));
+    }
+    if (tuneOut !== this.tuneOut && this.cur) ramp(this.cur.gain.tune, tuneOut ? 0 : 1, tuneOut ? 0.2 : 0.5);
+    this.tuneOut = tuneOut;
+  },
+  /** For the test harness: what the mix is doing now (target levels, not sound: the harness has no speakers). */
+  state() {
+    const c = ctx();
+    const p = this.cur;
+    return {
+      song: p?.song ?? null,
+      wanted: this.song,
+      ctx: c?.state ?? null,
+      bus: this.bus?.gain.value ?? null,
+      eq: this.eq?.gain.value ?? null,
+      tune: p?.gain.tune.gain.value ?? null,
+      party: p?.gain.party.gain.value ?? null,
+      partyHeld: this.partyHeld,
+      partyLeft: c && this.partyUntil > c.currentTime ? +(this.partyUntil - c.currentTime).toFixed(2) : 0,
+      tuneOut: this.tuneOut,
+      ducked: this.ducked,
+    };
   },
 };
+(window as unknown as { __music: typeof music; __musicLog: MusicEvent[] }).__music = music;
+(window as unknown as { __musicLog: MusicEvent[] }).__musicLog = music.log;
 
 /** A gapless effect loop that fades in and out over 300 ms (the oven sizzle, the running tap). */
 function effectLoop(key: string, level: number, fade = 0.3) {
@@ -480,6 +687,7 @@ class Voice {
       if (!this.cur) music.duck(false);
     };
     const endAt = entry.start + buf.duration * 1000;
+    music.duck(true, !/^(count|temp|name)-/.test(p.key));
     if (this.sim) {
       // Test mode: no sound; POST_STEP ends it at endAt on the game clock.
       this.cur = { src: null, gain: null, entry, done: p.done, end: ended, endAt };
@@ -498,7 +706,6 @@ class Voice {
     src.buffer = buf;
     src.connect(gain);
     this.cur = { src, gain, entry, done: p.done, end: ended, endAt };
-    music.duck(true);
     src.onended = ended;
     src.start();
     // Safety net: if the context can't run (audio still locked by the browser), the line still "ends"

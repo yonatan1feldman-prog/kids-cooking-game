@@ -293,9 +293,9 @@ This file covers only the files in this folder. Every file is either CC0 1.0 (pu
 | voice/vo-remember.ogg | Can you remember what Pipa wants? | 1.81 | -18.0 | 14092 |
 | voice/vo-and.ogg | and... | 0.63 | -18.0 | 7198 |
 
-## music/ (1 file)
+## music/ (12 files, made here)
 
-`music-main.ogg` is `music-1.ogg` from the sound pack, renamed. Details:
+`music-<song>-<stem>.ogg` for the songs kitchen, outside and art; stems base, tune, party and up (the stinger). They are own work: own work: synthesised from notes by `audio-src/scripts/make_music.py` (numpy + scipy + ffmpeg; Karplus-Strong ukulele, mallets, whistle, bass and drums made from sine waves and noise; no samples, no third-party recordings). Run `python3 scripts/make_music.py [songs] [--preview DIR]` from audio-src/; it prints the loudness and seam numbers. The old background tune, `music-main.ogg` (`music-1.ogg` from the sound pack, below), was dropped in the music round (2026-10-02); its row stays for the record:
 
 | target file | title | author | source page URL | direct download URL | license (exact) | original file | processing | duration | size bytes | character | seam verification |
 |---|---|---|---|---|---|---|---|---|---|---|---|

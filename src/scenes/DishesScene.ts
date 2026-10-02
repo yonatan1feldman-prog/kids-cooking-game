@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { ART, type ImageKey } from '../core/assets';
-import { voice, waterLoop, type NameKey } from '../core/audio';
+import { music, voice, waterLoop, type NameKey } from '../core/audio';
 import { boing, burst, puff, stars } from '../core/fx';
 import { type HandMotion } from '../core/hand';
 import { confetti, sway } from '../core/juice';
@@ -365,6 +365,7 @@ export class DishesScene extends MiniGame {
     }
     this.time.delayedCall(1800, () => {
       sfx(this, 'cheer-jingle');
+      music.party(true); // on until home
       stars(this, this.rack.x, this.rack.y, 14, 70 * k);
       confetti(this, this.rack.x, L.Y(260), 22, 28 * k);
       this.mom?.celebrate();

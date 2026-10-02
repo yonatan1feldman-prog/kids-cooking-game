@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { ART, type ImageKey } from '../core/assets';
-import { countKey, voice, type NameKey } from '../core/audio';
+import { countKey, music, voice, type NameKey, type Song } from '../core/audio';
 import { boing, burst, stars } from '../core/fx';
 import { tapMotion, type HandMotion } from '../core/hand';
 import { confetti, settle, sway } from '../core/juice';
@@ -58,6 +58,7 @@ interface Want {
  */
 export class MarketScene extends MiniGame {
   protected readonly id = 'market';
+  protected readonly song: Song = 'outside';
   protected readonly waiting = ['shop'] as const;
   private crates: Crate[] = [];
   private wants: Want[] = [];
@@ -455,6 +456,7 @@ export class MarketScene extends MiniGame {
     }
     this.time.delayedCall(1700, () => {
       sfx(this, 'cheer-jingle');
+      music.party(true); // on until home
       stars(this, b.x, b.y - 60 * L.k, 14, 70 * L.k);
       confetti(this, this.stall.cx, L.Y(260), 22, 28 * L.k);
       this.mom?.celebrate();
