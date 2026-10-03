@@ -252,6 +252,15 @@ export const TUNING = {
   garden: {
     waterMs: 2200, sproutAt: 0.35, cloudPush: 260, cloudTap: 90, pull: 0.75, perPlant: 3, carrotsPerPlant: 2, reach: 230, helpMs: 1100,
     hard: { waterMs: 3000, weedPull: 0.7, puddleMs: 700, drainMs: 1400, clouds: 2, bunnyFoods: 3 },
+    /**
+     * Garden round 3 (both levels; each visit is drawn at random). `rainChance`: a rainy day (the rain cloud waters the
+     * mounds while she moves it over them, then she pushes it off the sun; a rainbow), else the watering can. Then one of
+     * two visitors: the birds and the scarecrow (`scarecrowChance`; always with carrots, which have no flowers) or the
+     * butterfly that turns each flower into fruit. `birds`: how many land on the mounds. `sunTaps`: taps on the sun that
+     * grow the plants a stage each (the last brings the fruit, or the flowers for the butterfly). `bflyReach`: the
+     * butterfly let go (or dragged) this near a flower visits it.
+     */
+    rainChance: 0.5, scarecrowChance: 0.5, birds: 3, sunTaps: 3, bflyReach: 150,
   },
   /**
    * The market (MarketScene, research/minigames-spec.md). `listItems`: pictures on each list at level 1 / 2 (level 2: one
@@ -260,7 +269,17 @@ export const TUNING = {
    * the tallest a good is drawn. `tapMove`: a press that moves less than this is a tap (the good goes in by itself);
    * `reach`: a good let go this near the basket goes in.
    */
-  market: { listItems: [3, 4], pair: true, rounds: 2, foldAfterMs: 4200, peekMs: 3000, slot: 215, itemH: 180, tapMove: 40, reach: 220, helpMs: 1100 },
+  market: {
+    listItems: [3, 4], pair: true, rounds: 2, foldAfterMs: 4200, peekMs: 3000, slot: 215, itemH: 180, tapMove: 40, reach: 220, helpMs: 1100,
+    /**
+     * Market round 2 (every visit, in a shuffled order between the two lists, then paying). `guestWants`: what the visitor
+     * at the stall wishes for at level 1 / 2. `mixed`: things in the mixed-up box (2 rows of 3) and how many do not belong
+     * at level 1 / 2 (level 2's look alike: a strawberry among tomatoes). `price`: the coins to pay at level 1 / 2 (from,
+     * to); level 1 fills a chalk circle per coin from Mom's purse, level 2 shows the price as dice dots and she picks the
+     * pile of coins with as many (the other piles have one less and one more). `countMs`: Mom counting a pile, per coin.
+     */
+    guestWants: [1, 2], mixed: { items: 6, odd: [1, 2] }, price: [[2, 4], [3, 6]], countMs: 520,
+  },
   /**
    * Washing up (DishesScene, research/minigames-spec.md). `dishes`: how many at level 1 / 2. `scrub`: finger travel on a
    * dish (world units x k) to wash it clean at level 1 / 2; a bubble every `bubbleEvery`. `reach`: a dish let go this

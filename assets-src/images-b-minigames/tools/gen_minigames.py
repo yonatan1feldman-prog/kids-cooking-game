@@ -308,6 +308,45 @@ ITEMS = {
 }
 
 
+# ================================================================ market round 2: paying (the coin, the purse, the price slate)
+COIN = "#F5C542"; COIN_D = "#C8901A"; COIN_L = "#FFE79A"
+# market-slate (380x300): a chalk slate on a little easel; the code draws the price on SLATE_FACE (x, y, w, h).
+SLATE_FACE = (44, 40, 292, 196)
+
+
+def market_coin():
+    p = "mco-"
+    s = G(C(55, 57, 48, COIN_D) + C(53, 53, 46, COIN) + C(53, 53, 34, COIN_D, ' opacity="0.35"') + C(53, 53, 31, COIN), p + "cut")
+    star = spiky(53, 55, 10, 22, -90, 270, 5, 471, 1.0)
+    s += P(star, COIN_D, ' opacity="0.8"') + P("M24,40 Q32,18 58,14 Q38,26 32,46Z", COIN_L, ' opacity="0.9"')
+    return doc(p, 110, 110, s, "smooth", seed=472, sh=(3, 3, .3), cut={"rim": 2.2, "rough": 3})
+
+
+def market_purse():
+    p = "mpu-"
+    body = P("M30,96 Q20,200 70,214 L190,214 Q240,200 230,96Z", CORAL_D) + P("M38,100 Q30,194 74,206 L186,206 Q230,194 222,100Z", CORAL)
+    body += P("M52,120 Q50,180 76,196 Q64,170 66,122Z", CORAL_L, ' opacity="0.8"')
+    coins = "".join(C(x, y, 26, COIN_D) + C(x - 2, y - 2, 24, COIN) + C(x - 8, y - 8, 7, COIN_L) for x, y in ((96, 92), (138, 80), (178, 94)))
+    clasp = stroke("M30,98 Q130,74 230,98", METAL_D, 12) + stroke("M30,96 Q130,72 230,96", METAL_L, 5) + C(118, 74, 12, METAL_D) + C(142, 74, 12, METAL_D) + C(116, 72, 5, METAL_L) + C(140, 72, 5, METAL_L)
+    s = G(coins, p + "sh") + G(body, p + "cut") + G(clasp, p + "sh")
+    return doc(p, 260, 230, s, "rough", seed=473, sh=(4, 3.5, .3), cut={"rim": 2.6, "rough": 4})
+
+
+def market_slate():
+    p = "msl-"
+    x, y, w, h = SLATE_FACE
+    legs = stroke("M110,250 L80,296 M270,250 L300,296", WALNUT_D, 12)
+    frame = P(wr(x - 22, y - 22, w + 44, h + 44, 14, 1.4, 481), WALNUT) + P(wr(x - 16, y - 16, w + 32, 10, 5, 1, 482), WALNUT_L, ' opacity="0.8"')
+    face = P(wr(x, y, w, h, 8, 1, 483), "#3F5A50") + P(wr(x + 8, y + 8, w - 16, h - 16, 6, 1, 484), "#4A685D")
+    smudge = P(wob(x + w * .7, y + h * .3, 50, 20, .2, 485, 14), WHITE, ' opacity="0.06"') + P(wob(x + w * .3, y + h * .75, 60, 18, .2, 486, 14), WHITE, ' opacity="0.05"')
+    ledge = P(wr(x - 10, y + h + 18, w + 20, 18, 6, 1, 487), WALNUT_D) + P(wr(x + 40, y + h + 10, 46, 12, 5, 1, 488), WHITE)
+    s = G(legs, p + "sh") + G(frame, p + "cut") + face + smudge + G(ledge, p + "sh")
+    return doc(p, 380, 300, s, "rough", seed=489, sh=(4, 3.5, .3), cut={"rim": 2.6, "rough": 4})
+
+
+ITEMS.update({"market-coin": market_coin, "market-purse": market_purse, "market-slate": market_slate})
+
+
 def save(name, s):
     path = os.path.join(OUTDIR, name + ".svg")
     with open(path, "w", encoding="utf8") as f:
