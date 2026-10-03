@@ -6,7 +6,9 @@
   Eight recipes: pizza, salad, cookies, smoothie, pancakes, vegetable soup, birthday cake and fruit skewers (`src/recipes/<name>.ts`),
   cards in a grid on the home screen, then three cards for games that are not cooking (the garden `scenes/GardenScene.ts`,
   the market `MarketScene.ts`, washing up `DishesScene.ts`; the last two share `scenes/MiniGame.ts`), with the memory
-  book's button in one more cell once there is a photo in it.
+  book's button in one more cell once there is a photo in it. The title offers two worlds: cooking with Mom (the home
+  screen above) and the clinic with Mom the nurse (`scenes/ClinicScene.ts`, data in `core/clinic.ts`); both worlds'
+  home buttons go back to the title.
 - **Where things are:** `src/recipes/` recipes as pure data (`types.ts` = every step type's params); `src/steps/` one
   reusable class per step type (`registry.ts` maps names to classes); `src/core/tuning.ts` every count and threshold;
   `src/core/stage.ts` every position; `src/core/assets.ts` the asset contract (image keys, sizes, art anchors `ART`);
@@ -230,6 +232,7 @@ src/scenes/
   MiniGame                 the frame the market and washing up share: home button, Mom, Pipa, demo / hint / help, one finger
   MarketScene / DishesScene  the market (shopping from a list) and washing up (scrub, rack by colour)
   ArtScene                 the art corner: the easel wall and five ways to draw (trace, dots, colour, mirror, steam)
+  ClinicScene              the clinic, the second world (waiting room, treatment room, tools, close-ups, stickers, photo)
 ```
 
 ## Recipes are data
@@ -669,7 +672,48 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; the clinic, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 000000000000000000000000. The clinic (the second world: Mom the nurse)
+The owner: "a mini-game where you treat sick children or animals, and teeth; interesting and challenging"; then "already
+on the opening screen choose cooking with Mom or treating patients with Mom the nurse; music, scenery and voices to
+fit". Spec and research: `/mnt/project-files/research/clinic-spec.md`. Branch `claude/clinic-minigame-5voqno`.
+- **The title** (`TitleScene`, `stage.world`, `worldScale`): two wordless world buttons where the play button was (a pot
+  `btn-world-kitchen` = the old play: Home; a nurse's bag `btn-world-clinic`: "Let's go to our clinic!", loads
+  `RECIPE_ASSETS.clinic` with a spinner, starts `Clinic`), the chef hats beside them (a row; on 4:3 one above the other)
+  choose the level for both. Both fire on release (the first one unlocks sound, fullscreen...). `stage.play` is the
+  kitchen button (the harness taps it). vo-hello only on the session's first tap. The title releases the last world's
+  assets and plays the kitchen song. **Home has a home button now** (two taps, back to the title; `stage.card` keeps the
+  grid clear of it: the grid starts right of it or under it, whichever gives bigger cards).
+- **The scene (`scenes/ClinicScene.ts` on `MiniGame`; `momOutfit: 'nurse'`, `homeScene: 'Title'`, `withPipa()` false
+  when Pipa is a patient):** a visit = 3 patients of 4 (`core/clinic.ts` `PATIENTS`: turtle, penguin, giraffe (a head on
+  her neck), Pipa; the guests' and Pipa's layers), each with a different ailment she can have (`planVisit`). Waiting room
+  (`bg-clinic-wait`, the bench): tap who comes in (little chef: a card by her head says what is wrong) -> the treatment
+  room (`bg-clinic`, the bed, the tray of tools in the left column on `stage.bin`). Little chef: Mom names the ailment,
+  the next tool glows, one spare tool. Big chef: three ailment cards, she picks from what she sees and hears (the
+  patient coughs, gurgles, shows warm cheeks, a bump, a scrape, a splinter; a tap on the patient shows it again), then
+  the plan is on a chart (`clinic-chart`) that folds after `planMs`, a tap on it peeks; two spare tools; more steps.
+  A wrong tool hops back ("Not that one yet!" / "Hmm, what comes first?" + the chart): a miss.
+- **The ailments (`AILMENTS`, data: a list of moves per level):** fever (thermometer held in the mouth, cool cloth on the
+  forehead, thermometer again; L2 + syrup), cough (stethoscope on three glowing chest spots; L2 find the wheezy spot by
+  ear, louder nearer, then syrup and a cup), tummy (stethoscope on the tummy close-up, the warm bottle held; L2 + syrup),
+  tooth ("Say aah!", brush 2 / 4 dirty teeth in the mouth close-up, rinse with the cup), knee (spray the dust off,
+  plaster; L2 cream rubbed in first), paw (tweezers grip and draw the splinter out, plaster; L2 find it first with the
+  magnifier, cream). Moves: `hold`, `drop` (a tap on the right tool flies it there), `listen`, `rub`, `pull`, `search`.
+  A tool follows the finger by its working point (`ART.clinic.tip`) a little above the finger. Close-ups
+  (`lens-*`, tinted to the patient, the rim `lens-ring`) grow out of the body part beside her (`lensSpot`); on big chef
+  they sway while she brushes or rubs (it tickles; `wiggle`). Counts: `TUNING.clinic`.
+- **The end of a patient:** "All better!" (signs fade, a plaster stays on a knee or foot), the party layer, "Pick a
+  sticker!" (star, heart, smile), it goes on her chest, "Bye bye! Feel better!", back to the bench with it. After the
+  third: "Let's take a picture of our happy patients!", flash, `renderer.snapshotArea` of the bench into
+  `photo-frame-clinic` and the memory book (`keepPhoto('clinic')`, `AlbumScene.frameOf`), "You took such good care of
+  everyone!", the cheer, vo-bye, the title.
+- **Art:** `assets-src/images-b-clinic/tools/gen_clinic.py` (45 SVGs, anchors = `ART.clinic`); Mom's `mom-body-nurse`
+  and `mom-cap-nurse` in `images-b/tools/gen_mom.py` (`Mom(scene, at, 'nurse')`). **Sound:** the clinic song
+  (`make_music.py`, `SONGS.clinic`, 112 BPM, gentle ukulele), 7 effects (`make_clinic_sfx.py`), 42 Mom lines
+  (`make_vo.py mom-a`), not heard by a human.
+- **Harness:** `__mini('clinic', level)`, `__clinicPlay({wrong, wrongTool, none, gap})`, `__clinicVerify(level, opts)`.
+- **Needs a real child:** holding the thermometer still long enough; finding the wheezy spot by ear (phone speaker);
+  does she understand the chart and the peek (big chef)? The tweezers' pull; stickers: does she want to choose?
 ### 00000000000000000000000. The art corner (five ways to draw)
 The owner: "she got bored after a while; add drawing stages, each a different kind of drawing". Spec and research:
 `/mnt/project-files/research/drawing-stages-spec.md`. Branch `claude/drawing-stages-2jsjh3`.

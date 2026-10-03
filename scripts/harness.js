@@ -245,7 +245,7 @@
   /** Title -> Home -> Recipe. */
   window.__start = async () => {
     const t = game.scene.getScene('Title');
-    const btn = t.children.list.find((o) => o.texture?.key === 'btn-play');
+    const btn = t.children.list.find((o) => (o.texture?.key === 'btn-play' || o.texture?.key === 'btn-world-kitchen'));
     __tap(btn.x, btn.y); await __run(1300);
     const h = game.scene.getScene('Home');
     const card = h.children.list.find((o) => o.texture?.key === `card-${window.__recipe || 'pizza'}`);
@@ -455,7 +455,7 @@ window.__shotAt = async (w, h, what) => {
   const D = () => __R().ctx.dish;
   if (what === 'title') return __setup(w, h);
   if (what === 'home') {
-    const b = game.scene.getScene('Title').children.list.find((o) => o.texture?.key === 'btn-play');
+    const b = game.scene.getScene('Title').children.list.find((o) => (o.texture?.key === 'btn-play' || o.texture?.key === 'btn-world-kitchen'));
     __tap(b.x, b.y); return __run(1300);
   }
   if (what === 'roll') {
@@ -566,7 +566,7 @@ window.__tour = async (w, h, tag) => {
   const until = async (fn, ms = 8000) => { for (let t = 0; t < ms && !fn(); t += 50) await __run(50); };
   __demos(true);
   await __setup(w, h); await __run(600); await shot('title');
-  const b = game.scene.getScene('Title').children.list.find((o) => o.texture?.key === 'btn-play');
+  const b = game.scene.getScene('Title').children.list.find((o) => (o.texture?.key === 'btn-play' || o.texture?.key === 'btn-world-kitchen'));
   __tap(b.x, b.y); await __run(1600); await shot('home');
   const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-pizza');
   __tap(c.x, c.y); await __waitRecipe(); await until(() => game.scene.isActive('Recipe') && __R().step); await __run(1000); await shot('roll-demo');
@@ -618,7 +618,7 @@ window.__fullRun = async (demos, mode = 'fast') => {
   }
   try {
     const n0 = __voLog.length; const steps = []; const t0 = performance.now(); const at = {};
-    const b = game.scene.getScene('Title').children.list.find((o) => o.texture?.key === 'btn-play');
+    const b = game.scene.getScene('Title').children.list.find((o) => (o.texture?.key === 'btn-play' || o.texture?.key === 'btn-world-kitchen'));
     __tap(b.x, b.y); await __real(mode === 'child' ? 2500 : 1600);
     const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-pizza');
     const tCard = performance.now();
@@ -654,7 +654,7 @@ window.__tour5 = async (w, h, tag) => {
   const until = async (fn, ms = 8000) => { for (let t = 0; t < ms && !fn(); t += 50) await __run(50); };
   __demos(true);
   await __setup(w, h); await __run(900); await shot('title');
-  const b = game.scene.getScene('Title').children.list.find((o) => o.texture?.key === 'btn-play');
+  const b = game.scene.getScene('Title').children.list.find((o) => (o.texture?.key === 'btn-play' || o.texture?.key === 'btn-world-kitchen'));
   __tap(b.x, b.y); await __run(1600); await shot('home');
   const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-pizza');
   __tap(c.x, c.y); await __waitRecipe(); await until(() => game.scene.isActive('Recipe') && __R().step);
@@ -707,7 +707,7 @@ window.__voSim = (on = true) => __voice.simulate(on);
  */
 window.__yourTurnTest = async (w = 900, h = 405, ms = 12000) => {
   __demos(true); await __setup(w, h); __voSim(true);
-  const b = game.scene.getScene('Title').children.list.find((o) => o.texture?.key === 'btn-play');
+  const b = game.scene.getScene('Title').children.list.find((o) => (o.texture?.key === 'btn-play' || o.texture?.key === 'btn-world-kitchen'));
   __tap(b.x, b.y); await __run(1300);
   const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-pizza');
   __voLog.length = 0; const t0 = __voice.now();
@@ -759,7 +759,7 @@ window.__fullRun5 = async (demos, mode = 'child', picks = ['tomato', 'corn', 'ol
   }
   const T = () => game.loop.time;
   try {
-    const b = game.scene.getScene('Title').children.list.find((o) => o.texture?.key === 'btn-play');
+    const b = game.scene.getScene('Title').children.list.find((o) => (o.texture?.key === 'btn-play' || o.texture?.key === 'btn-world-kitchen'));
     __tap(b.x, b.y); await __run(mode === 'child' ? 2500 : 1600);
     const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === `card-${window.__recipe || 'pizza'}`);
     const n0 = __voLog.length; const t0 = T(); const steps = []; const at = {};
@@ -882,7 +882,7 @@ window.__tour5b = async (w, h, tag) => {
   __demos(true); await __setup(w, h); __voSim(true);
   window.__pickOrder = ['tomato', 'corn', 'olive']; window.__shareTo = 'alt';
   await __run(900); await shot('title');
-  const b = game.scene.getScene('Title').children.list.find((o) => o.texture?.key === 'btn-play');
+  const b = game.scene.getScene('Title').children.list.find((o) => (o.texture?.key === 'btn-play' || o.texture?.key === 'btn-world-kitchen'));
   __tap(b.x, b.y); await __run(1600); await shot('home');
   const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-pizza');
   __tap(c.x, c.y); await __waitRecipe(); await until(() => game.scene.isActive('Recipe') && __R().step);
@@ -945,7 +945,7 @@ window.__tour6 = async (w, h, tag) => {
   const until = async (fn, ms = 8000) => { for (let t = 0; t < ms && !fn(); t += 50) await __run(50); };
   window.__recipe = 'salad'; __demos(false); await __setup(w, h); __voSim(true);
   window.__pickOrder = ['cucumber', 'carrot', 'tomato']; window.__shareTo = 'alt';
-  const b = game.scene.getScene('Title').children.list.find((o) => o.texture?.key === 'btn-play');
+  const b = game.scene.getScene('Title').children.list.find((o) => (o.texture?.key === 'btn-play' || o.texture?.key === 'btn-world-kitchen'));
   __tap(b.x, b.y); await __run(1600); await shot('home');
   const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-salad');
   __tap(c.x, c.y); await __waitRecipe(); await until(() => game.scene.isActive('Recipe') && __R().step);
@@ -1042,7 +1042,7 @@ window.__tour7 = async (w, h, tag) => {
   const shot = async (n) => out.push(await __saveShot(`${tag}-${String(i++).padStart(2, '0')}-${n}`, 'screenshots-round7'));
   const until = async (fn, ms = 8000) => { for (let t = 0; t < ms && !fn(); t += 50) await __run(50); };
   window.__recipe = 'cookies'; __demos(false); await __setup(w, h); __voSim(true); window.__shareTo = 'alt';
-  const b = game.scene.getScene('Title').children.list.find((o) => o.texture?.key === 'btn-play');
+  const b = game.scene.getScene('Title').children.list.find((o) => (o.texture?.key === 'btn-play' || o.texture?.key === 'btn-world-kitchen'));
   __tap(b.x, b.y); await __run(1600); await shot('home');
   const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-cookies');
   __tap(c.x, c.y); await __waitRecipe(); await until(() => game.scene.isActive('Recipe') && __R().step);
@@ -1304,7 +1304,7 @@ window.__gardenRun = async (level = 1, mode = 'child', w = 900, h = 405, demos =
   };
   const T = () => __T;
   try {
-    const b = game.scene.getScene('Title').children.list.find((o) => o.texture?.key === 'btn-play');
+    const b = game.scene.getScene('Title').children.list.find((o) => (o.texture?.key === 'btn-play' || o.texture?.key === 'btn-world-kitchen'));
     __tap(b.x, b.y); await __run(2500);
     const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-garden');
     const n0 = __voLog.length, t0 = T(), l0 = game.loop.time, at = {}, gest = {};
@@ -1340,7 +1340,7 @@ window.__mini = async (id, level = 1, opts = {}) => {
   await __run(800);
   await B.recipeAssets(game, id);
   game.scene.getScenes(true).forEach((s) => s.scene.stop());
-  const name = { market: 'Market', dishes: 'Dishes', garden: 'Garden', art: 'Art' }[id];
+  const name = { market: 'Market', dishes: 'Dishes', garden: 'Garden', art: 'Art', clinic: 'Clinic' }[id];
   game.scene.start(name);
   await __run(opts.wait ?? 3000);
   return game.scene.getScene(name);
@@ -1451,4 +1451,94 @@ window.__artVerify = async (kind, level, opts = {}) => {
   const vc = __voCheck(__voLog);
   __fast(false);
   return { ...r, level, secs: Math.round((__voice.now() - t0) / 1000), helps: __voLog.filter((e) => e.key === 'vo-help').length, problems: vc.problems, keys: __voLog.map((e) => e.key).join(' ') };
+};
+
+// ---- The clinic: __clinicPlay({wrong, wrongTool, none, gap}) plays a whole visit (pick, diagnose on big chef, every
+// tool move, the sticker) like a child; __clinicVerify(level, opts): the same on the virtual clock with the simulated
+// voice, from the clinic's start to the title. `none`: no touch at all (Mom helps to the end).
+window.__clinicPlay = async (opts = {}) => {
+  const m = game.scene.getScene('Clinic');
+  const log = [];
+  const k = m.L.k;
+  const fingerFor = (p) => [p.x + 26 * k, p.y + 66 * k];
+  let wrongDone = false, wrongToolDone = false;
+  for (let i = 0; i < 3000 && m.scene.isActive(); i++) {
+    const ph = m.shown.phase;
+    if (opts.none || m.helping) { await __run(500); continue; }
+    if (ph === 'pick') {
+      const v = m.visit.find((q) => !q.done);
+      const c = v.view.at({ x: 300, y: 430 });
+      __tap(c.x, c.y); log.push('pick ' + v.p.id + '-' + v.a.id);
+      await __run(opts.gap ?? 1500);
+    } else if (ph === 'diagnose') {
+      let c = m.cards.find((q) => q.id === m.cur.a.id);
+      if (opts.wrong && !wrongDone) { wrongDone = true; c = m.cards.find((q) => q.id !== m.cur.a.id); log.push('wrong card'); }
+      else log.push('card ' + c.id);
+      __tap(c.img.x, c.img.y);
+      await __run(opts.gap ?? 1200);
+    } else if (ph === 'sticker') {
+      const s = m.stickers[Math.floor(Math.random() * m.stickers.length)];
+      __tap(s.x, s.y); log.push('sticker ' + s.texture.key);
+      await __run(opts.gap ?? 1500);
+    } else if (ph === 'tool') {
+      const st = m.step;
+      if (opts.wrongTool && !wrongToolDone) {
+        const w = m.tools.find((q) => q.id !== st.tool && !q.away);
+        if (w) { wrongToolDone = true; __tap(w.img.x, w.img.y); log.push('wrong tool ' + w.id); await __run(opts.gap ?? 1200); continue; }
+      }
+      const t = m.toolOf(st.tool);
+      const tg = m.target();
+      if (!t || !tg) { await __run(300); continue; }
+      const start = [t.img.x, t.img.y];
+      log.push(st.tool + ' ' + st.act);
+      if (st.act === 'drop') {
+        await __drag([start, [(start[0] + tg.x) / 2, Math.min(start[1], tg.y) - 60], fingerFor(tg)]);
+      } else if (st.act === 'hold') {
+        await __drag([start, fingerFor(tg)], { hold: true });
+        for (let j = 0; j < 12 && m.step === st && m.shown.phase === 'tool'; j++) { await __run(250); }
+        __touch('end', 1, ...fingerFor(tg));
+      } else if (st.act === 'listen') {
+        await __drag([start, fingerFor(tg)], { hold: true });
+        for (let j = 0; j < 40 && m.step === st && m.shown.phase === 'tool'; j++) {
+          // the next spot (or, finding by ear, a sweep that ends on the wheezy spot)
+          const g = m.target(); if (!g) break;
+          for (let q = 0; q < 6; q++) __touch('move', 1, ...fingerFor({ x: g.x + (q % 2 ? 3 : -3), y: g.y }));
+          await __run(250);
+        }
+        __touch('end', 1, ...fingerFor(m.target() ?? tg));
+      } else if (st.act === 'rub') {
+        await __drag([start, fingerFor(tg)], { hold: true });
+        for (let j = 0; j < 80 && m.step === st && m.shown.phase === 'tool'; j++) {
+          const g = m.target(); if (!g) break;
+          for (let a = 0; a < Math.PI * 2; a += 0.6) __touch('move', 1, ...fingerFor({ x: g.x + Math.cos(a) * 30, y: g.y + Math.sin(a) * 20 }));
+          await __run(60);
+        }
+        __touch('end', 1, ...fingerFor(tg));
+      } else if (st.act === 'pull') {
+        await __drag([start, fingerFor(tg)], { hold: true });
+        await __run(150);
+        for (let q = 1; q <= 10; q++) __touch('move', 1, ...fingerFor({ x: tg.x + 25 * q, y: tg.y - 25 * q }));
+        __touch('end', 1, ...fingerFor({ x: tg.x + 250, y: tg.y - 250 }));
+      } else if (st.act === 'search') {
+        const l = m.lens;
+        await __drag([start, fingerFor({ x: l.at.x - 150 * k, y: l.at.y + 100 * k }), fingerFor({ x: l.at.x + 120 * k, y: l.at.y - 80 * k }), fingerFor(tg)]);
+      }
+      await __run(opts.gap ?? 900);
+    } else await __run(300);
+    if (game.scene.isActive('Title')) break;
+  }
+  return { log, shown: m.shown, title: game.scene.isActive('Title') };
+};
+window.__clinicVerify = async (level, opts = {}) => {
+  for (let i = 0; i < 60 && !__voice.allLoaded; i++) await new Promise((r) => setTimeout(r, 250));
+  game.loop.raf.stop(); __voSim(true); if (!opts.render) __fast(true);
+  await __mini('clinic', level, { first: !!opts.first, wait: 200 });
+  __voLog.length = 0;
+  const t0 = __voice.now();
+  const r = await __clinicPlay(opts);
+  for (let i = 0; i < 40 && !game.scene.isActive('Title'); i++) await __run(500);
+  const vc = __voCheck(__voLog);
+  __fast(false);
+  return { level, opts, secs: Math.round((__voice.now() - t0) / 1000), title: game.scene.isActive('Title'), log: r.log, shown: r.shown,
+    helps: __voLog.filter((e) => e.key === 'vo-help').length, problems: vc.problems, keys: __voLog.map((e) => e.key).join(' ') };
 };

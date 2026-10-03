@@ -15,13 +15,18 @@ import { gameStarted, titleShown, updating } from '../core/update';
 import { RECIPES } from '../recipes';
 import { Character } from '../steps/Character';
 import { Mom } from '../steps/Mom';
-import { titleArtLoaded, titleArtReady } from './BootScene';
+import { recipeAssets, releaseRecipe, titleArtLoaded, titleArtReady } from './BootScene';
+
+/** Mom says hello only on the very first tap of a session (coming back to the title from a world, she just smiles). */
+let greeted = false;
 
 /**
- * Opening screen: the big play button (there at once), then the logo, Mom and Pipa fading in as soon as
- * their art is loaded (the art agent's title scene). The play tap is the user gesture the browser needs:
- * it resumes the audio context, asks for fullscreen + landscape, and keeps the screen on (it fires on
- * release: browsers only grant these from a completed tap). Mom waves and says hello.
+ * Opening screen: the two worlds (there at once): cooking with Mom (a pot: the kitchen's home screen, the recipes and
+ * the games) and the clinic with Mom the nurse (a nurse's bag with a heart: ClinicScene), then the logo, Mom and Pipa
+ * fading in as soon as their art is loaded (the art agent's title scene). The chef hats beside them choose the level
+ * for both worlds. The first tap is the user gesture the browser needs: it resumes the audio context, asks for
+ * fullscreen + landscape, and keeps the screen on (it fires on release: browsers only grant these from a completed
+ * tap). Mom waves and says hello. Both worlds' home buttons come back here, so she can change worlds.
  * This is also the only place where a waiting new version is switched on (core/update.ts).
  */
 export class TitleScene extends Phaser.Scene {
@@ -35,16 +40,20 @@ export class TitleScene extends Phaser.Scene {
   create() {
     const L = getLayout(this);
     keepLayoutOnResize(this, L, { relayout: true, canRelayout: () => !this.leaving });
+    // Back from a world: its art and sounds are released, the kitchen's song comes back.
+    releaseRecipe(this.game);
+    music.play('kitchen');
     addBackground(this, L);
     const S = getStage(L);
     this.mom = undefined;
     this.leaving = false;
     titleShown();
 
-    // (Its texture is rasterized at 1.4x, see `raster` in assets.ts: at scale k it shows 1.4x big.)
-    // Its touch circle stops above the palm strip.
-    const btn = iconButton(this, L, 'btn-play', S.play.x, S.play.y, () => this.go(btn.x, btn.y), { fireOn: 'up', hitPad: 80 });
-    this.tweens.add({ targets: btn, alpha: { from: 0, to: 1 }, duration: 400 });
+    // (Their textures are rasterized at 1.4x, see `raster` in assets.ts: at scale k they show 1.4x big.)
+    // Their touch circles stop above the palm strip and short of each other.
+    const btn = iconButton(this, L, 'btn-world-kitchen', S.world.kitchen.x, S.world.kitchen.y, () => this.go(btn.x, btn.y, 'kitchen'), { fireOn: 'up', hitPad: 18 });
+    const clinic = iconButton(this, L, 'btn-world-clinic', S.world.clinic.x, S.world.clinic.y, () => this.go(clinic.x, clinic.y, 'clinic'), { fireOn: 'up', hitPad: 18 });
+    this.tweens.add({ targets: [btn, clinic], alpha: { from: 0, to: 1 }, duration: 400 });
     this.levelPick(L, S);
 
     const fadeIn = (t: { setAlpha: (a: number) => unknown }) => {
@@ -127,7 +136,7 @@ export class TitleScene extends Phaser.Scene {
     show(false);
   }
 
-  private go(x: number, y: number) {
+  private go(x: number, y: number, world: 'kitchen' | 'clinic') {
     // A new version is being switched on this very moment: the page reloads in a blink, the tap waits.
     if (this.leaving || updating()) return;
     this.leaving = true;
@@ -136,13 +145,33 @@ export class TitleScene extends Phaser.Scene {
     this.sound.unlock();
     enterFullscreen();
     requestWakeLock();
-    stars(this, x, y, 16, 80 * getLayout(this).k);
+    const k = getLayout(this).k;
+    stars(this, x, y, 16, 80 * k);
     sfx(this, 'pop');
-    // The music starts with her tap and then runs on, softly, through every screen. Mom waves hello.
+    // The music starts with her tap and then runs on, softly, through every screen (the clinic has its own song,
+    // which comes in as soon as it is loaded). Mom waves hello.
+    if (world === 'clinic') music.play('clinic');
     music.start();
-    voice.say('vo-hello', { ttlMs: 3000 });
+    if (!greeted) voice.say('vo-hello', { ttlMs: 3000 });
+    greeted = true;
     this.mom?.wave();
-    this.time.delayedCall(900, () => this.scene.start('Home', { from: 'title' }));
+    if (world === 'kitchen') {
+      this.time.delayedCall(900, () => this.scene.start('Home', { from: 'title' }));
+      return;
+    }
+    // The clinic: "Let's go to our clinic!", its art and sounds load (a small spinner over the button if it takes a
+    // moment), then in.
+    voice.say('vo-pick-clinic', { ttlMs: 4000 });
+    const spin = this.time.delayedCall(250, () => {
+      const r = 46 * k;
+      this.add.circle(x, y, r * 1.5, 0xfff6e6, 0.92).setDepth(50);
+      const arc = this.add.arc(x, y, r, 0, 270, false).setStrokeStyle(12 * k, 0xff8c42).setClosePath(false).setDepth(51);
+      this.tweens.add({ targets: arc, angle: 360, duration: 900, repeat: -1 });
+    });
+    Promise.all([recipeAssets(this.game, 'clinic'), new Promise((r) => this.time.delayedCall(900, r))]).then(() => {
+      spin.remove();
+      if (this.scene.isActive()) this.scene.start('Clinic');
+    });
   }
 }
 
