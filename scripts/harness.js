@@ -1264,6 +1264,27 @@ window.__gardenGesture = async () => {
       const c = g.cloud; if (!c) return;
       await __drag([[c.x, c.y], [c.x + g.cloudDir() * (g.L.k * 330), c.y]]); return;
     }
+    case 'scare': {
+      const c = g.wantedCloth(); if (!c) return;
+      if (window.__scareWrong && !g.shown.scareWrong && g.scare.want) { const w = g.clothes.find((q) => q !== c); __tap(w.img.x, w.img.y); return; }
+      if (g.clothes.length % 2) __tap(c.img.x, c.img.y);
+      else { const to = g.wearAt(c.what); await __drag([[c.img.x, c.img.y], [to.x, to.y]]); }
+      return;
+    }
+    case 'rain': {
+      const s = g.nextDry(); if (!s || !g.rain) return;
+      const c = g.rain;
+      await __drag([[c.x, c.y], [s.x, c.y]], { hold: true });
+      await __run(g.needMs() + 500);
+      __touch('end', 1, s.x, c.y); return;
+    }
+    case 'sun': __tap(g.sunAt.x, g.sunAt.y); return;
+    case 'bfly': {
+      const f = g.nextFlower(); if (!f || !g.bfly) return;
+      if (g.flowers.filter((q) => q.visited).length % 2) __tap(f.fruit.home.x, f.fruit.home.y);
+      else await __drag([[g.bfly.x, g.bfly.y], [f.fruit.home.x, f.fruit.home.y - 30]]);
+      return;
+    }
     case 'snail': {
       if (!g.leaf || !g.snail) return;
       const m = g.snailAt(); await __drag([[g.leaf.x, g.leaf.y], [m.x, m.y]]); return;
@@ -1349,6 +1370,32 @@ window.__marketPlay = async (opts = {}) => {
   const m = game.scene.getScene('Market');
   const log = [];
   for (let i = 0; i < 1200 && m.scene.isActive(); i++) {
+    if (!opts.none && !m.helping && ['guest', 'mixed', 'pay'].includes(m.shown.phase)) {
+      const k = m.L.k;
+      if (m.shown.phase === 'guest' && m.guest) {
+        const w = m.guestWant();
+        if (w) {
+          if (opts.wrong && !m.__gWrong) { m.__gWrong = true; const c = m.crates.find((q) => !m.guest.wants.some((z) => z.good === q.good)); log.push('guest-wrong ' + c.good.id); __tap(c.item.x, c.item.y); }
+          else { const c = m.crateOf(w.good), mo = m.guest.who.mouthAt; if (opts.drag) await __drag([[c.item.x, c.item.y], [mo.x, mo.y]]); else __tap(c.item.x, c.item.y); log.push('guest ' + w.good.id); }
+        }
+      } else if (m.shown.phase === 'mixed' && m.mixed) {
+        const it = (opts.wrong && !m.__mWrong) ? m.mixed.items.find((q) => !q.odd) : m.mixed.items.find((q) => q.odd && !q.out);
+        if (opts.wrong && !m.__mWrong) m.__mWrong = true;
+        if (it) { __tap(it.x, it.y); log.push('mixed ' + it.good.id + (it.odd ? '' : '(belongs)')); }
+      } else if (m.shown.phase === 'pay' && m.pay && !m.pay.busy) {
+        if (m.level === 2) {
+          const pile = (opts.wrong && !m.__pWrong) ? m.pay.piles.find((q) => q.n !== m.pay.n) : m.pay.piles.find((q) => q.n === m.pay.n);
+          if (opts.wrong) m.__pWrong = true;
+          __tap(pile.x, pile.y); log.push('pile ' + pile.n + '/' + m.pay.n);
+        } else if (m.pay.purse) {
+          if (opts.drag) await __drag([[m.pay.purse.x, m.pay.purse.y], [m.pay.slate.x, m.pay.slate.y]]); else __tap(m.pay.purse.x, m.pay.purse.y);
+          log.push('coin');
+        }
+      }
+      await __run(opts.gap ?? 900);
+      if (game.scene.isActive('Home')) break;
+      continue;
+    }
     if (m.shown.phase === 'shop' && !m.helping) {
       const w = m.wants.find((q) => !q.got);
       if (opts.none) { await __run(500); continue; }

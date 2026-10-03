@@ -669,7 +669,33 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 000000000000000000000000. The market and garden, round 3 (more to do in both)
+The owner: "more interest in the market walk, more interesting elements in the garden". Branch `claude/market-garden-3-4er58s`.
+Both games now draw their middle parts at random, so two visits differ; both levels have every part.
+- **Market** (`MarketScene.ts`): `parts` = list, then the visitor and the mixed-up box in a random order (one between the
+  two lists), then paying. Visitor: a guest (turtle or penguin: the giraffe's neck would reach the home button) walks in
+  right of the basket (the basket steps aside), her wish bubble shows `TUNING.market.guestWants` goods (L1 1, L2 2); tap
+  or drag them to her mouth, she munches (`Guest.react`), a wrong one floats back and Mom names it. Mixed-up box: 6 goods
+  of one kind in a crate, `odd` (L1 1, L2 2: on L2 a look-alike from `ALIKE`, e.g. a tomato among strawberries); a tap on
+  the stranger sends it home to its own crate, a tap on one that belongs wiggles it (a miss). Paying: a chalk slate
+  (`market-slate`, `ART.market.slateFace`) shows the price. L1: dashed circles, she taps the purse (or drags a coin) and
+  each coin fills a circle, Mom counts. L2: dice pips and three piles of coins (n-1, n, n+1); the right pile's coins hop
+  onto the slate counted; a wrong pile: "Let's count them!", Mom counts it, a miss. Counts `TUNING.market`.
+- **Garden** (`GardenScene.ts`, `gardenDraw`): `rainChance` makes it a rainy day: she drags the rain cloud over the seeds
+  (it rains while held there) instead of the can; when all have sprouted the rain cloud is the cloud over the sun, and when
+  it is pushed away a rainbow arcs over the bed. `scarecrowChance` picks the visitor (carrots always get the scarecrow):
+  after planting, birds land and peck; she dresses the scarecrow, a hat then a shirt from three colours (L1 any; L2 like
+  Mom's little picture card, a different colour bounces off: "Look at Mom's picture again."), the birds fly off. Or the
+  butterfly: after the sun, flowers open and she drags the butterfly to each flower (it lands near one), every visited
+  flower turns into its fruit, Mom counts. The sun: after the cloud, she taps the sun `sunTaps` times (2 with the
+  butterfly or carrots) and the plants grow at each tap. The snail, bunny, weeds and over-watering stay as before.
+- **Art**: `gen_garden.py` (scarecrow, 3 hats, 3 shirts, bird up/down, butterfly; anchors `ART.garden.scareHat`,
+  `scareShirt`, `hatBrim`), `gen_minigames.py` (coin, purse, slate). Voice: 20 lines (`make_vo.py mom-a`), not heard by
+  a human. Overrides for tests: `window.__gardenRain`, `__gardenVisitor`, `__gardenSeed`, `__scareWrong`.
+- **Harness:** `__verify('market', level, { wrong, drag, none, first })`, `__gardenRun(level, mode, w, h, demos)`.
+- **Needs a real child:** does she find the purse (L1) and count the dots against the piles (L2)? Does she spot the
+  look-alike in the box? Is dragging the rain cloud or the butterfly to nine flowers fun or long (`TUNING.garden`)?
 ### 00000000000000000000000. The art corner (five ways to draw)
 The owner: "she got bored after a while; add drawing stages, each a different kind of drawing". Spec and research:
 `/mnt/project-files/research/drawing-stages-spec.md`. Branch `claude/drawing-stages-2jsjh3`.
