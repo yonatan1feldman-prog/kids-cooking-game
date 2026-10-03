@@ -1148,8 +1148,9 @@ export class ClinicScene extends MiniGame {
     const L = this.L;
     const k = L.k;
     const W = C.photoWindow;
-    const s = Math.min(0.62 * k, (L.H * 0.78) / 780);
-    const at = { x: (L.m + this.S.momFace.x0) / 2, y: L.Y(470) };
+    // (on the wall above the bench, big, clear of the patients' heads)
+    const s = Math.min(0.7 * k, (L.H * 0.6) / 780);
+    const at = { x: (L.m + this.S.momFace.x0) / 2, y: 30 * k + 390 * s };
     const keep = (img: HTMLImageElement) => {
       try {
         const c = document.createElement('canvas');

@@ -158,6 +158,8 @@ export class Mom {
 
   /** Cross-fades between two drawings of one arm (same pivot, same frame). */
   private swap(from: Phaser.GameObjects.Image, to: Phaser.GameObjects.Image) {
+    // (a quick back-and-forth would otherwise leave two fades fighting over one drawing)
+    this.scene.tweens.killTweensOf([from, to]);
     this.scene.tweens.add({ targets: from, alpha: 0, duration: POSE_MS });
     this.scene.tweens.add({ targets: to, alpha: 1, duration: POSE_MS });
   }
