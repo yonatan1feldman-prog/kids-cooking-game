@@ -98,6 +98,11 @@ export type VoiceKey =
   | 'vo-market-done' | 'vo-pick-dishes' | 'vo-dishes-start' | 'vo-dishes-scrub' | 'vo-dishes-clean' | 'vo-dishes-rack'
   | 'vo-dishes-rack-2' | 'vo-dishes-colour' | 'vo-dishes-done'
   | 'vo-garden-weeds' | 'vo-garden-enough' | 'vo-garden-cloud-2' | 'vo-garden-bunny' | 'vo-garden-bunny-this' | 'vo-garden-bunny-yum'
+  // market and garden, round 3: a visitor at the stall, a mixed-up box, paying; rain, the scarecrow, the butterfly, the sun
+  | 'vo-market-guest' | 'vo-market-guest-yum' | 'vo-market-mixed' | 'vo-market-mixed-yes' | 'vo-market-mixed-more'
+  | 'vo-market-pay' | 'vo-market-pay-dots' | 'vo-market-count' | 'vo-market-paid' | 'vo-garden-rain' | 'vo-garden-rainbow'
+  | 'vo-garden-birds' | 'vo-garden-hat' | 'vo-garden-shirt' | 'vo-garden-scare-copy' | 'vo-garden-scare-look' | 'vo-garden-shoo'
+  | 'vo-garden-butterfly' | 'vo-garden-butterfly-done' | 'vo-garden-sun-tap'
   // gameplay round 4: find the tool, Pipa's order, stir with the arrow
   | 'vo-find-grater' | 'vo-find-pin' | 'vo-find-spoon' | 'vo-pipa-order' | 'vo-then' | 'vo-first-this' | 'vo-stir-arrow'
   | 'vo-other-way'

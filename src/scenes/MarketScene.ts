@@ -1,12 +1,15 @@
 import Phaser from 'phaser';
 import { ART, type ImageKey } from '../core/assets';
 import { countKey, music, voice, type NameKey, type Song } from '../core/audio';
+import { GUESTS, guestLayers, type GuestDef } from '../core/guests';
 import { boing, burst, stars } from '../core/fx';
 import { tapMotion, type HandMotion } from '../core/hand';
 import { confetti, settle, sway } from '../core/juice';
 import { opaqueBounds } from '../core/placeholders';
 import { sfx } from '../core/sfx';
 import { TUNING } from '../core/tuning';
+import { Guest } from '../steps/Guest';
+import { loadImages } from './BootScene';
 import { MiniGame, type P } from './MiniGame';
 
 const T = TUNING.market;
@@ -31,6 +34,25 @@ const GOODS: { id: string; key: ImageKey; name: NameKey }[] = [
   { id: 'lettuce', key: 'lettuce-head', name: 'name-lettuce' },
 ];
 type Good = (typeof GOODS)[number];
+/** Level 2's mixed-up box: things that look alike (the one that does not belong is not obvious). */
+const ALIKE: [string, string][] = [
+  ['tomato', 'strawberry'], ['strawberry', 'tomato'], ['cucumber', 'zucchini'], ['zucchini', 'cucumber'], ['potato', 'kiwi'],
+  ['kiwi', 'potato'], ['pepper', 'lettuce'], ['banana', 'mango'], ['onion', 'potato'], ['mango', 'banana'],
+];
+/** The parts of a visit after the first list: the visitor and the mixed-up box in a shuffled order, then paying. */
+type Part = 'list' | 'guest' | 'mixed' | 'pay';
+/** The visitors who come to the stall (they walk in at the left; the giraffe's neck would reach the home button). */
+const VISITORS = GUESTS.filter((g) => g.arrive === 'walk');
+/** Dice dots for the price at level 2 (x, y in units of the slate's height x 0.3 from its middle). */
+const DICE: Record<number, [number, number][]> = {
+  1: [[0, 0]],
+  2: [[-1, -1], [1, 1]],
+  3: [[-1, -1], [0, 0], [1, 1]],
+  4: [[-1, -1], [1, -1], [-1, 1], [1, 1]],
+  5: [[-1, -1], [1, -1], [0, 0], [-1, 1], [1, 1]],
+  6: [[-1, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [1, 1]],
+  7: [[-1, -1], [1, -1], [-1, 0], [0, 0], [1, 0], [-1, 1], [1, 1]],
+};
 
 interface Crate {
   good: Good;
@@ -59,7 +81,7 @@ interface Want {
 export class MarketScene extends MiniGame {
   protected readonly id = 'market';
   protected readonly song: Song = 'outside';
-  protected readonly waiting = ['shop'] as const;
+  protected readonly waiting = ['shop', 'guest', 'mixed', 'pay'] as const;
   private crates: Crate[] = [];
   private wants: Want[] = [];
   private round = 0;
@@ -68,11 +90,35 @@ export class MarketScene extends MiniGame {
   private listTimer: Phaser.Time.TimerEvent | null = null;
   private basket!: { back: Phaser.GameObjects.Image; front: Phaser.GameObjects.Image; x: number; y: number; s: number };
   private inBasket = 0;
+  /** What is in the basket (it goes aside with the basket while the visitor stands there). */
+  private basketGoods: Phaser.GameObjects.Image[] = [];
   private held: { crate: Crate; img: Phaser.GameObjects.Image; from: P; moved: number } | null = null;
+  /** A coin taken from Mom's purse (paying, level 1). */
+  private coinHeld: { img: Phaser.GameObjects.Image; from: P; moved: number } | null = null;
   private stall!: { x0: number; x1: number; cx: number; top: number };
   private notSaid = 0;
   private cols = 4;
   private bounds = new Map<string, { cx: number; cy: number; w: number; h: number }>();
+  private parts: Part[] = [];
+  /** The visitor (one of the walking guests, picked per visit; her layers load while she shops). */
+  private visitor: GuestDef = VISITORS[0];
+  private visitorIn: Promise<void> = Promise.resolve();
+  private guest: { who: Guest; wants: { good: Good; got: boolean }[] } | null = null;
+  private mixed: { items: { img: Phaser.GameObjects.Image; good: Good; odd: boolean; out: boolean; x: number; y: number; scale: number }[]; front: Phaser.GameObjects.Image; host: Good; said: number } | null = null;
+  private pay: {
+    n: number;
+    slate: Phaser.GameObjects.Image;
+    chalk: Phaser.GameObjects.Graphics;
+    /** Level 1: the circles to fill (centres, radius), the coins in them, Mom's purse. */
+    spots: P[];
+    r: number;
+    paid: number;
+    purse: Phaser.GameObjects.Image | null;
+    /** Level 2: the piles of coins on the counter (one has as many as the dots). */
+    piles: { x: number; y: number; coins: Phaser.GameObjects.Image[]; n: number }[];
+    busy: boolean;
+    coinScale: number;
+  } | null = null;
 
   constructor() {
     super('Market');
@@ -86,9 +132,15 @@ export class MarketScene extends MiniGame {
     this.list = null;
     this.listTimer = null;
     this.inBasket = 0;
+    this.basketGoods = [];
     this.held = null;
+    this.coinHeld = null;
     this.notSaid = 0;
-    Object.assign(this.shown, { round: 0, found: 0, wanted: 0, inBasket: 0, stall: [] as string[], want: [] as string[] });
+    this.parts = [];
+    this.guest = null;
+    this.mixed = null;
+    this.pay = null;
+    Object.assign(this.shown, { round: 0, found: 0, wanted: 0, inBasket: 0, stall: [] as string[], want: [] as string[], parts: [] as string[], part: '', guest: '', guestWants: [] as string[], guestGot: 0, mixedHost: '', mixedOdd: '', mixedLeft: 0, price: 0, piles: [] as number[], paid: 0, payWrong: 0 });
   }
 
   // ---------------------------------------------------------------- the stall
@@ -168,10 +220,28 @@ export class MarketScene extends MiniGame {
       }
     });
     this.shown.stall = this.crates.map((c) => c.good.id);
+    // The visitor of this visit: her layers load now, while the first list is shopped.
+    this.visitor = VISITORS[Phaser.Math.Between(0, VISITORS.length - 1)];
+    this.visitorIn = loadImages(this.game, guestLayers(this.visitor));
   }
 
   protected ready() {
-    this.time.delayedCall(500, () => this.startRound());
+    // A visit: the first list, then the visitor and the mixed-up box in a shuffled order around Pipa's list, then paying.
+    const [a, b] = Phaser.Utils.Array.Shuffle(['guest', 'mixed'] as Part[]);
+    this.parts = ['list', a, 'list', b, 'pay'];
+    this.shown.parts = this.parts.slice();
+    this.time.delayedCall(500, () => this.nextPart());
+  }
+
+  private nextPart() {
+    if (this.leaving) return;
+    const p = this.parts.shift();
+    this.shown.part = p ?? 'finale';
+    if (p === 'list') return this.round > 0 ? this.restock() : this.startRound();
+    if (p === 'guest') return this.startGuest();
+    if (p === 'mixed') return this.startMixed();
+    if (p === 'pay') return this.startPay();
+    this.finale();
   }
 
   // ---------------------------------------------------------------- a list
@@ -323,7 +393,8 @@ export class MarketScene extends MiniGame {
     const tx = at.x + col * 56 * b.s;
     const ty = at.y - row * 34 * b.s + Math.abs(col) * 6 * b.s;
     this.tweens.killTweensOf(img);
-    img.setDepth(31);
+    img.setDepth(31).setData('bx', tx);
+    this.basketGoods.push(img);
     const bx = this.box(w.good.key);
     this.tweens.add({
       targets: img,
@@ -381,8 +452,7 @@ export class MarketScene extends MiniGame {
       this.list = null;
       this.tweens.add({ targets: l.box, y: l.y - 80 * L.k, alpha: 0, duration: 400, delay: 600, onComplete: () => l.box.destroy() });
     } else this.pipa?.wishGranted();
-    const again = this.round < T.rounds;
-    this.praise(this.stall.cx, L.Y(300), () => (again ? this.restock() : this.finale()), 900);
+    this.praise(this.stall.cx, L.Y(300), () => this.nextPart(), 900);
   }
 
   /** Between the lists the stall is rearranged (the same goods, other crates): look again. */
@@ -424,6 +494,453 @@ export class MarketScene extends MiniGame {
     const itemH = Math.min(T.itemH * k, (this.L.Y(900) - this.L.Y(620)) * 0.6);
     const b = this.box(g.key);
     return Math.min((slotW * 0.84) / b.w, itemH / b.h);
+  }
+
+  // ---------------------------------------------------------------- a visitor at the stall
+
+  /** The visitor stands where the basket was (it steps aside meanwhile), clear of the thumb strip. */
+  private visitorSpot() {
+    const L = this.L;
+    const k = L.k;
+    const s = Math.min(0.6 * k, (300 * k) / 484);
+    return { x: Math.max(this.basket.x, L.m + 250 * s), y: L.Y(984) - 334 * s, scale: s };
+  }
+
+  private basketAside(out: boolean) {
+    const b = this.basket;
+    const x = out ? -260 * this.L.k : b.x;
+    this.tweens.add({ targets: [b.back, b.front], x, duration: 450, ease: out ? 'Sine.easeIn' : 'Back.easeOut' });
+    for (const img of this.basketGoods) this.tweens.add({ targets: img, x: img.getData('bx') + (out ? x - b.x : 0), duration: 450, ease: out ? 'Sine.easeIn' : 'Back.easeOut' });
+  }
+
+  /**
+   * A visitor (the turtle or the penguin, the guests who come to eat) walks up to the stall with a wish in her bubble:
+   * one thing (level 2: two). She gives it to her from the stall (a tap, or a drag to her). Something else: she sniffs it,
+   * it goes back, Mom names it (a quiet miss). Her wish come true: she munches happily, Mom thanks her, she walks home.
+   */
+  private startGuest() {
+    const L = this.L;
+    const k = L.k;
+    this.basketAside(true);
+    void this.visitorIn.then(() => {
+      if (this.leaving || !this.scene.isActive()) return;
+      const who = new Guest(this, this.visitor, this.visitorSpot());
+      who.box.setDepth(30);
+      const goods = Phaser.Utils.Array.Shuffle(this.crates.map((c) => c.good)).slice(0, T.guestWants[this.level - 1]);
+      this.guest = { who, wants: goods.map((good) => ({ good, got: false })) };
+      this.shown.guest = this.visitor.id;
+      this.shown.guestWants = goods.map((g) => g.id);
+      this.shown.guestGot = 0;
+      this.time.delayedCall(300, () =>
+        who.arrive(() => {
+          if (this.leaving) return;
+          who.showWish(goods.map((g) => g.key), goods.map((g) => g.id), { maxRight: this.stall.x0 + 200 * k, minLeft: L.m, k });
+          this.say(this.visitor.hello, { ttlMs: 5000 });
+          this.say('vo-market-guest', { ttlMs: 7000 });
+          this.time.delayedCall(500, () => this.begin('guest', null));
+        }),
+      );
+    });
+  }
+
+  private guestWant() {
+    return this.guest?.wants.find((w) => !w.got) ?? null;
+  }
+
+  /** A good brought to the visitor: what she wished for goes into her mouth; anything else floats back. */
+  private toGuest(c: Crate, img: Phaser.GameObjects.Image) {
+    const g = this.guest!;
+    const L = this.L;
+    const w = g.wants.find((q) => !q.got && q.good === c.good);
+    const m = g.who.mouthAt;
+    if (!w || this.phase !== 'guest') {
+      sfx(this, 'squish', { volume: 0.6 });
+      voice.say(c.good.name, { group: 'name', ttlMs: 2000, valid: () => this.scene.isActive() && !this.leaving });
+      boing(this, g.who.box, 0.06);
+      this.tweens.killTweensOf(img);
+      this.tweens.chain({
+        targets: img,
+        tweens: [
+          { x: (img.x + m.x) / 2, y: img.y - 40 * L.k, duration: 200, ease: 'Quad.easeOut' },
+          { x: c.item.x, y: c.item.y, angle: 0, scale: c.scale, duration: 380, ease: 'Back.easeOut' },
+        ],
+        onComplete: () => img.destroy(),
+      });
+      return this.miss();
+    }
+    w.got = true;
+    this.shown.guestGot = g.wants.filter((q) => q.got).length;
+    this.poke();
+    voice.say(c.good.name, { group: 'name', ttlMs: 2500, valid: () => this.scene.isActive() && !this.leaving });
+    g.who.setMood('expect');
+    const bx = this.box(c.good.key);
+    this.tweens.killTweensOf(img);
+    img.setDepth(40);
+    this.tweens.add({
+      targets: img,
+      x: m.x,
+      y: m.y,
+      scale: (80 * L.k) / Math.max(bx.w, bx.h),
+      angle: 0,
+      duration: 380,
+      ease: 'Quad.easeOut',
+      onComplete: () => {
+        sfx(this, 'munch');
+        this.tweens.add({ targets: img, scale: 0, duration: 260, onComplete: () => img.destroy() });
+        g.who.wishFound(g.wants.indexOf(w));
+        if (g.wants.every((q) => q.got)) {
+          this.setPhase('intro');
+          this.time.delayedCall(300, () => this.guestDone());
+        } else {
+          g.who.react('plain');
+          g.who.setMood('rest');
+        }
+      },
+    });
+  }
+
+  private guestDone() {
+    const g = this.guest!;
+    const L = this.L;
+    g.who.setMood('rest');
+    g.who.wishGranted();
+    this.say('vo-market-guest-yum', { ttlMs: 5000 });
+    this.mom?.happy();
+    this.time.delayedCall(800, () => this.mom?.rest());
+    // she walks home the way she came, happy; the basket comes back
+    this.time.delayedCall(2200, () => {
+      const box = g.who.box;
+      g.who.setMood('expect');
+      g.who.setMood('rest');
+      this.tweens.killTweensOf(box);
+      this.tweens.add({ targets: box, x: -400 * g.who.scale - 100 * L.k, duration: 1400, ease: 'Sine.easeIn', onComplete: () => box.destroy() });
+      this.tweens.add({ targets: box, angle: { from: -6, to: 6 }, duration: 160, yoyo: true, repeat: 4 });
+      this.time.delayedCall(700, () => this.basketAside(false));
+      this.time.delayedCall(900, () => {
+        this.guest = null;
+        this.praise(this.stall.cx, L.Y(300), () => this.nextPart(), 500);
+      });
+    });
+  }
+
+  // ---------------------------------------------------------------- the mixed-up box
+
+  /**
+   * A box of one good is carried to the counter, but something else got in with them (level 2: two of a thing that looks
+   * alike). A tap on the one that does not belong: it hops back into its own crate on the stall. A tap on one that does:
+   * it wiggles, Mom names it (a quiet miss).
+   */
+  private startMixed() {
+    const L = this.L;
+    const k = L.k;
+    const odd = T.mixed.odd[this.level - 1];
+    const on = this.crates.map((c) => c.good);
+    const has = (id: string) => on.find((g) => g.id === id);
+    let host: Good;
+    let other: Good;
+    const alike = this.level === 2 ? Phaser.Utils.Array.Shuffle(ALIKE.filter(([a, b]) => has(a) && has(b))) : [];
+    if (alike.length) {
+      host = has(alike[0][0])!;
+      other = has(alike[0][1])!;
+    } else {
+      const two = Phaser.Utils.Array.Shuffle(on.slice());
+      // (level 1: clearly different: not a look-alike pair)
+      host = two[0];
+      other = two.slice(1).find((g) => !ALIKE.some(([a, b]) => a === host.id && b === g.id)) ?? two[1];
+    }
+    const n = T.mixed.items;
+    const oddAt = Phaser.Utils.Array.Shuffle([...Array(n).keys()]).slice(0, odd);
+    const x0 = this.stall.x0 + 30 * k;
+    const x1 = this.stall.x1 - 30 * k;
+    const cw = (x1 - x0) / 3;
+    const rows = [L.Y(640), L.Y(760)];
+    const ih = Math.min(150 * k, (rows[1] - rows[0]) * 1.25);
+    const items = [...Array(n).keys()].map((i) => {
+      const good = oddAt.includes(i) ? other : host;
+      const r = Math.floor(i / 3);
+      const x = x0 + cw * ((i % 3) + 0.5) + (r ? 0.2 : -0.2) * cw * 0.3;
+      const y = rows[r];
+      const img = this.goodImage(good, x, y + 500 * k, cw * 0.7, ih).setDepth(50 + r * 2).setAngle(Phaser.Math.Between(-8, 8));
+      this.tweens.add({ targets: img, y, duration: 520, delay: 60 * i, ease: 'Back.easeOut' });
+      return { img, good, odd: good === other, out: false, x, y, scale: img.scale };
+    });
+    const fs = (x1 - x0 + 40 * k) / 300;
+    const front = this.add.image(this.stall.cx, L.Y(960) + 500 * k, 'market-crate').setOrigin(0.5, 1).setScale(fs, Math.min(fs * 0.5, (L.Y(960) - rows[1] - 45 * k) / 150)).setDepth(55);
+    this.tweens.add({ targets: front, y: L.Y(960), duration: 520, ease: 'Back.easeOut' });
+    sfx(this, 'whoosh');
+    this.mixed = { items, front, host, said: 0 };
+    // the stall's goods step back behind the box (each comes back when a stranger is sent home, all at the end)
+    this.tweens.add({ targets: this.crates.map((c) => c.item), alpha: 0.3, duration: 300 });
+    this.shown.mixedHost = host.id;
+    this.shown.mixedOdd = other.id;
+    this.shown.mixedLeft = odd;
+    this.time.delayedCall(700, () => {
+      this.say('vo-market-mixed', { ttlMs: 6000 });
+      this.begin('mixed', null);
+    });
+  }
+
+  private mixedAt(at: P) {
+    const m = this.mixed;
+    if (!m) return null;
+    const cw = (this.stall.x1 - this.stall.x0 - 60 * this.L.k) / 3;
+    let best: (typeof m.items)[number] | null = null;
+    let d = Infinity;
+    for (const it of m.items) {
+      if (it.out) continue;
+      const dx = Math.abs(it.x - at.x);
+      const dy = Math.abs(it.y - at.y);
+      if (dx > cw / 2 + 10 * this.L.k || dy > 110 * this.L.k) continue;
+      const dd = dx + dy;
+      if (dd < d) {
+        d = dd;
+        best = it;
+      }
+    }
+    return best;
+  }
+
+  private tapMixed(it: NonNullable<MarketScene['mixed']>['items'][number]) {
+    const m = this.mixed!;
+    const L = this.L;
+    voice.say(it.good.name, { group: 'name', ttlMs: 2000, valid: () => this.scene.isActive() && !this.leaving });
+    if (!it.odd) {
+      // it belongs here: a wiggle, Mom names it
+      sfx(this, 'squish', { volume: 0.5 });
+      this.tweens.killTweensOf(it.img);
+      this.tweens.add({ targets: it.img, angle: { from: it.img.angle - 10, to: it.img.angle + 10 }, duration: 90, yoyo: true, repeat: 2, onComplete: () => it.img.setAngle(0) });
+      return this.miss();
+    }
+    it.out = true;
+    this.poke();
+    const left = m.items.filter((q) => q.odd && !q.out).length;
+    this.shown.mixedLeft = left;
+    sfx(this, 'pop');
+    stars(this, it.img.x, it.img.y, 6, 40 * L.k);
+    const home = this.crates.find((c) => c.good === it.good);
+    const to = home ? { x: home.item.x, y: home.item.y, s: home.scale } : { x: this.stall.cx, y: -200 * L.k, s: it.scale };
+    it.img.setDepth(600);
+    this.tweens.killTweensOf(it.img);
+    this.tweens.add({ targets: it.img, y: it.img.y - 160 * L.k, angle: 0, duration: 260, ease: 'Quad.easeOut' });
+    this.tweens.add({
+      targets: it.img,
+      x: to.x,
+      y: to.y,
+      scale: to.s,
+      duration: 520,
+      delay: 260,
+      ease: 'Sine.easeInOut',
+      onComplete: () => {
+        it.img.destroy();
+        if (home) home.item.setAlpha(1);
+        if (home) boing(this, home.item, 0.15);
+        sfx(this, 'pop', { volume: 0.6 });
+      },
+    });
+    this.mom?.happy();
+    this.time.delayedCall(700, () => this.mom?.rest());
+    if (left > 0) {
+      this.say('vo-market-mixed-more', { ttlMs: 4000 });
+      return;
+    }
+    this.setPhase('intro');
+    this.say('vo-market-mixed-yes', { ttlMs: 4000 });
+    this.time.delayedCall(1100, () => {
+      const parts = [m.front, ...m.items.filter((q) => !q.out).map((q) => q.img)];
+      this.tweens.add({ targets: parts, y: `+=${600 * L.k}`, duration: 500, ease: 'Sine.easeIn', onComplete: () => parts.forEach((o) => o.destroy()) });
+      this.mixed = null;
+      this.tweens.add({ targets: this.crates.map((c) => c.item), alpha: 1, duration: 400 });
+      this.praise(this.stall.cx, L.Y(300), () => this.nextPart(), 500);
+    });
+  }
+
+  // ---------------------------------------------------------------- paying
+
+  /**
+   * The price on the chalk slate. Level 1: a chalk circle for every coin to pay; she takes coins from Mom's purse (a tap,
+   * or a drag to the slate) and each fills the next circle, Mom counting. Level 2: the price is dice dots, and three piles
+   * of coins wait on the counter (one less, as many, one more): she picks the pile with as many coins as dots. Another
+   * pile: "Let's count them!", Mom counts it aloud coin by coin (a quiet miss), and she can look again.
+   */
+  private startPay() {
+    const L = this.L;
+    const k = L.k;
+    const [lo, hi] = T.price[this.level - 1];
+    const n = Phaser.Math.Between(lo, hi);
+    const w = this.stall.x1 - this.stall.x0;
+    const ss = Math.min(0.95 * k, (w * 0.62) / 380);
+    const slate = this.add.image(this.stall.cx, L.Y(470), 'market-slate').setScale(0).setDepth(50);
+    this.tweens.add({ targets: slate, scale: ss, duration: 420, ease: 'Back.easeOut' });
+    const chalk = this.add.graphics().setDepth(51).setAlpha(0);
+    this.tweens.add({ targets: chalk, alpha: 1, duration: 300, delay: 400 });
+    const F = ART.market.slateFace;
+    const face = { x: slate.x + (F.x - 190) * ss, y: slate.y + (F.y - 150) * ss, w: F.w * ss, h: F.h * ss };
+    const coinScale = Math.min(0.62 * k, (w / 3) / 5 / 110 * 1.6);
+    this.pay = { n, slate, chalk, spots: [], r: 0, paid: 0, purse: null, piles: [], busy: false, coinScale };
+    this.shown.price = n;
+    this.shown.paid = 0;
+    sfx(this, 'whoosh');
+    const pay = this.pay;
+    if (this.level === 1) {
+      // a dashed chalk circle per coin, in one row (two rows from 4)
+      const cols = n <= 3 ? n : Math.ceil(n / 2);
+      const rows = Math.ceil(n / cols);
+      const r = Math.min((face.w / cols) * 0.36, (face.h / rows) * 0.36);
+      pay.r = r;
+      for (let i = 0; i < n; i++) {
+        const row = Math.floor(i / cols);
+        const inRow = Math.min(cols, n - row * cols);
+        const c = i - row * cols;
+        const x = face.x + face.w / 2 + (c - (inRow - 1) / 2) * (face.w / cols);
+        const y = face.y + face.h / 2 + (row - (rows - 1) / 2) * (face.h / rows);
+        pay.spots.push({ x, y });
+        this.dashedCircle(chalk, x, y, r);
+      }
+      const ps = 0.72 * k;
+      pay.purse = this.add.image(this.basket.x, L.Y(500) + 400 * k, 'market-purse').setScale(ps).setDepth(40);
+      this.tweens.add({ targets: pay.purse, y: L.Y(500), duration: 450, delay: 200, ease: 'Back.easeOut' });
+      this.time.delayedCall(600, () => {
+        this.say('vo-market-pay', { ttlMs: 6000 });
+        this.begin('pay', null);
+      });
+      return;
+    }
+    // Level 2: the price as dice dots, and three piles of coins on the counter.
+    const r = Math.min(face.w, face.h) * 0.075;
+    for (const [dx, dy] of DICE[n]) {
+      chalk.fillStyle(0xfffdf7, 0.95);
+      chalk.fillCircle(face.x + face.w / 2 + dx * face.h * 0.3, face.y + face.h / 2 + dy * face.h * 0.3, r);
+    }
+    const counts = Phaser.Utils.Array.Shuffle([n - 1, n, n + 1]);
+    this.shown.piles = counts.slice();
+    const cw = w / 3;
+    const cy = L.Y(820);
+    // the goods on the lower shelf step back, so the piles of coins read as piles (back when it is paid)
+    this.tweens.add({ targets: this.crates.map((c) => c.item), alpha: 0.3, duration: 300 });
+    pay.piles = counts.map((cnt, i) => {
+      const cx = this.stall.x0 + cw * (i + 0.5);
+      const spots = this.scatter(cnt, Math.min(cw * 0.36, 120 * k), 110 * coinScale * 0.95);
+      const coins = spots.map((q, j) => {
+        const c = this.add.image(cx + q.x, cy + q.y * 0.7 + 500 * k, 'market-coin').setScale(coinScale).setDepth(56 + j * 0.01);
+        this.tweens.add({ targets: c, y: cy + q.y * 0.7, duration: 420, delay: 300 + i * 120 + j * 30, ease: 'Back.easeOut' });
+        return c;
+      });
+      return { x: cx, y: cy, coins, n: cnt };
+    });
+    this.time.delayedCall(700, () => {
+      this.say('vo-market-pay-dots', { ttlMs: 6000 });
+      this.begin('pay', null);
+    });
+  }
+
+  /** Points for `n` coins strewn in a circle of radius `R`, at least `gap` apart (not in a dice pattern: she counts them). */
+  private scatter(n: number, R: number, gap: number): P[] {
+    const out: P[] = [];
+    for (let tries = 0; out.length < n && tries < 4000; tries++) {
+      const a = Math.random() * Math.PI * 2;
+      const d = Math.sqrt(Math.random()) * R;
+      const q = { x: Math.cos(a) * d, y: Math.sin(a) * d };
+      if (out.every((o) => Math.hypot(o.x - q.x, o.y - q.y) >= gap * (tries > 2000 ? 0.8 : 1))) out.push(q);
+    }
+    while (out.length < n) out.push({ x: (out.length - n / 2) * gap * 0.6, y: 0 });
+    return out;
+  }
+
+  private dashedCircle(g: Phaser.GameObjects.Graphics, x: number, y: number, r: number) {
+    const k = this.L.k;
+    g.lineStyle(6 * k, 0xfffdf7, 0.9);
+    const segs = 14;
+    for (let i = 0; i < segs; i++) {
+      const a0 = (i / segs) * Math.PI * 2;
+      const a1 = a0 + (Math.PI * 2) / segs / 1.8;
+      g.beginPath();
+      g.arc(x, y, r, a0, a1);
+      g.strokePath();
+    }
+  }
+
+  /** A coin from the purse lands in the next chalk circle: a clink, Mom counts. */
+  private coinIn(coin: Phaser.GameObjects.Image) {
+    const p = this.pay!;
+    if (p.paid >= p.n) return coin.destroy();
+    const at = p.spots[p.paid++];
+    this.shown.paid = p.paid;
+    this.poke();
+    this.tweens.killTweensOf(coin);
+    coin.setDepth(52).setData('coin', true);
+    this.tweens.add({
+      targets: coin,
+      x: at.x,
+      y: at.y,
+      angle: 0,
+      scale: (p.r * 2 * 0.95) / 110,
+      duration: 320,
+      ease: 'Quad.easeOut',
+      onComplete: () => {
+        sfx(this, 'click', { volume: 0.8 });
+        burst(this, at.x, at.y, { texture: 'star', count: 3, size: 24 * this.L.k, speed: 200, gravityY: 400, lifespan: 400, depth: 70 });
+      },
+    });
+    this.say(countKey(p.paid), { group: 'count', sequence: true, ttlMs: 8000 });
+    if (p.paid >= p.n) {
+      this.setPhase('intro');
+      this.time.delayedCall(700, () => this.paid());
+    }
+  }
+
+  /** Level 2: a pile was picked. As many as the dots: it is paid. Else Mom counts that pile aloud. */
+  private pickPile(pile: NonNullable<MarketScene['pay']>['piles'][number]) {
+    const p = this.pay!;
+    const L = this.L;
+    p.busy = true;
+    if (pile.n === p.n) {
+      this.setPhase('intro');
+      this.poke();
+      // the coins hop onto the slate's ledge one by one, Mom counting
+      const F = ART.market.slateFace;
+      const ss = p.slate.scale;
+      const ly = p.slate.y + (F.y + F.h + 34 - 150) * ss;
+      pile.coins.forEach((c, i) => {
+        const x = p.slate.x + (i - (pile.coins.length - 1) / 2) * 34 * ss;
+        this.time.delayedCall(i * T.countMs, () => {
+          sfx(this, 'click', { volume: 0.8 });
+          // the last number said: paid (Mom's counting may run behind the hops)
+          const last = i === pile.coins.length - 1;
+          this.say(countKey(i + 1), { group: 'count', sequence: true, ttlMs: 8000, done: last ? () => !this.leaving && this.time.delayedCall(250, () => this.paid()) : undefined });
+          this.tweens.add({ targets: c, x, y: ly, angle: 0, duration: 360, ease: 'Quad.easeOut', onComplete: () => c.setDepth(52) });
+        });
+      });
+      return;
+    }
+    this.shown.payWrong = (this.shown.payWrong as number) + 1;
+    this.say('vo-market-count', { ttlMs: 7000 });
+    pile.coins.forEach((c, i) => {
+      this.time.delayedCall(900 + i * T.countMs, () => {
+        if (this.leaving) return;
+        // the piles wait until Mom has said the last number of this one
+        const last = i === pile.coins.length - 1;
+        this.say(countKey(i + 1), { group: 'count', sequence: true, ttlMs: 8000, done: last ? () => { if (this.leaving) return; p.busy = false; this.miss(); } : undefined });
+        this.tweens.add({ targets: c, y: c.y - 30 * L.k, duration: 140, yoyo: true, ease: 'Quad.easeOut' });
+        sfx(this, 'tap', { volume: 0.5 });
+      });
+    });
+  }
+
+  private paid() {
+    const p = this.pay!;
+    const L = this.L;
+    this.say('vo-market-paid', { ttlMs: 5000 });
+    this.tweens.add({ targets: this.crates.map((c) => c.item), alpha: 1, duration: 400 });
+    sfx(this, 'star');
+    stars(this, p.slate.x, p.slate.y, 10, 60 * L.k);
+    this.mom?.happy();
+    this.time.delayedCall(1300, () => {
+      const parts: Phaser.GameObjects.GameObject[] = [p.slate, p.chalk, ...p.piles.flatMap((q) => q.coins), ...(p.purse ? [p.purse] : [])];
+      this.children.list.filter((o) => o.getData?.('coin')).forEach((o) => parts.push(o));
+      this.tweens.add({ targets: parts, alpha: 0, duration: 400, onComplete: () => parts.forEach((o) => o.destroy()) });
+      this.pay = null;
+      this.praise(this.stall.cx, L.Y(300), () => this.nextPart(), 300);
+    });
   }
 
   // ---------------------------------------------------------------- the finale
@@ -469,49 +986,127 @@ export class MarketScene extends MiniGame {
 
   protected way(): HandMotion | null {
     const k = this.L.k;
-    if (this.phase !== 'shop') return null;
-    const w = this.nextWant();
-    if (!w) return null;
-    const c = this.crateOf(w.good);
-    const from = { x: c.item.x, y: c.item.y };
-    const into = this.basketIn();
-    // (level 2 with the list folded: her finger taps the list first, so it opens and she sees what to find)
-    if (this.level === 2 && this.list && !this.list.open) {
-      const m = tapMotion({ x: this.list.x, y: this.list.y - 110 * this.list.s }, k);
-      return m;
+    if (this.phase === 'mixed') {
+      const it = this.mixed?.items.find((q) => q.odd && !q.out);
+      return it ? tapMotion({ x: it.img.x, y: it.img.y }, k) : null;
     }
+    if (this.phase === 'pay' && this.pay) {
+      const p = this.pay;
+      if (this.level === 2) {
+        const pile = p.piles.find((q) => q.n === p.n);
+        return pile ? tapMotion({ x: pile.x, y: pile.y }, k) : null;
+      }
+      const to = p.spots[p.paid];
+      if (!to || !p.purse) return null;
+      const from = { x: p.purse.x, y: p.purse.y - 30 * k };
+      return {
+        kind: 'grab',
+        keys: [
+          { ...from, t: 0 },
+          { ...from, t: 300 },
+          { ...to, t: 1400 },
+          { ...to, t: 1800 },
+        ],
+        props: [{ key: 'market-coin', scale: (p.r * 2 * 0.95) / 110, alpha: 0.6 }],
+        glow: from,
+      };
+    }
+    let want: Good | null = null;
+    let to: P | null = null;
+    if (this.phase === 'guest' && this.guest) {
+      want = this.guestWant()?.good ?? null;
+      to = this.guest.who.mouthAt;
+    } else if (this.phase === 'shop') {
+      want = this.nextWant()?.good ?? null;
+      to = this.basketIn();
+      // (level 2 with the list folded: her finger taps the list first, so it opens and she sees what to find)
+      if (want && this.level === 2 && this.list && !this.list.open) return tapMotion({ x: this.list.x, y: this.list.y - 110 * this.list.s }, k);
+    }
+    if (!want || !to) return null;
+    const c = this.crateOf(want);
+    const from = { x: c.item.x, y: c.item.y };
     return {
       kind: 'grab',
       keys: [
         { ...from, t: 0 },
         { ...from, t: 300 },
-        { ...into, t: 1500 },
-        { ...into, t: 1900 },
+        { ...to, t: 1500 },
+        { ...to, t: 1900 },
       ],
-      props: [{ key: w.good.key, scale: c.scale, alpha: 0.6, originX: c.item.originX, originY: c.item.originY }],
+      props: [{ key: want.key, scale: c.scale, alpha: 0.6, originX: c.item.originX, originY: c.item.originY }],
       glow: from,
     };
   }
 
   protected helpOnce() {
-    if (this.phase !== 'shop') return false;
-    const w = this.nextWant();
-    if (!w) return false;
-    const c = this.crateOf(w.good);
-    if (this.level === 2 && this.list && !this.list.open) this.peek();
+    const k = this.L.k;
+    if (this.phase === 'mixed') {
+      const it = this.mixed?.items.find((q) => q.odd && !q.out);
+      if (!it) return false;
+      this.hand.play(tapMotion({ x: it.img.x, y: it.img.y }, k));
+      this.time.delayedCall(700, () => {
+        this.helped();
+        if (!it.out && this.phase === 'mixed') this.tapMixed(it);
+      });
+      return true;
+    }
+    if (this.phase === 'pay' && this.pay) {
+      const p = this.pay;
+      if (p.busy) return false;
+      if (this.level === 2) {
+        const pile = p.piles.find((q) => q.n === p.n);
+        if (!pile) return false;
+        this.hand.play(tapMotion({ x: pile.x, y: pile.y }, k));
+        this.time.delayedCall(700, () => {
+          this.helped();
+          if (this.phase === 'pay') this.pickPile(pile);
+        });
+        return true;
+      }
+      if (!p.purse || p.paid >= p.n) return false;
+      const coin = this.add.image(p.purse.x, p.purse.y - 40 * k, 'market-coin').setScale(p.coinScale).setDepth(600);
+      this.hand.follow('grab', () => ({ x: coin.x, y: coin.y }));
+      const to = p.spots[p.paid];
+      this.tweens.add({
+        targets: coin,
+        x: to.x,
+        y: to.y,
+        duration: T.helpMs,
+        delay: 250,
+        ease: 'Sine.easeInOut',
+        onComplete: () => {
+          this.helped();
+          if (this.phase === 'pay') this.coinIn(coin);
+          else coin.destroy();
+        },
+      });
+      return true;
+    }
+    let want: Good | null = null;
+    if (this.phase === 'shop') {
+      const w = this.nextWant();
+      if (!w) return false;
+      want = w.good;
+      if (this.level === 2 && this.list && !this.list.open) this.peek();
+    } else if (this.phase === 'guest' && this.guest) want = this.guestWant()?.good ?? null;
+    if (!want) return false;
+    const c = this.crateOf(want);
     const img = this.lift(c);
     this.hand.follow('grab', () => ({ x: img.x, y: img.y }));
-    const into = this.basketIn();
+    const into = this.phase === 'guest' ? this.guest!.who.mouthAt : { x: this.basketIn().x, y: this.basketIn().y - 30 * k };
+    const phase = this.phase;
     this.tweens.add({
       targets: img,
       x: into.x,
-      y: into.y - 30 * this.L.k,
+      y: into.y,
       duration: T.helpMs,
       delay: 250,
       ease: 'Sine.easeInOut',
       onComplete: () => {
         this.helped();
-        if (!w.got) this.intoBasket(w, img);
+        if (phase === 'guest' && this.phase === 'guest') return this.toGuest(c, img);
+        const w = this.wants.find((q) => !q.got && q.good === c.good);
+        if (w && this.phase === 'shop') this.intoBasket(w, img);
         else img.destroy();
       },
     });
@@ -521,16 +1116,46 @@ export class MarketScene extends MiniGame {
   // ---------------------------------------------------------------- touch
 
   protected down(p: Phaser.Input.Pointer, at: P) {
-    if (this.phase !== 'shop') return;
-    if (this.onList(at)) {
+    const k = this.L.k;
+    if (this.phase === 'mixed') {
+      const it = this.mixedAt(at);
+      if (it) this.tapMixed(it);
+      return;
+    }
+    if (this.phase === 'pay') {
+      const pay = this.pay;
+      if (!pay || pay.busy) return;
+      if (this.level === 2) {
+        const cw = (this.stall.x1 - this.stall.x0) / 3;
+        const pile = pay.piles.find((q) => Math.abs(q.x - at.x) < cw / 2 && Math.abs(q.y - at.y) < 150 * k);
+        if (pile) {
+          sfx(this, 'tap', { volume: 0.7 });
+          this.pickPile(pile);
+        }
+        return;
+      }
+      if (pay.purse && this.near(at, pay.purse, Math.max(130 * k, pay.purse.displayWidth / 2 + 20 * k))) {
+        const coin = this.add.image(at.x, at.y - 40 * k, 'market-coin').setScale(pay.coinScale).setDepth(600);
+        boing(this, pay.purse, 0.08);
+        sfx(this, 'tap', { volume: 0.7 });
+        this.coinHeld = { img: coin, from: { x: at.x, y: at.y }, moved: 0 };
+        this.own(p);
+      }
+      return;
+    }
+    if (this.phase !== 'shop' && this.phase !== 'guest') return;
+    if (this.phase === 'shop' && this.onList(at)) {
       if (this.level === 2) this.peek();
       else if (this.list) boing(this, this.list.paper, 0.05);
       return;
     }
-    const k = this.L.k;
     const slotW = (this.stall.x1 - this.stall.x0) / this.cols;
     const c = this.crates.find((q) => Math.abs(q.x - at.x) < slotW / 2 && at.y < q.y + 30 * k && at.y > q.y - (this.L.Y(900) - this.L.Y(620)) + 20 * k);
-    if (!c) return;
+    if (!c) {
+      // a tap on the visitor: she smiles (nothing else)
+      if (this.phase === 'guest' && this.guest && this.near(at, this.guest.who.box, 160 * k)) boing(this, this.guest.who.box, 0.05);
+      return;
+    }
     const img = this.lift(c);
     this.tweens.add({ targets: img, scale: c.scale * 1.12, duration: 120 });
     sfx(this, 'tap', { volume: 0.7 });
@@ -539,30 +1164,51 @@ export class MarketScene extends MiniGame {
   }
 
   protected move(p: Phaser.Input.Pointer) {
-    const h = this.held;
-    if (!h) return;
     const L = this.L;
+    const h = this.held ?? this.coinHeld;
+    if (!h) return;
     h.moved = Math.max(h.moved, Math.hypot(p.worldX - h.from.x, p.worldY - h.from.y));
     h.img.setPosition(Phaser.Math.Clamp(p.worldX, 0, L.W), Phaser.Math.Clamp(p.worldY - 30 * L.k, 0, L.H));
     sway(this, h.img, p.worldX - p.prevPosition.x, L.k);
   }
 
   protected up(_p: Phaser.Input.Pointer, cancelled: boolean) {
+    const k = this.L.k;
+    const ch = this.coinHeld;
+    if (ch) {
+      this.coinHeld = null;
+      settle(this, ch.img);
+      const pay = this.pay;
+      const tap = ch.moved < T.tapMove * k;
+      const s = pay?.slate;
+      const onSlate = !!s && Math.abs(ch.img.x - s.x) < s.displayWidth / 2 + 60 * k && Math.abs(ch.img.y - s.y) < s.displayHeight / 2 + 60 * k;
+      if (!cancelled && pay && this.phase === 'pay' && (tap || onSlate)) return this.coinIn(ch.img);
+      if (!cancelled) this.miss();
+      const to = pay?.purse ?? ch.img;
+      this.tweens.add({ targets: ch.img, x: to.x, y: to.y - 30 * k, scale: 0.3 * k, alpha: 0, duration: 320, onComplete: () => ch.img.destroy() });
+      return;
+    }
     const h = this.held;
     this.held = null;
     if (!h) return;
-    const k = this.L.k;
     settle(this, h.img);
-    const b = this.basket;
     const tap = h.moved < T.tapMove * k;
-    const inBasket = this.near({ x: h.img.x, y: h.img.y }, { x: b.x, y: b.y - 40 * k }, T.reach * k);
-    if (!cancelled && (tap || inBasket)) return this.offer(h.crate, h.img);
+    if (this.phase === 'guest' && this.guest) {
+      const m = this.guest.who.mouthAt;
+      const atGuest = this.near({ x: h.img.x, y: h.img.y }, m, T.reach * k) || this.near({ x: h.img.x, y: h.img.y }, this.guest.who.box, T.reach * k);
+      if (!cancelled && (tap || atGuest)) return this.toGuest(h.crate, h.img);
+    } else {
+      const b = this.basket;
+      const inBasket = this.near({ x: h.img.x, y: h.img.y }, { x: b.x, y: b.y - 40 * k }, T.reach * k);
+      if (!cancelled && (tap || inBasket)) return this.offer(h.crate, h.img);
+    }
     // Let go elsewhere (or a lost touch): it floats back to its crate, gently.
     if (!cancelled) this.miss();
     this.tweens.add({ targets: h.img, x: h.crate.item.x, y: h.crate.item.y, scale: h.crate.scale, angle: 0, duration: 360, ease: 'Back.easeOut', onComplete: () => h.img.destroy() });
   }
 
   protected lookTarget() {
-    return this.held ? { x: this.held.img.x, y: this.held.img.y } : null;
+    const h = this.held ?? this.coinHeld;
+    return h ? { x: h.img.x, y: h.img.y } : null;
   }
 }
