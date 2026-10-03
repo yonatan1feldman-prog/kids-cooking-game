@@ -524,6 +524,56 @@ export const IMAGES = {
   'art-find-bird': { size: [200, 160] },
   'art-find-cat': { size: [260, 220] },
   'art-find-rainbow': { size: [360, 210] },
+  // ---- The clinic world (research/clinic-spec.md; assets-src/images-b-clinic, tools/gen_clinic.py). Anchors: ART.clinic.
+  /** The title's two worlds: cook with Mom, or help the patients with Mom the nurse (shown at 1.4x like btn-play). */
+  'btn-world-kitchen': { size: [240, 240], raster: 1.4 },
+  'btn-world-clinic': { size: [240, 240], raster: 1.4 },
+  /** Mom the nurse: her pinafore (in place of mom-body) and her cap (after mom-hair); same 800 frame. */
+  'mom-body-nurse': { size: [800, 800] },
+  'mom-cap-nurse': { size: [800, 800] },
+  /** The treatment room (a counter like the kitchen's) and the waiting room (a floor), 2400x1080 like the kitchen. */
+  'bg-clinic': { size: [2400, 1080] },
+  'bg-clinic-wait': { size: [2400, 1080] },
+  'clinic-bed': { size: [900, 320] },
+  'clinic-bench': { size: [1500, 420] },
+  'clinic-slot': { size: [240, 240] },
+  'clinic-chart': { size: [300, 380] },
+  'tool-thermometer': { size: [240, 240] },
+  'tool-stethoscope': { size: [240, 240] },
+  'tool-plaster': { size: [240, 240] },
+  'tool-cream': { size: [240, 240] },
+  'tool-spray': { size: [240, 240] },
+  'tool-tweezers': { size: [240, 240] },
+  'tool-magnifier': { size: [240, 240] },
+  'tool-toothbrush': { size: [240, 240] },
+  'tool-cup': { size: [240, 240] },
+  'tool-syrup': { size: [240, 240] },
+  'tool-cloth': { size: [240, 240] },
+  'tool-hotbottle': { size: [240, 240] },
+  /** The close-ups (light grey, tinted to the patient in the game; the mouth is not tinted) and the magnifier's rim. */
+  'lens-knee': { size: [520, 520] },
+  'lens-paw': { size: [520, 520] },
+  'lens-tummy': { size: [520, 520] },
+  'lens-mouth': { size: [520, 520] },
+  'lens-ring': { size: [600, 600] },
+  'clinic-scrape': { size: [200, 140] },
+  'clinic-dust': { size: [220, 160] },
+  'clinic-splinter': { size: [160, 70] },
+  'clinic-cream': { size: [180, 120] },
+  'clinic-dirt': { size: [100, 90] },
+  'clinic-cheek': { size: [110, 70] },
+  'clinic-sweat': { size: [60, 80] },
+  'clinic-bump': { size: [120, 110] },
+  'sticker-star': { size: [200, 200] },
+  'sticker-heart': { size: [200, 200] },
+  'sticker-smile': { size: [200, 200] },
+  'sick-fever': { size: [200, 200] },
+  'sick-cough': { size: [200, 200] },
+  'sick-tummy': { size: [200, 200] },
+  'sick-tooth': { size: [200, 200] },
+  'sick-knee': { size: [200, 200] },
+  'sick-paw': { size: [200, 200] },
+  'photo-frame-clinic': { size: [700, 780] },
 } as const satisfies Record<string, { size: readonly [number, number]; raster?: number }>;
 
 /** Texture size of an image: its native size, times its `raster` factor if it is shown bigger than native. */
@@ -574,7 +624,7 @@ export const SCENERY_KEYS: readonly ImageKey[] = [
 ];
 
 export const CORE_IMAGES: readonly ImageKey[] = [
-  'bg-kitchen-landscape', ...KITCHEN_KEYS, ...SCENERY_KEYS, 'logo-cooking-with-mom', 'star', 'btn-play', 'btn-home', 'btn-done', 'hand-hint',
+  'bg-kitchen-landscape', ...KITCHEN_KEYS, ...SCENERY_KEYS, 'logo-cooking-with-mom', 'star', 'btn-play', 'btn-world-kitchen', 'btn-world-clinic', 'btn-home', 'btn-done', 'hand-hint',
   'card-pizza', 'card-salad', 'card-cookies', 'card-smoothie', 'card-pancakes', 'card-soup', 'card-cake',
   'card-skewers', 'card-garden', 'card-market', 'card-dishes', 'card-art',
   'character-body', 'character-eyes-open', 'character-eyes-blink', 'character-eyes-surprised', 'character-eyes-happy',
@@ -797,6 +847,29 @@ RECIPE_ASSETS.art = {
     'name-blue', 'name-yellow', 'name-pink', 'crayon', 'xylo', 'splosh', 'squeak', ...ART_SONG,
   ],
 };
+/** The clinic (ClinicScene, the second world, chosen on the title): loaded on its button like a recipe. The patients are
+ * the guests' layers (core/guests.ts) and Pipa (core). */
+const CLINIC_SONG = ['music-clinic-base', 'music-clinic-tune', 'music-clinic-party', 'music-clinic-up'];
+RECIPE_ASSETS.clinic = {
+  images: [
+    'mom-body-nurse', 'mom-cap-nurse', 'bg-clinic', 'bg-clinic-wait', 'clinic-bed', 'clinic-bench', 'clinic-slot', 'clinic-chart',
+    'tool-thermometer', 'tool-stethoscope', 'tool-plaster', 'tool-cream', 'tool-spray', 'tool-tweezers', 'tool-magnifier',
+    'tool-toothbrush', 'tool-cup', 'tool-syrup', 'tool-cloth', 'tool-hotbottle', 'lens-knee', 'lens-paw', 'lens-tummy',
+    'lens-mouth', 'lens-ring', 'clinic-scrape', 'clinic-dust', 'clinic-splinter', 'clinic-cream', 'clinic-dirt', 'clinic-cheek',
+    'clinic-sweat', 'clinic-bump', 'sticker-star', 'sticker-heart', 'sticker-smile', 'sick-fever', 'sick-cough', 'sick-tummy',
+    'sick-tooth', 'sick-knee', 'sick-paw', 'photo-frame-clinic', 'bubble', 'water-drop',
+    ...IMAGE_KEYS.filter((k) => /^guest-(turtle|penguin|giraffe)-/.test(k)),
+  ],
+  sounds: [
+    'vo-clinic-hello', 'vo-clinic-next', 'vo-hi-turtle', 'vo-hi-penguin', 'vo-hi-giraffe', 'vo-hi-pipa', 'vo-sick-fever',
+    'vo-sick-cough', 'vo-sick-tummy', 'vo-sick-tooth', 'vo-sick-knee', 'vo-sick-paw', 'vo-clinic-what', 'vo-clinic-look',
+    'vo-clinic-plan', 'vo-clinic-first', 'vo-clinic-notyet', 'vo-tool-thermometer', 'vo-thermo-hot', 'vo-thermo-ok',
+    'vo-tool-cloth', 'vo-tool-syrup', 'vo-tool-stethoscope', 'vo-stetho-find', 'vo-stetho-heart', 'vo-tool-cup', 'vo-tool-rinse',
+    'vo-tool-hotbottle', 'vo-say-aah', 'vo-tool-toothbrush', 'vo-tool-spray', 'vo-tool-cream', 'vo-tool-plaster',
+    'vo-tool-tweezers', 'vo-tool-magnifier', 'vo-found-it', 'vo-clinic-better', 'vo-sticker', 'vo-clinic-bye-patient',
+    'vo-clinic-photo', 'vo-clinic-done', 'heartbeat', 'cough', 'gurgle', 'spray', 'sticky', 'brush', 'wheeze', ...CLINIC_SONG,
+  ],
+};
 /** A guest's own layers: loaded when the sharing starts (all three, the two not invited are freed at once). */
 export const GUEST_LAYERS: readonly ImageKey[] = IMAGE_KEYS.filter((k) => k.startsWith('guest-') && !k.startsWith('guest-card-'));
 
@@ -824,6 +897,8 @@ export const SOUND_KEYS = [
   'char-yay', 'char-giggle', 'char-wow', 'pipa-sneeze',
   // the art corner (synthesised: audio-src/scripts/make_art_sfx.py)
   'crayon', 'xylo', 'splosh', 'squeak',
+  // the clinic (synthesised: audio-src/scripts/make_clinic_sfx.py)
+  'heartbeat', 'cough', 'gurgle', 'spray', 'sticky', 'brush', 'wheeze',
 ] as const;
 export type SoundKey = (typeof SOUND_KEYS)[number];
 
@@ -1042,6 +1117,25 @@ export const ART = {
     sheet: { x: 112, y: 100, w: 776, h: 620 },
     /** art-window-frame (800x640): the glass inside the frame (the fog covers it). */
     glass: { x: 44, y: 44, w: 712, h: 520 },
+  },
+  /** The clinic (assets-src/images-b-clinic/tools/gen_clinic.py prints it). */
+  clinic: {
+    /** Each tool's working point in its 240 frame (the bulb, the chest piece, the bristles, the spoon's bowl...). */
+    tip: {
+      thermometer: { x: 174, y: 174 }, stethoscope: { x: 176, y: 200 }, plaster: { x: 120, y: 120 }, cream: { x: 68, y: 46 },
+      spray: { x: 52, y: 50 }, tweezers: { x: 58, y: 192 }, magnifier: { x: 100, y: 100 }, toothbrush: { x: 74, y: 65 },
+      cup: { x: 120, y: 120 }, syrup: { x: 80, y: 168 }, cloth: { x: 120, y: 120 }, hotbottle: { x: 120, y: 150 },
+    },
+    /** lens-mouth (520): the eight teeth's centres; lens-knee: the knee; lens-paw: where the splinter goes in. */
+    teeth: [[155, 190], [222, 172], [298, 172], [365, 190], [165, 350], [228, 368], [292, 368], [355, 350]] as readonly (readonly [number, number])[],
+    knee: { x: 320, y: 285 },
+    paw: { x: 262, y: 340 },
+    /** clinic-chart (300x380): the centres of its four rows. */
+    chartRows: [[150, 104], [150, 175], [150, 246], [150, 316]] as readonly (readonly [number, number])[],
+    /** clinic-bed (900x320): the cushion's top (where a patient sits); clinic-bench (1500x420): its seat. */
+    bedSeat: 112,
+    benchSeat: 252,
+    photoWindow: { x: 80, y: 80, w: 540, h: 540 },
   },
   /** Washing up (assets-src/images-b-minigames/tools/gen_minigames.py prints it). */
   dishes: {

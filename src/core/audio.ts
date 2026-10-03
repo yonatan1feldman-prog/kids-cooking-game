@@ -40,7 +40,7 @@ export const MUSIC = {
 } as const;
 
 /** The songs (`music.play`); their tempo is set in make_music.py and copied here for the beat. */
-export const SONGS = { kitchen: { bpm: 128 }, outside: { bpm: 124 }, art: { bpm: 120 } } as const;
+export const SONGS = { kitchen: { bpm: 128 }, outside: { bpm: 124 }, art: { bpm: 120 }, clinic: { bpm: 112 } } as const;
 export type Song = keyof typeof SONGS;
 const STEMS = ['base', 'tune', 'party'] as const;
 type Stem = (typeof STEMS)[number];
@@ -107,6 +107,14 @@ export type VoiceKey =
   | 'vo-pick-art' | 'vo-art-what' | 'vo-trace' | 'vo-trace-done' | 'vo-dots' | 'vo-dots-done' | 'vo-colour' | 'vo-colour-copy'
   | 'vo-colour-mom' | 'vo-colour-done' | 'vo-mirror' | 'vo-mirror-done' | 'vo-mirror-plate' | 'vo-steam' | 'vo-steam-find'
   | 'vo-steam-done'
+  // the clinic (Mom the nurse)
+  | 'vo-pick-clinic' | 'vo-clinic-hello' | 'vo-clinic-next' | 'vo-hi-turtle' | 'vo-hi-penguin' | 'vo-hi-giraffe' | 'vo-hi-pipa'
+  | 'vo-sick-fever' | 'vo-sick-cough' | 'vo-sick-tummy' | 'vo-sick-tooth' | 'vo-sick-knee' | 'vo-sick-paw' | 'vo-clinic-what'
+  | 'vo-clinic-look' | 'vo-clinic-plan' | 'vo-clinic-first' | 'vo-clinic-notyet' | 'vo-tool-thermometer' | 'vo-thermo-hot'
+  | 'vo-thermo-ok' | 'vo-tool-cloth' | 'vo-tool-syrup' | 'vo-tool-stethoscope' | 'vo-stetho-find' | 'vo-stetho-heart'
+  | 'vo-tool-cup' | 'vo-tool-rinse' | 'vo-tool-hotbottle' | 'vo-say-aah' | 'vo-tool-toothbrush' | 'vo-tool-spray'
+  | 'vo-tool-cream' | 'vo-tool-plaster' | 'vo-tool-tweezers' | 'vo-tool-magnifier' | 'vo-found-it' | 'vo-clinic-better'
+  | 'vo-sticker' | 'vo-clinic-bye-patient' | 'vo-clinic-photo' | 'vo-clinic-done'
   | CountKey | TempKey | NameKey;
 
 /** Mom counting (count-1..10) and saying the oven temperature (temp-50..250). */
