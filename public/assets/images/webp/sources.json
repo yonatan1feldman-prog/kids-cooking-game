@@ -244,16 +244,6 @@
   "w": 240,
   "h": 240
  },
- "btn-world-clinic": {
-  "sha1": "85b9fa5c7378fc365ef799f4dbcf1c37b3f989f8",
-  "w": 336,
-  "h": 336
- },
- "btn-world-kitchen": {
-  "sha1": "2eb28f3357188bd392c052cd3a7003dde7442af8",
-  "w": 336,
-  "h": 336
- },
  "bubble": {
   "sha1": "f8c6a48eab7e46109c099d5e28fb5825a688b790",
   "w": 240,
@@ -501,23 +491,28 @@
  },
  "clinic-cream": {
   "sha1": "36a08cae3c33cb93c237f30ebc5be6535e05d4b3",
-  "w": 180,
-  "h": 120
+  "w": 306,
+  "h": 204
  },
  "clinic-dirt": {
   "sha1": "2c25c154799ded40aa50794e21d9ffcacf5e1ef5",
-  "w": 100,
-  "h": 90
+  "w": 170,
+  "h": 153
  },
  "clinic-dust": {
   "sha1": "24fee45df8d797820137b4163718cb203e2ccfef",
-  "w": 220,
-  "h": 160
+  "w": 374,
+  "h": 272
+ },
+ "clinic-eye-red": {
+  "sha1": "6c726ec91f84767ca9abcf91c9371f3e6127a674",
+  "w": 884,
+  "h": 884
  },
  "clinic-scrape": {
   "sha1": "c7588ba1bc0ac897a70a66aef90d06b5f9ef63e2",
-  "w": 200,
-  "h": 140
+  "w": 340,
+  "h": 238
  },
  "clinic-slot": {
   "sha1": "ccf2f17871b9bbe9232676bf06a55b163e1edb6a",
@@ -526,8 +521,8 @@
  },
  "clinic-splinter": {
   "sha1": "52fbc8a80c78592aa180eacbd72936fe7e1ac1c6",
-  "w": 160,
-  "h": 70
+  "w": 272,
+  "h": 119
  },
  "clinic-spot": {
   "sha1": "06494c13d998dbb48d72dbcfe28bce8b89dc4ade",
@@ -541,8 +536,8 @@
  },
  "clinic-toy": {
   "sha1": "b1305ac15fce65b1250c888fee52a549391cd113",
-  "w": 150,
-  "h": 130
+  "w": 255,
+  "h": 221
  },
  "colander": {
   "sha1": "1cdcf416045858709ed3bfa65c8529ba5e71eb43",
@@ -694,6 +689,16 @@
   "w": 360,
   "h": 300
  },
+ "ear-bug": {
+  "sha1": "e77d585d876eb9fa38ddfe61b637741efb286e96",
+  "w": 221,
+  "h": 204
+ },
+ "ear-wax": {
+  "sha1": "dce4a0759f3f8976b4c5e50a00e1d0cab8453412",
+  "w": 153,
+  "h": 136
+ },
  "egg-1": {
   "sha1": "09dbd05694b01b290e24ea8cb81a984999fc4976",
   "w": 400,
@@ -708,6 +713,11 @@
   "sha1": "4f8646663a7c5957cb84092d56d03664cb28945f",
   "w": 400,
   "h": 440
+ },
+ "eye-speck": {
+  "sha1": "8731fb1a626487bd79f031f6ac8e20633f85495b",
+  "w": 153,
+  "h": 85
  },
  "faucet": {
   "sha1": "61f616bdc7d7085177015a53839eb5b6aa299274",
@@ -728,6 +738,11 @@
   "sha1": "65195daf2cfca3f56d5d0b223082867e1f035195",
   "w": 400,
   "h": 520
+ },
+ "food-bit": {
+  "sha1": "c3916ba479287a3f5e4fb4bfb7009d04733ad704",
+  "w": 153,
+  "h": 136
  },
  "frosting-blob": {
   "sha1": "77c51ed92df92710d25854696fba4c89d0ee0036",
@@ -953,6 +968,21 @@
   "sha1": "e323227f53a2240ebf94f3969b973f40834fe70e",
   "w": 200,
   "h": 320
+ },
+ "germ-a": {
+  "sha1": "b55a7ded7f86279d2fdef5dbcf0a200765a38615",
+  "w": 221,
+  "h": 221
+ },
+ "germ-b": {
+  "sha1": "c78afa30c77304dcff3e028a4e6d40b62454bc0d",
+  "w": 221,
+  "h": 221
+ },
+ "germ-c": {
+  "sha1": "52627541d7c9495c8481695bcacd1039fdbb114e",
+  "w": 221,
+  "h": 221
  },
  "glass-empty": {
   "sha1": "a16f8a0ebedd3d54931d1a35945029c4168a2906",
@@ -1394,30 +1424,50 @@
   "w": 520,
   "h": 520
  },
+ "lens-ear": {
+  "sha1": "725da78184f355a303f3806d2bd43c894510ab57",
+  "w": 884,
+  "h": 884
+ },
+ "lens-eye": {
+  "sha1": "b93ed4341d94d64cdefbd62f81e7049949d16000",
+  "w": 884,
+  "h": 884
+ },
+ "lens-eye-ball": {
+  "sha1": "da64f16e0bfbe762a0023e4a0dba93f6f81c45c0",
+  "w": 884,
+  "h": 884
+ },
  "lens-knee": {
   "sha1": "3c32e090746f1021356280ef53908abe2a63ad83",
-  "w": 520,
-  "h": 520
+  "w": 884,
+  "h": 884
  },
  "lens-mouth": {
   "sha1": "6b345f0be61b6a862fa4d282ad0befc08066f276",
-  "w": 520,
-  "h": 520
+  "w": 884,
+  "h": 884
  },
  "lens-paw": {
   "sha1": "430745e7ade07e66112320d22209a1228abb8cdb",
-  "w": 520,
-  "h": 520
+  "w": 884,
+  "h": 884
  },
  "lens-ring": {
   "sha1": "5ed812d35bc251818f4c51a7762564757ef90de6",
-  "w": 600,
-  "h": 600
+  "w": 1020,
+  "h": 1020
  },
  "lens-tummy": {
   "sha1": "f6910ef1572978cc5b60de09b263c9236b4024b4",
-  "w": 520,
-  "h": 520
+  "w": 884,
+  "h": 884
+ },
+ "lens-xray": {
+  "sha1": "d2ada6553ff2ffa80fdfd4c799a45836e77c4307",
+  "w": 884,
+  "h": 884
  },
  "lettuce-head": {
   "sha1": "03156188eb53ee7c95f8452200576ba4e5d8989a",
@@ -2014,6 +2064,16 @@
   "w": 200,
   "h": 200
  },
+ "sick-ear": {
+  "sha1": "928fa9459935e131a3ca05171549ee0a5dfd1c29",
+  "w": 200,
+  "h": 200
+ },
+ "sick-eye": {
+  "sha1": "8c7366088352d99be2fe2eab5494045576f75b9b",
+  "w": 200,
+  "h": 200
+ },
  "sick-fever": {
   "sha1": "272e2e508ccc1d513491bb649c3961a45723c623",
   "w": 200,
@@ -2169,6 +2229,11 @@
   "w": 240,
   "h": 240
  },
+ "tool-cotton": {
+  "sha1": "53a49803977715a2cf6c247f32036eaa099e905c",
+  "w": 240,
+  "h": 240
+ },
  "tool-cream": {
   "sha1": "fb8f7fe4faba739d1ac6df22a065b77400b69088",
   "w": 240,
@@ -2179,8 +2244,28 @@
   "w": 240,
   "h": 240
  },
+ "tool-eyedrops": {
+  "sha1": "c337d2e894cfc9083164bb4b60fe5086c0d35823",
+  "w": 240,
+  "h": 240
+ },
+ "tool-filler": {
+  "sha1": "489e56f782c44136e7280a414b6155a81c4085f2",
+  "w": 240,
+  "h": 240
+ },
  "tool-hotbottle": {
   "sha1": "4c43d674dc29cec12fe32749c4b46ee0c0139695",
+  "w": 240,
+  "h": 240
+ },
+ "tool-icepack": {
+  "sha1": "8047ebcd82f4a0e43903d9fe50103f2e49fb73de",
+  "w": 240,
+  "h": 240
+ },
+ "tool-light": {
+  "sha1": "d7d01b29e88291fa96e31025adebfcc8f266253a",
   "w": 240,
   "h": 240
  },
@@ -2209,6 +2294,11 @@
   "w": 240,
   "h": 240
  },
+ "tool-swab": {
+  "sha1": "0d0b0a50ebcbbe64251952112940a2b27bd681a2",
+  "w": 240,
+  "h": 240
+ },
  "tool-syrup": {
   "sha1": "dfda9ae978789ef9ac2d82bc211f87e8fd93a7af",
   "w": 240,
@@ -2233,6 +2323,21 @@
   "sha1": "290327f65d9b5f84696c827cd81774b9a98b8272",
   "w": 240,
   "h": 240
+ },
+ "tool-xray": {
+  "sha1": "820337b81dbc364b4b2d84c685fe48866bce0660",
+  "w": 240,
+  "h": 240
+ },
+ "tooth-hole": {
+  "sha1": "9550fcb1d0fb239a62143bac132dc5399612a559",
+  "w": 119,
+  "h": 119
+ },
+ "tooth-star": {
+  "sha1": "c969a6fd14af736f1db585137f066b514307a14f",
+  "w": 153,
+  "h": 153
  },
  "topping-bin": {
   "sha1": "0a96df93db413a641f89d656efb9b5fd0a5472e8",
@@ -2413,5 +2518,15 @@
   "sha1": "e893945d4aa6f17f93f9a2d594a8fb7a372a1f20",
   "w": 440,
   "h": 320
+ },
+ "world-card-clinic": {
+  "sha1": "518bfc92d0deb395642f2e2ac05e02f517595c21",
+  "w": 700,
+  "h": 760
+ },
+ "world-card-kitchen": {
+  "sha1": "8ae8f93ab6141ec85ba9133f1558238fb375bbc7",
+  "w": 700,
+  "h": 760
  }
 }

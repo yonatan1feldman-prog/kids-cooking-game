@@ -1500,86 +1500,79 @@ window.__artVerify = async (kind, level, opts = {}) => {
   return { ...r, level, secs: Math.round((__voice.now() - t0) / 1000), helps: __voLog.filter((e) => e.key === 'vo-help').length, problems: vc.problems, keys: __voLog.map((e) => e.key).join(' ') };
 };
 
-// ---- The clinic: __clinicPlay({wrong, wrongTool, none, gap}) plays a whole visit (pick, diagnose on big chef, every
-// tool move, the sticker) like a child; __clinicVerify(level, opts): the same on the virtual clock with the simulated
-// voice, from the clinic's start to the title. `none`: no touch at all (Mom helps to the end).
+// ---- The clinic (round 3, the Doctor Games loop): __clinicPlay({wrongTool, none, gap, mid}) plays a whole visit like a
+// child: pick a patient, then every station (pick its tool from the tray, work on each target: rub, hold, touch, drip,
+// find, pull out, give), the sticker; __clinicVerify(level, opts): the same on the virtual clock with the simulated voice,
+// from the clinic's start to the title. `none`: no touch at all (Mom helps to the end). `mid(what)`: awaited mid-action.
 window.__clinicPlay = async (opts = {}) => {
   const m = game.scene.getScene('Clinic');
   const log = [];
   const k = m.L.k;
   const fingerFor = (p) => [p.x + 26 * k, p.y + 66 * k];
-  let wrongDone = false, wrongToolDone = false;
-  for (let i = 0; i < 3000 && m.scene.isActive(); i++) {
+  let wrongToolDone = false;
+  const gap = opts.gap ?? 700;
+  for (let i = 0; i < (opts.maxSteps ?? 3000) && m.scene.isActive(); i++) {
     const ph = m.shown.phase;
     if (opts.none || m.helping) { await __run(500); continue; }
     if (ph === 'pick') {
       const v = m.visit.find((q) => !q.done);
       const c = v.view.at({ x: 300, y: 430 });
+      if (opts.mid) await opts.mid('pick');
       __tap(c.x, c.y); log.push('pick ' + v.p.id + '-' + v.a.id);
-      await __run(opts.gap ?? 1500);
-    } else if (ph === 'diagnose') {
-      let c = m.cards.find((q) => q.id === m.cur.a.id);
-      if (opts.wrong && !wrongDone) { wrongDone = true; c = m.cards.find((q) => q.id !== m.cur.a.id); log.push('wrong card'); }
-      else log.push('card ' + c.id);
-      __tap(c.img.x, c.img.y);
-      await __run(opts.gap ?? 1200);
+      await __run(gap * 2);
     } else if (ph === 'sticker') {
+      if (opts.mid) await opts.mid('sticker');
       const s = m.stickers[Math.floor(Math.random() * m.stickers.length)];
       __tap(s.x, s.y); log.push('sticker ' + s.texture.key);
-      await __run(opts.gap ?? 1500);
-    } else if (ph === 'tool') {
-      const st = m.step;
+      await __run(gap * 2);
+    } else if (ph === 'tool' && !m.zoomBusy) {
       if (opts.wrongTool && !wrongToolDone) {
-        const w = m.tools.find((q) => q.id !== st.tool && !q.away);
-        if (w) { wrongToolDone = true; __tap(w.img.x, w.img.y); log.push('wrong tool ' + w.id); await __run(opts.gap ?? 1200); continue; }
+        const w = m.tools.find((q) => !q.away && !m.steps.some((s, j) => s.tool === q.id && !m.doneSt[j]));
+        if (w) { wrongToolDone = true; __tap(w.img.x, w.img.y); log.push('wrong tool ' + w.id); await __run(gap * 1.5); continue; }
       }
-      const t = m.toolOf(st.tool);
-      const tg = m.target();
-      if (!t || !tg) { await __run(300); continue; }
+      // big chef: she chooses a station that can be done now (the first one, like a child who knows)
+      let si = m.si;
+      if (m.level === 2) { const j = m.steps.findIndex((q, j) => m.available(j)); if (j >= 0) si = j; }
+      const st = m.steps[si];
+      const t = st && m.toolOf(st.tool);
+      if (!t) { await __run(300); continue; }
       const start = [t.img.x, t.img.y];
-      log.push(st.tool + ' ' + st.act);
-      if (st.act === 'drop') {
-        await __drag([start, [(start[0] + tg.x) / 2, Math.min(start[1], tg.y) - 60], fingerFor(tg)]);
-      } else if (st.act === 'hold') {
-        await __drag([start, fingerFor(tg)], { hold: true });
-        for (let j = 0; j < 12 && m.step === st && m.shown.phase === 'tool'; j++) { await __run(250); }
-        __touch('end', 1, ...fingerFor(tg));
-      } else if (st.act === 'listen') {
-        await __drag([start, fingerFor(tg)], { hold: true });
-        for (let j = 0; j < 40 && m.step === st && m.shown.phase === 'tool'; j++) {
-          // the next spot (or, finding by ear, a sweep that ends on the wheezy spot)
-          const g = m.target(); if (!g) break;
-          for (let q = 0; q < 6; q++) __touch('move', 1, ...fingerFor({ x: g.x + (q % 2 ? 3 : -3), y: g.y }));
+      log.push(st.tool + ' ' + st.act + ' ' + st.what);
+      __touch('start', 1, ...start);
+      // (the close-up opens first, if it has to)
+      for (let j = 0; j < 12 && (m.zoomBusy || !m.target()); j++) { __touch('move', 1, start[0] + (j % 2), start[1]); await __run(150); }
+      if (st.act === 'give') {
+        const tg = m.target();
+        if (tg) for (let q = 1; q <= 6; q++) __touch('move', 1, ...fingerFor({ x: start[0] + (tg.x - start[0]) * q / 6, y: start[1] + (tg.y - start[1]) * q / 6 }));
+        if (opts.mid) await opts.mid(log[log.length - 1]);
+        await __run(100);
+        __touch('end', 1, ...fingerFor(tg ?? { x: start[0], y: start[1] }));
+        await __run(gap);
+        continue;
+      }
+      for (let j = 0; j < 160 && m.station === st && m.shown.phase === 'tool'; j++) {
+        const g = m.target(); if (!g) break;
+        if (j === 2 && opts.mid) await opts.mid(log[log.length - 1]);
+        if (st.act === 'clean' && st.by === 'rub') {
+          for (let a = 0; a < Math.PI * 2; a += 0.6) __touch('move', 1, ...fingerFor({ x: g.x + Math.cos(a) * 30 * k, y: g.y + Math.sin(a) * 20 * k }));
+          await __run(60);
+        } else if (st.act === 'pull') {
+          __touch('move', 1, ...fingerFor(g));
+          await __run(150);
+          __touch('move', 1, ...fingerFor({ x: g.x + 2, y: g.y }));
+          for (let q = 1; q <= 12; q++) { __touch('move', 1, ...fingerFor({ x: g.x + 25 * q * k, y: g.y - 25 * q * k })); await __run(30); }
+          await __run(300);
+        } else if (st.act === 'touch' || (st.act === 'find' && st.what !== 'wheeze')) {
+          for (let q = 0; q <= 6; q++) __touch('move', 1, ...fingerFor({ x: g.x + (q % 2 ? 4 : -4), y: g.y }));
+          await __run(250);
+        } else {
+          // holding still (time, drops, finding by ear)
+          for (let q = 0; q < 3; q++) __touch('move', 1, ...fingerFor({ x: g.x + (q % 2 ? 2 : -2), y: g.y }));
           await __run(250);
         }
-        __touch('end', 1, ...fingerFor(m.target() ?? tg));
-      } else if (st.act === 'rub') {
-        await __drag([start, fingerFor(tg)], { hold: true });
-        for (let j = 0; j < 80 && m.step === st && m.shown.phase === 'tool'; j++) {
-          const g = m.target(); if (!g) break;
-          for (let a = 0; a < Math.PI * 2; a += 0.6) __touch('move', 1, ...fingerFor({ x: g.x + Math.cos(a) * 30, y: g.y + Math.sin(a) * 20 }));
-          await __run(60);
-        }
-        __touch('end', 1, ...fingerFor(tg));
-      } else if (st.act === 'dab') {
-        // (clinic round 2: touch every itchy spot with the cream, one after the other)
-        await __drag([start, fingerFor(tg)], { hold: true });
-        for (let j = 0; j < 20 && m.step === st && m.shown.phase === 'tool'; j++) {
-          const g = m.target(); if (!g) break;
-          for (let q = 0; q <= 6; q++) __touch('move', 1, ...fingerFor({ x: g.x + (q % 2 ? 4 : -4), y: g.y }));
-          await __run(300);
-        }
-        __touch('end', 1, ...fingerFor(m.target() ?? tg));
-      } else if (st.act === 'pull') {
-        await __drag([start, fingerFor(tg)], { hold: true });
-        await __run(150);
-        for (let q = 1; q <= 10; q++) __touch('move', 1, ...fingerFor({ x: tg.x + 25 * q, y: tg.y - 25 * q }));
-        __touch('end', 1, ...fingerFor({ x: tg.x + 250, y: tg.y - 250 }));
-      } else if (st.act === 'search') {
-        const l = m.lens;
-        await __drag([start, fingerFor({ x: l.at.x - 150 * k, y: l.at.y + 100 * k }), fingerFor({ x: l.at.x + 120 * k, y: l.at.y - 80 * k }), fingerFor(tg)]);
       }
-      await __run(opts.gap ?? 900);
+      __touch('end', 1, ...fingerFor(m.target() ?? { x: start[0], y: start[1] }));
+      await __run(gap);
     } else await __run(300);
     if (game.scene.isActive('Title')) break;
   }

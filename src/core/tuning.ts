@@ -302,19 +302,19 @@ export const TUNING = {
     freeHintMs: 15000, freeHelpMs: 15000, aliveMs: 2500, helpMs: 1300,
   },
   /**
-   * The clinic (ClinicScene, research/clinic-spec.md). Distances are world units x k, [level 1, level 2] where two.
-   * `patients` per visit; `reach` how near a tool's working point must come to its place; `holdMs` holding the
-   * thermometer, the spray or the warm bottle there; `listenMs` the stethoscope on a spot; `rub` brushing a tooth's
-   * spot or rubbing the cream in; `pull` how far the tweezers draw the splinter out; `findR` the magnifier finding it;
-   * `wheezeR` the stethoscope finding the wheezy spot (level 2, the sound grows louder within `hearR`); `decoys` the
-   * tools on the tray that are not needed; the chart (level 2) shows the plan `planMs`, a tap on it `peekMs`;
-   * `wiggle` how far the close-up sways while she brushes or rubs (level 2: it tickles). `helpMs` one move of Mom's hand.
+   * The clinic (ClinicScene; round 3, research/clinic-doctor-games.md). Distances are world units x k, [little, big] where
+   * two. `patients` per visit; `reach` how near a tool's working point must come to a target; `rub` the finger's travel
+   * that cleans one target (a germ, a tear, wax; the cream: `rubOne` for the one place); `timeMs` holding a tool on a
+   * target (the spray on a food bit or dirt, the thermometer, the ice pack, the tissue, listening, the warm bottle);
+   * `dripMs` between two drops; `findR` how near the magnifier / light / x-ray must come to show a hidden thing (the
+   * stethoscope finds the wheezy spot within `wheezeR`, it is heard louder within `hearR`); `pull` how far a gripped thing
+   * is drawn out (`magnetR` / `magnetPull` for the bell); `decoys` the tools on the tray not needed; `dodge` the share of
+   * a germ's cleaning at which it hops to another tooth (big chef, once); `helpMs` Mom's hand reaching for the target.
    */
   clinic: {
-    patients: 3, reach: 120, holdMs: [1600, 2000], listenMs: 700, rub: [700, 900], pull: 170, findR: 95,
-    wheezeR: 70, hearR: 330, decoys: [1, 2], teeth: [2, 4], planMs: 3200, peekMs: 2600, wiggle: 18, helpMs: 1100,
-    // clinic round 2: itchy spots to dab, how near the magnet catches the bell and how far it is pulled out
-    spots: [4, 6], magnetR: 150, magnetPull: 240,
+    patients: 3, reach: 120, rub: [240, 300], rubOne: [700, 900], timeMs: [650, 800], holdMs: [1500, 1800], dripMs: 520,
+    findR: 95, wheezeR: 70, hearR: 330, pull: 170, magnetR: 150, magnetPull: 240, decoys: [1, 2], dodge: 0.5, helpMs: 1100,
+    zoomMax: 1.6,
   },
   help: { pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150, chopEveryMs: 950, openMs: 1500, tempEveryMs: 1100, peelEveryMs: 900, candleEveryMs: 700, threadEveryMs: 700 },
 } as const;
