@@ -17,11 +17,21 @@ import { iconButton } from '../core/ui';
 import { MiniGame, visits, type P } from './MiniGame';
 
 const T = TUNING.art;
+/** The longest a finished picture may take to come alive and go back to the easel wall (normally about 6-9 s). */
+const ALIVE_MAX_MS = 16000;
 export type Kind = 'trace' | 'dots' | 'colour' | 'mirror' | 'steam';
 const KINDS: Kind[] = ['trace', 'dots', 'colour', 'mirror', 'steam'];
 type Brush = Paint | 'rainbow';
 /** A rising scale for the notes she hears as she goes (semitones over C: two octaves of the major scale). */
 const SCALE = [0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23, 24];
+/** How far p is from the segment a-b (any units). */
+function segDist(p: Pt, a: Pt, b: Pt) {
+  const dx = b[0] - a[0];
+  const dy = b[1] - a[1];
+  const l2 = dx * dx + dy * dy;
+  const t = l2 ? Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / l2)) : 0;
+  return Math.hypot(p[0] - (a[0] + dx * t), p[1] - (a[1] + dy * t));
+}
 const note = (i: number) => Math.pow(2, SCALE[Math.min(SCALE.length - 1, i % SCALE.length)] / 12) * 0.75;
 
 /** Her last colour (the next picture starts with it) and the picture decks (each picture once before any repeats). */
@@ -99,6 +109,11 @@ export class ArtScene extends MiniGame {
   private grid = { w: 24, h: 19, on: new Uint8Array(0) };
   private doneBtn?: Phaser.GameObjects.Image;
   private finished = false;
+  /** Ms since the picture finished (the way back to the easel wall has a safety net), and since the last check. */
+  private aliveFor = 0;
+  private checkIn = 0;
+  private restarting = false;
+  private dotsLast: P | null = null;
   // trace
   private trace?: { pic: TracePic; dense: Pt[][]; cps: Checkpoint[]; band: number; base: Layer; ink: Layer };
   // dots
@@ -124,7 +139,8 @@ export class ArtScene extends MiniGame {
     this.pen = null;
     this.doneBtn = undefined;
     this.potRing = undefined;
-    this.finished = false;
+    this.finished = this.restarting = false;
+    this.aliveFor = this.checkIn = 0;
     this.trace = this.dots = this.colour = this.mirror = this.steam = undefined;
     Object.assign(this.shown, { kind: null, pic: null, progress: 0, strokes: 0 });
   }
@@ -139,6 +155,9 @@ export class ArtScene extends MiniGame {
   }
 
   protected shutdown() {
+    // (the box first: every image drawn from a layer's texture is in it, also the butterfly's two wings; a texture is
+    // never removed under an image the renderer may still draw, as when the home button leaves mid-frame)
+    if (this.box?.active) this.box.destroy();
     for (const l of this.layers) {
       l.img.destroy();
       if (this.textures.exists(l.key)) this.textures.remove(l.key);
@@ -494,10 +513,14 @@ export class ArtScene extends MiniGame {
     const last = (pen.last ? this.toSheet(pen.last) : null) as Pt | null;
     this.crayon(t.ink, (pen as { lastQ?: Pt }).lastQ ?? last ?? q, q, this.css(this.brush), { glow: on, thin: !on });
     (pen as { lastQ?: Pt }).lastQ = q;
+    // (the finger's path since the last point, not only where it is now: a fast stroke on the phone, or a slow frame
+    // while Mom's hand draws, jumps far between two moves and would pass a checkpoint by)
+    const from = (pen as { lastP?: Pt }).lastP ?? p;
+    (pen as { lastP?: Pt }).lastP = p;
     if (!on) return;
     let lit = 0;
     for (const c of t.cps) {
-      if (c.lit || Math.hypot(c.at[0] - p[0], c.at[1] - p[1]) > t.band) continue;
+      if (c.lit || segDist(c.at, from, p) > t.band) continue;
       c.lit = true;
       lit++;
       const w = this.toWorld(c.at);
@@ -767,9 +790,14 @@ export class ArtScene extends MiniGame {
     const a = c.areas[i];
     const to = this.brush as Paint;
     if (c.anim) {
-      // the one spreading finishes at once
-      c.areas[c.anim.i].fill = c.anim.to;
+      // the one spreading finishes at once, and counts (its own timer then finds nothing to do): a second tap within
+      // fillMs used to skip the check, and a picture coloured to the end never finished
+      const j = c.anim.i;
+      c.areas[j].fill = c.anim.to;
       c.anim = null;
+      this.drawFills();
+      this.afterPaint(j);
+      if (this.finished || this.phase !== 'draw') return;
     }
     if (a.fill === to) return;
     const repaint = a.fill !== null;
@@ -801,9 +829,13 @@ export class ArtScene extends MiniGame {
         this.miss();
       }
     }
-    const done = this.level === 1 ? c.areas.every((q) => q.fill) : c.areas.every((q) => q.fill === q.mom);
     this.shown.progress = c.areas.filter((q) => (this.level === 1 ? q.fill : q.fill === q.mom)).length;
-    if (done) this.time.delayedCall(350, () => this.finish());
+    if (this.colourDone()) (this.setPhase('intro'), this.time.delayedCall(350, () => this.finish()));
+  }
+
+  private colourDone() {
+    const c = this.colour!;
+    return !c.anim && (this.level === 1 ? c.areas.every((q) => q.fill) : c.areas.every((q) => q.fill === q.mom));
   }
 
   /** Level 2: Mom's own little picture, framed, beside the sheet (above her head, or left of it). */
@@ -946,7 +978,7 @@ export class ArtScene extends MiniGame {
     m.shown = true;
     const L = this.L;
     const S = this.S;
-    this.doneBtn = iconButton(this, L, 'btn-done', S.done.x, S.done.y, () => this.phase === 'draw' && !this.helping && this.finish(), { hitPad: 30 }).setDepth(800);
+    this.doneBtn = iconButton(this, L, 'btn-done', S.done.x, S.done.y, () => this.phase === 'draw' && this.finish(), { hitPad: 30 }).setDepth(800);
     this.doneBtn.setScale(0);
     this.tweens.add({ targets: this.doneBtn, scale: L.k, duration: 360, ease: 'Back.easeOut' });
     sfx(this, 'pop');
@@ -1107,9 +1139,34 @@ export class ArtScene extends MiniGame {
     const h = st.targets[st.target];
     if (!h) return;
     if (this.phase !== 'draw') this.setPhase('draw');
+    // (wiped clear before Mom asked for it: the steam comes back over it, so there is something to find; a wipe that
+    // clears nothing new would never count it)
+    if (this.clearShare(h) >= T.findClear * 0.5) this.fogOver(h);
     // the name only after "Can you find the...": a name may cut the name playing, so it is not queued beside it
     this.say('vo-steam-find', { ttlMs: 5000, done: () => voice.say(h.name, { ttlMs: 4000, valid: () => this.scene.isActive() && !this.leaving && !this.finished }) });
     this.pipa?.showWish([h.key], [h.id], { maxRight: this.S.momFace.x0 - 10 * this.L.k, k: this.L.k });
+  }
+
+  /** Steam back over a hidden thing's box (level 2, when Mom asks for one she already wiped clear). */
+  private fogOver(h: Hidden) {
+    const st = this.steam!;
+    const Gd = this.grid;
+    const img = st.things.find((t) => t.h === h)!.img;
+    const cw = this.sheet.w / Gd.w;
+    const ch = this.sheet.h / Gd.h;
+    const g = st.fog.g;
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.fillStyle = 'rgba(240,245,246,0.94)';
+    for (let j = 0; j < Gd.h; j++) {
+      for (let i = 0; i < Gd.w; i++) {
+        const x = (i + 0.5) * cw;
+        const y = (j + 0.5) * ch;
+        if (!this.onGlass(i, j) || Math.abs(x - img.x) > img.displayWidth * 0.6 || Math.abs(y - img.y) > img.displayHeight * 0.6) continue;
+        st.level[j * Gd.w + i] = 1;
+        g.fillRect(i * cw - 1, j * ch - 1, cw + 2, ch + 2);
+      }
+    }
+    st.fog.dirty = true;
   }
 
   private found(t: { h: Hidden; img: Phaser.GameObjects.Image; found: boolean }) {
@@ -1195,13 +1252,46 @@ export class ArtScene extends MiniGame {
     const goBack = () => {
       if (back || this.leaving) return;
       back = true;
-      this.time.delayedCall(Math.max(0, ms + 300 - (this.time.now - t0)), () => this.capture(() => this.time.delayedCall(700, () => !this.leaving && this.scene.restart({ back: true }))));
+      this.time.delayedCall(Math.max(0, ms + 300 - (this.time.now - t0)), () => this.capture(() => this.time.delayedCall(700, () => this.backToWall())));
     };
     const t0 = this.time.now;
     if (kind === 'dots') this.say(line, { ttlMs: 4000, done: () => (name ? this.say(name, { ttlMs: 3000, done: goBack }) : goBack()) });
     else if (name) this.say(name, { ttlMs: 3000, done: () => this.say(line, { ttlMs: 4000, done: goBack }) });
     else this.say(line, { ttlMs: 4000, done: goBack });
     this.time.delayedCall(ms + 6500, goBack);
+  }
+
+  /** Back to the easel wall (once). */
+  private backToWall() {
+    if (this.restarting || this.leaving) return;
+    this.restarting = true;
+    this.scene.restart({ back: true });
+  }
+
+  /** Is the picture finished (the same rules as the checks along the way)? For the safety net in `tick`. */
+  private complete(): boolean {
+    switch (this.kind) {
+      case 'trace': {
+        const t = this.trace!;
+        const lvl = this.level - 1;
+        const share = t.cps.filter((c) => c.lit).length / t.cps.length;
+        return share >= T.traceDone[lvl] && t.pic.parts.every((_, i) => {
+          const mine = t.cps.filter((c) => c.part === i);
+          return mine.filter((c) => c.lit).length / mine.length >= T.partDone;
+        });
+      }
+      case 'dots':
+        return this.dots!.next >= this.dots!.views.length;
+      case 'colour':
+        return this.colourDone();
+      default:
+        return false;
+    }
+  }
+
+  /** Mom's help found nothing left to do while the picture waits for her: it is finished, so it finishes. */
+  protected nothingToHelp() {
+    if (this.phase === 'draw' && !this.finished && this.kind) this.finish();
   }
 
   /** A canvas the size of the sheet, its picture drawn in sheet units, shown over the sheet. */
@@ -1536,6 +1626,7 @@ export class ArtScene extends MiniGame {
   // ---------------------------------------------------------------- the picture goes into the memory book and on the wall
 
   private capture(then: () => void) {
+    const kind = this.kind;
     let called = false;
     const done = () => (called ? null : ((called = true), then()));
     this.time.delayedCall(2500, done);
@@ -1563,7 +1654,7 @@ export class ArtScene extends MiniGame {
             let data = c.toDataURL('image/webp', 0.75);
             if (!data.startsWith('data:image/webp')) data = c.toDataURL('image/png');
             this.shown.photo = data.length;
-            void keepPhoto(`art-${this.kind}`, data);
+            if (!this.restarting && kind) void keepPhoto(`art-${kind}`, data);
             void setWallDrawing(this.game, data);
           }
         } catch {
@@ -1812,8 +1903,9 @@ export class ArtScene extends MiniGame {
         const i = this.dotAt(at);
         if (i >= 0 && i === d.next) this.joinDot(i);
         else if (i >= 0 && !d.views[i].joined) return this.wrongDot(i);
-        if (!this.onSheet(at, 60 * this.L.k)) return;
+        if (!this.onSheet(at, 60 * this.L.k) || this.phase !== 'draw') return;
         this.own(p);
+        this.dotsLast = at;
         this.liveLine(at);
         return;
       }
@@ -1835,9 +1927,12 @@ export class ArtScene extends MiniGame {
       const d = this.dots!;
       this.liveLine(at);
       const nx = d.views[d.next];
+      const from = this.dotsLast ?? at;
+      this.dotsLast = at;
       if (nx) {
         const w = this.toWorld(nx.at);
-        if (Math.hypot(w.x - at.x, w.y - at.y) < T.dotTouch * this.L.k * 0.7) this.joinDot(d.next);
+        // (along the finger's path since the last move: a quick drag passes the dot between two moves)
+        if (segDist([w.x, w.y], [from.x, from.y], [at.x, at.y]) < T.dotTouch * this.L.k * 0.7) this.joinDot(d.next);
       }
       return;
     }
@@ -1854,6 +1949,7 @@ export class ArtScene extends MiniGame {
 
   protected up() {
     this.pen = null;
+    this.dotsLast = null;
     this.dots?.live.clear();
   }
 
@@ -1863,6 +1959,17 @@ export class ArtScene extends MiniGame {
 
   protected tick(delta: number) {
     if (this.colour?.anim) this.drawFills();
+    // Safety nets: a picture that is finished finishes even if the check along the way was missed (and the steam's
+    // wanted thing counts once it is clear, also when it was wiped before Mom asked for it); a finished picture always
+    // goes back to the easel wall.
+    if (this.finished) {
+      this.aliveFor += delta;
+      if (this.aliveFor > ALIVE_MAX_MS) this.backToWall();
+    } else if (this.phase === 'draw' && !this.owner && (this.checkIn += delta) > 500) {
+      this.checkIn = 0;
+      if (this.kind === 'steam' && this.level === 1) this.checkSteam();
+      else if (this.complete()) this.finish();
+    }
     this.refog(delta);
     for (const l of this.layers) {
       if (!l.dirty) continue;
