@@ -259,6 +259,21 @@ MOM_LINES = {
     # The puzzle (added 2026-09-26; Voice A only: python make_vo.py mom-a <names>): a picture from the memory book
     "vo-puzzle": "Let's make a puzzle from your picture!",
     "vo-puzzle-done": "You put it all together!",
+    # The puzzle's own pictures (added 2026-10-03; Voice A only: python make_vo.py mom-a <names>)
+    "vo-puzzle-pick": "Which picture shall we make?",
+    "vo-puzzle-new": "Let's make a puzzle!",
+    "name-puppy": "A puppy!",
+    "name-kitten": "A kitten!",
+    "name-bunny": "A bunny!",
+    "name-ducklings": "Little ducklings!",
+    "name-horse": "A horse!",
+    "name-beach": "The beach!",
+    "name-snowman": "A snowman!",
+    "name-fire-truck": "A fire truck!",
+    "name-train": "A train!",
+    "name-cake": "A birthday cake!",
+    "name-balloon": "A hot-air balloon!",
+    "name-a-rainbow": "A rainbow!",
     # The garden (added 2026-09-26; Voice A only: python make_vo.py mom-a <names>): plant, water, grow, pick
     "vo-pick-garden": "Let's go to the garden!",
     "vo-garden-seeds": "What shall we grow? Pick some seeds!",

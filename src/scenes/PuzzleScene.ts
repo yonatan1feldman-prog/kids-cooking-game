@@ -5,7 +5,7 @@ import { burst, stars } from '../core/fx';
 import { MomHandView, type HandMotion } from '../core/hand';
 import { confetti, settle, sway, tickles, touchRipples } from '../core/juice';
 import { addBackground, getLayout, inNoTouchZone, keepLayoutOnResize, ORIENTATION_PAUSE, PALM_ZONE, type Layout } from '../core/layout';
-import { cutGrid, helpOrder, makePieceTextures, nextGrid, puzzleFinished, puzzlesDone, type PieceShape } from '../core/puzzle';
+import { cutGrid, helpOrder, makePieceTextures, nextGrid, pictureUrl, puzzleFinished, puzzlesDone, type PieceShape } from '../core/puzzle';
 import { sfx } from '../core/sfx';
 import { getStage } from '../core/stage';
 import { AUTO_AFTER_HINT_MS, DEMO_MAX_MS, HINT_AFTER_MS, TUNING } from '../core/tuning';
@@ -42,6 +42,8 @@ const PREFIX = 'puzzle-piece';
  */
 export class PuzzleScene extends Phaser.Scene {
   private photoId = 0;
+  /** One of the puzzle's own pictures (core/puzzle.ts PICTURES) instead of a memory-book photo. */
+  private picture: string | null = null;
   private page = 0;
   private pieces: Piece[] = [];
   private owner: Phaser.Input.Pointer | null = null;
@@ -69,8 +71,9 @@ export class PuzzleScene extends Phaser.Scene {
     super('Puzzle');
   }
 
-  init(data: { photoId?: number; page?: number }) {
+  init(data: { photoId?: number; picture?: string; page?: number }) {
     this.photoId = data.photoId ?? 0;
+    this.picture = data.picture ?? null;
     this.page = data.page ?? 0;
     this.pieces = [];
     this.owner = this.held = null;
@@ -129,11 +132,29 @@ export class PuzzleScene extends Phaser.Scene {
     void this.build(L, S);
   }
 
-  /** Back to the memory book, on the page she came from (the home button, or quietly after the finale). */
+  /** Back where she came from, on the same page: the memory book, or the pictures (the home button, or after the finale). */
   private back() {
     if (this.leaving) return;
     this.leaving = true;
-    this.scene.start('Album', { page: this.page });
+    this.scene.start(this.picture ? 'PuzzlePick' : 'Album', { page: this.page });
+  }
+
+  /** One of the puzzle's own pictures as the texture (a WebP of 800 px). */
+  private loadPicture(id: string): Promise<boolean> {
+    return new Promise((resolve) => {
+      let settled = false;
+      const end = (ok: boolean) => {
+        if (settled) return;
+        settled = true;
+        resolve(ok);
+      };
+      if (this.textures.exists(PHOTO)) this.textures.remove(PHOTO);
+      this.mine.push(PHOTO);
+      this.load.image(PHOTO, pictureUrl(id));
+      this.load.once(Phaser.Loader.Events.COMPLETE, () => end(this.textures.exists(PHOTO)));
+      this.load.start();
+      this.time.delayedCall(6000, () => end(false));
+    });
   }
 
   /** The photo as a texture (from the book's data URL). */
@@ -158,9 +179,13 @@ export class PuzzleScene extends Phaser.Scene {
   }
 
   private async build(L: Layout, S: ReturnType<typeof getStage>) {
-    const photo = (await listPhotos()).find((p) => p.id === this.photoId);
-    if (!this.scene.isActive()) return;
-    if (!photo || !(await this.loadPhoto(photo.data)) || !this.scene.isActive()) return this.back();
+    if (this.picture) {
+      if (!(await this.loadPicture(this.picture)) || !this.scene.isActive()) return this.back();
+    } else {
+      const photo = (await listPhotos()).find((p) => p.id === this.photoId);
+      if (!this.scene.isActive()) return;
+      if (!photo || !(await this.loadPhoto(photo.data)) || !this.scene.isActive()) return this.back();
+    }
     await assetsReady();
     if (!this.scene.isActive()) return;
 
@@ -247,8 +272,9 @@ export class PuzzleScene extends Phaser.Scene {
     });
     this.shown = { ...this.shown, cols, rows, n, tray: Math.round(s * 100) / 100 };
 
-    // "Let's make a puzzle from your picture!": the whole picture first, then it comes apart.
-    voice.say('vo-puzzle', { ttlMs: 4000, valid: () => this.scene.isActive() });
+    // "Let's make a puzzle from your picture!" (or, for one of its own pictures, "Let's make a puzzle!"): the whole
+    // picture first, then it comes apart.
+    voice.say(this.picture ? 'vo-puzzle-new' : 'vo-puzzle', { ttlMs: 4000, valid: () => this.scene.isActive() });
     this.time.delayedCall(1300, () => {
       sfx(this, 'whoosh');
       this.tweens.add({ targets: whole, alpha: 0, duration: 250 });

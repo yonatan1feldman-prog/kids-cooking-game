@@ -228,6 +228,7 @@ src/scenes/
   RecipeScene              runs any recipe's steps in order; board under the dish; Mom, Pipa, Mom's hand; demo counter; home button
   AlbumScene               the memory book (round 9); an enlarged photo has the puzzle button beside it
   PuzzleScene              the puzzle from a memory-book photo (pieces cut at runtime by core/puzzle.ts)
+  PuzzlePickScene          the puzzle's own twelve pictures (the album's landscape button), Mom names the one picked
   GardenScene              Mom's garden (a stage that is not cooking)
   MiniGame                 the frame the market and washing up share: home button, Mom, Pipa, demo / hint / help, one finger
   MarketScene / DishesScene  the market (shopping from a list) and washing up (scrub, rack by colour)
@@ -994,6 +995,14 @@ Spec and research: `/mnt/project-files/research/puzzle-spec.md`. No new art: eve
   Mom's face or Pipa, no touch start in the strips; solved to the end and back in the album; a miss; rotation while
   held (dropped back, resumed); the idle hint and Mom's help; textures freed on leaving. Voice lines not heard by an agent.
 - **Needs a real child:** is 12 pieces right at the end (`grids`)? Does she find the button beside the big photo?
+- **Its own pictures (2026-10-03):** the album's second button (`PICTURES_ICON`, a little landscape with a piece, in
+  the column under home) opens `PuzzlePick`: twelve painterly-realistic pictures not from the kitchen (`PICTURES` in
+  core/puzzle.ts: animals, nature, vehicles, a cake, a balloon), four to a page with the album's arrows. A tap: Mom names
+  it (`name-puppy`...), then `Puzzle` with `{ picture, page }`, and back to that page. Painted by
+  `assets-src/images-b-puzzle/tools/gen_pictures.py` (SVG brush strokes, git-ignored output), rendered by `render.mjs`
+  to `public/assets/puzzle/<id>.webp` (800 px) and `-thumb.webp` (340 px); loaded by Phaser's loader, not the asset
+  contract. The big chef starts at 9 pieces (`TUNING.puzzle.bigFrom`). A new picture: a scene function, an entry in
+  `PICTURES`, its name line.
 
 ### 00000000000000. Gameplay round 3 (everyone eats; a bit more to do in every step)
 - **Everyone eats** (`ShareStep`): the step ends only when Mom, Pipa and the guest have each had a piece. `hungry` = who
