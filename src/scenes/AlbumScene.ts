@@ -11,7 +11,7 @@ import { iconButton } from '../core/ui';
 import { RECIPES } from '../recipes';
 import { Character } from '../steps/Character';
 import { Mom } from '../steps/Mom';
-import { makePuzzleIcon, PUZZLE_ICON } from '../core/puzzle';
+import { makePicturesIcon, makePuzzleIcon, PICTURES_ICON, PUZZLE_ICON } from '../core/puzzle';
 import { assetsReady, loadImages, releaseImages } from './BootScene';
 
 /** The photo frame art (700x780) with its window: the album shows every photo in the frame of its own recipe. */
@@ -52,6 +52,8 @@ export class AlbumScene extends Phaser.Scene {
   private tiles: Phaser.GameObjects.GameObject[] = [];
   /** The enlarged photo (and its frame), or null while the grid is shown. */
   private big: Phaser.GameObjects.GameObject[] | null = null;
+  /** The button to the puzzle's own pictures (PuzzlePickScene), in the column under the home button. */
+  private pictures: Phaser.GameObjects.Image | null = null;
   /** For the test harness: what is on screen now. */
   shown: { page: number; pages: number; count: number; recipes: string[]; big: string | null } = { page: 0, pages: 0, count: 0, recipes: [], big: null };
 
@@ -74,6 +76,7 @@ export class AlbumScene extends Phaser.Scene {
     const S = getStage(L);
     makeAlbumTextures(this.game);
     makePuzzleIcon(this.game);
+    makePicturesIcon(this.game);
 
     // Home: two taps, like everywhere else, so a resting palm can't close the book.
     iconButton(this, L, 'btn-home', S.home.x, S.home.y, () => this.scene.start('Home', { from: 'album' }), {
@@ -81,6 +84,12 @@ export class AlbumScene extends Phaser.Scene {
       scale: S.homeScale,
       hitPad: 30,
     }).setDepth(900);
+
+    // The puzzle's other side: its own pictures (animals, nature, vehicles...), in the free column under home.
+    this.pictures = iconButton(this, L, PICTURES_ICON, S.home.x, (S.albumArea.y0 + S.albumArea.y1) / 2 + 60 * L.k, () => this.scene.start('PuzzlePick', {}), {
+      scale: 0.85 * L.k,
+      hitPad: 20,
+    }).setDepth(170);
 
     // Mom and Pipa stand aside and smile: they are looking at the pictures with her.
     assetsReady().then(() => {
@@ -229,6 +238,8 @@ export class AlbumScene extends Phaser.Scene {
     if (this.big) return;
     // The grid stays where it is, only hidden: an invisible object gets no touches, so nothing under the big photo reacts.
     this.tiles.forEach((o) => (o as Phaser.GameObjects.Image).setVisible?.(false));
+    // (one puzzle button at a time: the enlarged photo's own)
+    this.pictures?.setVisible(false);
     const A = S.albumArea;
     const [fw, fh] = IMAGES[frameOf(p.recipe)].size;
     // The puzzle button takes a column on the right (only for a photo that has a picture to cut).
@@ -238,6 +249,7 @@ export class AlbumScene extends Phaser.Scene {
       this.big?.forEach((o) => o.destroy());
       this.big = null;
       this.tiles.forEach((o) => (o as Phaser.GameObjects.Image).setVisible?.(true));
+      this.pictures?.setVisible(true);
       this.shown = { ...this.shown, big: null };
     };
     const cx = (A.x0 + A.x1 - btnW) / 2;

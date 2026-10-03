@@ -240,6 +240,20 @@ This file covers only the files in this folder. Every file is either CC0 1.0 (pu
 | voice/vo-cut-slices.ogg | Let's cut it into slices! | 1.71 | -18.4 | 13820 |
 | voice/vo-puzzle.ogg | Let's make a puzzle from your picture! | 1.93 | -18.0 | 15119 |
 | voice/vo-puzzle-done.ogg | You put it all together! | 1.38 | -18.0 | 12389 |
+| voice/vo-puzzle-pick.ogg | Which picture shall we make? | 1.54 | -18.9 | 12972 |
+| voice/vo-puzzle-new.ogg | Let's make a puzzle! | 1.28 | -18.0 | 11493 |
+| voice/name-puppy.ogg | A puppy! | 0.83 | -18.0 | 8484 |
+| voice/name-kitten.ogg | A kitten! | 0.81 | -18.3 | 8429 |
+| voice/name-bunny.ogg | A bunny! | 0.75 | -18.0 | 7931 |
+| voice/name-ducklings.ogg | Little ducklings! | 1.13 | -18.8 | 10191 |
+| voice/name-horse.ogg | A horse! | 0.83 | -18.0 | 8135 |
+| voice/name-beach.ogg | The beach! | 0.83 | -18.0 | 8474 |
+| voice/name-snowman.ogg | A snowman! | 0.87 | -18.0 | 8454 |
+| voice/name-fire-truck.ogg | A fire truck! | 1.07 | -18.0 | 9908 |
+| voice/name-train.ogg | A train! | 0.88 | -18.0 | 8532 |
+| voice/name-cake.ogg | A birthday cake! | 1.14 | -18.6 | 10439 |
+| voice/name-balloon.ogg | A hot-air balloon! | 1.26 | -19.8 | 10808 |
+| voice/name-a-rainbow.ogg | A rainbow! | 0.86 | -18.8 | 8587 |
 | voice/vo-pick-garden.ogg | Let's go to the garden! | 1.38 | -18.0 | 12676 |
 | voice/vo-garden-seeds.ogg | What shall we grow? Pick some seeds! | 2.15 | -18.6 | 16235 |
 | voice/vo-garden-plant.ogg | Put a seed in each little hole! | 1.79 | -18.9 | 14598 |
