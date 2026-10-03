@@ -660,7 +660,7 @@ export class ClinicScene extends MiniGame {
       thing('cream', 'clinic-cream', f, 0.9, 0, 0);
     } else if (id === 'tummy' && v.a.id === 'toy') {
       const f = this.level === 2 ? Phaser.Utils.Array.GetRandom(BELL_SPOTS) : TUMMY_MID;
-      thing('bell', 'clinic-toy', f, 0.85, Phaser.Math.Between(-15, 15), this.level === 2 ? 0 : 0.8);
+      thing('bell', 'clinic-toy', f, 1.25, Phaser.Math.Between(-15, 15), this.level === 2 ? 0 : 0.8);
     } else if (id === 'mouth') {
       const teeth = Phaser.Utils.Array.Shuffle([...C.teeth]).slice(0, T.teeth[this.level - 1]);
       teeth.forEach(([x, y], i) => thing(`dirt-${i}`, 'clinic-dirt', { x, y: y + 6 }, 0.62, Phaser.Math.Between(-30, 30)));

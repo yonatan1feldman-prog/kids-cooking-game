@@ -227,7 +227,7 @@ export const PATIENTS: readonly Patient[] = [
     cheeks: [{ x: 198, y: 400 }, { x: 400, y: 400 }],
     chest: [{ x: 295, y: 488 }, { x: 245, y: 565 }, { x: 345, y: 565 }],
     foot: { x: 392, y: 660 },
-    spots: [{ x: 240, y: 560 }, { x: 350, y: 560 }, { x: 200, y: 330 }, { x: 395, y: 330 }, { x: 295, y: 620 }, { x: 250, y: 220 }],
+    spots: [{ x: 240, y: 560 }, { x: 350, y: 560 }, { x: 182, y: 470 }, { x: 412, y: 470 }, { x: 295, y: 620 }, { x: 250, y: 220 }],
     tint: { skin: 0xf3d9b8, tummy: 0xf3d9b8 },
     ailments: ['fever', 'cough', 'tummy', 'tooth', 'knee', 'paw', 'spots', 'cold', 'toy'],
   },
