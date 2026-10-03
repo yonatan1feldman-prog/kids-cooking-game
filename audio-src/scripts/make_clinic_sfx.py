@@ -145,11 +145,58 @@ def zing():
     return 0.5 * x
 
 
+# Added 2026-10-03 (clinic round 3, the "Doctor Games" loop): eek (a silly germ popping: a quick rising squeak and a
+# soft bubble pop), drip (an eye or ear drop landing), scan (the x-ray's soft hum and blip), sparkle (a star filling a
+# tooth). Run only these: python scripts/make_clinic_sfx.py eek drip scan sparkle
+def eek():
+    n = int(0.32 * SR)
+    t = np.arange(n) / SR
+    f = 900 * 2 ** (1.4 * t / 0.18)
+    x = np.sin(2 * np.cumsum(np.pi * f / SR)) * env(n, 0.005, 0.07) * (1 + 0.3 * np.sin(2 * np.pi * 32 * t))
+    m = int(0.14 * SR)
+    tp = np.arange(m) / SR
+    pop = np.sin(2 * np.cumsum(np.pi * (1400 - 3000 * tp) / SR)) * env(m, 0.001, 0.025)
+    out = np.zeros(int(0.4 * SR))
+    place(out, 0.5 * x, 0)
+    place(out, 0.6 * pop, 0.2)
+    return out
+
+
+def drip():
+    n = int(0.35 * SR)
+    t = np.arange(n) / SR
+    f = 700 * 2 ** (1.6 * t / 0.08)
+    x = np.sin(2 * np.cumsum(np.pi * np.minimum(f, 2400) / SR)) * env(n, 0.002, 0.05)
+    return 0.6 * x + 0.1 * bp(rng.standard_normal(n), 2000, 6000) * env(n, 0.001, 0.01)
+
+
+def scan():
+    n = int(0.9 * SR)
+    t = np.arange(n) / SR
+    hum = (np.sin(2 * np.pi * 220 * t) + 0.5 * np.sin(2 * np.pi * 330 * t)) * np.sin(np.pi * t / 0.9) ** 2
+    out = 0.25 * hum
+    m = int(0.09 * SR)
+    blip = np.sin(2 * np.pi * 1320 * np.arange(m) / SR) * env(m, 0.002, 0.03)
+    place(out, 0.5 * blip, 0.62)
+    return out
+
+
+def sparkle():
+    out = np.zeros(int(0.9 * SR))
+    for i, f0 in enumerate((1568, 2093, 2637, 3136)):
+        n = int(0.5 * SR)
+        t = np.arange(n) / SR
+        x = (np.sin(2 * np.pi * f0 * t) + 0.3 * np.sin(2 * np.pi * 2 * f0 * t)) * env(n, 0.002, 0.12)
+        place(out, x * 0.35, i * 0.07)
+    return out
+
+
 import sys
 ONLY = sys.argv[1:]
 for name, fn in (("heartbeat", heartbeat), ("cough", cough), ("gurgle", gurgle), ("spray", spray), ("sticky", sticky),
                  ("brush", brush), ("wheeze", wheeze),
-                 ("honk", honk), ("jingle", jingle), ("zing", zing)):
+                 ("honk", honk), ("jingle", jingle), ("zing", zing),
+                 ("eek", eek), ("drip", drip), ("scan", scan), ("sparkle", sparkle)):
     if ONLY and name not in ONLY:
         continue
     finish(name, fn())

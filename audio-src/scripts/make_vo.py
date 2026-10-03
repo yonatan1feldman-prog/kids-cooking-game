@@ -429,6 +429,30 @@ MOM_LINES = {
     "vo-garden-butterfly": "A butterfly! Help it visit every flower.",
     "vo-garden-butterfly-done": "Thank you, butterfly! Look at all the fruit!",
     "vo-garden-sun-tap": "Tap the sun to help them grow!",
+    # The clinic, round 3 (added 2026-10-03; Voice A only: python make_vo.py mom-a <names>): big close-ups, germs, the
+    # eye, the ear, the x-ray, in the style of "Doctor Games for kids"
+    "vo-sick-eye": "Oh, a sore, itchy eye! Let's take a look.",
+    "vo-sick-ear": "An earache? Let's look inside your ear.",
+    "vo-tooth-food": "First, let's wash off the food bits!",
+    "vo-germs": "Look! Silly germs! Brush them all away!",
+    "vo-germ-run": "Hee hee! It ran away!",
+    "vo-tool-filler": "A little hole! Let's fill it with a star.",
+    "vo-tool-cotton": "Wipe away the tears with the soft cotton.",
+    "vo-eye-speck": "Something tiny is in your eye. Take it out with the tweezers!",
+    "vo-tool-eyedrops": "Now some drops. Drip, drop!",
+    "vo-tool-light": "Shine the light inside. What can you see?",
+    "vo-ear-bug": "A tiny ladybug! Gently, take it out.",
+    "vo-bug-bye": "Fly away home, little ladybug!",
+    "vo-tool-swab": "Now clean the ear with the cotton swab.",
+    "vo-tool-icepack": "An ice pack. Nice and cool!",
+    "vo-tool-xray": "Let's look inside your tummy with the x-ray!",
+    "vo-tummy-germs": "Tummy germs! A drop of medicine on each one.",
+    "vo-germs-gone": "Bye bye, germs!",
+    "vo-clinic-which": "Which tool do we need now?",
+    "vo-knee-dirt": "Let's wash all the dirt off.",
+    # the title's two games (clinic round 3): Mom says the card's title when it is tapped
+    "vo-world-cooking": "Cooking with Mom!",
+    "vo-world-doctor": "Doctor with Mom!",
 }
 SUFFIX = ""
 if len(sys.argv) > 1 and sys.argv[1] in ("mom", "mom-a"):

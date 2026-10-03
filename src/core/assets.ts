@@ -11,6 +11,9 @@
 /** The guests' layers are made at this fraction of their native size (they are never shown bigger). */
 export const GUEST_RASTER = 0.75;
 
+/** The clinic's close-ups (and what is drawn in them) are shown up to 1.7x their 520 frame: rasterized that big. */
+const ZOOM_RASTER = 1.7;
+
 export const IMAGES = {
   /** Landscape kitchen, 2400x1080 (fits 20:9 exactly): anchored bottom-center, cropped only at the sides. */
   'bg-kitchen-landscape': { size: [2400, 1080] },
@@ -543,8 +546,9 @@ export const IMAGES = {
   'art-find-rainbow': { size: [360, 210] },
   // ---- The clinic world (research/clinic-spec.md; assets-src/images-b-clinic, tools/gen_clinic.py). Anchors: ART.clinic.
   /** The title's two worlds: cook with Mom, or help the patients with Mom the nurse (shown at 1.4x like btn-play). */
-  'btn-world-kitchen': { size: [240, 240], raster: 1.4 },
-  'btn-world-clinic': { size: [240, 240], raster: 1.4 },
+  // the title's two games (clinic round 3): their lettering is the title art, like the logo's
+  'world-card-kitchen': { size: [700, 760] },
+  'world-card-clinic': { size: [700, 760] },
   /** Mom the nurse: her pinafore (in place of mom-body) and her cap (after mom-hair); same 800 frame. */
   'mom-body-nurse': { size: [800, 800] },
   'mom-cap-nurse': { size: [800, 800] },
@@ -570,21 +574,46 @@ export const IMAGES = {
   'tool-tissue': { size: [240, 240] },
   'tool-magnet': { size: [240, 240] },
   /** The close-ups (light grey, tinted to the patient in the game; the mouth is not tinted) and the magnifier's rim. */
-  'lens-knee': { size: [520, 520] },
-  'lens-paw': { size: [520, 520] },
-  'lens-tummy': { size: [520, 520] },
-  'lens-mouth': { size: [520, 520] },
-  'lens-ring': { size: [600, 600] },
-  'clinic-scrape': { size: [200, 140] },
-  'clinic-dust': { size: [220, 160] },
-  'clinic-splinter': { size: [160, 70] },
-  'clinic-cream': { size: [180, 120] },
-  'clinic-dirt': { size: [100, 90] },
+  'lens-knee': { size: [520, 520], raster: ZOOM_RASTER },
+  'lens-paw': { size: [520, 520], raster: ZOOM_RASTER },
+  'lens-tummy': { size: [520, 520], raster: ZOOM_RASTER },
+  'lens-mouth': { size: [520, 520], raster: ZOOM_RASTER },
+  'lens-ring': { size: [600, 600], raster: ZOOM_RASTER },
+  // ---- The clinic, round 3 (research/clinic-doctor-games.md; images-b-clinic/tools/gen_clinic3.py): the eye, the ear and
+  // the x-ray close-ups (lens-eye is tinted, its eyeball and the redness are not), the things to clean, fix and take out
+  'lens-eye': { size: [520, 520], raster: ZOOM_RASTER },
+  'lens-eye-ball': { size: [520, 520], raster: ZOOM_RASTER },
+  'clinic-eye-red': { size: [520, 520], raster: ZOOM_RASTER },
+  'lens-ear': { size: [520, 520], raster: ZOOM_RASTER },
+  'lens-xray': { size: [520, 520], raster: ZOOM_RASTER },
+  'germ-a': { size: [130, 130], raster: ZOOM_RASTER },
+  'germ-b': { size: [130, 130], raster: ZOOM_RASTER },
+  'germ-c': { size: [130, 130], raster: ZOOM_RASTER },
+  'tooth-hole': { size: [70, 70], raster: ZOOM_RASTER },
+  'tooth-star': { size: [90, 90], raster: ZOOM_RASTER },
+  'food-bit': { size: [90, 80], raster: ZOOM_RASTER },
+  'eye-speck': { size: [90, 50], raster: ZOOM_RASTER },
+  'ear-wax': { size: [90, 80], raster: ZOOM_RASTER },
+  'ear-bug': { size: [130, 120], raster: ZOOM_RASTER },
+  'tool-filler': { size: [240, 240] },
+  'tool-cotton': { size: [240, 240] },
+  'tool-eyedrops': { size: [240, 240] },
+  'tool-swab': { size: [240, 240] },
+  'tool-light': { size: [240, 240] },
+  'tool-icepack': { size: [240, 240] },
+  'tool-xray': { size: [240, 240] },
+  'sick-eye': { size: [200, 200] },
+  'sick-ear': { size: [200, 200] },
+  'clinic-scrape': { size: [200, 140], raster: ZOOM_RASTER },
+  'clinic-dust': { size: [220, 160], raster: ZOOM_RASTER },
+  'clinic-splinter': { size: [160, 70], raster: ZOOM_RASTER },
+  'clinic-cream': { size: [180, 120], raster: ZOOM_RASTER },
+  'clinic-dirt': { size: [100, 90], raster: ZOOM_RASTER },
   'clinic-cheek': { size: [110, 70] },
   'clinic-sweat': { size: [60, 80] },
   'clinic-bump': { size: [120, 110] },
   'clinic-spot': { size: [70, 70] },
-  'clinic-toy': { size: [150, 130] },
+  'clinic-toy': { size: [150, 130], raster: ZOOM_RASTER },
   'sticker-star': { size: [200, 200] },
   'sticker-heart': { size: [200, 200] },
   'sticker-smile': { size: [200, 200] },
@@ -648,7 +677,7 @@ export const SCENERY_KEYS: readonly ImageKey[] = [
 ];
 
 export const CORE_IMAGES: readonly ImageKey[] = [
-  'bg-kitchen-landscape', ...KITCHEN_KEYS, ...SCENERY_KEYS, 'logo-cooking-with-mom', 'star', 'btn-play', 'btn-world-kitchen', 'btn-world-clinic', 'btn-home', 'btn-done', 'hand-hint',
+  'bg-kitchen-landscape', ...KITCHEN_KEYS, ...SCENERY_KEYS, 'logo-cooking-with-mom', 'star', 'btn-play', 'world-card-kitchen', 'world-card-clinic', 'btn-home', 'btn-done', 'hand-hint',
   'card-pizza', 'card-salad', 'card-cookies', 'card-smoothie', 'card-pancakes', 'card-soup', 'card-cake',
   'card-skewers', 'card-garden', 'card-market', 'card-dishes', 'card-art',
   'character-body', 'character-eyes-open', 'character-eyes-blink', 'character-eyes-surprised', 'character-eyes-happy',
@@ -891,6 +920,9 @@ RECIPE_ASSETS.clinic = {
     'clinic-sweat', 'clinic-bump', 'sticker-star', 'sticker-heart', 'sticker-smile', 'sick-fever', 'sick-cough', 'sick-tummy',
     'sick-tooth', 'sick-knee', 'sick-paw', 'photo-frame-clinic', 'bubble', 'water-drop',
     'tool-tissue', 'tool-magnet', 'clinic-spot', 'clinic-toy', 'sick-spots', 'sick-cold', 'sick-toy',
+    'lens-eye', 'lens-eye-ball', 'clinic-eye-red', 'lens-ear', 'lens-xray', 'germ-a', 'germ-b', 'germ-c', 'tooth-hole',
+    'tooth-star', 'food-bit', 'eye-speck', 'ear-wax', 'ear-bug', 'tool-filler', 'tool-cotton', 'tool-eyedrops', 'tool-swab',
+    'tool-light', 'tool-icepack', 'tool-xray', 'sick-eye', 'sick-ear',
     ...IMAGE_KEYS.filter((k) => /^guest-(turtle|penguin|giraffe)-/.test(k)),
   ],
   sounds: [
@@ -903,6 +935,9 @@ RECIPE_ASSETS.clinic = {
     'vo-clinic-photo', 'vo-clinic-done', 'heartbeat', 'cough', 'gurgle', 'spray', 'sticky', 'brush', 'wheeze', ...CLINIC_SONG,
     'vo-sick-spots', 'vo-sick-cold', 'vo-sick-toy', 'vo-tool-dab', 'vo-tool-tissue', 'vo-tool-warmdrink', 'vo-tool-magnet',
     'vo-jingle', 'vo-bell-out', 'vo-clinic-bless', 'honk', 'jingle', 'zing',
+    'vo-sick-eye', 'vo-sick-ear', 'vo-tooth-food', 'vo-germs', 'vo-germ-run', 'vo-tool-filler', 'vo-tool-cotton', 'vo-eye-speck',
+    'vo-tool-eyedrops', 'vo-tool-light', 'vo-ear-bug', 'vo-bug-bye', 'vo-tool-swab', 'vo-tool-icepack', 'vo-tool-xray',
+    'vo-tummy-germs', 'vo-germs-gone', 'vo-clinic-which', 'vo-knee-dirt', 'eek', 'drip', 'scan', 'sparkle', 'squeak',
   ],
 };
 /** A guest's own layers: loaded when the sharing starts (all three, the two not invited are freed at once). */
@@ -934,6 +969,8 @@ export const SOUND_KEYS = [
   'crayon', 'xylo', 'splosh', 'squeak',
   // the clinic (synthesised: audio-src/scripts/make_clinic_sfx.py)
   'heartbeat', 'cough', 'gurgle', 'spray', 'sticky', 'brush', 'wheeze', 'honk', 'jingle', 'zing',
+  // the clinic, round 3: a germ popping, a drop landing, the x-ray's hum, a star filling a tooth
+  'eek', 'drip', 'scan', 'sparkle',
 ] as const;
 export type SoundKey = (typeof SOUND_KEYS)[number];
 
@@ -1169,7 +1206,13 @@ export const ART = {
       spray: { x: 52, y: 50 }, tweezers: { x: 58, y: 192 }, magnifier: { x: 100, y: 100 }, toothbrush: { x: 74, y: 65 },
       cup: { x: 120, y: 120 }, syrup: { x: 80, y: 168 }, cloth: { x: 120, y: 120 }, hotbottle: { x: 120, y: 150 },
       tissue: { x: 120, y: 76 }, magnet: { x: 80, y: 177 },
+      // round 3 (gen_clinic3.py)
+      filler: { x: 62, y: 52 }, cotton: { x: 120, y: 120 }, eyedrops: { x: 120, y: 216 }, swab: { x: 58, y: 182 },
+      light: { x: 66, y: 174 }, icepack: { x: 120, y: 124 }, xray: { x: 113, y: 98 },
     },
+    /** lens-eye-ball (520): the pupil; lens-ear: the ear's hole. */
+    eye: { x: 260, y: 262 },
+    earHole: { x: 282, y: 300 },
     /** lens-mouth (520): the eight teeth's centres; lens-knee: the knee; lens-paw: where the splinter goes in. */
     teeth: [[155, 190], [222, 172], [298, 172], [365, 190], [165, 350], [228, 368], [292, 368], [355, 350]] as readonly (readonly [number, number])[],
     knee: { x: 320, y: 285 },
