@@ -98,6 +98,11 @@ export type VoiceKey =
   | 'vo-market-done' | 'vo-pick-dishes' | 'vo-dishes-start' | 'vo-dishes-scrub' | 'vo-dishes-clean' | 'vo-dishes-rack'
   | 'vo-dishes-rack-2' | 'vo-dishes-colour' | 'vo-dishes-done'
   | 'vo-garden-weeds' | 'vo-garden-enough' | 'vo-garden-cloud-2' | 'vo-garden-bunny' | 'vo-garden-bunny-this' | 'vo-garden-bunny-yum'
+  // market and garden, round 3: a visitor at the stall, a mixed-up box, paying; rain, the scarecrow, the butterfly, the sun
+  | 'vo-market-guest' | 'vo-market-guest-yum' | 'vo-market-mixed' | 'vo-market-mixed-yes' | 'vo-market-mixed-more'
+  | 'vo-market-pay' | 'vo-market-pay-dots' | 'vo-market-count' | 'vo-market-paid' | 'vo-garden-rain' | 'vo-garden-rainbow'
+  | 'vo-garden-birds' | 'vo-garden-hat' | 'vo-garden-shirt' | 'vo-garden-scare-copy' | 'vo-garden-scare-look' | 'vo-garden-shoo'
+  | 'vo-garden-butterfly' | 'vo-garden-butterfly-done' | 'vo-garden-sun-tap'
   // gameplay round 4: find the tool, Pipa's order, stir with the arrow
   | 'vo-find-grater' | 'vo-find-pin' | 'vo-find-spoon' | 'vo-pipa-order' | 'vo-then' | 'vo-first-this' | 'vo-stir-arrow'
   | 'vo-other-way'
@@ -686,7 +691,9 @@ class Voice {
     }
     if (!c || !buf || (p.valid && !p.valid())) {
       p.done?.();
-      return this.next();
+      // (a done may have started its own line already: never a second one beside it)
+      if (!this.cur) this.next();
+      return;
     }
     const entry: VoiceLogEntry = { key: p.key, start: this.now(), group: p.group };
     this.log.push(entry);
@@ -695,7 +702,8 @@ class Voice {
       this.cur = null;
       entry.end = this.now();
       p.done?.();
-      this.next();
+      // (a done that says its own line starts it at once; the queue waits behind it, or two lines would play together)
+      if (!this.cur) this.next();
       if (!this.cur) music.duck(false);
     };
     const endAt = entry.start + buf.duration * 1000;
@@ -728,7 +736,7 @@ class Voice {
   }
 
   private next(): void {
-    while (this.queue.length) {
+    while (this.queue.length && !this.cur) {
       const p = this.queue.shift()!;
       const expired = this.now() - p.at > (p.ttlMs ?? 2500);
       if (expired || (p.valid && !p.valid())) {

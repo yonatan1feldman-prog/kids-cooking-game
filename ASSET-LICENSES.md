@@ -375,6 +375,21 @@ Same engine, voice and processing as every line above.
 | vo-giraffe-loves · vo-turtle-loves · vo-penguin-loves | Giraffe loves green food! · Turtle loves it! · Penguin loves it! |
 | vo-turtle-nap · vo-bless-penguin | Shh! Turtle is having a little nap. · Bless you, Penguin! |
 
+### New in the market and garden round 3 (more to do in both, 20 lines)
+
+Same engine, voice and processing as every line above (Kokoro af_heart, `make_vo.py mom-a`). The colour, rainbow and
+butterfly names are the art corner's.
+
+| Key | Line |
+|---|---|
+| vo-market-guest · vo-market-guest-yum · vo-market-mixed | What would she like? Look in her bubble! · Mmm! Just what she wanted. Thank you! · Oops! Something got mixed up in this box. Can you find it? |
+| vo-market-mixed-yes · vo-market-mixed-more · vo-market-pay | Yes! Back to its own box! · There's one more! Look closely. · Time to pay! One coin for every circle. |
+| vo-market-pay-dots · vo-market-count · vo-market-paid | Time to pay! Find the coins that match the dots. · Let's count them! · All paid! Thank you! |
+| vo-garden-rain · vo-garden-rainbow · vo-garden-birds | It's a rainy day! Move the rain cloud over the seeds. · Look! A rainbow! · The birds want our seeds! Let's dress the scarecrow. |
+| vo-garden-hat · vo-garden-shirt · vo-garden-scare-copy | Pick a hat! · Now a shirt! · Can you dress him just like Mom's picture? |
+| vo-garden-scare-look · vo-garden-shoo · vo-garden-butterfly | Look at Mom's picture again. · Shoo, birds! Our seeds are safe. · A butterfly! Help it visit every flower. |
+| vo-garden-butterfly-done · vo-garden-sun-tap | Thank you, butterfly! Look at all the fruit! · Tap the sun to help them grow! |
+
 ## Graphics (`images/`)
 
 All SVG files in `images/` were drawn for this project by the art agent (style B, paper cut-out; generators in
@@ -406,5 +421,5 @@ layers like Pipa's, the giraffe's neck and the three invitation badges) are draw
 `assets-src/images-b/tools/gen_kitchen_sky.py`, and the 21 files of visual round 5 (the garden, the cat, the clock, the
 child's drawing, the sill's things, the bunting) from `gen_kitchen_view.py` beside it. The 30 garden-stage files (the garden background, the raised
 bed, holes, seeds and packets, the plants, fruit and carrots, the watering can, sun, cloud, snail, leaf, basket and the
-garden card) are drawn by `assets-src/images-b-garden/tools/gen_garden.py` on the same kit. The 18 files of the two mini-games (the market's background, awning, shelf, counter, poles, crates and list, the dishes, the food on them, the sponge, the drying rack and the two cards) are drawn by `assets-src/images-b-minigames/tools/gen_minigames.py` on the same kit. The 22 files of the art corner (the easel, the five picking cards, the paint pots, the steamy window's view and frame, the things hidden behind the steam, the art card and photo frame) are drawn by `assets-src/images-b-art/tools/gen_art.py` on the same kit; The 45 files of the clinic (the waiting room and the treatment room, the bed, the bench, the tray slot and the chart, twelve tools, the close-ups and the magnifier's rim, what shows a patient is not well, three stickers, six ailment cards, the title's two world buttons and the clinic's photo frame) are drawn by `assets-src/images-b-clinic/tools/gen_clinic.py` on the same kit, and Mom's nurse dress and cap (`mom-body-nurse`, `mom-cap-nurse`) by `assets-src/images-b/tools/gen_mom.py`; the pictures she draws, traces, joins and colours are drawn in code (`src/core/artPictures.ts`). No third-party art, fonts or images.
+garden card) are drawn by `assets-src/images-b-garden/tools/gen_garden.py` on the same kit. The 18 files of the two mini-games (the market's background, awning, shelf, counter, poles, crates and list, the dishes, the food on them, the sponge, the drying rack and the two cards) are drawn by `assets-src/images-b-minigames/tools/gen_minigames.py` on the same kit, and so are the market's coin, purse and chalk slate (round 3); the garden's scarecrow, its three hats and three shirts, the two bird frames and the butterfly (round 3) by `gen_garden.py`. The 22 files of the art corner (the easel, the five picking cards, the paint pots, the steamy window's view and frame, the things hidden behind the steam, the art card and photo frame) are drawn by `assets-src/images-b-art/tools/gen_art.py` on the same kit. The 45 files of the clinic (the waiting room and the treatment room, the bed, the bench, the tray slot and the chart, twelve tools, the close-ups and the magnifier's rim, what shows a patient is not well, three stickers, six ailment cards, the title's two world buttons and the clinic's photo frame) are drawn by `assets-src/images-b-clinic/tools/gen_clinic.py` on the same kit, and Mom's nurse dress and cap (`mom-body-nurse`, `mom-cap-nurse`) by `assets-src/images-b/tools/gen_mom.py`; the pictures she draws, traces, joins and colours are drawn in code (`src/core/artPictures.ts`). No third-party art, fonts or images.
 `images/webp/` holds WebP renderings of those same SVGs, made by `scripts/bake-webp.js`.

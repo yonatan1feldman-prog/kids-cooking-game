@@ -396,6 +396,28 @@ MOM_LINES = {
     "vo-clinic-bye-patient": "Bye bye! Feel better!",
     "vo-clinic-photo": "Let's take a picture of our happy patients!",
     "vo-clinic-done": "You took such good care of everyone!",
+    # Market and garden, round 3 (added 2026-10-03; Voice A only: python make_vo.py mom-a <names>): a visitor at the
+    # stall, a mixed-up box, paying; a rainy day, the scarecrow, the butterfly, tapping the sun
+    "vo-market-guest": "What would she like? Look in her bubble!",
+    "vo-market-guest-yum": "Mmm! Just what she wanted. Thank you!",
+    "vo-market-mixed": "Oops! Something got mixed up in this box. Can you find it?",
+    "vo-market-mixed-yes": "Yes! Back to its own box!",
+    "vo-market-mixed-more": "There's one more! Look closely.",
+    "vo-market-pay": "Time to pay! One coin for every circle.",
+    "vo-market-pay-dots": "Time to pay! Find the coins that match the dots.",
+    "vo-market-count": "Let's count them!",
+    "vo-market-paid": "All paid! Thank you!",
+    "vo-garden-rain": "It's a rainy day! Move the rain cloud over the seeds.",
+    "vo-garden-rainbow": "Look! A rainbow!",
+    "vo-garden-birds": "The birds want our seeds! Let's dress the scarecrow.",
+    "vo-garden-hat": "Pick a hat!",
+    "vo-garden-shirt": "Now a shirt!",
+    "vo-garden-scare-copy": "Can you dress him just like Mom's picture?",
+    "vo-garden-scare-look": "Look at Mom's picture again.",
+    "vo-garden-shoo": "Shoo, birds! Our seeds are safe.",
+    "vo-garden-butterfly": "A butterfly! Help it visit every flower.",
+    "vo-garden-butterfly-done": "Thank you, butterfly! Look at all the fruit!",
+    "vo-garden-sun-tap": "Tap the sun to help them grow!",
 }
 SUFFIX = ""
 if len(sys.argv) > 1 and sys.argv[1] in ("mom", "mom-a"):

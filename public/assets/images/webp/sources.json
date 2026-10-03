@@ -819,10 +819,25 @@
   "w": 1300,
   "h": 360
  },
+ "garden-bird-down": {
+  "sha1": "8bc75236f3a16db58b7c6ff102b9255f42780c70",
+  "w": 170,
+  "h": 140
+ },
+ "garden-bird-up": {
+  "sha1": "84ee108a8a79e410f1af2bd56150f7e8faa3aaff",
+  "w": 170,
+  "h": 140
+ },
  "garden-bunny": {
   "sha1": "47a55b1f044028d21a4ebf13525df072f8d3edd3",
   "w": 320,
   "h": 300
+ },
+ "garden-butterfly": {
+  "sha1": "98fad07c2e165a1be8c7e05392e89eca8ed59e6e",
+  "w": 200,
+  "h": 160
  },
  "garden-carrot": {
   "sha1": "50e133d1001d61786d767879c9b0f49328705b7b",
@@ -838,6 +853,21 @@
   "sha1": "7e1ea2896280c3e7fee1c66c15184709ecbda7de",
   "w": 80,
   "h": 80
+ },
+ "garden-hat-blue": {
+  "sha1": "e972959b8dd93cd275cdc072d0bb5e5364fc07a7",
+  "w": 240,
+  "h": 160
+ },
+ "garden-hat-red": {
+  "sha1": "0072a2336f79727ab2b14c249fa5e1b5532fcf0b",
+  "w": 240,
+  "h": 160
+ },
+ "garden-hat-yellow": {
+  "sha1": "239460eeb6eae5d7bacc3d33ebcb8bbaef1bc100",
+  "w": 240,
+  "h": 160
  },
  "garden-hole": {
   "sha1": "906088193a1423ccc9faf905db1abeb5eb08ba4c",
@@ -859,10 +889,30 @@
   "w": 260,
   "h": 80
  },
+ "garden-scarecrow": {
+  "sha1": "28dc38e1928848f95e33644c594379f12921b7d3",
+  "w": 380,
+  "h": 640
+ },
  "garden-seed": {
   "sha1": "c06f6b46954af236145c68a7f86f0fdf3bb256c3",
   "w": 50,
   "h": 62
+ },
+ "garden-shirt-blue": {
+  "sha1": "1c19d1c4ec0c8fd5402221f695d6d8a72515f686",
+  "w": 320,
+  "h": 260
+ },
+ "garden-shirt-red": {
+  "sha1": "ca5626b42f127f7f511f1622d5d6c81d23268065",
+  "w": 320,
+  "h": 260
+ },
+ "garden-shirt-yellow": {
+  "sha1": "d584f010cabb0a34b7b75e3fe9021a9042b07069",
+  "w": 320,
+  "h": 260
  },
  "garden-snail": {
   "sha1": "ee1c5f44121466ce1239c5f7de0d4849665f9fe9",
@@ -1389,6 +1439,11 @@
   "w": 1600,
   "h": 260
  },
+ "market-coin": {
+  "sha1": "be7f3ed7c7d064076706ee9745251ca1320f2bec",
+  "w": 110,
+  "h": 110
+ },
  "market-counter": {
   "sha1": "38481a7a1c2652fe15265a7447d73ef77e2da2d2",
   "w": 1600,
@@ -1409,10 +1464,20 @@
   "w": 54,
   "h": 900
  },
+ "market-purse": {
+  "sha1": "46b7b2cc6faabe091bd7819549deff94ef2b8e55",
+  "w": 260,
+  "h": 230
+ },
  "market-shelf": {
   "sha1": "4daf315dcf61fefedf6b8da928a93d0ba3308de4",
   "w": 1600,
   "h": 90
+ },
+ "market-slate": {
+  "sha1": "d7969251c988bbff27d67f4a1ac2e076f9b26b53",
+  "w": 380,
+  "h": 300
  },
  "milk-carton": {
   "sha1": "5138a695096f18727a15b4cc93879ec35ae7b9eb",

@@ -22,6 +22,7 @@ This file covers only the files in this folder. Every file is either CC0 1.0 (pu
 - **Two mini-games, the market and washing up (added 2026-09-28, in a cloud session with the pinned packages of AGENTS.md):** 17 more lines (15 `vo-*` and name-blue, name-yellow), same engine, voice, speed and processing. **Targeted fix (`scripts/fix_vo_minigames.py`, the fix_vo.py functions unchanged):** vo-market-done, vo-dishes-colour and vo-dishes-done hit the -1.5 dBFS peak cap first (-21.1 / -19.4 / -18.8 LUFS): the gentle soft limiter of vo-temp-more (2.98 / 1.6 / 0.62 dB), then -18 LUFS. The speech-recognizer check was not run (its model download is blocked in the cloud session). Originals of the limited lines are in `work/vo/pre-fix-minigames/`.
 - **The art corner (added 2026-10-02, in a cloud session with the pinned packages of AGENTS.md):** 32 more lines (16 `vo-*` and 16 `name-*`), same engine, voice, speed and processing; no fix was needed (-18.0 to -19.1 LUFS). The speech-recognizer check was not run.
 - **The clinic (added 2026-10-03, in a cloud session with the pinned packages of AGENTS.md):** 42 more `vo-*` lines (Mom the nurse), same engine, voice, speed and processing; no fix was needed. The speech-recognizer check was not run (its model download is blocked in the cloud).
+- **The market and the garden, round 3 (added 2026-10-03, in a cloud session with the pinned packages of AGENTS.md):** 20 more `vo-market-*` / `vo-garden-*` lines (a visitor at the stall, a mixed-up box, paying; rain, the scarecrow, the sun, the butterfly), same engine, voice, speed and processing (`make_vo.py mom-a`); no fix was needed. The speech-recognizer check was not run (its model download is blocked in the cloud session).
 - **The garden, round 2 (added 2026-09-28, in a cloud session with the pinned packages of AGENTS.md):** 6 more `vo-garden-*` lines (weeds, enough water, a second cloud, the bunny), same engine, voice, speed and processing; all -18.0 LUFS, no fix needed. The speech-recognizer check was not run (its model download is blocked in the cloud).
 | file | text | duration (s) | loudness (LUFS) | size (bytes) |
 |---|---|---|---|---|
@@ -294,6 +295,26 @@ This file covers only the files in this folder. Every file is either CC0 1.0 (pu
 | voice/vo-pipa-order-3.ogg | Look! Pipa wants three things, in order. First... | 2.97 | -19.6 | 21150 |
 | voice/vo-remember.ogg | Can you remember what Pipa wants? | 1.81 | -18.0 | 14092 |
 | voice/vo-and.ogg | and... | 0.63 | -18.0 | 7198 |
+| voice/vo-market-guest.ogg | What would she like? Look in her bubble! | 2.06 | -18.0 | 16142 |
+| voice/vo-market-guest-yum.ogg | Mmm! Just what she wanted. Thank you! | 2.65 | -18.0 | 19268 |
+| voice/vo-market-mixed.ogg | Oops! Something got mixed up in this box. Can you find it? | 3.67 | -18.0 | 26010 |
+| voice/vo-market-mixed-yes.ogg | Yes! Back to its own box! | 1.79 | -18.0 | 14236 |
+| voice/vo-market-mixed-more.ogg | There's one more! Look closely. | 1.94 | -18.0 | 14869 |
+| voice/vo-market-pay.ogg | Time to pay! One coin for every circle. | 2.78 | -19.2 | 20165 |
+| voice/vo-market-pay-dots.ogg | Time to pay! Find the coins that match the dots. | 3.26 | -19.7 | 22972 |
+| voice/vo-market-count.ogg | Let's count them! | 1.12 | -18.0 | 10304 |
+| voice/vo-market-paid.ogg | All paid! Thank you! | 1.50 | -18.2 | 12601 |
+| voice/vo-garden-rain.ogg | It's a rainy day! Move the rain cloud over the seeds. | 3.41 | -18.0 | 23378 |
+| voice/vo-garden-rainbow.ogg | Look! A rainbow! | 1.17 | -20.5 | 10516 |
+| voice/vo-garden-birds.ogg | The birds want our seeds! Let's dress the scarecrow. | 3.25 | -18.0 | 23034 |
+| voice/vo-garden-hat.ogg | Pick a hat! | 0.90 | -18.0 | 8684 |
+| voice/vo-garden-shirt.ogg | Now a shirt! | 1.00 | -18.0 | 9562 |
+| voice/vo-garden-scare-copy.ogg | Can you dress him just like Mom's picture? | 2.55 | -18.0 | 18679 |
+| voice/vo-garden-scare-look.ogg | Look at Mom's picture again. | 1.69 | -18.0 | 13975 |
+| voice/vo-garden-shoo.ogg | Shoo, birds! Our seeds are safe. | 2.11 | -19.4 | 15776 |
+| voice/vo-garden-butterfly.ogg | A butterfly! Help it visit every flower. | 2.77 | -19.7 | 19976 |
+| voice/vo-garden-butterfly-done.ogg | Thank you, butterfly! Look at all the fruit! | 2.56 | -18.0 | 18653 |
+| voice/vo-garden-sun-tap.ogg | Tap the sun to help them grow! | 1.76 | -18.0 | 14360 |
 
 ## music/ (12 files, made here)
 

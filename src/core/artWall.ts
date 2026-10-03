@@ -43,8 +43,16 @@ export function setWallDrawing(game: Phaser.Game, data: string): Promise<void> {
           g.fillStyle = 'rgba(238,178,60,0.85)';
           g.fillRect(-34, -9, 68, 20);
           g.restore();
-          if (game.textures.exists(WALL_DRAWING)) game.textures.remove(WALL_DRAWING);
-          game.textures.addCanvas(WALL_DRAWING, c);
+          // The texture may be on screen right now (the cabinet behind the art corner, 20:9): it is redrawn in place,
+          // never removed. (Removing it under a shown image crashed the WebGL renderer on the next frame, and the
+          // whole game froze, after the second finished picture of a visit.)
+          const cur = game.textures.exists(WALL_DRAWING) ? game.textures.get(WALL_DRAWING) : null;
+          if (cur instanceof Phaser.Textures.CanvasTexture) {
+            const cg = cur.getContext();
+            cg.clearRect(0, 0, cur.width, cur.height);
+            cg.drawImage(c, 0, 0, cur.width, cur.height);
+            cur.refresh();
+          } else if (!cur) game.textures.addCanvas(WALL_DRAWING, c);
         } catch {
           /* the stock drawing stays */
         }

@@ -497,6 +497,23 @@ export const IMAGES = {
   'garden-weed': { size: [200, 320] },
   'garden-puddle': { size: [260, 80] },
   'garden-bunny': { size: [320, 300] },
+  /** Garden round 3: the scarecrow (post, crossbar, sack head; a hat sits on ART.garden.scareHat, a shirt is centred on
+   *  ART.garden.scareShirt), its hats (brim's middle at ART.garden.hatBrim) and shirts in three colours, the birds that
+   *  come for the seeds (facing left, standing at the bottom; two wing frames), and the butterfly that visits the flowers. */
+  'garden-scarecrow': { size: [380, 640] },
+  'garden-hat-red': { size: [240, 160] },
+  'garden-hat-blue': { size: [240, 160] },
+  'garden-hat-yellow': { size: [240, 160] },
+  'garden-shirt-red': { size: [320, 260] },
+  'garden-shirt-blue': { size: [320, 260] },
+  'garden-shirt-yellow': { size: [320, 260] },
+  'garden-bird-up': { size: [170, 140] },
+  'garden-bird-down': { size: [170, 140] },
+  'garden-butterfly': { size: [200, 160] },
+  /** Market round 2 (paying): a coin, Mom's purse, the price slate (the price is drawn in code on ART.market.slateFace). */
+  'market-coin': { size: [110, 110] },
+  'market-purse': { size: [260, 230] },
+  'market-slate': { size: [380, 300] },
   // ---- The art corner (research/drawing-stages-spec.md; assets-src/images-b-art, tools/gen_art.py). The pictures she
   // traces, joins and colours are drawn in code (core/artPictures.ts). Anchors: ART.art.
   'card-art': { size: [400, 520] },
@@ -798,13 +815,18 @@ RECIPE_ASSETS.garden = {
     'seed-packet-strawberry', 'seed-packet-carrot', 'garden-sprout', 'plant-tomato-1', 'plant-strawberry-1', 'plant-carrot-1',
     'plant-tomato-2', 'plant-strawberry-2', 'garden-flower', 'garden-tomato', 'garden-strawberry', 'garden-carrot',
     'watering-can', 'garden-sun', 'garden-cloud', 'garden-snail', 'garden-leaf', 'garden-basket', 'garden-basket-front',
-    'water-drop', 'garden-weed', 'garden-puddle', 'garden-bunny',
+    'water-drop', 'garden-weed', 'garden-puddle', 'garden-bunny', 'garden-scarecrow', 'garden-hat-red', 'garden-hat-blue',
+    'garden-hat-yellow', 'garden-shirt-red', 'garden-shirt-blue', 'garden-shirt-yellow', 'garden-bird-up', 'garden-bird-down',
+    'garden-butterfly',
   ],
   sounds: [
     'vo-garden-seeds', 'vo-garden-plant', 'vo-garden-water', 'vo-garden-sprout', 'vo-garden-cloud', 'vo-garden-sun',
     'vo-garden-snail', 'vo-garden-snail-yum', 'vo-garden-pick', 'vo-garden-pull', 'vo-garden-done', 'name-tomato',
     'name-strawberry', 'name-carrot', 'tear', 'name-lettuce', 'vo-garden-weeds', 'vo-garden-enough', 'vo-garden-cloud-2',
-    'vo-garden-bunny', 'vo-garden-bunny-this', 'vo-garden-bunny-yum', ...OUTSIDE_SONG,
+    'vo-garden-bunny', 'vo-garden-bunny-this', 'vo-garden-bunny-yum', 'vo-garden-rain', 'vo-garden-rainbow', 'vo-garden-birds',
+    'vo-garden-hat', 'vo-garden-shirt', 'vo-garden-scare-copy', 'vo-garden-scare-look', 'vo-garden-shoo', 'vo-garden-butterfly',
+    'vo-garden-butterfly-done', 'vo-garden-sun-tap', 'name-red', 'name-blue', 'name-yellow', 'name-rainbow', 'name-butterfly',
+    ...OUTSIDE_SONG,
   ],
 };
 /** The two mini-games that are not cooking (MarketScene, DishesScene): loaded on their cards like a recipe. A sound some
@@ -814,12 +836,15 @@ RECIPE_ASSETS.market = {
     'bg-market', 'market-awning', 'market-shelf', 'market-counter', 'market-pole', 'market-crate', 'market-list',
     'garden-basket', 'garden-basket-front', 'veg-tomato-whole', 'veg-carrot-whole', 'veg-cucumber-whole', 'veg-pepper-whole',
     'veg-onion-whole', 'veg-potato-whole', 'veg-mushroom-whole', 'veg-zucchini-whole', 'fruit-banana-whole',
-    'fruit-kiwi-whole', 'fruit-mango-whole', 'fruit-strawberry-whole', 'lettuce-head',
+    'fruit-kiwi-whole', 'fruit-mango-whole', 'fruit-strawberry-whole', 'lettuce-head', 'market-coin', 'market-purse',
+    'market-slate',
   ],
   sounds: [
     'vo-market-list', 'vo-market-remember', 'vo-market-not', 'vo-market-pipa', 'vo-market-two', 'vo-market-done',
     'name-tomato', 'name-carrot', 'name-cucumber', 'name-onion', 'name-potato', 'name-mushroom', 'name-zucchini',
-    'name-banana', 'name-kiwi', 'name-mango', 'name-strawberry', 'name-lettuce', ...OUTSIDE_SONG,
+    'name-banana', 'name-kiwi', 'name-mango', 'name-strawberry', 'name-lettuce', 'vo-market-guest', 'vo-market-guest-yum',
+    'vo-market-mixed', 'vo-market-mixed-yes', 'vo-market-mixed-more', 'vo-market-pay', 'vo-market-pay-dots', 'vo-market-count',
+    'vo-market-paid', ...OUTSIDE_SONG,
   ],
 };
 RECIPE_ASSETS.dishes = {
@@ -1110,6 +1135,14 @@ export const ART = {
     weedTop: 170,
     /** garden-bunny (320x300, facing left): its mouth. */
     bunnyMouth: { x: 58, y: 158 },
+    /** garden-scarecrow (380x640): where a hat's brim sits and a shirt's middle goes; a hat's brim middle (240x160). */
+    scareHat: { x: 190, y: 104 },
+    scareShirt: { x: 190, y: 386 },
+    hatBrim: { x: 120, y: 128 },
+  },
+  /** The market's paying (assets-src/images-b-minigames/tools/gen_minigames.py): market-slate's chalk face. */
+  market: {
+    slateFace: { x: 44, y: 40, w: 292, h: 196 },
   },
   /** The art corner (assets-src/images-b-art/tools/gen_art.py prints it). */
   art: {
