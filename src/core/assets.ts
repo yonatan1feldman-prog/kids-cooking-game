@@ -567,6 +567,8 @@ export const IMAGES = {
   'tool-syrup': { size: [240, 240] },
   'tool-cloth': { size: [240, 240] },
   'tool-hotbottle': { size: [240, 240] },
+  'tool-tissue': { size: [240, 240] },
+  'tool-magnet': { size: [240, 240] },
   /** The close-ups (light grey, tinted to the patient in the game; the mouth is not tinted) and the magnifier's rim. */
   'lens-knee': { size: [520, 520] },
   'lens-paw': { size: [520, 520] },
@@ -581,6 +583,8 @@ export const IMAGES = {
   'clinic-cheek': { size: [110, 70] },
   'clinic-sweat': { size: [60, 80] },
   'clinic-bump': { size: [120, 110] },
+  'clinic-spot': { size: [70, 70] },
+  'clinic-toy': { size: [150, 130] },
   'sticker-star': { size: [200, 200] },
   'sticker-heart': { size: [200, 200] },
   'sticker-smile': { size: [200, 200] },
@@ -590,6 +594,9 @@ export const IMAGES = {
   'sick-tooth': { size: [200, 200] },
   'sick-knee': { size: [200, 200] },
   'sick-paw': { size: [200, 200] },
+  'sick-spots': { size: [200, 200] },
+  'sick-cold': { size: [200, 200] },
+  'sick-toy': { size: [200, 200] },
   'photo-frame-clinic': { size: [700, 780] },
 } as const satisfies Record<string, { size: readonly [number, number]; raster?: number }>;
 
@@ -883,6 +890,7 @@ RECIPE_ASSETS.clinic = {
     'lens-mouth', 'lens-ring', 'clinic-scrape', 'clinic-dust', 'clinic-splinter', 'clinic-cream', 'clinic-dirt', 'clinic-cheek',
     'clinic-sweat', 'clinic-bump', 'sticker-star', 'sticker-heart', 'sticker-smile', 'sick-fever', 'sick-cough', 'sick-tummy',
     'sick-tooth', 'sick-knee', 'sick-paw', 'photo-frame-clinic', 'bubble', 'water-drop',
+    'tool-tissue', 'tool-magnet', 'clinic-spot', 'clinic-toy', 'sick-spots', 'sick-cold', 'sick-toy',
     ...IMAGE_KEYS.filter((k) => /^guest-(turtle|penguin|giraffe)-/.test(k)),
   ],
   sounds: [
@@ -893,6 +901,8 @@ RECIPE_ASSETS.clinic = {
     'vo-tool-hotbottle', 'vo-say-aah', 'vo-tool-toothbrush', 'vo-tool-spray', 'vo-tool-cream', 'vo-tool-plaster',
     'vo-tool-tweezers', 'vo-tool-magnifier', 'vo-found-it', 'vo-clinic-better', 'vo-sticker', 'vo-clinic-bye-patient',
     'vo-clinic-photo', 'vo-clinic-done', 'heartbeat', 'cough', 'gurgle', 'spray', 'sticky', 'brush', 'wheeze', ...CLINIC_SONG,
+    'vo-sick-spots', 'vo-sick-cold', 'vo-sick-toy', 'vo-tool-dab', 'vo-tool-tissue', 'vo-tool-warmdrink', 'vo-tool-magnet',
+    'vo-jingle', 'vo-bell-out', 'vo-clinic-bless', 'honk', 'jingle', 'zing',
   ],
 };
 /** A guest's own layers: loaded when the sharing starts (all three, the two not invited are freed at once). */
@@ -923,7 +933,7 @@ export const SOUND_KEYS = [
   // the art corner (synthesised: audio-src/scripts/make_art_sfx.py)
   'crayon', 'xylo', 'splosh', 'squeak',
   // the clinic (synthesised: audio-src/scripts/make_clinic_sfx.py)
-  'heartbeat', 'cough', 'gurgle', 'spray', 'sticky', 'brush', 'wheeze',
+  'heartbeat', 'cough', 'gurgle', 'spray', 'sticky', 'brush', 'wheeze', 'honk', 'jingle', 'zing',
 ] as const;
 export type SoundKey = (typeof SOUND_KEYS)[number];
 
@@ -1158,6 +1168,7 @@ export const ART = {
       thermometer: { x: 174, y: 174 }, stethoscope: { x: 176, y: 200 }, plaster: { x: 120, y: 120 }, cream: { x: 68, y: 46 },
       spray: { x: 52, y: 50 }, tweezers: { x: 58, y: 192 }, magnifier: { x: 100, y: 100 }, toothbrush: { x: 74, y: 65 },
       cup: { x: 120, y: 120 }, syrup: { x: 80, y: 168 }, cloth: { x: 120, y: 120 }, hotbottle: { x: 120, y: 150 },
+      tissue: { x: 120, y: 76 }, magnet: { x: 80, y: 177 },
     },
     /** lens-mouth (520): the eight teeth's centres; lens-knee: the knee; lens-paw: where the splinter goes in. */
     teeth: [[155, 190], [222, 172], [298, 172], [365, 190], [165, 350], [228, 368], [292, 368], [355, 350]] as readonly (readonly [number, number])[],

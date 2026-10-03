@@ -10,12 +10,13 @@ import { GUESTS } from './guests';
  * every tool makes it better at once, and everyone goes home with a sticker.
  */
 export type PatientId = 'turtle' | 'penguin' | 'giraffe' | 'pipa';
-export type AilmentId = 'fever' | 'cough' | 'tummy' | 'tooth' | 'knee' | 'paw';
+export type AilmentId = 'fever' | 'cough' | 'tummy' | 'tooth' | 'knee' | 'paw' | 'spots' | 'cold' | 'toy';
 export type ToolId =
   | 'thermometer' | 'stethoscope' | 'plaster' | 'cream' | 'spray' | 'tweezers' | 'magnifier' | 'toothbrush' | 'cup' | 'syrup'
-  | 'cloth' | 'hotbottle';
+  | 'cloth' | 'hotbottle' | 'tissue' | 'magnet';
 export const TOOLS: readonly ToolId[] = [
   'thermometer', 'stethoscope', 'plaster', 'cream', 'spray', 'tweezers', 'magnifier', 'toothbrush', 'cup', 'syrup', 'cloth', 'hotbottle',
+  'tissue', 'magnet',
 ];
 /** The close-ups that pop out of the patient (a magnifying bubble), each tinted to the patient but the mouth. */
 export type LensId = 'knee' | 'paw' | 'tummy' | 'mouth';
@@ -24,13 +25,14 @@ export type LensId = 'knee' | 'paw' | 'tummy' | 'mouth';
  * One treatment move: the tool, what she does with it, and where.
  * - hold: keep its working point there (`holdMs`); drop: let it go there; listen: hold it on each glowing spot in turn
  *   (level 2 `find`: on the one spot that wheezes, found by ear); rub: rub the spots clean (the teeth) or the cream in;
- *   pull: take hold of the splinter and draw it out; search: move the magnifier over the paw until the splinter shows.
- * - where: on the patient (`mouth`, `forehead`, `chest`) or in the close-up (`lens`).
+ *   pull: take hold of the splinter (or, with the magnet, the swallowed bell) and draw it out; search: move the magnifier
+ *   over the close-up until the hidden thing shows; dab: touch every itchy spot on her with the cream.
+ * - where: on the patient (`mouth`, `nose`, `forehead`, `chest`, `body`: her spots) or in the close-up (`lens`).
  */
 export interface Treat {
   tool: ToolId;
-  act: 'hold' | 'drop' | 'listen' | 'rub' | 'pull' | 'search';
-  where: 'mouth' | 'forehead' | 'chest' | 'lens';
+  act: 'hold' | 'drop' | 'listen' | 'rub' | 'pull' | 'search' | 'dab';
+  where: 'mouth' | 'nose' | 'forehead' | 'chest' | 'body' | 'lens';
   /** Mom's line as the move starts (none: the tool's own). */
   line?: VoiceKey | null;
   /** Mom's line when it is done. */
@@ -38,7 +40,7 @@ export interface Treat {
   /** The stethoscope finds the one wheezy spot by ear (level 2's cough). */
   find?: boolean;
   /** The sound the stethoscope hears. */
-  hear?: 'heartbeat' | 'gurgle';
+  hear?: 'heartbeat' | 'gurgle' | 'jingle';
 }
 
 export interface Ailment {
@@ -55,6 +57,9 @@ const thermo = (after: VoiceKey, line?: VoiceKey | null): Treat => ({ tool: 'the
 const syrup: Treat = { tool: 'syrup', act: 'drop', where: 'mouth' };
 const plaster: Treat = { tool: 'plaster', act: 'drop', where: 'lens' };
 const cream: Treat = { tool: 'cream', act: 'rub', where: 'lens' };
+const warmDrink: Treat = { tool: 'cup', act: 'drop', where: 'mouth', line: 'vo-tool-warmdrink' };
+const tissue: Treat = { tool: 'tissue', act: 'hold', where: 'nose', after: 'vo-clinic-bless' };
+const magnet: Treat = { tool: 'magnet', act: 'pull', where: 'lens', after: 'vo-bell-out' };
 
 export const AILMENTS: Record<AilmentId, Ailment> = {
   fever: {
@@ -115,6 +120,35 @@ export const AILMENTS: Record<AilmentId, Ailment> = {
       [{ tool: 'magnifier', act: 'search', where: 'lens', after: 'vo-found-it' }, { tool: 'tweezers', act: 'pull', where: 'lens' }, cream, plaster],
     ],
   },
+  // Clinic round 2 (research/clinic-research.md): itchy spots dabbed one by one, a sniffly cold, a swallowed bell
+  spots: {
+    id: 'spots',
+    card: 'sick-spots',
+    line: 'vo-sick-spots',
+    steps: [
+      [{ tool: 'cream', act: 'dab', where: 'body', line: 'vo-tool-dab' }],
+      [{ tool: 'cream', act: 'dab', where: 'body', line: 'vo-tool-dab' }, syrup],
+    ],
+  },
+  cold: {
+    id: 'cold',
+    card: 'sick-cold',
+    line: 'vo-sick-cold',
+    steps: [
+      [tissue, warmDrink],
+      [thermo('vo-thermo-hot'), tissue, syrup, warmDrink],
+    ],
+  },
+  toy: {
+    id: 'toy',
+    card: 'sick-toy',
+    line: 'vo-sick-toy',
+    lens: 'tummy',
+    steps: [
+      [{ tool: 'stethoscope', act: 'listen', where: 'lens', hear: 'jingle', after: 'vo-jingle' }, magnet],
+      [{ tool: 'magnifier', act: 'search', where: 'lens', after: 'vo-found-it' }, magnet, syrup],
+    ],
+  },
 };
 
 type F = { x: number; y: number };
@@ -133,6 +167,10 @@ export interface Patient {
   forehead: F;
   cheeks: [F, F];
   chest: [F, F, F];
+  /** Her nose (the tissue goes there); none: just above her mouth. */
+  nose?: F;
+  /** Where itchy spots can come out on her (spots). */
+  spots: F[];
   foot: F | null;
   tint: { skin: number; tummy: number };
   ailments: AilmentId[];
@@ -150,8 +188,9 @@ export const PATIENTS: readonly Patient[] = [
     cheeks: [{ x: 205, y: 388 }, { x: 399, y: 388 }],
     chest: [{ x: 298, y: 478 }, { x: 246, y: 548 }, { x: 350, y: 548 }],
     foot: { x: 448, y: 640 },
+    spots: [{ x: 200, y: 560 }, { x: 236, y: 470 }, { x: 362, y: 470 }, { x: 410, y: 590 }, { x: 178, y: 500 }, { x: 422, y: 500 }],
     tint: { skin: 0x9fd27a, tummy: 0xf3dfa6 },
-    ailments: ['fever', 'cough', 'tummy', 'tooth', 'knee', 'paw'],
+    ailments: ['fever', 'cough', 'tummy', 'tooth', 'knee', 'paw', 'spots', 'cold', 'toy'],
   },
   {
     id: 'penguin',
@@ -162,8 +201,9 @@ export const PATIENTS: readonly Patient[] = [
     cheeks: [{ x: 212, y: 388 }, { x: 388, y: 388 }],
     chest: [{ x: 297, y: 488 }, { x: 250, y: 568 }, { x: 345, y: 568 }],
     foot: { x: 376, y: 664 },
+    spots: [{ x: 250, y: 520 }, { x: 345, y: 520 }, { x: 297, y: 600 }, { x: 230, y: 610 }, { x: 362, y: 610 }, { x: 297, y: 450 }],
     tint: { skin: 0xf6ab5a, tummy: 0xfbf7ee },
-    ailments: ['fever', 'cough', 'tummy', 'knee', 'paw'],
+    ailments: ['fever', 'cough', 'tummy', 'knee', 'paw', 'spots', 'cold', 'toy'],
   },
   {
     id: 'giraffe',
@@ -174,8 +214,9 @@ export const PATIENTS: readonly Patient[] = [
     cheeks: [{ x: 212, y: 450 }, { x: 392, y: 450 }],
     chest: [{ x: 300, y: 300 }, { x: 250, y: 300 }, { x: 350, y: 300 }],
     foot: null,
+    spots: [],
     tint: { skin: 0xf3c768, tummy: 0xf8e2a8 },
-    ailments: ['fever', 'tooth', 'tummy'],
+    ailments: ['fever', 'tooth', 'tummy', 'cold', 'toy'],
   },
   {
     id: 'pipa',
@@ -186,8 +227,9 @@ export const PATIENTS: readonly Patient[] = [
     cheeks: [{ x: 198, y: 400 }, { x: 400, y: 400 }],
     chest: [{ x: 295, y: 488 }, { x: 245, y: 565 }, { x: 345, y: 565 }],
     foot: { x: 392, y: 660 },
+    spots: [{ x: 240, y: 560 }, { x: 350, y: 560 }, { x: 200, y: 330 }, { x: 395, y: 330 }, { x: 295, y: 620 }, { x: 250, y: 220 }],
     tint: { skin: 0xf3d9b8, tummy: 0xf3d9b8 },
-    ailments: ['fever', 'cough', 'tummy', 'tooth', 'knee', 'paw'],
+    ailments: ['fever', 'cough', 'tummy', 'tooth', 'knee', 'paw', 'spots', 'cold', 'toy'],
   },
 ];
 
@@ -224,4 +266,6 @@ export const TOOL_LINE: Record<ToolId, VoiceKey> = {
   syrup: 'vo-tool-syrup',
   cloth: 'vo-tool-cloth',
   hotbottle: 'vo-tool-hotbottle',
+  tissue: 'vo-tool-tissue',
+  magnet: 'vo-tool-magnet',
 };

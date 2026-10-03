@@ -313,6 +313,8 @@ export const TUNING = {
   clinic: {
     patients: 3, reach: 120, holdMs: [1600, 2000], listenMs: 700, rub: [700, 900], pull: 170, findR: 95,
     wheezeR: 70, hearR: 330, decoys: [1, 2], teeth: [2, 4], planMs: 3200, peekMs: 2600, wiggle: 18, helpMs: 1100,
+    // clinic round 2: itchy spots to dab, how near the magnet catches the bell and how far it is pulled out
+    spots: [4, 6], magnetR: 150, magnetPull: 240,
   },
   help: { pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150, chopEveryMs: 950, openMs: 1500, tempEveryMs: 1100, peelEveryMs: 900, candleEveryMs: 700, threadEveryMs: 700 },
 } as const;

@@ -1561,6 +1561,15 @@ window.__clinicPlay = async (opts = {}) => {
           await __run(60);
         }
         __touch('end', 1, ...fingerFor(tg));
+      } else if (st.act === 'dab') {
+        // (clinic round 2: touch every itchy spot with the cream, one after the other)
+        await __drag([start, fingerFor(tg)], { hold: true });
+        for (let j = 0; j < 20 && m.step === st && m.shown.phase === 'tool'; j++) {
+          const g = m.target(); if (!g) break;
+          for (let q = 0; q <= 6; q++) __touch('move', 1, ...fingerFor({ x: g.x + (q % 2 ? 4 : -4), y: g.y }));
+          await __run(300);
+        }
+        __touch('end', 1, ...fingerFor(m.target() ?? tg));
       } else if (st.act === 'pull') {
         await __drag([start, fingerFor(tg)], { hold: true });
         await __run(150);

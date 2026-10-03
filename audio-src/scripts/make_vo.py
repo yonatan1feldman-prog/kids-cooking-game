@@ -396,6 +396,17 @@ MOM_LINES = {
     "vo-clinic-bye-patient": "Bye bye! Feel better!",
     "vo-clinic-photo": "Let's take a picture of our happy patients!",
     "vo-clinic-done": "You took such good care of everyone!",
+    # The clinic, round 2 (added 2026-10-03; Voice A only: python make_vo.py mom-a <names>): itchy spots, a cold, a bell
+    "vo-sick-spots": "Oh, itchy spots! Let's make them better.",
+    "vo-sick-cold": "Achoo! A sniffly cold.",
+    "vo-sick-toy": "Oh my! You swallowed a little bell!",
+    "vo-tool-dab": "A dab of cream on every spot!",
+    "vo-tool-tissue": "A tissue. Now, a big blow!",
+    "vo-tool-warmdrink": "A warm drink. Mmm!",
+    "vo-tool-magnet": "The magnet! Pull the bell out.",
+    "vo-jingle": "Jingle jingle! There's the bell!",
+    "vo-bell-out": "Out it comes! Silly bell!",
+    "vo-clinic-bless": "Bless you!",
     # Market and garden, round 3 (added 2026-10-03; Voice A only: python make_vo.py mom-a <names>): a visitor at the
     # stall, a mixed-up box, paying; a rainy day, the scarecrow, the butterfly, tapping the sun
     "vo-market-guest": "What would she like? Look in her bubble!",

@@ -529,10 +529,20 @@
   "w": 160,
   "h": 70
  },
+ "clinic-spot": {
+  "sha1": "06494c13d998dbb48d72dbcfe28bce8b89dc4ade",
+  "w": 70,
+  "h": 70
+ },
  "clinic-sweat": {
   "sha1": "eae4b763dcf8801c7f070a5ee797b7e213510ec9",
   "w": 60,
   "h": 80
+ },
+ "clinic-toy": {
+  "sha1": "b1305ac15fce65b1250c888fee52a549391cd113",
+  "w": 150,
+  "h": 130
  },
  "colander": {
   "sha1": "1cdcf416045858709ed3bfa65c8529ba5e71eb43",
@@ -1994,6 +2004,11 @@
   "w": 480,
   "h": 320
  },
+ "sick-cold": {
+  "sha1": "ab5e29b6c480f13f78f7c0fa4da5a410ae8c10ab",
+  "w": 200,
+  "h": 200
+ },
  "sick-cough": {
   "sha1": "a79b7652b72f9aba49684331e6ddf7519e8c33fc",
   "w": 200,
@@ -2014,8 +2029,18 @@
   "w": 200,
   "h": 200
  },
+ "sick-spots": {
+  "sha1": "28487f91b588811ee6220c162e5a3c9b1aa5c145",
+  "w": 200,
+  "h": 200
+ },
  "sick-tooth": {
   "sha1": "9f199a3c3f42f19f803f894eb4ebb9af0ad9ddc5",
+  "w": 200,
+  "h": 200
+ },
+ "sick-toy": {
+  "sha1": "1d66c2643cdf68a873c64a984c6199bed025a08e",
   "w": 200,
   "h": 200
  },
@@ -2159,6 +2184,11 @@
   "w": 240,
   "h": 240
  },
+ "tool-magnet": {
+  "sha1": "1edb7e3268d62d68f5181b13bf00e3f712443591",
+  "w": 240,
+  "h": 240
+ },
  "tool-magnifier": {
   "sha1": "4f11894f0c622b66d7d2cc023d6359cb940a0941",
   "w": 240,
@@ -2186,6 +2216,11 @@
  },
  "tool-thermometer": {
   "sha1": "f53404b0acafd0d42eb5855b9dea74b4986bd06b",
+  "w": 240,
+  "h": 240
+ },
+ "tool-tissue": {
+  "sha1": "d95574851e4fc3bf0ddd48f6f9b4c1fda37a66e8",
   "w": 240,
   "h": 240
  },

@@ -232,7 +232,7 @@ src/scenes/
   MiniGame                 the frame the market and washing up share: home button, Mom, Pipa, demo / hint / help, one finger
   MarketScene / DishesScene  the market (shopping from a list) and washing up (scrub, rack by colour)
   ArtScene                 the art corner: the easel wall and five ways to draw (trace, dots, colour, mirror, steam)
-  ClinicScene              the clinic, the second world (waiting room, treatment room, tools, close-ups, stickers, photo)
+  ClinicScene              the clinic, the second world (waiting room, treatment room, tools, close-ups, stickers, photo; 9 ailments)
 ```
 
 ## Recipes are data
@@ -672,7 +672,24 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 00000000000000000000000000. The clinic, round 2 (three more ailments, happy dances, a ring for the ear)
+The owner: "make sure the doctor game works, test it, research it against other games". Research and gap list:
+`/mnt/project-files/research/clinic-research.md`. Branch `claude/clinic-2-ujeg2a`. No bug was found in round 1's clinic;
+the finding was length and repetition (a visit ~60 s on little chef, 6 ailments), the main complaint about weak doctor apps.
+- **Three ailments** (data in `core/clinic.ts`, 9 now): `spots` (itchy spots on the body, `Patient.spots`; the new move
+  `dab`: touch each spot with the cream, `TUNING.clinic.spots` [4, 6]; not the giraffe), `cold` (a pink nose and a sneeze;
+  the tissue held to the nose, `where: 'nose'` = `Patient.nose` or just above the mouth; a honk, "Bless you!"; a warm
+  drink = the cup with its own line), `toy` (a bell swallowed: `clinic-toy` drawn in the tummy close-up; L1 the
+  stethoscope hears it jingle, L2 it hides and the magnifier finds it (`BELL_SPOTS`); the magnet is a `pull` that grips
+  from `magnetR` and draws out `magnetPull`). `hidden_()` / `hiddenSpot()` are the splinter or the bell.
+- **Happy dance** after "All better!" (`dance`): the turtle spins, the penguin slides, the giraffe sways, Pipa rolls.
+- **Finding the wheezy spot by ear** (big chef) now also shows a ring from the chest piece, bigger and brighter nearer.
+- **Art:** 7 SVGs in `gen_clinic.py` (tool-tissue, tool-magnet, clinic-spot, clinic-toy, sick-spots, sick-cold,
+  sick-toy). **Sound:** honk, jingle, zing (`make_clinic_sfx.py honk jingle zing`; only the named ones are rewritten);
+  10 Mom lines (`make_vo.py mom-a`), not heard by a human.
+- **Harness:** `__clinicPlay` dabs every spot; `window.__clinicPlan = [['turtle', 'spots'], ...]` forces a visit.
+- **Needs a real child:** does she hold the tissue long enough, find the bell with the magnet, dab small spots?
 ### 0000000000000000000000000. The clinic (the second world: Mom the nurse)
 The owner: "a mini-game where you treat sick children or animals, and teeth; interesting and challenging"; then "already
 on the opening screen choose cooking with Mom or treating patients with Mom the nurse; music, scenery and voices to

@@ -28,6 +28,8 @@ const PAW_SPOTS = [C.paw, { x: 214, y: 158 }, { x: 306, y: 150 }];
 /** Where the stethoscope listens on the tummy close-up, and where the warm bottle goes. */
 const TUMMY_SPOTS = [{ x: 260, y: 196 }, { x: 186, y: 318 }, { x: 334, y: 318 }];
 const TUMMY_MID = { x: 260, y: 300 };
+/** Where the swallowed bell can hide in the tummy close-up (big chef: found with the magnifier). */
+const BELL_SPOTS = [{ x: 200, y: 250 }, { x: 322, y: 250 }, { x: 262, y: 370 }, { x: 186, y: 352 }, { x: 338, y: 352 }];
 
 /** A patient: the layered character (Character.ts) with her own voice's pitch and things drawn on her. */
 class PatientView extends Character {
@@ -60,6 +62,8 @@ interface Visitor {
   signs: Phaser.GameObjects.Image[];
   /** The picture card over her head in the waiting room (little chef only). */
   card?: Phaser.GameObjects.Image;
+  /** Her itchy spots (spots): each goes with a dab of cream. */
+  dots: { img: Phaser.GameObjects.Image; f: P; done: boolean }[];
   done: boolean;
 }
 
@@ -198,6 +202,7 @@ export class ClinicScene extends MiniGame {
       v.seat = { x, y: seatY + 34 * bs - (FEET - FH / 2) * pw, scale: pw };
       v.view = new PatientView(this, v.p.def, v.seat, v.p.rate);
       v.view.box.setDepth(6);
+      v.dots = [];
       v.signs = this.signsOn(v);
       v.done = false;
       if (this.level === 1) {
@@ -266,9 +271,27 @@ export class ClinicScene extends MiniGame {
         return [view.put('clinic-scrape', p.foot!, 0.5, -10), view.put('clinic-dust', p.foot!, 0.45)];
       case 'paw':
         return [view.put('clinic-splinter', { x: p.foot!.x - 8, y: p.foot!.y + 6 }, 0.55, -25)];
+      case 'spots': {
+        const fs = Phaser.Utils.Array.Shuffle([...p.spots]).slice(0, T.spots[this.level - 1]);
+        v.dots = fs.map((f) => ({ img: view.put('clinic-spot', f, Phaser.Math.FloatBetween(0.8, 1.05)), f, done: false }));
+        return v.dots.map((d) => d.img);
+      }
+      case 'cold': {
+        // a pink nose and a little drip under it (on the penguin's orange beak the pink alone hardly shows)
+        const n = this.noseOf(v);
+        return [view.put('clinic-cheek', n, 0.42).setAlpha(0.95), view.put('clinic-sweat', { x: n.x + 26, y: n.y + 34 }, 0.55)];
+      }
       default:
         return [];
     }
+  }
+
+  /** Her nose in her frame: given, or just above her mouth (the penguin's beak is her mouth). */
+  private noseOf(v: Visitor): P {
+    if (v.p.nose) return v.p.nose;
+    const m = v.view.mouthAt;
+    const view = v.view;
+    return { x: (m.x - view.rest.x) / view.scale + FW / 2, y: (m.y - view.rest.y) / view.scale + FH / 2 - (v.p.id === 'penguin' ? 10 : 50) };
   }
 
   /** She shows what is wrong (as she comes in, and when tapped): a cough, a gurgle, warm cheeks, her foot. */
@@ -283,6 +306,15 @@ export class ClinicScene extends MiniGame {
       case 'cough':
         sfx(this, 'cough', { minGapMs: 0, rate });
         this.tweens.add({ targets: box, scaleY: s * 0.92, duration: 90, yoyo: true, repeat: 1, ease: 'Quad.easeOut' });
+        break;
+      case 'cold':
+        sfx(this, 'pipa-sneeze', { minGapMs: 0, rate });
+        this.tweens.add({ targets: box, scaleY: s * 0.9, scaleX: s * 1.05, duration: 110, yoyo: true, delay: 380, ease: 'Quad.easeOut' });
+        for (const g of v.signs) boing(this, g, 0.3);
+        break;
+      case 'toy':
+        sfx(this, 'jingle', { minGapMs: 0, volume: 0.7 });
+        this.tweens.add({ targets: box, angle: { from: -3, to: 3 }, duration: 120, yoyo: true, repeat: 2, ease: 'Sine.easeInOut', onComplete: () => box.setAngle(0) });
         break;
       case 'tummy':
         sfx(this, 'gurgle', { minGapMs: 0 });
@@ -532,7 +564,12 @@ export class ClinicScene extends MiniGame {
     const v = this.cur;
     if (!st || !v) return null;
     if (st.where === 'mouth') return v.view.mouthAt;
+    if (st.where === 'nose') return v.view.at(this.noseOf(v));
     if (st.where === 'forehead') return v.view.at(v.p.forehead);
+    if (st.act === 'dab') {
+      const d = v.dots.find((q) => !q.done);
+      return d ? v.view.at(d.f) : null;
+    }
     if (st.act === 'listen') {
       if (st.find) return this.hidden ? v.view.at(this.hidden) : null;
       const s = this.spots.find((q) => q.done < T.listenMs);
@@ -540,6 +577,7 @@ export class ClinicScene extends MiniGame {
     }
     if (!this.lens) return null;
     const l = this.lens.id;
+    if (st.act === 'pull' || st.act === 'search') return this.lensPoint(this.hiddenSpot());
     if (l === 'tummy') return this.lensPoint(TUMMY_MID);
     if (l === 'knee') return this.lensPoint(C.knee);
     if (l === 'paw') return this.lensPoint(this.pawSpot());
@@ -552,6 +590,15 @@ export class ClinicScene extends MiniGame {
 
   private pawSpot(): P {
     return (this.lensThings.get('splinter')?.getData('f') as P) ?? C.paw;
+  }
+
+  /** The thing to find and draw out in the close-up: the splinter, or the swallowed bell. */
+  private hidden_(): Phaser.GameObjects.Image | undefined {
+    return this.lensThings.get('splinter') ?? this.lensThings.get('bell');
+  }
+
+  private hiddenSpot(): P {
+    return (this.hidden_()?.getData('f') as P) ?? C.paw;
   }
 
   /** A thing drawn in the close-up, in the world (the close-up may sway). */
@@ -611,6 +658,9 @@ export class ClinicScene extends MiniGame {
       const f = this.level === 2 ? Phaser.Utils.Array.GetRandom(PAW_SPOTS) : C.paw;
       thing('splinter', 'clinic-splinter', f, 0.9, -28, this.level === 2 ? 0 : 1);
       thing('cream', 'clinic-cream', f, 0.9, 0, 0);
+    } else if (id === 'tummy' && v.a.id === 'toy') {
+      const f = this.level === 2 ? Phaser.Utils.Array.GetRandom(BELL_SPOTS) : TUMMY_MID;
+      thing('bell', 'clinic-toy', f, 0.85, Phaser.Math.Between(-15, 15), this.level === 2 ? 0 : 0.8);
     } else if (id === 'mouth') {
       const teeth = Phaser.Utils.Array.Shuffle([...C.teeth]).slice(0, T.teeth[this.level - 1]);
       teeth.forEach(([x, y], i) => thing(`dirt-${i}`, 'clinic-dirt', { x, y: y + 6 }, 0.62, Phaser.Math.Between(-30, 30)));
@@ -750,24 +800,28 @@ export class ClinicScene extends MiniGame {
         return;
       }
       case 'pull': {
-        const sp = this.lensThings.get('splinter');
+        const sp = this.hidden_();
         if (!sp || !this.lens) return;
-        const at = this.lensPoint(this.pawSpot());
+        const mag = st.tool === 'magnet';
+        const at = this.lensPoint(this.hiddenSpot());
         if (!this.gripped) {
-          if (!this.near(tp, at, reach * 0.8)) return;
+          // (the magnet catches the bell from a little further away: it jumps onto it)
+          if (!this.near(tp, at, mag ? T.magnetR * k : reach * 0.8)) return;
           this.gripped = true;
           this.gripAt = { ...tp };
-          sfx(this, 'click');
+          sfx(this, mag ? 'zing' : 'click', { volume: mag ? 0.7 : 1 });
           boing(this, sp, 0.2);
+          if (mag) sp.setAlpha(1);
           this.poke();
           return;
         }
-        // drawn out: the splinter follows the tweezers' tips, out of the paw
+        // drawn out: the splinter follows the tweezers' tips (the bell clings to the magnet), out of the close-up
         const out = Math.hypot(tp.x - this.gripAt!.x, tp.y - this.gripAt!.y);
         sp.setPosition(tp.x - this.lens.box.x, tp.y - this.lens.box.y);
-        if (out >= T.pull * k) {
+        if (mag && Math.random() < 0.15) sfx(this, 'jingle', { minGapMs: 700, volume: 0.35 });
+        if (out >= (mag ? T.magnetPull : T.pull) * k) {
           this.gripped = false;
-          sfx(this, 'pop');
+          sfx(this, mag ? 'jingle' : 'pop');
           stars(this, tp.x, tp.y, 7, 36 * k);
           this.tweens.add({ targets: sp, alpha: 0, y: sp.y - 60 * k, angle: 40, duration: 500 });
           v.view.react('giggle');
@@ -775,11 +829,30 @@ export class ClinicScene extends MiniGame {
         }
         return;
       }
+      case 'dab': {
+        const d = v.dots.find((q) => !q.done && this.near(tp, v.view.at(q.f), reach * 0.9));
+        if (!d) return;
+        d.done = true;
+        const p = v.view.at(d.f);
+        const dab = v.view.put('clinic-cream', d.f, 0.42).setAlpha(0.95);
+        boing(this, dab, 0.2);
+        this.tweens.add({ targets: d.img, alpha: 0, scale: d.img.scale * 0.5, duration: 300 });
+        this.tweens.add({ targets: dab, alpha: 0, duration: 600, delay: 900, onComplete: () => dab.destroy() });
+        burst(this, p.x, p.y, { texture: 'fx-heart', count: 4, tint: [0xf06a8a, 0xf5a3b5], size: 30 * k, speed: 200 * k, gravityY: -100, lifespan: 700, depth: 60 });
+        sfx(this, 'squish', { minGapMs: 0, volume: 0.45 });
+        sfx(this, 'pop', { minGapMs: 0, volume: 0.4 });
+        this.poke();
+        if (v.dots.every((q) => q.done)) {
+          v.view.react('giggle');
+          this.moveDone();
+        } else if (Math.random() < 0.4) sfx(this, 'char-giggle', { minGapMs: 1200, rate: v.view.rate, volume: 0.5 });
+        return;
+      }
       case 'search': {
-        const sp = this.lensThings.get('splinter');
+        const sp = this.hidden_();
         if (!sp || !this.lens) return;
         if (dist > 0) this.poke();
-        if (this.near(tp, this.lensPoint(this.pawSpot()), T.findR * k)) {
+        if (this.near(tp, this.lensPoint(this.hiddenSpot()), T.findR * k)) {
           sp.setAlpha(1);
           boing(this, sp, 0.4);
           stars(this, tp.x, tp.y, 6, 34 * k);
@@ -796,7 +869,7 @@ export class ClinicScene extends MiniGame {
     const k = this.L.k;
     const v = this.cur!;
     this.poke();
-    if (st.tool === 'thermometer') {
+    if (st.tool === 'thermometer' || st.tool === 'tissue') {
       if (v.view.mood !== 'expect') v.view.setMood('expect');
       const before = Math.floor((this.prog - delta) / 400);
       if (Math.floor(this.prog / 400) > before) sfx(this, 'tap', { volume: 0.25, minGapMs: 0, vary: false });
@@ -832,6 +905,12 @@ export class ClinicScene extends MiniGame {
       const near = Phaser.Math.Clamp(1 - d / (T.hearR * k), 0, 1);
       if (near > 0.05) sfx(this, 'wheeze', { minGapMs: 0, volume: 0.15 + 0.85 * near });
       else sfx(this, 'heartbeat', { minGapMs: 0, volume: 0.4 });
+      // what she hears, also seen (the phone's speaker may be quiet): a ring from the chest piece, bigger and
+      // brighter the nearer she is to the wheezy spot
+      const ring = this.add.image(tp.x, tp.y, 'fx-ring').setDepth(58).setTint(near > 0.05 ? 0x8ec3db : 0xf5a3b5).setAlpha(0.25 + 0.65 * near);
+      const r0 = (60 * k) / ring.frame.realWidth;
+      ring.setScale(r0);
+      this.tweens.add({ targets: ring, scale: r0 * (1.6 + 2.6 * near), alpha: 0, duration: 700, ease: 'Quad.easeOut', onComplete: () => ring.destroy() });
     }
     if (d < T.wheezeR * k) {
       this.prog += delta;
@@ -936,6 +1015,14 @@ export class ClinicScene extends MiniGame {
       v.view.setMood('rest');
       sfx(this, 'beep');
     }
+    if (st.tool === 'tissue') {
+      // a big funny blow, and the pink nose goes
+      v.view.setMood('happy');
+      sfx(this, 'honk');
+      boing(this, v.view.box, 0.08);
+      const nose = v.signs.filter((g) => g.texture.key === 'clinic-cheek' || g.texture.key === 'clinic-sweat');
+      if (nose.length) this.tweens.add({ targets: nose, alpha: 0, duration: 500 });
+    }
     if (st.tool === 'hotbottle') {
       // the warm bottle rests on the tummy for a moment
       const t = this.toolOf('hotbottle');
@@ -1035,8 +1122,35 @@ export class ClinicScene extends MiniGame {
       confetti(this, head.x, L.Y(220), 16, 24 * k);
       v.view.cheer();
       this.mom?.cheer();
+      this.time.delayedCall(700, () => this.dance(v));
       this.say('vo-clinic-better', { ttlMs: 4000, done: () => this.time.delayedCall(300, () => this.startSticker()) });
     });
+  }
+
+  /** Better now: each patient's own happy move (the turtle spins, the penguin slides, the giraffe sways, Pipa rolls). */
+  private dance(v: Visitor) {
+    if (this.leaving || this.cur !== v) return;
+    const box = v.view.box;
+    const r = v.view.rest;
+    const s = v.view.scale;
+    const back = () => box.setAngle(0).setPosition(r.x, r.y).setScale(s);
+    this.tweens.killTweensOf(box);
+    back();
+    sfx(this, 'char-yay', { rate: v.view.rate, volume: 0.7 });
+    switch (v.p.id) {
+      case 'turtle':
+        this.tweens.add({ targets: box, angle: 360, duration: 900, ease: 'Sine.easeInOut', onComplete: back });
+        break;
+      case 'penguin':
+        this.tweens.add({ targets: box, x: { from: r.x - 40 * s, to: r.x + 40 * s }, angle: { from: -10, to: 10 }, duration: 220, yoyo: true, repeat: 2, ease: 'Sine.easeInOut', onComplete: back });
+        break;
+      case 'giraffe':
+        this.tweens.add({ targets: box, angle: { from: -7, to: 7 }, duration: 300, yoyo: true, repeat: 2, ease: 'Sine.easeInOut', onComplete: back });
+        break;
+      default:
+        this.tweens.add({ targets: box, y: r.y - 70 * s, duration: 260, yoyo: true, repeat: 1, ease: 'Quad.easeOut' });
+        this.tweens.add({ targets: box, angle: 360, duration: 1040, ease: 'Sine.easeInOut', onComplete: back });
+    }
   }
 
   private startSticker() {
@@ -1217,7 +1331,16 @@ export class ClinicScene extends MiniGame {
       case 'rub':
         return circle(tg, 40 * k, from, from + 1100);
       case 'pull':
-        return [{ ...tg, t: from }, { ...tg, t: from + 300 }, { x: tg.x + 150 * k, y: tg.y - 150 * k, t: from + 1000 }];
+        return [{ ...tg, t: from }, { ...tg, t: from + 300 }, { x: tg.x + 200 * k, y: tg.y - 200 * k, t: from + 1100 }];
+      case 'dab': {
+        const v = this.cur!;
+        const keys: HandKey[] = [];
+        v.dots.filter((q) => !q.done).forEach((q, i) => {
+          const p = v.view.at(q.f);
+          keys.push({ ...p, t: from + i * 650 }, { ...p, t: from + i * 650 + 250 });
+        });
+        return keys.length ? keys : [{ ...tg, t: from }];
+      }
       case 'search': {
         const l = this.lens!;
         return [{ x: l.at.x - 120 * k, y: l.at.y + 60 * k, t: from }, { x: l.at.x + 100 * k, y: l.at.y - 40 * k, t: from + 600 }, { ...tg, t: from + 1100 }];
@@ -1352,7 +1475,11 @@ export class ClinicScene extends MiniGame {
   /** Mom's help ran out of time before the move was done: it is finished as if done by hand. */
   private finishMove(st: Treat) {
     const k = this.L.k;
-    const sp = this.lensThings.get('splinter');
+    const sp = this.hidden_();
+    if (st.act === 'dab' && this.cur) for (const d of this.cur.dots) if (!d.done) {
+      d.done = true;
+      this.tweens.add({ targets: d.img, alpha: 0, duration: 300 });
+    }
     if (st.tool === 'spray') this.lensThings.get('dust')?.setAlpha(0);
     if (st.act === 'rub') {
       for (const d of this.dirtLeft()) d.setAlpha(0);
@@ -1468,13 +1595,13 @@ export class ClinicScene extends MiniGame {
     const t = h.tool;
     const st = this.step;
     const v = this.cur;
-    if (v && st?.tool === 'thermometer' && v.view.mood === 'expect') v.view.setMood('rest');
+    if (v && (st?.tool === 'thermometer' || st?.tool === 'tissue') && v.view.mood === 'expect') v.view.setMood('rest');
     if (this.lens) this.lens.box.x = this.lens.at.x;
-    if (this.gripped && this.lensThings.get('splinter') && this.lens) {
-      // let go mid-pull: the splinter slips back into place (nothing lost)
+    if (this.gripped && this.hidden_() && this.lens) {
+      // let go mid-pull: the splinter (the bell) slips back into place (nothing lost)
       this.gripped = false;
-      const sp = this.lensThings.get('splinter')!;
-      const f = this.pawSpot();
+      const sp = this.hidden_()!;
+      const f = this.hiddenSpot();
       this.tweens.add({ targets: sp, x: (f.x - LENS / 2) * this.lens.s, y: (f.y - LENS / 2) * this.lens.s, duration: 250 });
     }
     if (!st || t.id !== st.tool || this.phase !== 'tool' || cancelled) return this.backToTray(t);
