@@ -301,6 +301,19 @@ export const TUNING = {
     dotTouch: 160, dotR: [32, 44], fillMs: 450, mirrorInk: [0.25, 0.35], steamClear: 0.6, findClear: 0.4, refogMs: 9000,
     freeHintMs: 15000, freeHelpMs: 15000, aliveMs: 2500, helpMs: 1300,
   },
+  /**
+   * The clinic (ClinicScene, research/clinic-spec.md). Distances are world units x k, [level 1, level 2] where two.
+   * `patients` per visit; `reach` how near a tool's working point must come to its place; `holdMs` holding the
+   * thermometer, the spray or the warm bottle there; `listenMs` the stethoscope on a spot; `rub` brushing a tooth's
+   * spot or rubbing the cream in; `pull` how far the tweezers draw the splinter out; `findR` the magnifier finding it;
+   * `wheezeR` the stethoscope finding the wheezy spot (level 2, the sound grows louder within `hearR`); `decoys` the
+   * tools on the tray that are not needed; the chart (level 2) shows the plan `planMs`, a tap on it `peekMs`;
+   * `wiggle` how far the close-up sways while she brushes or rubs (level 2: it tickles). `helpMs` one move of Mom's hand.
+   */
+  clinic: {
+    patients: 3, reach: 120, holdMs: [1600, 2000], listenMs: 700, rub: [700, 900], pull: 170, findR: 95,
+    wheezeR: 70, hearR: 330, decoys: [1, 2], teeth: [2, 4], planMs: 3200, peekMs: 2600, wiggle: 18, helpMs: 1100,
+  },
   help: { pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150, chopEveryMs: 950, openMs: 1500, tempEveryMs: 1100, peelEveryMs: 900, candleEveryMs: 700, threadEveryMs: 700 },
 } as const;
 

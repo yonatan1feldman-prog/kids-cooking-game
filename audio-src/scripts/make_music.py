@@ -1,13 +1,13 @@
 """The game's music, synthesised here from notes (numpy + scipy + ffmpeg only; no samples, nothing downloaded).
 
-Three songs, each 32 bars (A A' B A) that loop gaplessly, each as three synchronised stems the game mixes live
+Four songs (the kitchen, outdoors, the art corner, the clinic), each 32 bars (A A' B A) that loop gaplessly, each as three synchronised stems the game mixes live
 (core/audio.ts `music`):
   base   ukulele or marimba chords, bass, a light shaker or claps   always on      stereo
   tune   the melody (xylophone / whistle / glockenspiel)            on; out while Mom talks   mono
   party  kick, claps, tambourine, a counter-melody, fills           after each success, the whole finale   mono
 plus `-up`, a one-bar rising glockenspiel run in the song's key (the stinger when the party layer comes in).
 
-Usage (from audio-src/):  python3 scripts/make_music.py [kitchen outside art] [--preview DIR]
+Usage (from audio-src/):  python3 scripts/make_music.py [kitchen outside art clinic] [--preview DIR]
 Writes work/music-gen/*.wav (scratch), final/music/music-<song>-<stem>.ogg, and with --preview one mp3 per song
 (base + tune, the party layer coming in mid-way, then going again). Research and spec:
 the project's research/music-spec.md. Mixing: every stem gets ONE gain per song, so the full mix (base + tune + party)
@@ -298,12 +298,36 @@ ART = dict(
     up=["F5", "A5", "C6", "F6", "A6", "C7"],
 )
 
-SONGS = {"kitchen": KITCHEN, "outside": OUTSIDE, "art": ART}
+CLINIC_A = [
+    "D5/1 F#5/1 A5/1 F#5/1",
+    "G5/1 B5/1 D6/2",
+    "C#6/.5 B5/.5 A5/1 E5/1 G5/1",
+    "F#5/3 r/1",
+    "D5/1 F#5/1 A5/1 D6/1",
+    "B5/.5 A5/.5 G5/1 B5/1 G5/1",
+    "E5/.5 F#5/.5 G5/1 A5/1 C#5/1",
+    "D5/3 r/1",
+]
+# The clinic (added 2026-10-03): Mom the nurse's room; warm and reassuring, ukulele picked softly, glockenspiel bells.
+CLINIC = dict(
+    bpm=112, root="D", base="uke", tune="glock", counter="xylo", strum="gentle",
+    chords=["D", "G", "A", "D", "D", "G", "A7", "D"] * 2 + ["Bm", "G", "D", "A", "Bm", "G", "Em", "A7"]
+    + ["D", "G", "A", "D", "D", "G", "A7", "D"],
+    melody=CLINIC_A
+    + CLINIC_A[:4] + ["D6/1 C#6/.5 B5/.5 A5/2", "G5/1 A5/.5 B5/.5 D6/2", "C#6/1 A5/1 E5/1 G5/1", "D5/2 r/2"]
+    + ["B5/1 D6/1 F#6/2", "D6/1 B5/.5 A5/.5 G5/2", "A5/1 F#5/1 D5/2", "E5/.5 F#5/.5 G5/.5 A5/.5 E5/2",
+       "F#5/.5 G5/.5 A5/1 B5/1 D6/1", "B5/.5 A5/.5 G5/1 D5/1 G5/1", "E5/1 G5/1 B5/1 G5/1", "A5/1 G5/.5 F#5/.5 E5/1 r/1"]
+    + CLINIC_A,
+    up=["D6", "F#6", "A6", "D7", "F#7", "A7"],
+)
+
+SONGS = {"kitchen": KITCHEN, "outside": OUTSIDE, "art": ART, "clinic": CLINIC}
 BARS = 32
 STRUMS = {
     # (beat, 'D' down / 'U' up / 'X' a chuck: muted, percussive, strength)
     "island": [(0, "D", 1.0), (1, "D", 0.8), (1.5, "U", 0.55), (2.5, "U", 0.55), (3, "D", 0.8), (3.5, "U", 0.55)],
     "chuck": [(0, "D", 1.0), (1, "X", 0.7), (1.5, "U", 0.5), (2, "D", 0.9), (3, "X", 0.7), (3.5, "U", 0.5)],
+    "gentle": [(0, "D", 0.9), (1.5, "U", 0.45), (2, "D", 0.75), (3, "D", 0.6), (3.5, "U", 0.45)],
 }
 
 

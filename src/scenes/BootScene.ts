@@ -12,7 +12,7 @@ import { loadSvgTexture, loadWebpTexture } from '../core/svgRaster';
 const url = (p: string) => import.meta.env.BASE_URL + p;
 
 /** What the title and home screens show: loaded first, so the title appears quickly (with its play button). */
-const EARLY: ImageKey[] = ['bg-kitchen-landscape', ...KITCHEN_KEYS, 'btn-play', 'star', ...CORE_IMAGES.filter((k) => k.startsWith('card-'))];
+const EARLY: ImageKey[] = ['bg-kitchen-landscape', ...KITCHEN_KEYS, 'btn-world-kitchen', 'btn-world-clinic', 'star', ...CORE_IMAGES.filter((k) => k.startsWith('card-'))];
 /** Loaded right after: the title's logo, Mom, Pipa and Mom's pointing hand. They fade in on the title when ready. */
 const TITLE_ART: ImageKey[] = [
   'logo-cooking-with-mom',

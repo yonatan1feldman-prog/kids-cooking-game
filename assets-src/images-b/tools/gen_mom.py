@@ -631,6 +631,56 @@ def arm_left_open(c, pr):
     return layer(p, G("".join(L), p + "cut"), "smooth", 47)
 
 
+# ---------- the clinic world: Mom the nurse (the same Mom; a nurse's pinafore and a cap, every arm and pose kept) ----------
+NURSE = "#A9D8EA"
+NURSE_D = "#7DBCD6"
+
+
+def mom_body_nurse(c, pr):
+    """mom-body with a light-blue nurse's pinafore instead of the apron: a white collar, a pocket with a pen and a
+    heart badge, a stethoscope round her neck. Same frame, same blouse (her sleeves are on the arm layers)."""
+    p = "mp-bdn-"
+    L = [hx(hair_back(c, pr["hair_style"], p))]
+    torso = "M250,432 Q196,440 150,470 Q118,492 116,560 L112,810 L488,810 L484,560 Q482,492 450,470 Q404,440 350,432Z"
+    L.append(G(P(torso, c["shirt"]), p + "cut"))
+    dots = "".join(C(x + (20 if r % 2 else 0), 468 + r * 38, 6.5, c["dot"]) for r in range(9) for x in range(112, 500, 40))
+    L.append(f'<clipPath id="{p}tc"><path d="{torso}"/></clipPath>' + G(dots, None, f' clip-path="url(#{p}tc)" opacity="0.9"'))
+    nw = LOOK["neck"] / 2
+    L.append(G(P(f"M{n(300 - nw)},380 L{n(300 + nw)},380 L{n(304 + nw)},456 Q300,476 {n(296 - nw)},456Z", c["skin_sh"]), p + "sh"))
+    # the pinafore: wide shoulder panels and a bodice down to the waist
+    dress = "M196,462 Q250,446 270,452 L300,500 L330,452 Q350,446 404,462 Q428,520 430,600 Q436,700 452,810 L148,810 Q164,700 170,600 Q172,520 196,462Z"
+    L.append(G(P(dress, NURSE_D, ' transform="translate(0 4)"') + P(dress, NURSE), p + "cut"))
+    L.append(P("M210,476 Q250,462 266,466 L300,520 L334,466 Q350,462 390,476 Q400,500 404,530 Q300,512 196,530 Q200,500 210,476Z", WHITE_C, ' opacity="0.35"'))
+    # the white collar
+    L.append(G(P("M232,436 Q300,478 368,436 L384,452 Q340,500 300,500 Q260,500 216,452Z", WHITE_C), p + "sh"))
+    L.append(P("M300,478 L300,560", NURSE_D, ' stroke="#7DBCD6" stroke-width="4" opacity="0.8"'))
+    L.append("".join(C(300, y, 7, WHITE_C) for y in (540, 590, 640)))
+    # the stethoscope round her neck
+    L.append(G(f'<path d="M226,450 Q210,540 250,600 Q270,630 262,664" fill="none" stroke="#4FA3A6" stroke-width="11" stroke-linecap="round"/>'
+               f'<path d="M374,450 Q392,520 372,560" fill="none" stroke="#4FA3A6" stroke-width="11" stroke-linecap="round"/>'
+               + C(262, 676, 20, "#7F8B88") + C(262, 676, 14, "#D4DCD9") + C(370, 566, 9, "#7F8B88"), p + "sh"))
+    # the pocket with a pen and a heart badge
+    L.append(G(P(wrect(318, 640, 96, 80, 16, 1, 91), NURSE_D), p + "sh"))
+    L.append(P(wrect(392, 610, 12, 50, 5, 1, 92), "#EE6F7C") + P(wrect(390, 604, 16, 14, 4, 1, 93), "#C9505E"))
+    heart = "M342,600 Q322,586 324,574 Q327,564 337,567 Q341,569 342,575 Q343,569 347,567 Q357,564 360,574 Q362,586 342,600Z"
+    L.append(G(C(342, 582, 26, WHITE_C) + P(heart, "#EE6F7C"), p + "sh"))
+    return layer(p, shift("".join(L)), "default", 41)
+
+
+def mom_cap_nurse(c, pr):
+    """A white nurse's cap with a small red heart, over the top of her hair in front of the bun (drawn after the hair)."""
+    p = "mp-cap-"
+    cap = "M204,172 Q214,104 300,92 Q386,104 396,172 Q352,152 300,150 Q248,152 204,172Z"
+    s = G(P(cap, "#D8E2E2", ' transform="translate(0 5)"') + P(cap, WHITE_C), p + "cut")
+    s += P("M214,160 Q300,138 386,160 L390,170 Q300,148 210,170Z", NURSE, ' opacity="0.9"')
+    heart = "M300,140 Q278,124 281,110 Q284,99 295,102 Q299,104 300,111 Q301,104 305,102 Q316,99 319,110 Q322,124 300,140Z"
+    s += G(P(heart, "#EE6F7C"), p + "sh")
+    return layer(p, shift(hx(s)), "default", 43)
+
+
+WHITE_C = "#FFFDF7"
+
+
 # ---------- demo hands (400x400, from the lower right, hovering) ----------
 def hand_file(p, inner, seed, extra=""):
     defs = std_defs(p, "smooth", seed, sh=(3, 2.5, .28), sh2=(6, 5, .25), cut=dict(dx=10, dy=16, blur=7, op=.3))
@@ -757,7 +807,8 @@ def build(out, pr):
              "mom-arm-left-reach": arm_left_reach(c, pr), "mom-arm-right-rest": arm_right_rest(c, pr),
              "mom-arm-right-chin": arm_right_chin(c, pr), "mom-arm-right-thumb": arm_right_thumb(c, pr),
              "mom-arm-left-clap": arm_clap(c, pr, "l"), "mom-arm-right-clap": arm_clap(c, pr, "r"),
-             "mom-arm-left-open": arm_left_open(c, pr)}
+             "mom-arm-left-open": arm_left_open(c, pr),
+             "mom-body-nurse": mom_body_nurse(c, pr), "mom-cap-nurse": mom_cap_nurse(c, pr)}
     for k in ("open", "blink", "happy", "surprised"):
         files["mom-eyes-" + k] = eyes(c, pr, k)
     for k in ("smile", "open", "talk"):

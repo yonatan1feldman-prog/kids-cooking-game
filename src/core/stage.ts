@@ -1,3 +1,4 @@
+import Phaser from 'phaser';
 import type { Layout } from './layout';
 
 type Pt = { x: number; y: number };
@@ -26,6 +27,13 @@ export interface Stage {
    */
   levelPick: { 1: Pt; 2: Pt };
   levelScale: number;
+  /**
+   * Title (the clinic round): the two worlds, cooking with Mom (`kitchen`, where the play button was: `play` is the
+   * same point) and the clinic with Mom the nurse, side by side, the chef hats beside them (in a row, or one above
+   * the other where the row does not fit: 4:3). `worldScale` is their scale (a 240 disc rasterized at 1.4x).
+   */
+  world: { kitchen: Pt; clinic: Pt };
+  worldScale: number;
   /**
    * Home: where recipe card i of n sits, and the cards' scale. A grid left of Mom (and Pipa): one row up to 3 cards,
    * else two or three rows, clear of Mom's pointing hand, every card as big as its cell allows, never scrolling.
@@ -389,30 +397,36 @@ export function getStage(L: Layout): Stage {
   // Home: the recipe cards in a grid between the thumb strip and Mom's face (and Pipa), under the top edge.
   const CARD_W = 400;
   const CARD_H = 520;
+  // (the clinic round: the home screen has a home button too, back to the title where the worlds are; no card
+  // reaches its touch circle)
   const cardArea = { x0: m + 40 * k, x1: Math.min(momFace.x0, petLeft) - 30 * k, y0: Y(80), y1: Y(1000) };
   // Mom's pointing hand and forearm (her drawn pose on the home screen) reach left of her face, low on 4:3: no card
   // may sit under them (the garden card pushed the album button into the last cell there, under her finger).
   const arm = { x0: momLeft + 37 * s - 20 * k, y0: momTop + 378 * s - 80 * s, y1: momTop + 560 * s };
-  type Grid = { cols: number; rows: number; x1: number; w: number; h: number; scale: number };
-  const gridOf = (n: number, rows: number, x1: number): Grid => {
+  type Grid = { cols: number; rows: number; x0: number; y0: number; x1: number; w: number; h: number; scale: number };
+  const gridOf = (n: number, rows: number, x1: number, x0 = cardArea.x0, y0 = cardArea.y0): Grid => {
     const cols = n <= 3 ? n : Math.ceil(n / rows);
     const r = Math.ceil(n / cols);
-    const w = (x1 - cardArea.x0) / cols;
-    const h = (cardArea.y1 - cardArea.y0) / r;
-    return { cols, rows: r, x1, w, h, scale: Math.min(1.2 * k, (w - 40 * k) / CARD_W, (h - 40 * k) / CARD_H) };
+    const w = (x1 - x0) / cols;
+    const h = (cardArea.y1 - y0) / r;
+    return { cols, rows: r, x0, y0, x1, w, h, scale: Math.min(1.2 * k, (w - 40 * k) / CARD_W, (h - 40 * k) / CARD_H) };
   };
   const cellAt = (g: Grid, i: number, n: number) => {
     const row = Math.floor(i / g.cols);
     // (a shorter last row is centred)
     const inRow = row === g.rows - 1 ? n - row * g.cols : g.cols;
-    const x0 = (cardArea.x0 + g.x1) / 2 - (inRow * g.w) / 2;
-    return { x: x0 + g.w * ((i % g.cols) + 0.5), y: cardArea.y0 + g.h * (row + 0.5) };
+    const x0 = (g.x0 + g.x1) / 2 - (inRow * g.w) / 2;
+    return { x: x0 + g.w * ((i % g.cols) + 0.5), y: g.y0 + g.h * (row + 0.5) };
   };
   const clearOfArm = (g: Grid, n: number) => {
     for (let i = 0; i < n; i++) {
       const c = cellAt(g, i, n);
       const hw = (CARD_W / 2) * g.scale, hh = (CARD_H / 2) * g.scale;
       if (c.x + hw > arm.x0 && c.y + hh > arm.y0 && c.y - hh < arm.y1) return false;
+      // (nor over the home button's touch circle)
+      const nx = Phaser.Math.Clamp(home.x, c.x - hw, c.x + hw);
+      const ny = Phaser.Math.Clamp(home.y, c.y - hh, c.y + hh);
+      if (Math.hypot(nx - home.x, ny - home.y) < homeR + 10 * k) return false;
     }
     return true;
   };
@@ -422,14 +436,21 @@ export function getStage(L: Layout): Stage {
     let g = grids.get(n);
     if (g) return g;
     // (for each, the widest grid whose cards all stay clear, narrowing it step by step down to the hand's edge)
-    const fit = (rows: number) => {
+    // (the grid starts right of the home button, or under it, whichever gives bigger cards)
+    const fit = (rows: number, x0: number, y0: number) => {
       for (let x1 = cardArea.x1; x1 > arm.x0; x1 -= 10 * k) {
-        const t = gridOf(n, rows, x1);
+        const t = gridOf(n, rows, x1, x0, y0);
         if (clearOfArm(t, n)) return t;
       }
-      return gridOf(n, rows, Math.min(cardArea.x1, arm.x0));
+      return gridOf(n, rows, Math.min(cardArea.x1, arm.x0), x0, y0);
     };
-    g = [fit(2), ...(n > 6 ? [fit(3)] : [])].sort((a, b) => b.scale - a.scale)[0];
+    const starts = [
+      [home.x + homeR + 10 * k, cardArea.y0],
+      [cardArea.x0, home.y + homeR + 10 * k],
+    ];
+    g = starts
+      .flatMap(([x0, y0]) => [fit(2, x0, y0), ...(n > 6 ? [fit(3, x0, y0)] : [])])
+      .sort((a, b) => b.scale - a.scale)[0];
     grids.set(n, g);
     return g;
   };
@@ -476,16 +497,39 @@ export function getStage(L: Layout): Stage {
   // of Mom's face on narrow ones (the art agent's title scene).
   const titleX = W >= PET_MIN_W ? dishHome.x - 80 * k : (m + momLeft + MOM_FACE.x0 * s) / 2;
 
-  // The chef hats: right beside the play button, the big chef's nearest it, clear of the thumb strip.
+  // The chef hats and the two worlds (the clinic round): [little][big]  [kitchen][clinic], the worlds centred under
+  // the logo where they can be, the whole row clear of the thumb strip, of Pipa, of Mom's face and her pointing hand.
+  // Where the row does not fit (4:3) the hats stand one above the other left of the worlds.
   const levelScale = (205 / 240) * k;
   const levelR = 120 * levelScale;
-  const bigX = titleX - (240 / 2) * 1.4 * k - 50 * k - levelR;
-  const littleX = Math.max(m + levelR + 20 * k, bigX - 2 * levelR - 36 * k);
+  const worldScale = k;
+  const worldR = 120 * 1.4 * worldScale;
+  const worldGap = 40 * k;
+  const titleY = Y(740);
+  const armHit = titleY + worldR > arm.y0 && titleY - worldR < arm.y1;
+  const titleRight = Math.min(pet ? petLeft : Infinity, momFace.x0, armHit ? arm.x0 : Infinity) - 20 * k;
+  const titleLeft = m + 20 * k;
+  const hatsGap = 50 * k;
+  const rowHats = 4 * levelR + 20 * k;
+  const worldsW = 4 * worldR + worldGap;
+  const asRow = rowHats + hatsGap + worldsW <= titleRight - titleLeft;
+  const hatsW = asRow ? rowHats : 2 * levelR;
+  // the worlds' left edge: centred on the title column, then pushed right (room for the hats) or left (Mom, Pipa)
+  let worldsX0 = titleX - worldsW / 2;
+  worldsX0 = Math.max(worldsX0, titleLeft + hatsW + hatsGap);
+  worldsX0 = Math.min(worldsX0, titleRight - worldsW);
+  const kitchenX = worldsX0 + worldR;
+  const clinicX = worldsX0 + 3 * worldR + worldGap;
+  const bigX = worldsX0 - hatsGap - levelR;
+  const littleX = asRow ? bigX - 2 * levelR - 20 * k : bigX;
+  const hatDy = asRow ? 0 : levelR + 10 * k;
 
   return {
-    play: { x: titleX, y: Y(740) },
-    levelPick: { 1: { x: littleX, y: Y(740) }, 2: { x: Math.max(bigX, littleX + 2 * levelR + 20 * k), y: Y(740) } },
+    play: { x: kitchenX, y: titleY },
+    levelPick: { 1: { x: littleX, y: titleY - hatDy }, 2: { x: bigX, y: titleY + hatDy } },
     levelScale,
+    world: { kitchen: { x: kitchenX, y: titleY }, clinic: { x: clinicX, y: titleY } },
+    worldScale,
     titleLogo: { x: titleX, y: Y(330) },
     card,
     cardScale: (n) => (n === 1 ? k : cardScale(n)),

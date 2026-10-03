@@ -32,7 +32,7 @@ const LEAN = -1.2;
 const QUIET = /^(count-|temp-|name-)/;
 /** Scenes where Mom picks her poses by herself (title, home and album keep her pointing pose: the cards are laid out
  * around it). */
-const AUTO_SCENES = ['Recipe', 'Garden', 'Puzzle', 'Art'];
+const AUTO_SCENES = ['Recipe', 'Garden', 'Puzzle', 'Art', 'Clinic'];
 
 /**
  * Mom, standing at the counter on the right for the whole recipe. Twelve layers share one 800x800
@@ -78,7 +78,8 @@ export class Mom {
   private breath?: Phaser.Tweens.Tween;
   readonly s: number;
 
-  constructor(private scene: Phaser.Scene, at: Spot) {
+  /** `outfit` 'nurse': the clinic's Mom (a nurse's dress and cap over the same layers, gen_mom.py). */
+  constructor(private scene: Phaser.Scene, at: Spot, outfit: 'home' | 'nurse' = 'home') {
     this.s = at.scale;
     const { w, h, cx, pivotL, pivotR } = ART.mom;
     // The container sits on her body centre at the screen bottom; every layer hangs from there.
@@ -105,9 +106,11 @@ export class Mom {
     };
     const R = this.right;
     const Lf = this.left;
+    const nurse = outfit === 'nurse';
     this.box = scene.add
       .container(at.x, at.y, [
-        R.wave, R.rest, R.thumb, layer('mom-body'), layer('mom-head'), layer('mom-hair'), this.eyes, this.mouth,
+        R.wave, R.rest, R.thumb, layer(nurse ? 'mom-body-nurse' : 'mom-body'), layer('mom-head'), layer('mom-hair'),
+        ...(nurse ? [layer('mom-cap-nurse')] : []), this.eyes, this.mouth,
         Lf.point, Lf.reach, Lf.open, Lf.clap, R.chin, R.clap,
       ])
       .setDepth(4);
@@ -155,6 +158,8 @@ export class Mom {
 
   /** Cross-fades between two drawings of one arm (same pivot, same frame). */
   private swap(from: Phaser.GameObjects.Image, to: Phaser.GameObjects.Image) {
+    // (a quick back-and-forth would otherwise leave two fades fighting over one drawing)
+    this.scene.tweens.killTweensOf([from, to]);
     this.scene.tweens.add({ targets: from, alpha: 0, duration: POSE_MS });
     this.scene.tweens.add({ targets: to, alpha: 1, duration: POSE_MS });
   }
