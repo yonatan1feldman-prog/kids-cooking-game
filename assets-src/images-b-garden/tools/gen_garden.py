@@ -518,6 +518,117 @@ ITEMS = {
 }
 
 
+# ---------------------------------------------------------------- garden round 3: the scarecrow, the birds, the butterfly
+# garden-scarecrow (380x640): the post and the crossbar, the sack head; a hat sits on SCARE_HAT (its brim's middle), a
+# shirt is centred on SCARE_SHIRT. Hats 240x160 (brim middle at HAT_BRIM), shirts 320x260.
+SCARE_HAT = (190, 104)
+SCARE_SHIRT = (190, 386)
+HAT_BRIM = (120, 128)
+SACK = "#E3C48E"; SACK_D = "#C29E64"; SACK_L = "#F2DCB0"; STRAW_Y = "#F2CF62"; STRAW_YD = "#D9A93A"
+HUES = {"red": ("#E0503A", "#B83A28", "#F48A6E"), "blue": ("#5B8FD6", "#3F6FB2", "#9CC0EE"), "yellow": ("#F5C542", "#D59C1A", "#FFE28E")}
+
+
+def straw_tuft(cx, cy, w, h, ang, seed):
+    rr = random.Random(seed)
+    s = ""
+    for i in range(7):
+        a = math.radians(ang + rr.uniform(-28, 28))
+        L = h * rr.uniform(.7, 1.1)
+        x0 = cx + rr.uniform(-w, w) * .5
+        s += stroke(f"M{n(x0)},{n(cy)} L{n(x0 + math.cos(a) * L)},{n(cy + math.sin(a) * L)}", STRAW_YD if i % 2 else STRAW_Y, 7)
+    return s
+
+
+def garden_scarecrow():
+    p = "gsc-"
+    post = P(wr(176, 150, 28, 490, 8, 1.2, 401), WALNUT) + P(wr(182, 156, 10, 480, 5, 1, 402), WALNUT_L, ' opacity="0.7"')
+    bar = P(wr(30, 286, 320, 28, 10, 1.2, 403), WALNUT) + P(wr(36, 291, 308, 9, 5, 1, 404), WALNUT_L, ' opacity="0.7"')
+    hands = straw_tuft(34, 300, 20, 46, 180, 405) + straw_tuft(346, 300, 20, 46, 0, 406)
+    neck = straw_tuft(190, 236, 40, 40, 90, 407)
+    head = P(wob(190, 172, 82, 78, .03, 408, 26), SACK_D) + P(wob(188, 168, 76, 72, .03, 409, 26), SACK)
+    head += P("M132,138 Q140,108 176,100 Q150,116 144,142Z", SACK_L, ' opacity="0.9"')
+    face = C(160, 160, 13, EYE) + C(220, 160, 13, EYE) + C(157, 156, 4, WHITE) + C(217, 156, 4, WHITE)
+    face += stroke("M150,160 l20,0 M160,150 l0,20", SACK_D, 2.4, ' opacity="0.6"')
+    face += P("M190,176 L178,198 L204,196Z", CORAL)
+    face += stroke("M150,208 Q190,236 230,208", EYE, 5) + "".join(stroke(f"M{x},{y - 8} l0,16", EYE, 3) for x, y in ((162, 218), (190, 224), (218, 218)))
+    face += C(140, 196, 12, CHEEK, ' opacity="0.55"') + C(240, 196, 12, CHEEK, ' opacity="0.55"')
+    s = G(post + bar, p + "cut") + G(hands + neck, p + "sh") + G(head, p + "cut") + face
+    return doc(p, 380, 640, s, "rough", seed=410, sh=(4, 3.5, .3), cut={"rim": 2.6, "rough": 4})
+
+
+def garden_hat(col):
+    c, d, l = HUES[col]
+    p = f"gh{col[0]}-"
+    brim = P(wob(120, 128, 112, 22, .03, 421, 26), d) + P(wob(120, 124, 104, 16, .03, 422, 26), c)
+    crown = P("M50,126 Q46,44 120,30 Q194,44 190,126Z", d) + P("M58,124 Q56,52 120,40 Q184,52 182,124Z", c)
+    band = P("M56,104 Q120,92 184,104 L186,124 Q120,112 54,124Z", WHITE if col != "yellow" else HUES["red"][0])
+    flower = "".join(C(150 + math.cos(a) * 11, 106 + math.sin(a) * 11, 8, WHITE if col == "yellow" else HUES["yellow"][0]) for a in [i * math.pi * 2 / 5 for i in range(5)]) + C(150, 106, 7, CORAL)
+    shine = P("M72,100 Q70,62 104,48 Q84,70 84,102Z", l, ' opacity="0.8"')
+    s = G(brim + crown, p + "cut") + band + shine + G(flower, p + "sh")
+    return doc(p, 240, 160, s, "rough", seed=423, sh=(3, 3, .3), cut={"rim": 2.4, "rough": 4})
+
+
+def garden_shirt(col):
+    c, d, l = HUES[col]
+    p = f"gs{col[0]}-"
+    shape = "M20,46 Q60,22 112,18 Q160,40 208,18 Q260,22 300,46 L304,104 L240,108 L246,244 Q160,256 74,244 L80,108 L16,104Z"
+    s = G(P(shape, d), p + "cut")
+    inner = "M28,52 Q64,30 112,26 Q160,48 208,26 Q256,30 292,52 L294,96 L232,100 L238,236 Q160,246 82,236 L88,100 L26,96Z"
+    clip = f'<clipPath id="{p}cl"><path d="{inner}"/></clipPath>'
+    plaid = rect(0, 0, 320, 260, c)
+    for x in range(10, 320, 56):
+        plaid += rect(x, 0, 14, 260, l, ' opacity="0.7"')
+    for y in range(20, 260, 56):
+        plaid += rect(0, y, 320, 14, d, ' opacity="0.45"')
+    s += f'<g clip-path="url(#{p}cl)">{plaid}</g>'
+    s += P("M112,26 L160,74 L208,26 L196,22 L160,58 L124,22Z", WHITE)
+    s += "".join(C(160, y, 7, WHITE) + C(160, y, 3, d) for y in (110, 150, 190))
+    s += P(wr(184, 160, 44, 40, 6, 1, 431), l) + stroke("M190,166 l32,0", d, 2.4, ' opacity="0.7"')
+    return doc(p, 320, 260, s, "rough", seed=432, sh=(3, 3, .3), cut={"rim": 2.4, "rough": 4}, extra_defs=clip)
+
+
+# garden-bird-up / -down (170x140, facing left, standing on its feet at y 134)
+BIRD = "#6FA8DC"; BIRD_D = "#4A82B8"; BIRD_L = "#A9CDEE"; BELLY = "#F6E7C8"
+
+
+def garden_bird(wing):
+    p = f"gb{wing[0]}-"
+    body = P(wob(92, 84, 60, 46, .03, 441, 24), BIRD_D) + P(wob(90, 81, 54, 41, .03, 442, 24), BIRD)
+    body += P(wob(76, 98, 34, 24, .05, 443, 18), BELLY)
+    tail = P("M140,70 L168,48 L162,82 L146,92Z", BIRD_D)
+    if wing == "up":
+        w = P("M98,70 Q118,14 156,10 Q140,48 120,86Z", BIRD_D) + P("M104,70 Q122,24 148,18 Q134,50 118,80Z", BIRD_L)
+    else:
+        w = P("M96,78 Q126,96 150,118 Q112,116 92,94Z", BIRD_D) + P("M100,82 Q124,96 140,112 Q112,110 96,92Z", BIRD_L)
+    beak = P("M30,74 L6,82 L32,88Z", CORAL)
+    eye = C(52, 66, 8, EYE) + C(50, 63, 2.6, WHITE) + C(62, 86, 8, CHEEK, ' opacity="0.5"')
+    legs = stroke("M80,124 L76,134 M100,124 L104,134", CORAL_D, 4)
+    s = G(legs, p + "sh") + G(tail + body, p + "cut") + beak + eye + G(w, p + "cut")
+    return doc(p, 170, 140, s, seed=444, sh=(3, 3, .3), cut={"rim": 2.2, "rough": 3})
+
+
+def garden_butterfly():
+    p = "gbf-"
+    wl = P(wob(62, 60, 50, 44, .05, 451, 20), "#C8572A") + P(wob(62, 58, 42, 36, .05, 452, 20), "#FF9A62")
+    wl += P(wob(70, 116, 36, 30, .06, 453, 18), "#C9628A") + P(wob(70, 114, 29, 23, .06, 454, 18), "#F8BDD2")
+    wr_ = P(wob(138, 60, 50, 44, .05, 455, 20), "#C8572A") + P(wob(138, 58, 42, 36, .05, 456, 20), "#FF9A62")
+    wr_ += P(wob(130, 116, 36, 30, .06, 457, 18), "#C9628A") + P(wob(130, 114, 29, 23, .06, 458, 18), "#F8BDD2")
+    dots = "".join(C(x, y, r, WHITE, ' opacity="0.9"') for x, y, r in ((50, 50, 9), (150, 50, 9), (70, 72, 5), (130, 72, 5), (66, 116, 6), (134, 116, 6)))
+    body = P(wr(93, 36, 14, 104, 7, 1, 459), EYE) + C(100, 32, 12, EYE)
+    ant = stroke("M96,24 Q86,6 76,4 M104,24 Q114,6 124,4", EYE, 3) + C(76, 4, 4, EYE) + C(124, 4, 4, EYE)
+    face = C(95, 30, 2.4, WHITE) + C(105, 30, 2.4, WHITE)
+    s = G(wl + wr_, p + "cut") + dots + G(body + ant, p + "sh") + face
+    return doc(p, 200, 160, s, seed=460, sh=(3, 3, .25), cut={"rim": 2.2, "rough": 3})
+
+
+ITEMS.update({
+    "garden-scarecrow": garden_scarecrow,
+    "garden-hat-red": lambda: garden_hat("red"), "garden-hat-blue": lambda: garden_hat("blue"), "garden-hat-yellow": lambda: garden_hat("yellow"),
+    "garden-shirt-red": lambda: garden_shirt("red"), "garden-shirt-blue": lambda: garden_shirt("blue"), "garden-shirt-yellow": lambda: garden_shirt("yellow"),
+    "garden-bird-up": lambda: garden_bird("up"), "garden-bird-down": lambda: garden_bird("down"), "garden-butterfly": garden_butterfly,
+})
+
+
 def save(name, s):
     path = os.path.join(OUTDIR, name + ".svg")
     with open(path, "w", encoding="utf8") as f:
@@ -533,4 +644,5 @@ if __name__ == "__main__":
             save(k, fn())
     print("anchors: SOIL_Y", SOIL_Y, "HOLES", HOLES, "TOMATO_FRUITS", TOMATO_FRUITS, "STRAW_FRUITS", STRAW_FRUITS,
           "CARROT_TOP", CARROT_TOP, "SPOUT", SPOUT, "SNAIL_MOUTH", SNAIL_MOUTH, "BASKET_IN", BASKET_IN,
-          "WEED_TOP", WEED_TOP, "BUNNY_MOUTH", BUNNY_MOUTH)
+          "WEED_TOP", WEED_TOP, "BUNNY_MOUTH", BUNNY_MOUTH, "SCARE_HAT", SCARE_HAT,
+          "SCARE_SHIRT", SCARE_SHIRT, "HAT_BRIM", HAT_BRIM)

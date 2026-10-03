@@ -233,7 +233,7 @@ export class Character {
    * something), above her head, clear of Mom's face (`maxRight`). It pops in once, then stays still (nothing moves by
    * itself); `wishGranted` or `hideWish` ends it. Not shown where she is not on screen (4:3).
    */
-  showWish(images: string[], keys: string[], opts: { count?: number; maxRight: number; k: number }) {
+  showWish(images: string[], keys: string[], opts: { count?: number; maxRight: number; minLeft?: number; k: number }) {
     this.hideWish(true);
     if (!this.box.visible || !images.length) return false;
     const sc = this.scene;
@@ -246,6 +246,8 @@ export class Character {
     const headTop = this.rest.y - (350 - 44) * this.scale;
     let x = this.rest.x - 30 * k;
     x = Math.min(x, opts.maxRight - w / 2);
+    // (a guest at the screen's left edge: the bubble stays on screen)
+    if (opts.minLeft !== undefined) x = Math.max(x, opts.minLeft + w / 2);
     const y = Math.max(h / 2 + 12 * k, headTop - 60 * k - h / 2);
     const g = sc.add.graphics();
     const INK = 0x8a6a55;
