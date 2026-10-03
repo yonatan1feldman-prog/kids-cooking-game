@@ -69,6 +69,14 @@ export abstract class MiniGame extends Phaser.Scene {
   protected abstract readonly id: string;
   /** The place's song (core/audio.ts `music`): the market is outdoors, washing up is in the kitchen. */
   protected readonly song: Song = 'kitchen';
+  /** Mom's clothes (the clinic: Mom the nurse). */
+  protected readonly momOutfit: 'home' | 'nurse' = 'home';
+  /** Where the home button and the finale go (the clinic is a world of its own: back to the title). */
+  protected readonly homeScene: 'Home' | 'Title' = 'Home';
+  /** Pipa small beside Mom (the clinic leaves her out when she is one of the patients). */
+  protected withPipa(): boolean {
+    return true;
+  }
   /** The parts that wait for her (idle clock, hint, help run only in these). */
   protected abstract readonly waiting: readonly string[];
   protected abstract build(): void;
@@ -116,10 +124,10 @@ export abstract class MiniGame extends Phaser.Scene {
 
     assetsReady().then(() => {
       if (!this.scene.isActive()) return;
-      this.mom = new Mom(this, S.mom);
+      this.mom = new Mom(this, S.mom, this.momOutfit);
       this.mom.rest();
       this.mom.followHand(() => this.hand.active);
-      if (S.pet) {
+      if (S.pet && this.withPipa()) {
         this.pipa = new Character(this, RECIPES[0].character, S.pet, S.feedPet);
         this.pipa.enter(150);
       }
@@ -164,7 +172,7 @@ export abstract class MiniGame extends Phaser.Scene {
     this.leaving = true;
     this.shutdown();
     if (from === 'recipe') voice.stop();
-    this.scene.start('Home', { from });
+    this.scene.start(this.homeScene, { from });
   }
 
   protected setPhase(p: string) {

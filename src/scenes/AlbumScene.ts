@@ -27,6 +27,8 @@ const COLS = 2;
 function frameOf(recipe: string): ImageKey {
   // (the art corner's pictures, `art-trace`, `art-dots`...: its own frame)
   if (recipe.startsWith('art-')) return 'photo-frame-art';
+  // (the clinic's photo of its happy patients)
+  if (recipe === 'clinic') return 'photo-frame-clinic';
   const r = RECIPES.find((x) => x.id === recipe);
   const step = r?.steps.find((s) => s.type === 'photo');
   const key = step && step.type === 'photo' ? step.params.frame : 'photo-frame';

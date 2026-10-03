@@ -134,6 +134,14 @@ export class HomeScene extends Phaser.Scene {
       this.tweens.add({ targets: btn, alpha: { from: 0, to: 1 }, duration: 400 });
     }
 
+    // The home button (two taps, as everywhere) goes back to the title, where the two worlds are.
+    iconButton(this, L, 'btn-home', S.home.x, S.home.y, () => {
+      if (going) return;
+      going = true;
+      hint?.stop();
+      this.scene.start('Title');
+    }, { confirm: true, scale: S.homeScale, hitPad: 30 }).setDepth(900);
+
     /** The loading spinner (the one thing allowed to turn by itself): a short orange arc on a cream disc. */
     const loading = (x: number, y: number) => {
       const r = 46 * L.k;

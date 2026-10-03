@@ -149,6 +149,16 @@
   "w": 140,
   "h": 140
  },
+ "bg-clinic": {
+  "sha1": "aaa9abee87ab43bde24a8925dd7da963892b6de6",
+  "w": 2400,
+  "h": 1080
+ },
+ "bg-clinic-wait": {
+  "sha1": "93d719accc35482386c95dde413485a6b4900995",
+  "w": 2400,
+  "h": 1080
+ },
  "bg-garden": {
   "sha1": "f3e31aebe5df10f5b46ecfc287818fe73e615778",
   "w": 2400,
@@ -233,6 +243,16 @@
   "sha1": "ffacc0eb21eb8132ee80b9c42963d3c4b7ccacad",
   "w": 240,
   "h": 240
+ },
+ "btn-world-clinic": {
+  "sha1": "85b9fa5c7378fc365ef799f4dbcf1c37b3f989f8",
+  "w": 336,
+  "h": 336
+ },
+ "btn-world-kitchen": {
+  "sha1": "2eb28f3357188bd392c052cd3a7003dde7442af8",
+  "w": 336,
+  "h": 336
  },
  "bubble": {
   "sha1": "f8c6a48eab7e46109c099d5e28fb5825a688b790",
@@ -453,6 +473,66 @@
   "sha1": "ec78edf620c70fdcfcdcc4f24735eed34848fe16",
   "w": 140,
   "h": 140
+ },
+ "clinic-bed": {
+  "sha1": "7ca240a28ad8818367fac4bb5e70aef3af2adbe3",
+  "w": 900,
+  "h": 320
+ },
+ "clinic-bench": {
+  "sha1": "49a068f3d3ab6a0c53d84820f3832f52ab61bdf5",
+  "w": 1500,
+  "h": 420
+ },
+ "clinic-bump": {
+  "sha1": "705123373296d876822e765259ea7f24b89d564f",
+  "w": 120,
+  "h": 110
+ },
+ "clinic-chart": {
+  "sha1": "c0d38afd281fe91436f23e3aedfa6a02440756c7",
+  "w": 300,
+  "h": 380
+ },
+ "clinic-cheek": {
+  "sha1": "8564a54c0290387ba1ed7751c3bd8fa3f4670929",
+  "w": 110,
+  "h": 70
+ },
+ "clinic-cream": {
+  "sha1": "36a08cae3c33cb93c237f30ebc5be6535e05d4b3",
+  "w": 180,
+  "h": 120
+ },
+ "clinic-dirt": {
+  "sha1": "2c25c154799ded40aa50794e21d9ffcacf5e1ef5",
+  "w": 100,
+  "h": 90
+ },
+ "clinic-dust": {
+  "sha1": "24fee45df8d797820137b4163718cb203e2ccfef",
+  "w": 220,
+  "h": 160
+ },
+ "clinic-scrape": {
+  "sha1": "c7588ba1bc0ac897a70a66aef90d06b5f9ef63e2",
+  "w": 200,
+  "h": 140
+ },
+ "clinic-slot": {
+  "sha1": "ccf2f17871b9bbe9232676bf06a55b163e1edb6a",
+  "w": 240,
+  "h": 240
+ },
+ "clinic-splinter": {
+  "sha1": "52fbc8a80c78592aa180eacbd72936fe7e1ac1c6",
+  "w": 160,
+  "h": 70
+ },
+ "clinic-sweat": {
+  "sha1": "eae4b763dcf8801c7f070a5ee797b7e213510ec9",
+  "w": 60,
+  "h": 80
  },
  "colander": {
   "sha1": "1cdcf416045858709ed3bfa65c8529ba5e71eb43",
@@ -1304,6 +1384,31 @@
   "w": 520,
   "h": 520
  },
+ "lens-knee": {
+  "sha1": "3c32e090746f1021356280ef53908abe2a63ad83",
+  "w": 520,
+  "h": 520
+ },
+ "lens-mouth": {
+  "sha1": "6b345f0be61b6a862fa4d282ad0befc08066f276",
+  "w": 520,
+  "h": 520
+ },
+ "lens-paw": {
+  "sha1": "430745e7ade07e66112320d22209a1228abb8cdb",
+  "w": 520,
+  "h": 520
+ },
+ "lens-ring": {
+  "sha1": "5ed812d35bc251818f4c51a7762564757ef90de6",
+  "w": 600,
+  "h": 600
+ },
+ "lens-tummy": {
+  "sha1": "f6910ef1572978cc5b60de09b263c9236b4024b4",
+  "w": 520,
+  "h": 520
+ },
  "lettuce-head": {
   "sha1": "03156188eb53ee7c95f8452200576ba4e5d8989a",
   "w": 640,
@@ -1436,6 +1541,16 @@
  },
  "mom-body": {
   "sha1": "fc2103ecf8973a62b7f85e94df3d2b77b8b7fd53",
+  "w": 800,
+  "h": 800
+ },
+ "mom-body-nurse": {
+  "sha1": "034404f1dee1082611dd6083ed8da10367e4f559",
+  "w": 800,
+  "h": 800
+ },
+ "mom-cap-nurse": {
+  "sha1": "639925dc472c8e19f864c440b03012d2ce3b30aa",
   "w": 800,
   "h": 800
  },
@@ -1646,6 +1761,11 @@
  },
  "photo-frame-cake": {
   "sha1": "47da1899730389e0a42b27b2441608d501dc929a",
+  "w": 700,
+  "h": 780
+ },
+ "photo-frame-clinic": {
+  "sha1": "ecce4733475193ca8942d64a54c7f012a716b440",
   "w": 700,
   "h": 780
  },
@@ -1874,6 +1994,36 @@
   "w": 480,
   "h": 320
  },
+ "sick-cough": {
+  "sha1": "a79b7652b72f9aba49684331e6ddf7519e8c33fc",
+  "w": 200,
+  "h": 200
+ },
+ "sick-fever": {
+  "sha1": "272e2e508ccc1d513491bb649c3961a45723c623",
+  "w": 200,
+  "h": 200
+ },
+ "sick-knee": {
+  "sha1": "7d11435649cc55cbb99a86b416f3f501373d1c32",
+  "w": 200,
+  "h": 200
+ },
+ "sick-paw": {
+  "sha1": "2e6e8278e6209db54548c32a9c09584bd619f199",
+  "w": 200,
+  "h": 200
+ },
+ "sick-tooth": {
+  "sha1": "9f199a3c3f42f19f803f894eb4ebb9af0ad9ddc5",
+  "w": 200,
+  "h": 200
+ },
+ "sick-tummy": {
+  "sha1": "9867f099ab1f4b99d48d87fda5c8869f5865b878",
+  "w": 200,
+  "h": 200
+ },
  "sink-basin": {
   "sha1": "c6e01019a91381128867862947834864620d79f1",
   "w": 900,
@@ -1939,6 +2089,21 @@
   "w": 200,
   "h": 200
  },
+ "sticker-heart": {
+  "sha1": "218ca46236b795ea5e6722bb068d7df58e00dca1",
+  "w": 200,
+  "h": 200
+ },
+ "sticker-smile": {
+  "sha1": "dfe869fe77ce1fdd735b62698cdafdc54647bb77",
+  "w": 200,
+  "h": 200
+ },
+ "sticker-star": {
+  "sha1": "36b7452751e2937b2bc8fe879e4c420eb0dc0a88",
+  "w": 200,
+  "h": 200
+ },
  "stove-knob-off": {
   "sha1": "48910da378b5868c2e943c76942149fb591d7e03",
   "w": 280,
@@ -1973,6 +2138,66 @@
   "sha1": "a2f3b3e65a11ba081e13c28dd8211007cfea0724",
   "w": 400,
   "h": 280
+ },
+ "tool-cloth": {
+  "sha1": "6639f421bc70d2c08094f602777a121aba32af04",
+  "w": 240,
+  "h": 240
+ },
+ "tool-cream": {
+  "sha1": "fb8f7fe4faba739d1ac6df22a065b77400b69088",
+  "w": 240,
+  "h": 240
+ },
+ "tool-cup": {
+  "sha1": "76257e58412819fe838323bb45ebb00c5d5f1ce3",
+  "w": 240,
+  "h": 240
+ },
+ "tool-hotbottle": {
+  "sha1": "4c43d674dc29cec12fe32749c4b46ee0c0139695",
+  "w": 240,
+  "h": 240
+ },
+ "tool-magnifier": {
+  "sha1": "4f11894f0c622b66d7d2cc023d6359cb940a0941",
+  "w": 240,
+  "h": 240
+ },
+ "tool-plaster": {
+  "sha1": "d30aaae06743308d434634fa67625d0149e4e77e",
+  "w": 240,
+  "h": 240
+ },
+ "tool-spray": {
+  "sha1": "1c841afd59d3c433daeedf7144933fe7693148bb",
+  "w": 240,
+  "h": 240
+ },
+ "tool-stethoscope": {
+  "sha1": "6b3966782c9f4a53e09f047e9bd6e061eaa586a6",
+  "w": 240,
+  "h": 240
+ },
+ "tool-syrup": {
+  "sha1": "dfda9ae978789ef9ac2d82bc211f87e8fd93a7af",
+  "w": 240,
+  "h": 240
+ },
+ "tool-thermometer": {
+  "sha1": "f53404b0acafd0d42eb5855b9dea74b4986bd06b",
+  "w": 240,
+  "h": 240
+ },
+ "tool-toothbrush": {
+  "sha1": "c122a50190af74b0c39ad795f12bc056daa03734",
+  "w": 240,
+  "h": 240
+ },
+ "tool-tweezers": {
+  "sha1": "290327f65d9b5f84696c827cd81774b9a98b8272",
+  "w": 240,
+  "h": 240
  },
  "topping-bin": {
   "sha1": "0a96df93db413a641f89d656efb9b5fd0a5472e8",

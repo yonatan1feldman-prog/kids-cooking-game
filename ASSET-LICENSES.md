@@ -131,7 +131,8 @@ full notes), copied unchanged; the sneeze is generated.
 |---|---|---|---|---|---|
 | music/music-kitchen-base / -tune / -party / -up.ogg | Kitchen song (C major, 128 BPM, ukulele, xylophone) | this project | `audio-src/scripts/make_music.py` | own work | own work: synthesised from notes by `audio-src/scripts/make_music.py` (numpy + scipy + ffmpeg; Karplus-Strong ukulele, mallets, whistle, bass and drums made from sine waves and noise; no samples, no third-party recordings); 32 bars, gapless; full mix -20 LUFS; Vorbis q3 |
 | music/music-outside-base / -tune / -party / -up.ogg | Outdoors song (G major, 124 BPM, ukulele, whistle, claps) | this project | `audio-src/scripts/make_music.py` | own work | as above |
-| (audio-src/final/music/music-art-*.ogg, not in the game yet) | Art song (F major, 120 BPM, marimba, glockenspiel) | this project | `audio-src/scripts/make_music.py` | own work | as above |
+| music/music-art-base / -tune / -party / -up.ogg | Art song (F major, 120 BPM, marimba, glockenspiel) | this project | `audio-src/scripts/make_music.py` | own work | as above |
+| music/music-clinic-base / -tune / -party / -up.ogg | Clinic song (D major, 112 BPM, gentle ukulele, glockenspiel, xylophone) | this project | `audio-src/scripts/make_music.py` | own work | as above |
 
 ## Sounds: Mom's voice (`sounds/voice/`, English)
 
@@ -346,6 +347,25 @@ Same engine, voice and processing as every line above (Kokoro af_heart, `make_vo
 | name-sun · egg · fish · ball · rainbow · house · tree · boat · butterfly · crown · bird · cat | Sun! · Egg! · Fish! · Ball! · Rainbow! · House! · Tree! · Boat! · Butterfly! · Crown! · Bird! · Cat! |
 | name-red · green · purple · orange | Red! · Green! · Purple! · Orange! |
 
+### New in the clinic (Mom the nurse, 42 lines and 7 effects)
+
+Same engine, voice and processing as every line above (Kokoro af_heart, `make_vo.py mom-a`). The effects heartbeat,
+cough, gurgle, spray, sticky, brush and wheeze are own work, synthesised from noise and sine waves by
+`audio-src/scripts/make_clinic_sfx.py` (numpy + scipy + ffmpeg; no samples).
+
+| Key | Line |
+|---|---|
+| vo-pick-clinic · vo-clinic-hello · vo-clinic-next | Let's go to our clinic! · Welcome to our clinic! Who shall we help first? · Who's next? |
+| vo-hi-turtle · vo-hi-penguin · vo-hi-giraffe · vo-hi-pipa | Hello, Turtle! Come in. · Hello, Penguin! Come in. · Hello, Giraffe! You're so tall! · Pipa! Come in, little one. |
+| vo-sick-fever · vo-sick-cough · vo-sick-tummy | Oh dear, you feel hot! Let's check your temperature. · Oh, a little cough! Let's listen. · A tummy ache? Let's make it better. |
+| vo-sick-tooth · vo-sick-knee · vo-sick-paw | A sore tooth? Let's have a look. · Oops, a scraped knee! Let's clean it. · A splinter in your foot! Let's take it out. |
+| vo-clinic-what · vo-clinic-look · vo-clinic-plan · vo-clinic-first · vo-clinic-notyet | What's wrong? Look, and listen! · Hmm, look again! · Here's what we need. Can you remember? · Hmm, what comes first? · Not that one yet! |
+| vo-tool-thermometer · vo-thermo-hot · vo-thermo-ok | The thermometer! Hold it in the mouth. · A little bit hot! · Just right now! |
+| vo-tool-cloth · vo-tool-syrup · vo-tool-stethoscope · vo-stetho-find · vo-stetho-heart | A cool cloth for the head. · A spoon of yummy medicine! · Let's listen with the stethoscope. · Can you find the wheezy spot? · Thump, thump! A happy heart! |
+| vo-tool-cup · vo-tool-rinse · vo-tool-hotbottle · vo-say-aah · vo-tool-toothbrush | A sip of water. · Now rinse with water! · A warm bottle for the tummy. · Say, aah! · Brush, brush, brush! |
+| vo-tool-spray · vo-tool-cream · vo-tool-plaster · vo-tool-tweezers · vo-tool-magnifier · vo-found-it | Let's wash it clean. · A little cream. Rub, rub! · And a plaster! · Gently pull it out, with the tweezers. · Where is it? Look with the magnifier! · There it is! |
+| vo-clinic-better · vo-sticker · vo-clinic-bye-patient · vo-clinic-photo · vo-clinic-done | All better! · Pick a sticker! · Bye bye! Feel better! · Let's take a picture of our happy patients! · You took such good care of everyone! |
+
 ### New in the guests round (who comes to eat, 13 lines)
 
 Same engine, voice and processing as every line above.
@@ -404,5 +424,5 @@ layers like Pipa's, the giraffe's neck and the three invitation badges) are draw
 `assets-src/images-b/tools/gen_kitchen_sky.py`, and the 21 files of visual round 5 (the garden, the cat, the clock, the
 child's drawing, the sill's things, the bunting) from `gen_kitchen_view.py` beside it. The 30 garden-stage files (the garden background, the raised
 bed, holes, seeds and packets, the plants, fruit and carrots, the watering can, sun, cloud, snail, leaf, basket and the
-garden card) are drawn by `assets-src/images-b-garden/tools/gen_garden.py` on the same kit. The 18 files of the two mini-games (the market's background, awning, shelf, counter, poles, crates and list, the dishes, the food on them, the sponge, the drying rack and the two cards) are drawn by `assets-src/images-b-minigames/tools/gen_minigames.py` on the same kit, and so are the market's coin, purse and chalk slate (round 3); the garden's scarecrow, its three hats and three shirts, the two bird frames and the butterfly (round 3) by `gen_garden.py`. The 22 files of the art corner (the easel, the five picking cards, the paint pots, the steamy window's view and frame, the things hidden behind the steam, the art card and photo frame) are drawn by `assets-src/images-b-art/tools/gen_art.py` on the same kit; the pictures she draws, traces, joins and colours are drawn in code (`src/core/artPictures.ts`). The puzzle's twelve own pictures (`public/assets/puzzle`: animals, nature, vehicles, a birthday cake, a balloon) are painted procedurally by `assets-src/images-b-puzzle/tools/gen_pictures.py` (own code, SVG brush strokes and gradients) and rendered to WebP by `render.mjs` in the same folder; no photos or third-party images. No third-party art, fonts or images.
+garden card) are drawn by `assets-src/images-b-garden/tools/gen_garden.py` on the same kit. The 18 files of the two mini-games (the market's background, awning, shelf, counter, poles, crates and list, the dishes, the food on them, the sponge, the drying rack and the two cards) are drawn by `assets-src/images-b-minigames/tools/gen_minigames.py` on the same kit, and so are the market's coin, purse and chalk slate (round 3); the garden's scarecrow, its three hats and three shirts, the two bird frames and the butterfly (round 3) by `gen_garden.py`. The 22 files of the art corner (the easel, the five picking cards, the paint pots, the steamy window's view and frame, the things hidden behind the steam, the art card and photo frame) are drawn by `assets-src/images-b-art/tools/gen_art.py` on the same kit. The 45 files of the clinic (the waiting room and the treatment room, the bed, the bench, the tray slot and the chart, twelve tools, the close-ups and the magnifier's rim, what shows a patient is not well, three stickers, six ailment cards, the title's two world buttons and the clinic's photo frame) are drawn by `assets-src/images-b-clinic/tools/gen_clinic.py` on the same kit, and Mom's nurse dress and cap (`mom-body-nurse`, `mom-cap-nurse`) by `assets-src/images-b/tools/gen_mom.py`; the pictures she draws, traces, joins and colours are drawn in code (`src/core/artPictures.ts`). The puzzle's twelve own pictures (`public/assets/puzzle`: animals, nature, vehicles, a birthday cake, a balloon) are painted procedurally by `assets-src/images-b-puzzle/tools/gen_pictures.py` (own code, SVG brush strokes and gradients) and rendered to WebP by `render.mjs` in the same folder; no photos or third-party images. No third-party art, fonts or images.
 `images/webp/` holds WebP renderings of those same SVGs, made by `scripts/bake-webp.js`.
