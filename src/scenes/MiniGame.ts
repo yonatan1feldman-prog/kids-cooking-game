@@ -14,6 +14,9 @@ import { assetsReady } from './BootScene';
 
 export type P = { x: number; y: number };
 
+/** The longest one piece of Mom's help may take before the turn is given back anyway. */
+const HELP_MAX_MS = 15000;
+
 /** How many times this game has been played on this device (only to show Mom's demos the first time; never shown). */
 export function visits(id: string): number {
   try {
@@ -58,6 +61,8 @@ export abstract class MiniGame extends Phaser.Scene {
   private hintOn = false;
   private idle = 0;
   private misses = 0;
+  /** How long Mom's current help piece has been running (a safety net: it always gives the turn back). */
+  private helpMs = 0;
   /** For the test harness. */
   shown: Record<string, unknown> & { phase: string; helped: number; missed: number; done: boolean } = { phase: 'intro', helped: 0, missed: 0, done: false };
 
@@ -89,7 +94,7 @@ export abstract class MiniGame extends Phaser.Scene {
   init() {
     this.phase = 'intro';
     this.leaving = this.helping = this.demoOn = this.hintOn = false;
-    this.idle = this.misses = 0;
+    this.idle = this.misses = this.helpMs = 0;
     this.owner = null;
     this.mom = this.pipa = null;
     this.shown = { phase: 'intro', helped: 0, missed: 0, done: false };
@@ -247,6 +252,8 @@ export abstract class MiniGame extends Phaser.Scene {
       this.hand.play(m, { onDone: () => (this.demoOn = false) });
       return;
     }
+    // (a hint replacing a demo that was still showing: the demo is over, or the idle clock would wait for it forever)
+    this.demoOn = false;
     this.hintOn = true;
     this.hand.play(m, { loop: true, gapMs: 900 });
   }
@@ -261,14 +268,19 @@ export abstract class MiniGame extends Phaser.Scene {
     if (this.helping) return;
     this.stopHint();
     this.helping = true;
+    this.helpMs = 0;
     if (!this.helpOnce()) {
       this.helping = false;
       this.idle = 0;
+      this.nothingToHelp();
       return;
     }
     this.shown.helped++;
     voice.say('vo-help', { ttlMs: 2500, valid: () => this.scene.isActive() && !this.leaving });
   }
+
+  /** Mom's help found nothing left to do in a part that waits for her: a game that can end the part here does. */
+  protected nothingToHelp() {}
 
   /** Mom's help piece is over: the turn is hers again. */
   protected helped() {
@@ -291,6 +303,13 @@ export abstract class MiniGame extends Phaser.Scene {
   }
 
   update(_t: number, delta: number) {
+    // Safety nets (a real phone can lose a release, a demo can be cut by a hint, a help can be cut short): the finger
+    // that owns the action is let go once it is no longer down, a demo that is not showing is over, and Mom's help
+    // gives the turn back after HELP_MAX_MS whatever happened to it. Without them the idle clock (and so the hint and
+    // Mom's help) would wait forever and the game would look stuck.
+    if (this.owner && !this.owner.isDown) this.release(this.owner, true);
+    if (this.demoOn && !this.hand.active) this.demoOn = false;
+    if (this.helping && (this.helpMs += delta) > HELP_MAX_MS) this.helped();
     this.tick(delta);
     const p = this.owner ?? this.input.manager.pointers.find((q) => q.isDown);
     const at = this.lookTarget() ?? this.hand.position ?? (p ? { x: p.worldX, y: p.worldY } : null);

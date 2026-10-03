@@ -678,7 +678,9 @@ class Voice {
     }
     if (!c || !buf || (p.valid && !p.valid())) {
       p.done?.();
-      return this.next();
+      // (a done may have started its own line already: never a second one beside it)
+      if (!this.cur) this.next();
+      return;
     }
     const entry: VoiceLogEntry = { key: p.key, start: this.now(), group: p.group };
     this.log.push(entry);
@@ -687,7 +689,8 @@ class Voice {
       this.cur = null;
       entry.end = this.now();
       p.done?.();
-      this.next();
+      // (a done that says its own line starts it at once; the queue waits behind it, or two lines would play together)
+      if (!this.cur) this.next();
       if (!this.cur) music.duck(false);
     };
     const endAt = entry.start + buf.duration * 1000;
@@ -720,7 +723,7 @@ class Voice {
   }
 
   private next(): void {
-    while (this.queue.length) {
+    while (this.queue.length && !this.cur) {
       const p = this.queue.shift()!;
       const expired = this.now() - p.at > (p.ttlMs ?? 2500);
       if (expired || (p.valid && !p.valid())) {
