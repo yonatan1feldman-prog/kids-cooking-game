@@ -115,7 +115,41 @@ def finish(name, x):
                     "-c:a", "libvorbis", "-q:a", "5", str(out)], check=True)
     print(name, round(len(x) / SR, 2), out.stat().st_size)
 
+# Added 2026-10-03 (clinic round 2): honk (a tissue's funny nose blow), jingle (the bell she swallowed, heard through
+# the stethoscope), zing (the magnet catching it). Run only these: python scripts/make_clinic_sfx.py honk jingle zing
+def honk():
+    n = int(0.55 * SR)
+    t = np.arange(n) / SR
+    f = 210 + 40 * np.sin(2 * np.pi * 5 * t) - 60 * t
+    saw = 2 * ((np.cumsum(f / SR)) % 1) - 1
+    x = bp(saw, 300, 2400) * np.minimum(1, t / 0.03) * np.minimum(1, (0.55 - t) / 0.12)
+    return 0.7 * x + 0.15 * bp(rng.standard_normal(n), 800, 3000) * np.exp(-t / 0.2)
 
+
+def jingle():
+    out = np.zeros(int(0.9 * SR))
+    for i, at in enumerate((0.0, 0.11, 0.23, 0.38)):
+        n = int(0.45 * SR)
+        t = np.arange(n) / SR
+        f0 = 2600 + 180 * (i % 2)
+        x = sum(np.sin(2 * np.pi * f0 * r * t) * w for r, w in ((1, 1), (1.51, .5), (2.27, .3))) * env(n, 0.002, 0.09)
+        place(out, x * (1 - 0.15 * i), at)
+    return out * 0.4
+
+
+def zing():
+    n = int(0.5 * SR)
+    t = np.arange(n) / SR
+    f = 500 * 2 ** (2.5 * t / 0.5)
+    x = np.sin(2 * np.cumsum(np.pi * f / SR)) * np.sin(np.pi * t / 0.5) ** 1.5
+    return 0.5 * x
+
+
+import sys
+ONLY = sys.argv[1:]
 for name, fn in (("heartbeat", heartbeat), ("cough", cough), ("gurgle", gurgle), ("spray", spray), ("sticky", sticky),
-                 ("brush", brush), ("wheeze", wheeze)):
+                 ("brush", brush), ("wheeze", wheeze),
+                 ("honk", honk), ("jingle", jingle), ("zing", zing)):
+    if ONLY and name not in ONLY:
+        continue
     finish(name, fn())

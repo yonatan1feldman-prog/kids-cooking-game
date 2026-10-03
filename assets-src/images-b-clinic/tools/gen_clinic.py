@@ -327,10 +327,30 @@ def hotbottle():
     return tool_doc(p, s, 212)
 
 
+def tissue():
+    """A box of tissues, one puffed up out of its top (the tissue's middle is the tip: it goes to the nose)."""
+    p = "tts-"
+    s = P(wr(52, 110, 136, 104, 14, 1.2, 1), SKY_D) + P(wr(62, 120, 116, 84, 10, 1, 2), SKY_L, ' opacity="0.7"')
+    s += heart(120, 170, .45, HEART_L) + rect(84, 106, 72, 12, SKY_D)
+    s += P("M84,112 Q70,60 104,40 Q120,62 136,40 Q170,60 156,112Z", WHITE) + stroke("M104,48 Q116,80 112,108", GREY_L, 4)
+    return tool_doc(p, s, 213)
+
+
+def magnet():
+    """A big red horseshoe magnet, its silver ends pointing down-left (the gap between them is the tip)."""
+    p = "tmn-"
+    t = ' transform="rotate(35 120 120)"'
+    s = stroke("M80,150 L80,96 A40,40 0 0 1 160,96 L160,150", HEART_D, 46, t) + stroke("M80,150 L80,96 A40,40 0 0 1 160,96 L160,150", HEART, 34, t)
+    s += rect(57, 150, 46, 40, METAL_D, t) + rect(137, 150, 46, 40, METAL_D, t) + rect(62, 154, 36, 32, METAL_L, t) + rect(142, 154, 36, 32, METAL_L, t)
+    s += stroke("M96,78 Q120,62 144,78", WHITE, 6, t + ' opacity="0.6"')
+    return tool_doc(p, s, 214)
+
+
 TOOL_TIP = {
     "thermometer": (174, 174), "stethoscope": (176, 200), "plaster": (120, 120), "cream": (68, 46),
     "spray": (52, 50), "tweezers": (58, 192), "magnifier": (100, 100), "toothbrush": (74, 65),
     "cup": (120, 120), "syrup": (80, 168), "cloth": (120, 120), "hotbottle": (120, 150),
+    "tissue": (120, 76), "magnet": (80, 177),
 }
 
 
@@ -455,6 +475,22 @@ def bump():
     return doc(p, 120, 110, G(s, p + "sh"), "smooth", seed=408)
 
 
+def spot():
+    """70x70: one itchy spot (pink, round, never sore-looking); a dab of cream takes it away."""
+    p = "ospt-"
+    s = P(wob(35, 35, 26, 24, .08, 1, 14), "#F28A9A", ' opacity="0.9"') + P(wob(31, 30, 9, 7, .15, 2, 10), "#FBC6CE", ' opacity="0.9"')
+    return doc(p, 70, 70, s, "smooth", seed=409)
+
+
+def toy():
+    """150x130: a little golden jingle bell (what she swallowed; it jingles in the stethoscope, comes out on the magnet)."""
+    p = "otoy-"
+    s = C(75, 72, 50, MUSTARD) + C(75, 72, 40, "#FFE08A") + P(wob(60, 52, 14, 8, .1, 2, 10, -30), WHITE, ' opacity="0.8"')
+    s += stroke("M35,80 Q75,96 115,80", CORAL_D, 6) + C(75, 98, 9, WALNUT_D) + stroke("M75,98 L75,118", WALNUT_D, 6)
+    s += P(wr(60, 14, 30, 16, 7, 1, 3), CORAL) + C(75, 10, 7, "none", f' stroke="{CORAL_D}" stroke-width="5"')
+    return doc(p, 150, 130, G(s, p + "sh"), "smooth", seed=410)
+
+
 # ================================================================ stickers and the problem cards
 def sticker(kind):
     p = f"st{kind[:2]}-"
@@ -492,6 +528,16 @@ def sick(kind):
     elif kind == "paw":
         s += C(100, 128, 40, "#F6C9A8") + "".join(C(x, y, 16, "#F6C9A8") for x, y in ((56, 84), (86, 62), (116, 62), (146, 84)))
         s += P("M84,124 L132,112 L134,118 L86,130Z", STICK_D)
+    elif kind == "spots":
+        s += C(100, 110, 64, "#F6C9A8") + "".join(C(x, y, r, "#F28A9A") for x, y, r in ((76, 86, 12), (124, 92, 10), (98, 128, 13), (136, 134, 9), (68, 132, 8)))
+        s += "".join(stroke(f"M{x},{y} l10,-10 m-10,0 l10,10", CORAL, 4) for x, y in ((150, 56), (40, 70)))
+    elif kind == "cold":
+        s += C(100, 112, 58, "#F6C9A8") + C(100, 112, 16, "#F28A9A") + C(94, 106, 5, "#FBC6CE")
+        s += "".join(C(56 + i * 8, 140 + i * 14, 8 - i * 2, SKY_D) for i in range(3)) + "".join(stroke(f"M{x},{y} q14,-8 28,0", SKY_D, 5) for x, y in ((128, 66), (138, 86)))
+    elif kind == "toy":
+        s += C(100, 112, 66, "#F6C9A8") + C(100, 112, 52, "#FBDCC4")
+        s += C(100, 118, 26, MUSTARD) + C(100, 118, 19, "#FFE08A") + stroke("M78,124 Q100,134 122,124", CORAL_D, 4) + C(100, 90, 5, CORAL)
+        s += "".join(stroke(f"M{x},{y} l10,-6 m-10,12 l10,6", MUSTARD, 4) for x, y in ((140, 104), )) + stroke("M50,104 l-10,-6 m10,12 l-10,6", MUSTARD, 4)
     return doc(p, 200, 200, G(s, p + "sh") if kind not in ("fever",) else s, "smooth", seed=520 + len(kind), cut={"rim": 3, "rough": 4})
 
 
@@ -544,6 +590,7 @@ ITEMS = {
     "tool-thermometer": thermometer, "tool-stethoscope": stethoscope, "tool-plaster": plaster, "tool-cream": cream,
     "tool-spray": spray, "tool-tweezers": tweezers, "tool-magnifier": magnifier, "tool-toothbrush": toothbrush,
     "tool-cup": cup, "tool-syrup": syrup, "tool-cloth": cloth, "tool-hotbottle": hotbottle,
+    "tool-tissue": tissue, "tool-magnet": magnet, "clinic-spot": spot, "clinic-toy": toy,
     "lens-knee": lens_knee, "lens-paw": lens_paw, "lens-tummy": lens_tummy, "lens-mouth": lens_mouth, "lens-ring": lens_ring,
     "clinic-scrape": scrape, "clinic-dust": dust, "clinic-splinter": splinter, "clinic-cream": cream_smear,
     "clinic-dirt": dirt, "clinic-cheek": cheek, "clinic-sweat": sweat, "clinic-bump": bump,
@@ -552,7 +599,7 @@ ITEMS = {
 }
 for _k in ("star", "heart", "smile"):
     ITEMS[f"sticker-{_k}"] = (lambda k: (lambda: sticker(k)))(_k)
-for _k in ("fever", "cough", "tummy", "tooth", "knee", "paw"):
+for _k in ("fever", "cough", "tummy", "tooth", "knee", "paw", "spots", "cold", "toy"):
     ITEMS[f"sick-{_k}"] = (lambda k: (lambda: sick(k)))(_k)
 
 
