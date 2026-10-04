@@ -120,6 +120,14 @@ export type VoiceKey =
   | 'vo-tool-cup' | 'vo-tool-rinse' | 'vo-tool-hotbottle' | 'vo-say-aah' | 'vo-tool-toothbrush' | 'vo-tool-spray'
   | 'vo-tool-cream' | 'vo-tool-plaster' | 'vo-tool-tweezers' | 'vo-tool-magnifier' | 'vo-found-it' | 'vo-clinic-better'
   | 'vo-sticker' | 'vo-clinic-bye-patient' | 'vo-clinic-photo' | 'vo-clinic-done'
+  | 'vo-sick-spots' | 'vo-sick-cold' | 'vo-sick-toy' | 'vo-tool-dab' | 'vo-tool-tissue' | 'vo-tool-warmdrink' | 'vo-tool-magnet'
+  | 'vo-jingle' | 'vo-bell-out' | 'vo-clinic-bless'
+  // the clinic, round 3 (the "Doctor Games" loop: big close-ups, germs, the eye, the ear, the x-ray)
+  | 'vo-sick-eye' | 'vo-sick-ear' | 'vo-tooth-food' | 'vo-germs' | 'vo-germ-run' | 'vo-tool-filler' | 'vo-tool-cotton'
+  | 'vo-eye-speck' | 'vo-tool-eyedrops' | 'vo-tool-light' | 'vo-ear-bug' | 'vo-bug-bye' | 'vo-tool-swab' | 'vo-tool-icepack'
+  | 'vo-tool-xray' | 'vo-tummy-germs' | 'vo-germs-gone' | 'vo-clinic-which' | 'vo-knee-dirt'
+  | 'vo-world-cooking'
+  | 'vo-world-doctor'
   | CountKey | TempKey | NameKey;
 
 /** Mom counting (count-1..10) and saying the oven temperature (temp-50..250). */

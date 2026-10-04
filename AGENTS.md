@@ -6,9 +6,9 @@
   Eight recipes: pizza, salad, cookies, smoothie, pancakes, vegetable soup, birthday cake and fruit skewers (`src/recipes/<name>.ts`),
   cards in a grid on the home screen, then three cards for games that are not cooking (the garden `scenes/GardenScene.ts`,
   the market `MarketScene.ts`, washing up `DishesScene.ts`; the last two share `scenes/MiniGame.ts`), with the memory
-  book's button in one more cell once there is a photo in it. The title offers two worlds: cooking with Mom (the home
-  screen above) and the clinic with Mom the nurse (`scenes/ClinicScene.ts`, data in `core/clinic.ts`); both worlds'
-  home buttons go back to the title.
+  book's button in one more cell once there is a photo in it. The title offers two games as two big cards, "Cooking
+  with Mom" (the home screen above) and "Doctor with Mom" (the clinic with Mom the nurse, `scenes/ClinicScene.ts`, data
+  in `core/clinic.ts`); both games' home buttons go back to the title.
 - **Where things are:** `src/recipes/` recipes as pure data (`types.ts` = every step type's params); `src/steps/` one
   reusable class per step type (`registry.ts` maps names to classes); `src/core/tuning.ts` every count and threshold;
   `src/core/stage.ts` every position; `src/core/assets.ts` the asset contract (image keys, sizes, art anchors `ART`);
@@ -62,7 +62,7 @@ DynamicTexture needs `.render()`).
 ## UX rules (must hold for every change)
 1. **Zero text to read.** Icons, motion and sound only. No words, letters or digits on screen. (One exception, asked
    for by the owner: the oven's temperature panel shows its printed numbers 50-250, part of the art; she doesn't have
-   to read them: Mom says each value, the needle, the colour band and the oven's glow show it, and 200 glows.)
+   to read them: Mom says each value, the needle, the colour band and the oven's glow show it, and 200 glows. A second one, also asked for by the owner: the title's two game cards carry their names, "Cooking with Mom" and "Doctor with Mom", in the logo's cut-paper letters; their pictures and Mom saying the name on a tap carry the choice without reading.)
 2. **You can't fail and you can't get stuck.** Each step: the first time a recipe is played, Mom shows it once
    before it starts (her demo hand, at most 2.5 s, the dish unchanged; a touch ends it at once and counts). After 8 s
    without progress her hand shows the gesture again (the hint, with a glow on the target), and after 20 more seconds
@@ -233,7 +233,7 @@ src/scenes/
   MiniGame                 the frame the market and washing up share: home button, Mom, Pipa, demo / hint / help, one finger
   MarketScene / DishesScene  the market (shopping from a list) and washing up (scrub, rack by colour)
   ArtScene                 the art corner: the easel wall and five ways to draw (trace, dots, colour, mirror, steam)
-  ClinicScene              the clinic, the second world (waiting room, treatment room, tools, close-ups, stickers, photo)
+  ClinicScene              the clinic, the second world (waiting room, the patient big, stations of small targets in big close-ups, stickers, photo; 11 ailments)
 ```
 
 ## Recipes are data
@@ -439,7 +439,7 @@ fallback if the capture fails.
   mom-hand-press,
   **pizza-board** (the board under the dish; `tray` is an identical older copy),
   hand-hint (the old single hand, still in the contract, not shown), star, btn-play, btn-home, btn-done, card-pizza,
-  **title:** logo-cooking-with-mom (900x400; its lettering is the only writing in the game, part of the art),
+  **title:** logo-cooking-with-mom (900x400; its lettering, and the title cards' since clinic round 3 (world-card-kitchen / -clinic), are the only writing in the game, part of the art),
   **prep steps (round 5, part A):** sink-basin, faucet, water-stream, kid-hands, bubble (wash);
   dough-knead-1/2/3, press-dent (knead); prep-bowl-back, prep-bowl-front, sauce-stage-0..3, spoon-wood (crush, stir);
   grater, cheese-block, cheese-pile-1/2/3, cheese-handful (grate, sprinkle),
@@ -673,7 +673,55 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 000000000000000000000000000. The clinic, round 3 (rebuilt in the style of "Doctor Games for kids")
+The owner did not like the clinic's gameplay and pointed at Yateland's "Doctor Games for kids". Research:
+`/mnt/project-files/research/clinic-doctor-games.md`. Branch `claude/clinic-3-2fdtp7`. The waiting room, the sticker, the
+dance, the photo and Mom the nurse stay; the treatment is new.
+- **The loop:** the patient is big in the middle of the treatment room (no bed), the tray holds only this treatment's
+  tools (+ `TUNING.clinic.decoys`). A treatment is a list of **stations** (`core/clinic.ts` `Station`: `tool`, `act`,
+  `view`, `what`, `n` per level, `by`, `line`, `after`); each station works on several small **targets** (`Thing`s) in a
+  big close-up (`ZoomId`: mouth, eye, ear, knee, paw, xray; up to `zoomMax` x k, centred in the middle) or on her body.
+  Acts: `clean` (rub or hold on each target: germs brushed, food bits and dirt sprayed off, tears wiped, wax swabbed,
+  cream rubbed in), `touch` (a star into each hole, cream on each spot, medicine on each tummy germ), `drops` (held over
+  the eye or ear, a drop every `dripMs`), `find` (magnifier, light, x-ray, or by ear for the wheezy spot: hidden targets
+  show when the tool passes over them), `pull` (tweezers or magnet grip and draw out), `give` (a tap flies it there, or
+  a drag). 11 ailments now (eye and ear are new; tooth, tummy, toy, knee, paw rebuilt on targets).
+- **Levels:** little chef: the current station's tool glows and hops, Mom says what to do, hidden things show faintly.
+  Big chef: no glow, "Which tool do we need now?", she chooses any station that can be done now (`available()`: a find
+  before its taking out, the same tool in order, the last station last); a wrong tool hops back ("Hmm, what comes
+  first?"); more targets (`n`), germs in the mouth hop away once (`dodge`), hidden things fully hidden. The diagnosis
+  cards and the folding chart are gone. The waiting room's card shows what hurts on both levels.
+- **The title** (asked for by the owner): two big cards, `world-card-kitchen` "Cooking with Mom" and `world-card-clinic`
+  "Doctor with Mom" (`gen_title_worlds.py`: the logo's cut-paper letters, plus D, c, r; the world button's picture), side
+  by side left of Pipa and Mom (`stage.world`, `worldScale`), the chef hats in a row under them; the whole card is the
+  touch area. A tap: Mom says its title (vo-world-cooking / vo-world-doctor; vo-hello before it the first time). The
+  lettering is the game's title, part of the art, like the logo's (the logo itself is no longer on the title).
+- **Art:** `assets-src/images-b-clinic/tools/gen_clinic3.py` (23 SVGs, imports gen_clinic.py's kit; tips =
+  `ART.clinic.tip`, `ART.clinic.eye`, `earHole`). The close-ups and the things in them are rasterized at `ZOOM_RASTER`
+  1.7 (assets.ts); `rs(key, s)` in ClinicScene divides by a texture's raster. **Sound:** eek, drip, scan, sparkle
+  (`make_clinic_sfx.py`); 19 Mom lines (`make_vo.py mom-a`, `fix_vo_clinic3.py`), not heard by a human.
+- **Harness:** `__clinicPlay({wrongTool, none, gap, mid})` follows `m.station` / `m.target()`; `__clinicVerify(level, opts)`;
+  `window.__clinicPlan` forces patients and ailments.
+- **Needs a real child:** brushing several germs (is `rub` right?), holding the drops over the eye, the tweezers' pull in
+  a close-up, does she pick a tool by herself on big chef?
+### 00000000000000000000000000. The clinic, round 2 (three more ailments, happy dances, a ring for the ear)
+The owner: "make sure the doctor game works, test it, research it against other games". Research and gap list:
+`/mnt/project-files/research/clinic-research.md`. Branch `claude/clinic-2-ujeg2a`. No bug was found in round 1's clinic;
+the finding was length and repetition (a visit ~60 s on little chef, 6 ailments), the main complaint about weak doctor apps.
+- **Three ailments** (data in `core/clinic.ts`, 9 now): `spots` (itchy spots on the body, `Patient.spots`; the new move
+  `dab`: touch each spot with the cream, `TUNING.clinic.spots` [4, 6]; not the giraffe), `cold` (a pink nose and a sneeze;
+  the tissue held to the nose, `where: 'nose'` = `Patient.nose` or just above the mouth; a honk, "Bless you!"; a warm
+  drink = the cup with its own line), `toy` (a bell swallowed: `clinic-toy` drawn in the tummy close-up; L1 the
+  stethoscope hears it jingle, L2 it hides and the magnifier finds it (`BELL_SPOTS`); the magnet is a `pull` that grips
+  from `magnetR` and draws out `magnetPull`). `hidden_()` / `hiddenSpot()` are the splinter or the bell.
+- **Happy dance** after "All better!" (`dance`): the turtle spins, the penguin slides, the giraffe sways, Pipa rolls.
+- **Finding the wheezy spot by ear** (big chef) now also shows a ring from the chest piece, bigger and brighter nearer.
+- **Art:** 7 SVGs in `gen_clinic.py` (tool-tissue, tool-magnet, clinic-spot, clinic-toy, sick-spots, sick-cold,
+  sick-toy). **Sound:** honk, jingle, zing (`make_clinic_sfx.py honk jingle zing`; only the named ones are rewritten);
+  10 Mom lines (`make_vo.py mom-a`), not heard by a human.
+- **Harness:** `__clinicPlay` dabs every spot; `window.__clinicPlan = [['turtle', 'spots'], ...]` forces a visit.
+- **Needs a real child:** does she hold the tissue long enough, find the bell with the magnet, dab small spots?
 ### 0000000000000000000000000. The clinic (the second world: Mom the nurse)
 The owner: "a mini-game where you treat sick children or animals, and teeth; interesting and challenging"; then "already
 on the opening screen choose cooking with Mom or treating patients with Mom the nurse; music, scenery and voices to

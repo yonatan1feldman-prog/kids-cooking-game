@@ -366,6 +366,31 @@ cough, gurgle, spray, sticky, brush and wheeze are own work, synthesised from no
 | vo-tool-spray · vo-tool-cream · vo-tool-plaster · vo-tool-tweezers · vo-tool-magnifier · vo-found-it | Let's wash it clean. · A little cream. Rub, rub! · And a plaster! · Gently pull it out, with the tweezers. · Where is it? Look with the magnifier! · There it is! |
 | vo-clinic-better · vo-sticker · vo-clinic-bye-patient · vo-clinic-photo · vo-clinic-done | All better! · Pick a sticker! · Bye bye! Feel better! · Let's take a picture of our happy patients! · You took such good care of everyone! |
 
+### New in the clinic, round 2 (itchy spots, a cold, a swallowed bell: 10 lines and 3 effects)
+
+Same engine, voice and processing. The effects honk (a funny nose blow), jingle (a little bell) and zing (the magnet
+catching it) are own work, synthesised by `audio-src/scripts/make_clinic_sfx.py` (no samples).
+
+| Key | Line |
+|---|---|
+| vo-sick-spots · vo-sick-cold · vo-sick-toy | Oh, itchy spots! Let's make them better. · Achoo! A sniffly cold. · Oh my! You swallowed a little bell! |
+| vo-tool-dab · vo-tool-tissue · vo-tool-warmdrink · vo-tool-magnet | A dab of cream on every spot! · A tissue. Now, a big blow! · A warm drink. Mmm! · The magnet! Pull the bell out. |
+| vo-jingle · vo-bell-out · vo-clinic-bless | Jingle jingle! There's the bell! · Out it comes! Silly bell! · Bless you! |
+
+### New in the clinic, round 3 (the Doctor Games loop: eyes, ears, germs, the x-ray; 21 lines and 4 effects)
+
+Same engine, voice and processing (seven lines soft-limited by `audio-src/scripts/fix_vo_clinic3.py`). The effects eek
+(a germ's squeak), drip (a drop), scan (the x-ray's hum) and sparkle (a clean tooth) are own work, synthesised by
+`audio-src/scripts/make_clinic_sfx.py` (no samples).
+
+| Key | Line |
+|---|---|
+| vo-sick-eye · vo-sick-ear · vo-tooth-food · vo-germs · vo-germ-run | Oh, a sore, itchy eye! Let's take a look. · An earache? Let's look inside your ear. · First, let's wash off the food bits! · Look! Silly germs! Brush them all away! · Hee hee! It ran away! |
+| vo-tool-filler · vo-tool-cotton · vo-eye-speck · vo-tool-eyedrops · vo-tool-light | A little hole! Let's fill it with a star. · Wipe away the tears with the soft cotton. · Something tiny is in your eye. Take it out with the tweezers! · Now some drops. Drip, drop! · Shine the light inside. What can you see? |
+| vo-ear-bug · vo-bug-bye · vo-tool-swab · vo-tool-icepack · vo-tool-xray | A tiny ladybug! Gently, take it out. · Fly away home, little ladybug! · Now clean the ear with the cotton swab. · An ice pack. Nice and cool! · Let's look inside your tummy with the x-ray! |
+| vo-tummy-germs · vo-germs-gone · vo-clinic-which · vo-knee-dirt | Tummy germs! A drop of medicine on each one. · Bye bye, germs! · Which tool do we need now? · Let's wash all the dirt off. |
+| vo-world-cooking · vo-world-doctor (the title's two cards) | Cooking with Mom! · Doctor with Mom! |
+
 ### New in the guests round (who comes to eat, 13 lines)
 
 Same engine, voice and processing as every line above.
@@ -424,5 +449,5 @@ layers like Pipa's, the giraffe's neck and the three invitation badges) are draw
 `assets-src/images-b/tools/gen_kitchen_sky.py`, and the 21 files of visual round 5 (the garden, the cat, the clock, the
 child's drawing, the sill's things, the bunting) from `gen_kitchen_view.py` beside it. The 30 garden-stage files (the garden background, the raised
 bed, holes, seeds and packets, the plants, fruit and carrots, the watering can, sun, cloud, snail, leaf, basket and the
-garden card) are drawn by `assets-src/images-b-garden/tools/gen_garden.py` on the same kit. The 18 files of the two mini-games (the market's background, awning, shelf, counter, poles, crates and list, the dishes, the food on them, the sponge, the drying rack and the two cards) are drawn by `assets-src/images-b-minigames/tools/gen_minigames.py` on the same kit, and so are the market's coin, purse and chalk slate (round 3); the garden's scarecrow, its three hats and three shirts, the two bird frames and the butterfly (round 3) by `gen_garden.py`. The 22 files of the art corner (the easel, the five picking cards, the paint pots, the steamy window's view and frame, the things hidden behind the steam, the art card and photo frame) are drawn by `assets-src/images-b-art/tools/gen_art.py` on the same kit. The 45 files of the clinic (the waiting room and the treatment room, the bed, the bench, the tray slot and the chart, twelve tools, the close-ups and the magnifier's rim, what shows a patient is not well, three stickers, six ailment cards, the title's two world buttons and the clinic's photo frame) are drawn by `assets-src/images-b-clinic/tools/gen_clinic.py` on the same kit, and Mom's nurse dress and cap (`mom-body-nurse`, `mom-cap-nurse`) by `assets-src/images-b/tools/gen_mom.py`; the pictures she draws, traces, joins and colours are drawn in code (`src/core/artPictures.ts`). The puzzle's twelve own pictures (`public/assets/puzzle`: animals, nature, vehicles, a birthday cake, a balloon) are painted procedurally by `assets-src/images-b-puzzle/tools/gen_pictures.py` (own code, SVG brush strokes and gradients) and rendered to WebP by `render.mjs` in the same folder; no photos or third-party images. No third-party art, fonts or images.
+garden card) are drawn by `assets-src/images-b-garden/tools/gen_garden.py` on the same kit. The 18 files of the two mini-games (the market's background, awning, shelf, counter, poles, crates and list, the dishes, the food on them, the sponge, the drying rack and the two cards) are drawn by `assets-src/images-b-minigames/tools/gen_minigames.py` on the same kit, and so are the market's coin, purse and chalk slate (round 3); the garden's scarecrow, its three hats and three shirts, the two bird frames and the butterfly (round 3) by `gen_garden.py`. The 22 files of the art corner (the easel, the five picking cards, the paint pots, the steamy window's view and frame, the things hidden behind the steam, the art card and photo frame) are drawn by `assets-src/images-b-art/tools/gen_art.py` on the same kit. The 52 files of the clinic (the waiting room and the treatment room, the bed, the bench, the tray slot and the chart, fourteen tools, the close-ups and the magnifier's rim, what shows a patient is not well, an itchy spot and a swallowed bell, three stickers, nine ailment cards, the title's two world buttons and the clinic's photo frame) are drawn by `assets-src/images-b-clinic/tools/gen_clinic.py` on the same kit, and the 23 of its round 3 (the eye, ear and x-ray close-ups, three germs, a tooth's hole and its star, food bits, a speck, ear wax, a ladybird, seven more tools and two ailment cards) by `gen_clinic3.py` beside it, and the title's two game cards (`world-card-kitchen`, `world-card-clinic`) by `gen_title_worlds.py` (the logo's letters from `images-b-prep/tools/gen_prep_c.py`), and Mom's nurse dress and cap (`mom-body-nurse`, `mom-cap-nurse`) by `assets-src/images-b/tools/gen_mom.py`; the pictures she draws, traces, joins and colours are drawn in code (`src/core/artPictures.ts`). The puzzle's twelve own pictures (`public/assets/puzzle`: animals, nature, vehicles, a birthday cake, a balloon) are painted procedurally by `assets-src/images-b-puzzle/tools/gen_pictures.py` (own code, SVG brush strokes and gradients) and rendered to WebP by `render.mjs` in the same folder; no photos or third-party images. No third-party art, fonts or images.
 `images/webp/` holds WebP renderings of those same SVGs, made by `scripts/bake-webp.js`.

@@ -1,5 +1,4 @@
 import Phaser from 'phaser';
-import manifest from 'virtual:asset-manifest';
 import { music, voice } from '../core/audio';
 import { requestWakeLock, resumeAudio } from '../core/device';
 import { FX_SOFT } from '../core/assets';
@@ -21,10 +20,9 @@ import { recipeAssets, releaseRecipe, titleArtLoaded, titleArtReady } from './Bo
 let greeted = false;
 
 /**
- * Opening screen: the two worlds (there at once): cooking with Mom (a pot: the kitchen's home screen, the recipes and
- * the games) and the clinic with Mom the nurse (a nurse's bag with a heart: ClinicScene), then the logo, Mom and Pipa
- * fading in as soon as their art is loaded (the art agent's title scene). The chef hats beside them choose the level
- * for both worlds. The first tap is the user gesture the browser needs: it resumes the audio context, asks for
+ * Opening screen: the two games as two big cards (there at once; clinic round 3): "Cooking with Mom" (a pot: the
+ * kitchen's home screen, the recipes and the games) and "Doctor with Mom" (a nurse's bag with a heart: ClinicScene),
+ * then Mom and Pipa fading in as soon as their art is loaded. The chef hats under the cards choose the level for both. The first tap is the user gesture the browser needs: it resumes the audio context, asks for
  * fullscreen + landscape, and keeps the screen on (it fires on release: browsers only grant these from a completed
  * tap). Mom waves and says hello. Both worlds' home buttons come back here, so she can change worlds.
  * This is also the only place where a waiting new version is switched on (core/update.ts).
@@ -49,10 +47,15 @@ export class TitleScene extends Phaser.Scene {
     this.leaving = false;
     titleShown();
 
-    // (Their textures are rasterized at 1.4x, see `raster` in assets.ts: at scale k they show 1.4x big.)
-    // Their touch circles stop above the palm strip and short of each other.
-    const btn = iconButton(this, L, 'btn-world-kitchen', S.world.kitchen.x, S.world.kitchen.y, () => this.go(btn.x, btn.y, 'kitchen'), { fireOn: 'up', hitPad: 18 });
-    const clinic = iconButton(this, L, 'btn-world-clinic', S.world.clinic.x, S.world.clinic.y, () => this.go(clinic.x, clinic.y, 'clinic'), { fireOn: 'up', hitPad: 18 });
+    // The two games, two big cards (clinic round 3): their touch area is the card itself (not a circle round it).
+    const card = (key: 'world-card-kitchen' | 'world-card-clinic', at: { x: number; y: number }, world: 'kitchen' | 'clinic') => {
+      const c: Phaser.GameObjects.Image = iconButton(this, L, key, at.x, at.y, () => this.go(c.x, c.y, world), { fireOn: 'up', scale: S.worldScale });
+      c.input!.hitArea = new Phaser.Geom.Rectangle(0, 0, c.frame.realWidth, c.frame.realHeight);
+      c.input!.hitAreaCallback = Phaser.Geom.Rectangle.Contains;
+      return c;
+    };
+    const btn = card('world-card-kitchen', S.world.kitchen, 'kitchen');
+    const clinic = card('world-card-clinic', S.world.clinic, 'clinic');
     this.tweens.add({ targets: [btn, clinic], alpha: { from: 0, to: 1 }, duration: 400 });
     this.levelPick(L, S);
 
@@ -62,10 +65,6 @@ export class TitleScene extends Phaser.Scene {
     };
     titleArtReady().then(() => {
       if (!this.scene.isActive() || this.leaving) return;
-      // The logo only if its file exists (never a placeholder box here).
-      if (manifest.images['logo-cooking-with-mom']) {
-        fadeIn(this.add.image(S.titleLogo.x, S.titleLogo.y, 'logo-cooking-with-mom').setScale(L.k));
-      }
       this.mom = new Mom(this, S.mom);
       this.mom.followHand(hint.active);
       fadeIn(this.mom.box);
@@ -152,16 +151,18 @@ export class TitleScene extends Phaser.Scene {
     // which comes in as soon as it is loaded). Mom waves hello.
     if (world === 'clinic') music.play('clinic');
     music.start();
+    // Mom says the card's title ("Cooking with Mom!" / "Doctor with Mom!"; clinic round 3), the very first time after
+    // her hello.
     if (!greeted) voice.say('vo-hello', { ttlMs: 3000 });
     greeted = true;
+    voice.say(world === 'clinic' ? 'vo-world-doctor' : 'vo-world-cooking', { ttlMs: 3500 });
     this.mom?.wave();
     if (world === 'kitchen') {
       this.time.delayedCall(900, () => this.scene.start('Home', { from: 'title' }));
       return;
     }
-    // The clinic: "Let's go to our clinic!", its art and sounds load (a small spinner over the button if it takes a
+    // The clinic: its art and sounds load (a small spinner over the button if it takes a
     // moment), then in.
-    voice.say('vo-pick-clinic', { ttlMs: 4000 });
     const spin = this.time.delayedCall(250, () => {
       const r = 46 * k;
       this.add.circle(x, y, r * 1.5, 0xfff6e6, 0.92).setDepth(50);

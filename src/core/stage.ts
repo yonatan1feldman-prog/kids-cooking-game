@@ -18,19 +18,17 @@ export type Spot = Pt & { scale: number };
  * 4:3 (1440 wide) to 20:9 (2400 wide). The home button sits in the top-left corner.
  */
 export interface Stage {
-  /** Title: the play button, and the logo above it (the art agent's title scene, scenes-prep.js). */
+  /** Title: the kitchen's card (the old play button's job: the harness taps it). */
   play: Pt;
-  titleLogo: Pt;
   /**
-   * Title (gameplay round 5): the two chef hats (core/level.ts) in a row left of the play button, the little chef's
-   * on the left; `levelScale` is their scale (a 240 disc; at least 200 units at k = 1).
+   * Title (gameplay round 5): the two chef hats (core/level.ts), in a row under the two game cards (clinic round 3),
+   * the little chef's on the left; `levelScale` is their scale (a 240 disc; at least 200 units at k = 1).
    */
   levelPick: { 1: Pt; 2: Pt };
   levelScale: number;
   /**
-   * Title (the clinic round): the two worlds, cooking with Mom (`kitchen`, where the play button was: `play` is the
-   * same point) and the clinic with Mom the nurse, side by side, the chef hats beside them (in a row, or one above
-   * the other where the row does not fit: 4:3). `worldScale` is their scale (a 240 disc rasterized at 1.4x).
+   * Title (clinic round 3): the two games, two big cards side by side, "Cooking with Mom" (`kitchen`, = `play`) and
+   * "Doctor with Mom" (`clinic`); `worldScale` is their scale (world-card-*, 700x760).
    */
   world: { kitchen: Pt; clinic: Pt };
   worldScale: number;
@@ -221,6 +219,8 @@ const GUEST_SCALE = 0.75;
 const GUEST_OPAQUE_W = 500;
 /** Pipa beside Mom only where the screen is wide enough (16:9 and wider). */
 const PET_MIN_W = 1700;
+/** The title's two game cards (world-card-kitchen / -clinic), native size. */
+const WORLD_CARD = { w: 700, h: 760 };
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
@@ -493,44 +493,32 @@ export function getStage(L: Layout): Stage {
   const guestAbove = { x: Math.min(neckX, boardLeft - 215 * guestScale), y: guest.y - 250 * guestScale, scale: guestScale };
   const guestRight = guestX + (GUEST_OPAQUE_W / 2) * guestScale;
 
-  // Title: logo and play button in one column: left of centre on wide screens, centred in the space left
-  // of Mom's face on narrow ones (the art agent's title scene).
-  const titleX = W >= PET_MIN_W ? dishHome.x - 80 * k : (m + momLeft + MOM_FACE.x0 * s) / 2;
-
-  // The chef hats and the two worlds (the clinic round): [little][big]  [kitchen][clinic], the worlds centred under
-  // the logo where they can be, the whole row clear of the thumb strip, of Pipa, of Mom's face and her pointing hand.
-  // Where the row does not fit (4:3) the hats stand one above the other left of the worlds.
+  // Title (clinic round 3): the two games as two big cards side by side, "Cooking with Mom" and "Doctor with Mom"
+  // (WORLD_CARD, their lettering is the title art), in the room left of Pipa, Mom's face and her pointing arm; the two
+  // chef hats in a row under them, between the cards, clear of the palm strip.
   const levelScale = (205 / 240) * k;
   const levelR = 120 * levelScale;
-  const worldScale = k;
-  const worldR = 120 * 1.4 * worldScale;
-  const worldGap = 40 * k;
-  const titleY = Y(740);
-  const armHit = titleY + worldR > arm.y0 && titleY - worldR < arm.y1;
-  const titleRight = Math.min(pet ? petLeft : Infinity, momFace.x0, armHit ? arm.x0 : Infinity) - 20 * k;
   const titleLeft = m + 20 * k;
-  const hatsGap = 50 * k;
-  const rowHats = 4 * levelR + 20 * k;
-  const worldsW = 4 * worldR + worldGap;
-  const asRow = rowHats + hatsGap + worldsW <= titleRight - titleLeft;
-  const hatsW = asRow ? rowHats : 2 * levelR;
-  // the worlds' left edge: centred on the title column, then pushed right (room for the hats) or left (Mom, Pipa)
-  let worldsX0 = titleX - worldsW / 2;
-  worldsX0 = Math.max(worldsX0, titleLeft + hatsW + hatsGap);
-  worldsX0 = Math.min(worldsX0, titleRight - worldsW);
-  const kitchenX = worldsX0 + worldR;
-  const clinicX = worldsX0 + 3 * worldR + worldGap;
-  const bigX = worldsX0 - hatsGap - levelR;
-  const littleX = asRow ? bigX - 2 * levelR - 20 * k : bigX;
-  const hatDy = asRow ? 0 : levelR + 10 * k;
+  const titleRight = Math.min(pet ? petLeft : Infinity, momFace.x0, arm.x0) - 20 * k;
+  const hatY = Y(986) - levelR - 14 * k;
+  const cardTop = Y(48);
+  const cardBottom = hatY - levelR - 26 * k;
+  const worldGap = 44 * k;
+  const worldScale = Math.min(k, (cardBottom - cardTop) / WORLD_CARD.h, (titleRight - titleLeft - worldGap) / (2 * WORLD_CARD.w));
+  const cardW = WORLD_CARD.w * worldScale;
+  const titleX = (titleLeft + titleRight) / 2;
+  const titleY = (cardTop + cardBottom) / 2;
+  const kitchenX = titleX - worldGap / 2 - cardW / 2;
+  const clinicX = titleX + worldGap / 2 + cardW / 2;
+  const littleX = titleX - levelR - 14 * k;
+  const bigX = titleX + levelR + 14 * k;
 
   return {
     play: { x: kitchenX, y: titleY },
-    levelPick: { 1: { x: littleX, y: titleY - hatDy }, 2: { x: bigX, y: titleY + hatDy } },
+    levelPick: { 1: { x: littleX, y: hatY }, 2: { x: bigX, y: hatY } },
     levelScale,
     world: { kitchen: { x: kitchenX, y: titleY }, clinic: { x: clinicX, y: titleY } },
     worldScale,
-    titleLogo: { x: titleX, y: Y(330) },
     card,
     cardScale: (n) => (n === 1 ? k : cardScale(n)),
     home,
