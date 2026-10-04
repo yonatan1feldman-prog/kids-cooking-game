@@ -83,10 +83,10 @@ export class TitleScene extends Phaser.Scene {
   }
 
   /**
-   * Gameplay round 5: the difficulty, two wordless chef hats beside the play button (core/level.ts). The little chef's
-   * hat (the game as it was) and the big chef's tall one with a star (more to find, remember and follow). The chosen one
-   * glows; a tap on the other one chooses it (pop, stars, Mom says "Little chef!" / "Big chef!"). It is remembered on
-   * this device. Nothing else changes on the title; the play button starts the game at the chosen level.
+   * Gameplay round 5: the difficulty, two wordless buttons under the game cards (core/level.ts), for both games. Since
+   * clinic round 4 (the owner) they are an easy and a hard level, not chef hats: one star (easy, the game as it was) and
+   * three stars (hard: more to find, remember and follow). The chosen one glows; a tap on the other one chooses it (pop,
+   * stars, Mom says "Easy!" / "Hard!"). It is remembered on this device. The internal names (little / big chef) stay.
    * (They fire on release, like the play button: that tap may be the one that unlocks the sound.)
    */
   private levelPick(L: ReturnType<typeof getLayout>, S: ReturnType<typeof getStage>) {
@@ -123,7 +123,7 @@ export class TitleScene extends Phaser.Scene {
           setLevel(level);
           show(true);
           sfx(this, 'pop');
-          voice.say(level === 2 ? 'vo-big-chef' : 'vo-little-chef', { group: 'level', ttlMs: 2500 });
+          voice.say(level === 2 ? 'vo-level-hard' : 'vo-level-easy', { group: 'level', ttlMs: 2500 });
           this.mom?.happy();
         },
         { fireOn: 'up', hitPad: 12, scale: S.levelScale },

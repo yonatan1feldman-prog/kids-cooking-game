@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 import { keepPhoto } from '../core/album';
 import { ART, FX_SOFT, IMAGES, type ImageKey } from '../core/assets';
 import { music } from '../core/audio';
-import { AILMENTS, PATIENTS, planVisit, TOOL_LINE, TOOLS, type Ailment, type Patient, type Station, type ToolId, type What, type ZoomId } from '../core/clinic';
+import { AILMENTS, PATIENTS, planVisit, TOOL_LINE, TOOLS, type Ailment, type AilmentId, type Patient, type Station, type ToolId, type What, type ZoomId } from '../core/clinic';
+import type { VoiceKey } from '../core/audio';
 import { boing, burst, puff, stars } from '../core/fx';
 import { tapMotion, type HandKey, type HandMotion } from '../core/hand';
 import { confetti, sway } from '../core/juice';
@@ -41,15 +42,21 @@ const SPOTS: Partial<Record<ZoomId, Partial<Record<What, readonly P[]>>>> = {
     dirt: [{ x: 262, y: 258 }, { x: 362, y: 240 }, { x: 392, y: 306 }, { x: 292, y: 326 }, { x: 340, y: 290 }, { x: 236, y: 302 }],
   },
   paw: { splinter: [{ x: 262, y: 340 }, { x: 214, y: 150 }, { x: 306, y: 142 }, { x: 330, y: 380 }] },
+  // round 4 (gen_clinic4.py SKIN: places on the arm's patch)
+  skin: {
+    sting: [{ x: 150, y: 170 }, { x: 270, y: 140 }, { x: 380, y: 190 }, { x: 190, y: 290 }, { x: 320, y: 280 }, { x: 400, y: 330 }, { x: 150, y: 380 }, { x: 260, y: 390 }, { x: 360, y: 410 }],
+  },
   xray: {
     germ: [{ x: 202, y: 300 }, { x: 318, y: 296 }, { x: 260, y: 384 }, { x: 196, y: 396 }, { x: 326, y: 394 }, { x: 260, y: 262 }],
     bell: [{ x: 200, y: 300 }, { x: 322, y: 300 }, { x: 262, y: 390 }, { x: 214, y: 380 }, { x: 310, y: 380 }],
   },
 };
-/** The one place a tool works on in a close-up (the cream, the plaster, the drops). */
-const PLACE: Partial<Record<What, P>> = { knee: C.knee, paw: C.paw, eye: C.eye, ear: { x: C.earHole.x + 4, y: C.earHole.y + 10 } };
+/** A child's hand (lens-hand, gen_clinic4.py HAND): where a splinter can go in (the palm first). */
+const HAND_SPLINTERS: readonly P[] = [{ x: 262, y: 330 }, { x: 196, y: 290 }, { x: 326, y: 296 }, { x: 290, y: 392 }];
+/** The one place a tool works on in a close-up (the cream, the plaster, the drops, the ice pack on the arm). */
+const PLACE: Partial<Record<What, P>> = { knee: C.knee, paw: C.paw, eye: C.eye, ear: { x: C.earHole.x + 4, y: C.earHole.y + 10 }, skin: { x: 260, y: 290 } };
 /** Places on her (not things to clean away): every station that goes there gets them fresh (`freshPlaces`). */
-const PLACES: readonly What[] = ['mouth', 'forehead', 'nose', 'tummy', 'knee', 'paw', 'eye', 'ear'];
+const PLACES: readonly What[] = ['mouth', 'forehead', 'nose', 'tummy', 'knee', 'paw', 'eye', 'ear', 'skin'];
 
 /** A patient: the layered character (Character.ts) with her own voice's pitch and things drawn on her. */
 class PatientView extends Character {
@@ -78,15 +85,30 @@ class PatientView extends Character {
 
 interface Visitor {
   p: Patient;
-  a: Ailment;
+  /** Her problems (round 4: two each, like the patients in "Doctor Games for kids"), which are fixed, the one being fixed. */
+  as: Ailment[];
+  fixed: boolean[];
+  ai: number;
+  /** The problem being fixed (as[ai]). */
+  readonly a: Ailment;
   view: PatientView;
   /** Her place on the bench in the waiting room. */
   seat: Spot;
-  /** What shows she is not well (pink cheeks, a puffy cheek, a pink nose...): they go when she is better. */
-  signs: Phaser.GameObjects.Image[];
-  /** The picture of what is wrong, over her head in the waiting room. */
-  card?: Phaser.GameObjects.Image;
+  /** What shows she is not well (pink cheeks, a puffy cheek, a pink nose, mud...), per problem: they go when it is fixed. */
+  signs: Map<AilmentId, Phaser.GameObjects.Image[]>;
+  /** Things on her made in the waiting room already (the itchy spots, the mud): the treatment adopts them. */
+  pre: Partial<Record<What, { f: P; img: Phaser.GameObjects.Image; base: number }[]>>;
+  /** The pictures of what is wrong, over her head in the waiting room. */
+  cards: Phaser.GameObjects.Image[];
   done: boolean;
+}
+
+/** A problem's picture beside the patient in the treatment room: a tap on it starts fixing it. */
+interface Problem {
+  img: Phaser.GameObjects.Image;
+  glow: Phaser.GameObjects.Image;
+  badge: Phaser.GameObjects.Image | null;
+  at: P;
 }
 
 interface Tool {
@@ -118,6 +140,8 @@ interface Thing {
   dodged: boolean;
   /** Drops landed (drops). */
   drops: number;
+  /** Under another thing still there (the bump under a sting, the soap where the mud was): it shows when that goes. */
+  waiting: boolean;
 }
 
 interface Zoom {
@@ -155,7 +179,7 @@ export class ClinicScene extends MiniGame {
   protected readonly song = 'clinic' as const;
   protected readonly momOutfit = 'nurse' as const;
   protected readonly homeScene = 'Title' as const;
-  protected readonly waiting = ['pick', 'tool', 'sticker'] as const;
+  protected readonly waiting = ['pick', 'problem', 'tool', 'sticker'] as const;
   private visit: Visitor[] = [];
   private cur: Visitor | null = null;
   private waitRoom: Phaser.GameObjects.GameObject[] = [];
@@ -180,6 +204,8 @@ export class ClinicScene extends MiniGame {
   private lastHear = 0;
   private dripT = 0;
   private lightGlow: Phaser.GameObjects.Image | null = null;
+  /** The current patient's problems beside her (round 4), and the one Mom suggests (easy level). */
+  private problems: Problem[] = [];
 
   constructor() {
     super('Clinic');
@@ -207,7 +233,8 @@ export class ClinicScene extends MiniGame {
     this.ranSaid = false;
     this.dripT = 0;
     this.lightGlow = null;
-    Object.assign(this.shown, { patients: [] as string[], treated: 0, step: '', tool: '', wrong: 0, photo: 0, zoom: '', stations: 0, things: 0 });
+    this.problems = [];
+    Object.assign(this.shown, { patients: [] as string[], fixed: 0,  treated: 0, step: '', tool: '', wrong: 0, photo: 0, zoom: '', stations: 0, things: 0 });
   }
 
   protected withPipa() {
@@ -227,13 +254,13 @@ export class ClinicScene extends MiniGame {
     const L = this.L;
     const S = this.S;
     const k = L.k;
-    // (the test harness may choose the patients: window.__clinicPlan = [['turtle', 'tooth'], ...])
-    const forced = (globalThis as { __clinicPlan?: [string, string][] }).__clinicPlan;
+    // (the test harness may choose them: window.__clinicPlan = [['lily', 'tooth', 'sting'], ['turtle', 'eye'], ...])
+    const forced = (globalThis as { __clinicPlan?: string[][] }).__clinicPlan;
     const plan = forced
-      ? forced.map(([p, a]) => ({ patient: PATIENTS.find((q) => q.id === p)!, ailment: AILMENTS[a as keyof typeof AILMENTS] }))
-      : planVisit(T.patients);
-    this.visit = plan.map(({ patient, ailment }) => ({ p: patient, a: ailment }) as Visitor);
-    this.shown.patients = this.visit.map((v) => `${v.p.id}-${v.a.id}`);
+      ? forced.map(([p, ...as]) => ({ patient: PATIENTS.find((q) => q.id === p)!, ailments: as.map((a) => AILMENTS[a as AilmentId]) }))
+      : planVisit(T.patients, T.problems[this.level - 1]);
+    this.visit = plan.map(({ patient, ailments }) => ({ p: patient, as: ailments, fixed: ailments.map(() => false), ai: 0, pre: {}, cards: [], signs: new Map(), get a() { return (this as unknown as Visitor).as[(this as unknown as Visitor).ai]; } }) as unknown as Visitor);
+    this.shown.patients = this.visit.map((v) => `${v.p.id}:${v.as.map((a) => a.id).join('+')}`);
 
     const petLeft = S.pet && this.withPipa() ? S.pet.x - 270 * S.pet.scale : Infinity;
     const right = Math.min(petLeft, S.momFace.x0) - 16 * k;
@@ -252,11 +279,13 @@ export class ClinicScene extends MiniGame {
       v.seat = { x, y: seatY + 34 * bs - (FEET - FH / 2) * pw, scale: pw };
       v.view = new PatientView(this, v.p.def, v.seat, v.p.rate);
       v.view.box.setDepth(6);
-      v.signs = this.signsOn(v);
+      for (const a of v.as) v.signs.set(a.id, this.signsOn(v, a));
       v.done = false;
-      const top = v.view.at({ x: 520, y: 110 });
-      v.card = this.add.image(top.x, top.y, v.a.card).setScale(0.56 * k).setDepth(8);
-      this.waitRoom.push(v.card);
+      // her problems' pictures over her head, side by side
+      const top = v.view.at({ x: 300, y: 40 });
+      const cs = Math.min(0.56 * k, (430 * bs) / (200 * v.as.length + 20));
+      v.cards = v.as.map((a, j) => this.add.image(top.x + (j - (v.as.length - 1) / 2) * 212 * cs, top.y - 60 * cs, a.card).setScale(cs).setDepth(8));
+      this.waitRoom.push(...v.cards);
     });
 
     // The treatment room: the bed low in the middle, the patient sitting on it big; the tray on the left.
@@ -306,10 +335,38 @@ export class ClinicScene extends MiniGame {
 
   // ---------------------------------------------------------------- what shows she is not well
 
-  private signsOn(v: Visitor): Phaser.GameObjects.Image[] {
+  /** Every sign she still shows. */
+  private allSigns(v: Visitor) {
+    return [...v.signs.values()].flat();
+  }
+
+  /** The things on her a problem works on, made now so she shows them in the waiting room (the spots, the mud). */
+  private preOn(v: Visitor, a: Ailment, what: 'spot' | 'mud', key: string, places: readonly P[]) {
+    const st = a.steps[this.level - 1].find((q) => q.what === what);
+    const n = st?.n ? st.n[this.level - 1] : 1;
+    const fs = Phaser.Utils.Array.Shuffle([...places]).slice(0, n);
+    const list = fs.map((f) => {
+      const base = Phaser.Math.FloatBetween(0.85, 1.1) * (what === 'mud' ? 0.62 : 1);
+      return { f, base, img: v.view.put(key, f, base, what === 'mud' ? Phaser.Math.Between(-30, 30) : 0) };
+    });
+    v.pre[what] = list;
+    return list.map((q) => q.img);
+  }
+
+  private signsOn(v: Visitor, a: Ailment): Phaser.GameObjects.Image[] {
     const p = v.p;
     const view = v.view;
-    switch (v.a.id) {
+    switch (a.id) {
+      case 'spots':
+        return this.preOn(v, a, 'spot', 'clinic-spot', p.spots);
+      case 'dirty':
+        return this.preOn(v, a, 'mud', 'clinic-mud', [...p.cheeks, p.forehead, ...p.spots]);
+      case 'sting':
+        return [view.put('clinic-bite', { x: p.cheeks[1].x - 10, y: p.cheeks[1].y - 20 }, 0.7)];
+      case 'bites': {
+        const fs = p.spots.length ? p.spots.slice(0, 2) : p.cheeks;
+        return fs.map((f) => view.put('clinic-bite', f, 0.6));
+      }
       case 'fever':
         return [
           view.put('clinic-cheek', p.cheeks[0], 0.95).setAlpha(0.75),
@@ -320,8 +377,10 @@ export class ClinicScene extends MiniGame {
         return [view.put('clinic-bump', p.cheeks[1], 0.85)];
       case 'knee':
         return p.foot ? [view.put('clinic-scrape', p.foot, 0.5, -10), view.put('clinic-dust', p.foot, 0.45)] : [];
-      case 'paw':
-        return p.foot ? [view.put('clinic-splinter', { x: p.foot.x - 8, y: p.foot.y + 6 }, 0.55, -25)] : [];
+      case 'paw': {
+        const f = p.hand ?? p.foot;
+        return f ? [view.put('clinic-splinter', { x: f.x - 8, y: f.y + 6 }, 0.55, -25)] : [];
+      }
       case 'cold': {
         const n = this.noseOf(v);
         return [view.put('clinic-cheek', n, 0.42).setAlpha(0.95), view.put('clinic-sweat', { x: n.x + 26, y: n.y + 34 }, 0.55)];
@@ -345,13 +404,15 @@ export class ClinicScene extends MiniGame {
 
   /** She shows what is wrong (as she comes in, and when tapped): a cough, a gurgle, warm cheeks, a sneeze. */
   private showSign(v: Visitor) {
+    const a = v.as.find((_, i) => !v.fixed[i]) ?? v.as[0];
+    const signs = v.signs.get(a.id) ?? [];
     const view = v.view;
     const box = view.box;
     const s = view.scale;
     const rate = view.rate;
     this.tweens.killTweensOf(box);
     box.setScale(s).setPosition(view.rest.x, view.rest.y).setAngle(0);
-    switch (v.a.id) {
+    switch (a.id) {
       case 'cough':
         sfx(this, 'cough', { minGapMs: 0, rate });
         this.tweens.add({ targets: box, scaleY: s * 0.92, duration: 90, yoyo: true, repeat: 1, ease: 'Quad.easeOut' });
@@ -369,7 +430,7 @@ export class ClinicScene extends MiniGame {
         this.tweens.add({ targets: box, angle: { from: -3, to: 3 }, duration: 140, yoyo: true, repeat: 2, ease: 'Sine.easeInOut', onComplete: () => box.setAngle(0) });
         break;
       default:
-        for (const g of v.signs) boing(this, g, 0.25);
+        for (const g of signs) boing(this, g, 0.25);
         this.tweens.add({ targets: box, y: view.rest.y - 30 * s, duration: 160, yoyo: true, ease: 'Quad.easeOut' });
         sfx(this, 'char-wow', { minGapMs: 0, rate, volume: 0.5 });
     }
@@ -394,7 +455,7 @@ export class ClinicScene extends MiniGame {
     boing(this, v.view.box, 0.1);
     v.view.setMood('happy');
     this.say(v.p.hello, { ttlMs: 3000 });
-    if (v.card) this.tweens.add({ targets: v.card, alpha: 0, scale: 0, duration: 260 });
+    if (v.cards.length) this.tweens.add({ targets: v.cards, alpha: 0, scale: 0, duration: 260 });
     // a happy hop toward the door, then the treatment room
     const door = { x: this.L.W / 2 + (1330 - 1200) * Math.max(1, this.L.W / 2400), y: v.seat.y };
     this.tweens.add({ targets: v.view.box, x: (v.seat.x + door.x) / 2, y: v.seat.y - 60 * v.seat.scale, duration: 420, ease: 'Quad.easeOut' });
@@ -416,11 +477,131 @@ export class ClinicScene extends MiniGame {
     return { x: r.bedX - 15 * r.bedScale, y: r.seatY - (FEET - FH / 2) * r.ps + 6 * r.ps, scale: r.ps };
   }
 
-  /** On the bed, big: she shows what is wrong, Mom says it, the tray comes. */
+  /** On the bed, big: she shows what is wrong, and her problems' pictures come out beside her. */
   private arrived(v: Visitor) {
     this.showSign(v);
-    this.time.delayedCall(700, () => {
-      this.say(v.a.line, { ttlMs: 5000, done: () => this.time.delayedCall(250, () => this.startTreat()) });
+    this.time.delayedCall(600, () => {
+      if (this.leaving || this.cur !== v) return;
+      this.layProblems(v);
+      this.time.delayedCall(350, () => this.beginProblem(true));
+    });
+  }
+
+  // ---------------------------------------------------------------- her problems (round 4)
+
+  /** Her problems' pictures, on both sides of her head (clear of the tray and Mom), each a big tap target. */
+  private layProblems(v: Visitor) {
+    const k = this.L.k;
+    const r = this.room;
+    const s = 0.86 * k;
+    const head = v.view.at({ x: 300, y: 230 });
+    const dx = 330 * v.view.scale;
+    const n = v.as.length;
+    const spots: P[] = n === 1 ? [{ x: head.x + dx, y: head.y }] : n === 2
+      ? [{ x: head.x - dx, y: head.y }, { x: head.x + dx, y: head.y }]
+      : [{ x: head.x - dx, y: head.y + 40 * k }, { x: head.x, y: head.y - 240 * v.view.scale }, { x: head.x + dx, y: head.y + 40 * k }];
+    const pad = 105 * k;
+    this.problems = v.as.map((a, i) => {
+      const at = { x: Phaser.Math.Clamp(spots[i].x, r.x0 + pad, r.x1 - pad), y: Math.max(this.L.Y(30) + pad, spots[i].y) };
+      const glow = this.add.image(at.x, at.y, FX_SOFT).setTint(0xfff1a8).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0).setDepth(24);
+      glow.setScale((330 * k) / glow.frame.realWidth);
+      const img = this.add.image(at.x, at.y, a.card).setScale(0).setDepth(25);
+      img.setData('scale', s);
+      this.tweens.add({ targets: img, scale: s, duration: 320, delay: 120 * i, ease: 'Back.easeOut' });
+      let badge: Phaser.GameObjects.Image | null = null;
+      if (v.fixed[i]) {
+        img.setAlpha(0.6);
+        badge = this.add.image(at.x + 62 * k, at.y + 58 * k, 'clinic-done').setScale(0.72 * k).setDepth(26);
+      }
+      return { img, glow, badge, at };
+    });
+    sfx(this, 'pop', { volume: 0.5 });
+  }
+
+  /** The problem Mom suggests next (easy level): the first one not fixed. */
+  private nextProblem() {
+    return this.cur ? this.cur.fixed.findIndex((f) => !f) : -1;
+  }
+
+  /** She chooses what to fix: easy, the next one glows and Mom says it; hard, Mom asks what first. */
+  private beginProblem(first: boolean) {
+    const v = this.cur;
+    if (!v || this.leaving) return;
+    const i = this.nextProblem();
+    if (i < 0) return;
+    let line: VoiceKey | null;
+    if (this.level === 1) {
+      this.problems.forEach((q, j) => this.tweens.add({ targets: q.glow, alpha: j === i ? 0.9 : 0, duration: 260 }));
+      const q = this.problems[i];
+      this.tweens.add({ targets: q.img, y: q.at.y - 24 * this.L.k, duration: 180, yoyo: true, repeat: 1, ease: 'Quad.easeOut' });
+      line = v.as[i].line;
+    } else line = first ? 'vo-clinic-fixfirst' : null;
+    this.begin('problem', line);
+  }
+
+  /** A problem picked: its picture hops, the others step back, Mom names it (unless she just did), and it starts. */
+  private startProblem(i: number) {
+    const v = this.cur!;
+    const k = this.L.k;
+    const said = this.level === 1 && i === this.nextProblem();
+    this.setPhase('intro');
+    v.ai = i;
+    const q = this.problems[i];
+    sfx(this, 'pop');
+    boing(this, q.img, 0.15);
+    stars(this, q.at.x, q.at.y, 6, 34 * k);
+    this.hideProblems(260);
+    const go = () => this.time.delayedCall(250, () => !this.leaving && this.cur === v && this.startTreat());
+    if (said) this.time.delayedCall(300, go);
+    else this.say(v.as[i].line, { ttlMs: 5000, done: go });
+  }
+
+  private hideProblems(delay = 0) {
+    for (const q of this.problems) {
+      this.tweens.killTweensOf([q.img, q.glow]);
+      this.tweens.add({ targets: [q.img, q.glow, ...(q.badge ? [q.badge] : [])], alpha: 0, duration: 260, delay, onComplete: () => (q.img.destroy(), q.glow.destroy(), q.badge?.destroy()) });
+    }
+    this.problems = [];
+  }
+
+  /** One problem fixed: its signs go, a little cheer; the next problem, or "All better!" when it was the last. */
+  private problemDone() {
+    const v = this.cur!;
+    const a = v.a;
+    const k = this.L.k;
+    v.fixed[v.ai] = true;
+    this.shown.fixed = (this.shown.fixed as number) + 1;
+    this.setPhase('intro');
+    this.closeZoom();
+    this.clearTray();
+    // what showed the problem goes (a plaster stays on a knee or a foot); the places on her go
+    const signs = v.signs.get(a.id) ?? [];
+    for (const g of signs) this.tweens.add({ targets: g, alpha: 0, duration: 500, onComplete: () => g.destroy() });
+    v.signs.delete(a.id);
+    for (const t of this.things) if (!t.zoom && t.img.active && !signs.includes(t.img)) t.img.destroy();
+    this.things = [];
+    if (a.id === 'knee' || a.id === 'paw') {
+      const f = a.id === 'paw' ? v.p.hand ?? v.p.foot : v.p.foot;
+      if (f) {
+        const pl = v.view.put('tool-plaster', f, 0.42, -8).setAlpha(0);
+        this.tweens.add({ targets: pl, alpha: 1, duration: 400, delay: 300 });
+      }
+    }
+    if (v.fixed.every(Boolean)) return this.time.delayedCall(350, () => this.better());
+    this.time.delayedCall(400, () => {
+      if (this.leaving || this.cur !== v) return;
+      sfx(this, 'sparkle', { minGapMs: 0 });
+      const head = v.view.at({ x: 300, y: 200 });
+      stars(this, head.x, head.y, 8, 44 * k);
+      v.view.react('love');
+      this.mom?.happy();
+      this.time.delayedCall(800, () => this.mom?.rest());
+      this.say('vo-clinic-fixed', { ttlMs: 4000 });
+      this.time.delayedCall(500, () => {
+        if (this.leaving || this.cur !== v) return;
+        this.layProblems(v);
+        this.time.delayedCall(500, () => this.beginProblem(false));
+      });
     });
   }
 
@@ -429,6 +610,7 @@ export class ClinicScene extends MiniGame {
   private startTreat() {
     if (this.leaving) return;
     this.steps = this.cur!.a.steps[this.level - 1];
+    this.shown.ailment = this.cur!.a.id;
     this.doneSt = this.steps.map(() => false);
     this.si = 0;
     this.lineSaid.clear();
@@ -458,8 +640,32 @@ export class ClinicScene extends MiniGame {
       made.add(key);
       const n = Math.max(...this.steps.filter((q) => q.view === st.view && q.what === st.what).map((q) => this.count(q)));
       const found = this.steps.some((q) => q.act === 'find' && q.view === st.view && q.what === st.what);
+      if (st.on) continue;
       if (st.view === 'body') this.bodyThings(v, st, n, found);
       else this.zoomThings(this.zooms.get(st.view)!, st, n, found);
+    }
+    // (what shows where another thing goes: made under each of them, waiting)
+    for (const st of this.steps) if (st.on) this.underThings(v, st);
+  }
+
+  /** A station's targets under the `on` things (the bump under each sting, the soap where each mud splat is). */
+  private underThings(v: Visitor, st: Station) {
+    const zoom = st.view === 'body' ? null : st.view;
+    const key = st.what === 'foam' ? 'clinic-foam' : 'clinic-bite';
+    for (const o of this.things.filter((t) => t.what === st.on && t.zoom === zoom && !t.waiting)) {
+      let img: Phaser.GameObjects.Image;
+      const base = st.what === 'foam' ? 0.7 : 0.7;
+      if (zoom) {
+        const z = this.zooms.get(zoom)!;
+        img = new Phaser.GameObjects.Image(this, o.img.x, o.img.y + (st.what === 'bite' ? 10 * z.s : 0), key).setScale(rs(key, base * z.s));
+        z.box.addAt(img, z.box.getIndex(o.img));
+      } else {
+        img = v.view.put(key, o.f, base);
+        v.view.box.moveBelow(img, o.img);
+        (v.signs.get(v.a.id) ?? []).push(img);
+      }
+      img.setAlpha(0);
+      this.things.push({ what: st.what, img, f: o.f, zoom, base, hp: 0, done: false, hidden: false, dodged: false, drops: 0, waiting: true });
     }
   }
 
@@ -468,17 +674,13 @@ export class ClinicScene extends MiniGame {
     const view = v.view;
     const p = v.p;
     const add = (what: What, f: P, img: Phaser.GameObjects.Image, base: number, hidden = false) =>
-      this.things.push({ what, img, f, zoom: null, base, hp: 0, done: false, hidden, dodged: false, drops: 0 });
+      this.things.push({ what, img, f, zoom: null, base, hp: 0, done: false, hidden, dodged: false, drops: 0, waiting: false });
     const marker = (f: P) => view.put(FX_SOFT, f, 0.01).setAlpha(0);
     switch (st.what) {
-      case 'spot': {
-        const fs = Phaser.Utils.Array.Shuffle([...p.spots]).slice(0, n);
-        for (const f of fs) {
-          const base = Phaser.Math.FloatBetween(0.85, 1.1);
-          const img = view.put('clinic-spot', f, base);
-          v.signs.push(img);
-          add('spot', f, img, base);
-        }
+      case 'spot':
+      case 'mud': {
+        // (made in the waiting room already: she showed them there)
+        for (const q of (v.pre[st.what] ?? []).slice(0, n)) add(st.what, q.f, q.img, q.base);
         return;
       }
       case 'listen':
@@ -519,12 +721,27 @@ export class ClinicScene extends MiniGame {
       // (a thing to find: big chef sees nothing at all, little chef a faint hint of it)
       img.setAlpha(hidden ? (this.level === 1 ? 0.3 : 0) : alpha);
       z.box.addAt(img, z.box.length - 1);
-      this.things.push({ what, img, f, zoom: z.id, base, hp: 0, done: false, hidden, dodged: false, drops: 0 });
+      this.things.push({ what, img, f, zoom: z.id, base, hp: 0, done: false, hidden, dodged: false, drops: 0, waiting: false });
       return img;
     };
     const pick = (list: readonly P[]) => Phaser.Utils.Array.Shuffle([...list]).slice(0, n);
     const teeth = () => Phaser.Utils.Array.Shuffle(C.teeth.map(([x, y]) => ({ x, y })));
     switch (st.what) {
+      case 'sting':
+        pick(SPOTS.skin!.sting!).forEach((f) => add('sting', 'clinic-sting', f, 0.8, Phaser.Math.Between(-15, 15)));
+        return;
+      case 'gnat': {
+        // the gnats sit on the arm, each near a bite of its own (the bites come out from under them, round 4)
+        const fs = pick(SPOTS.skin!.sting!);
+        fs.forEach((f) => add('bite', 'clinic-bite', { x: f.x + 30, y: f.y + 34 }, 0.75));
+        fs.forEach((f) => add('gnat', 'clinic-gnat', f, 0.8, Phaser.Math.Between(-12, 12)));
+        return;
+      }
+      case 'bite':
+        // (made with the gnats)
+        if (this.things.some((t) => t.what === 'bite' && t.zoom === z.id)) return;
+        pick(SPOTS.skin!.sting!).forEach((f) => add('bite', 'clinic-bite', f, 0.75));
+        return;
       case 'germ': {
         const fs = z.id === 'mouth' ? teeth().slice(0, n).map((t) => ({ x: t.x + Phaser.Math.Between(-6, 6), y: t.y + (t.y < 270 ? -4 : 4) })) : pick(SPOTS.xray!.germ!);
         fs.forEach((f, i) => add('germ', GERMS[i % GERMS.length], f, z.id === 'mouth' ? 0.62 : 0.72, Phaser.Math.Between(-12, 12), 1, found));
@@ -556,7 +773,8 @@ export class ClinicScene extends MiniGame {
         return;
       case 'splinter': {
         // little chef: the big pad first
-        const list = this.level === 1 ? [SPOTS.paw!.splinter![0]] : pick(SPOTS.paw!.splinter!);
+        const all = this.cur!.p.kid ? HAND_SPLINTERS : SPOTS.paw!.splinter!;
+        const list = this.level === 1 ? [all[0]] : pick(all);
         list.slice(0, n).forEach((f) => add('splinter', 'clinic-splinter', f, 0.8, -28, 1, found));
         return;
       }
@@ -608,11 +826,14 @@ export class ClinicScene extends MiniGame {
         break;
       }
       case 'paw':
-        layer('lens-paw', skin);
+        layer(v.p.kid ? 'lens-hand' : 'lens-paw', skin);
         cream = layer('clinic-cream').setScale(rs('clinic-cream', 1.0 * s)).setPosition((C.paw.x - LENS / 2) * s, (C.paw.y - LENS / 2) * s).setAlpha(0);
         break;
       case 'xray':
         layer('lens-xray');
+        break;
+      case 'skin':
+        layer('lens-skin', skin);
         break;
     }
     layer('lens-ring');
@@ -633,6 +854,10 @@ export class ClinicScene extends MiniGame {
         return v.view.at({ x: p.forehead.x + 150, y: p.forehead.y + 20 });
       case 'xray':
         return v.view.at(p.chest[0]);
+      case 'skin':
+        return v.view.at(p.hand ?? (p.spots[2] ?? p.cheeks[1]));
+      case 'paw':
+        return v.view.at(p.hand ?? p.foot ?? p.chest[0]);
       default:
         return v.view.at(p.foot ?? p.chest[0]);
     }
@@ -724,7 +949,7 @@ export class ClinicScene extends MiniGame {
     for (let j = 0; j < i; j++) {
       if (this.doneSt[j]) continue;
       const q = this.steps[j];
-      if (q.tool === st.tool || (q.act === 'find' && q.view === st.view && q.what === st.what) || i === last) return false;
+      if (q.tool === st.tool || (q.act === 'find' && q.view === st.view && q.what === st.what) || (st.on && q.what === st.on && q.view === st.view) || i === last) return false;
     }
     return true;
   }
@@ -813,7 +1038,7 @@ export class ClinicScene extends MiniGame {
   targets(): Thing[] {
     const st = this.station;
     if (!st) return [];
-    return this.things.filter((t) => t.what === st.what && t.zoom === (st.view === 'body' ? null : st.view) && !t.done && (st.act === 'find' ? t.hidden : !t.hidden || st.act === 'give'));
+    return this.things.filter((t) => t.what === st.what && t.zoom === (st.view === 'body' ? null : st.view) && !t.done && !t.waiting && (st.act === 'find' ? t.hidden : !t.hidden || st.act === 'give'));
   }
 
   /** A thing's point in the world (in the close-up, which may be moving; or on her). */
@@ -883,7 +1108,7 @@ export class ClinicScene extends MiniGame {
     const k = this.L.k;
     const l = this.level - 1;
     if (st.by === 'rub') return (t.what === 'knee' || t.what === 'paw' ? T.rubOne[l] : T.rub[l]) * k;
-    if (['mouth', 'forehead', 'nose', 'tummy'].includes(t.what)) return T.holdMs[l];
+    if (['mouth', 'forehead', 'nose', 'tummy', 'skin'].includes(t.what)) return T.holdMs[l];
     return T.timeMs[l];
   }
 
@@ -979,11 +1204,28 @@ export class ClinicScene extends MiniGame {
         if (this.level === 2 && !t.dodged && u >= T.dodge && t.zoom === 'mouth') this.dodge(t);
         return;
       }
+      case 'gnat': {
+        // the spray tickles it: it buzzes and wobbles, then off it flies (big chef: once it hops to another place first)
+        t.img.setAngle(Math.sin(this.time.now / 40) * 16);
+        sfx(this, 'spray', { minGapMs: 520, volume: 0.5 });
+        sfx(this, 'squeak', { minGapMs: 800, volume: 0.25, rate: 1.6 });
+        if (Math.random() < delta / 60) burst(this, tp.x, tp.y, { texture: FX_SOFT, count: 2, tint: 0xd8f2d0, size: 44 * k, speed: 150 * k, gravityY: 60, lifespan: 500, depth: 60 });
+        if (this.level === 2 && !t.dodged && u >= T.dodge) this.dodge(t);
+        return;
+      }
+      case 'mud':
+        // the sponge foams it away: bubbles under the sponge, the mud fades
+        t.img.setAlpha(1 - 0.85 * u);
+        if (Math.random() < 0.35) this.bubble(tp.x + Phaser.Math.Between(-30, 30) * k, tp.y + Phaser.Math.Between(-20, 20) * k);
+        sfx(this, 'brush', { minGapMs: 300, volume: 0.6 });
+        if (Math.random() < 0.08) sfx(this, 'char-giggle', { minGapMs: 1500, rate: this.cur!.view.rate, volume: 0.45 });
+        return;
+      case 'foam':
       case 'food':
       case 'dirt':
         // the water washes it: it slides down and fades
         t.img.setAlpha(1 - 0.8 * u);
-        t.img.y = (t.f.y - LENS / 2) * s + 30 * u * s;
+        if (t.zoom) t.img.y = (t.f.y - LENS / 2) * s + 30 * u * s;
         sfx(this, 'spray', { minGapMs: 520, volume: 0.6 });
         if (Math.random() < delta / 50) burst(this, tp.x, tp.y + 20 * k, { texture: FX_SOFT, count: 2, tint: 0xdff3fa, size: 44 * k, speed: 170 * k, gravityY: 160, lifespan: 500, depth: 60 });
         return;
@@ -1029,15 +1271,17 @@ export class ClinicScene extends MiniGame {
     }
   }
 
-  /** Big chef: a germ half brushed hops to another tooth, giggling (once each). */
+  /** Big chef: a germ half brushed hops to another tooth, a gnat half sprayed to another place, giggling (once each). */
   private dodge(t: Thing) {
-    const z = this.zooms.get('mouth')!;
-    const taken = this.things.filter((q) => q.zoom === 'mouth' && !q.done && q !== t).map((q) => q.f);
-    const free = C.teeth.map(([x, y]) => ({ x, y })).filter((p) => !taken.some((q) => Math.hypot(q.x - p.x, q.y - p.y) < 50) && Math.hypot(p.x - t.f.x, p.y - t.f.y) > 60);
+    const z = this.zooms.get(t.zoom!)!;
+    const gnat = t.what === 'gnat';
+    const places = gnat ? SPOTS.skin!.sting! : C.teeth.map(([x, y]) => ({ x, y }));
+    const taken = this.things.filter((q) => q.zoom === t.zoom && !q.done && q !== t && q.what === t.what).map((q) => q.f);
+    const free = places.filter((p) => !taken.some((q) => Math.hypot(q.x - p.x, q.y - p.y) < 50) && Math.hypot(p.x - t.f.x, p.y - t.f.y) > 60);
     t.dodged = true;
     if (!free.length) return;
     const to = Phaser.Utils.Array.GetRandom(free);
-    t.f = { x: to.x, y: to.y + (to.y < 270 ? -4 : 4) };
+    t.f = gnat ? { x: to.x, y: to.y } : { x: to.x, y: to.y + (to.y < 270 ? -4 : 4) };
     t.hp = 0;
     const s = z.s;
     this.tweens.add({ targets: t.img, x: (t.f.x - LENS / 2) * s, y: (t.f.y - LENS / 2) * s, scale: rs(t.img.texture.key, t.base * s), duration: 420, ease: 'Quad.easeOut' });
@@ -1045,7 +1289,7 @@ export class ClinicScene extends MiniGame {
     sfx(this, 'char-giggle', { rate: 1.5, volume: 0.6 });
     if (!this.ranSaid) {
       this.ranSaid = true;
-      this.say('vo-germ-run', { ttlMs: 2500 });
+      this.say(gnat ? 'vo-bug-hop' : 'vo-germ-run', { ttlMs: 2500 });
     }
   }
 
@@ -1156,7 +1400,48 @@ export class ClinicScene extends MiniGame {
     const z = t.zoom ? this.zooms.get(t.zoom)! : null;
     const s = z ? z.s : 1;
     this.poke();
+    this.reveal(t);
     switch (t.what) {
+      case 'gnat':
+        // off it flies, buzzing, home out of the window
+        sfx(this, 'whoosh', { minGapMs: 0, volume: 0.5 });
+        sfx(this, 'char-giggle', { minGapMs: 0, rate: 1.8, volume: 0.45 });
+        if (z) {
+          const img = t.img;
+          z.box.remove(img);
+          this.add.existing(img);
+          img.setPosition(w.x, w.y).setDepth(70).setScale(rs('clinic-gnat', 0.8 * s));
+          this.tweens.add({ targets: img, x: w.x + Phaser.Math.Between(-200, 200) * k, y: -90 * k, angle: Phaser.Math.Between(-40, 40), duration: 1100, ease: 'Sine.easeIn', onComplete: () => img.destroy() });
+        }
+        stars(this, w.x, w.y, 4, 28 * k);
+        break;
+      case 'sting':
+        sfx(this, 'pop');
+        stars(this, w.x, w.y, 6, 32 * k);
+        this.tweens.add({ targets: t.img, alpha: 0, y: t.img.y - 60 * k, angle: 40, duration: 450 });
+        if (Math.random() < 0.5) sfx(this, 'char-wow', { minGapMs: 1200, rate: v.view.rate, volume: 0.5 });
+        break;
+      case 'bite': {
+        // a dab of cream on it, and the itch goes
+        const dab = new Phaser.GameObjects.Image(this, t.img.x, t.img.y, 'clinic-cream').setScale(rs('clinic-cream', 0.45 * s)).setAlpha(0.95);
+        z?.box.addAt(dab, z.box.length - 1);
+        boing(this, dab, 0.2);
+        this.tweens.add({ targets: t.img, alpha: 0, duration: 400 });
+        this.tweens.add({ targets: dab, alpha: 0, duration: 600, delay: 900, onComplete: () => dab.destroy() });
+        burst(this, w.x, w.y, { texture: 'fx-heart', count: 3, tint: [0xf06a8a, 0xf5a3b5], size: 28 * k, speed: 180 * k, gravityY: -100, lifespan: 700, depth: 60 });
+        sfx(this, 'squish', { minGapMs: 0, volume: 0.45 });
+        break;
+      }
+      case 'mud':
+        this.tweens.add({ targets: t.img, alpha: 0, duration: 260 });
+        for (let i = 0; i < 4; i++) this.bubble(w.x + Phaser.Math.Between(-40, 40) * k, w.y + Phaser.Math.Between(-30, 20) * k);
+        sfx(this, 'pop', { minGapMs: 0, volume: 0.45 });
+        break;
+      case 'foam':
+        this.tweens.add({ targets: t.img, alpha: 0, duration: 300 });
+        sfx(this, 'sparkle', { minGapMs: 200, volume: 0.6 });
+        stars(this, w.x, w.y, 5, 30 * k);
+        break;
       case 'germ':
         // pop! into bubbles
         sfx(this, 'eek', { minGapMs: 0, volume: 0.8 });
@@ -1233,6 +1518,12 @@ export class ClinicScene extends MiniGame {
         stars(this, w.x, w.y, 6, 34 * k);
         sfx(this, 'star', { volume: 0.6 });
         break;
+      case 'skin':
+        // the ice pack: cool mist, the arm feels better
+        stars(this, w.x, w.y, 6, 34 * k);
+        sfx(this, 'sparkle', { minGapMs: 0, volume: 0.6 });
+        v.view.setMood('happy');
+        break;
       case 'eye':
       case 'ear':
         // the drops are in: the eye's redness goes
@@ -1249,16 +1540,25 @@ export class ClinicScene extends MiniGame {
           v.view.setMood('happy');
           sfx(this, 'honk');
           boing(this, v.view.box, 0.08);
-          const nose = v.signs.filter((g) => g.texture.key === 'clinic-cheek' || g.texture.key === 'clinic-sweat');
+          const nose = (v.signs.get(v.a.id) ?? []).filter((g) => g.texture.key === 'clinic-cheek' || g.texture.key === 'clinic-sweat');
           if (nose.length) this.tweens.add({ targets: nose, alpha: 0, duration: 500 });
         } else if (st.tool === 'icepack') {
-          const sweat = v.signs.find((g) => g.texture.key === 'clinic-sweat');
+          const sweat = this.allSigns(v).find((g) => g.texture.key === 'clinic-sweat');
           if (sweat) this.tweens.add({ targets: sweat, alpha: 0, duration: 400 });
           sfx(this, 'sparkle', { minGapMs: 0, volume: 0.6 });
         } else stars(this, w.x, w.y, 5, 30 * k);
     }
     if (!this.targets().length && !this.things.some((q) => q.what === st.what && q.zoom === t.zoom && !q.done && !q.hidden)) this.stationDone();
     else if (Math.random() < 0.35) v.view.react('giggle');
+  }
+
+  /** A thing gone shows what waited under it (the bump under the sting, the soap where the mud was). */
+  private reveal(t: Thing) {
+    for (const u of this.things) {
+      if (!u.waiting || u.zoom !== t.zoom || u.f !== t.f) continue;
+      u.waiting = false;
+      this.tweens.add({ targets: u.img, alpha: 1, duration: 300, delay: 120 });
+    }
   }
 
   private wiggle() {
@@ -1348,7 +1648,7 @@ export class ClinicScene extends MiniGame {
     this.time.delayedCall(700, () => this.mom?.rest());
     this.revealPlaces();
     const next = this.firstOpen();
-    if (next < 0) return this.time.delayedCall(st.after ? 1300 : 600, () => this.better());
+    if (next < 0) return this.time.delayedCall(st.after ? 1300 : 600, () => !this.leaving && this.cur === v && this.problemDone());
     this.time.delayedCall(st.after ? 1500 : 700, () => this.startStation(next));
   }
 
@@ -1362,13 +1662,9 @@ export class ClinicScene extends MiniGame {
     this.closeZoom();
     this.clearTray();
     for (const t of this.things) if (!t.zoom && t.img.active) this.tweens.add({ targets: t.img, alpha: 0, duration: 400 });
-    // every sign goes; a little plaster stays on a knee or a foot
-    for (const g of v.signs) this.tweens.add({ targets: g, alpha: 0, duration: 500, onComplete: () => g.destroy() });
-    v.signs = [];
-    if ((v.a.id === 'knee' || v.a.id === 'paw') && v.p.foot) {
-      const pl = v.view.put('tool-plaster', v.p.foot, 0.42, -8).setAlpha(0);
-      this.tweens.add({ targets: pl, alpha: 1, duration: 400, delay: 300 });
-    }
+    // every sign left goes (each problem's own went as it was fixed; a plaster stays on a knee or a hand)
+    for (const g of this.allSigns(v)) this.tweens.add({ targets: g, alpha: 0, duration: 500, onComplete: () => g.destroy() });
+    v.signs.clear();
     this.time.delayedCall(450, () => {
       sfx(this, 'cheer-jingle');
       music.party();
@@ -1401,6 +1697,20 @@ export class ClinicScene extends MiniGame {
         break;
       case 'giraffe':
         this.tweens.add({ targets: box, angle: { from: -7, to: 7 }, duration: 300, yoyo: true, repeat: 2, ease: 'Sine.easeInOut', onComplete: back });
+        break;
+      // the children (round 4): Lily twirls, Leo jumps for joy, Mia bounces, Sam wiggles
+      case 'lily':
+        this.tweens.add({ targets: box, scaleX: { from: s, to: -s }, duration: 260, yoyo: true, repeat: 1, ease: 'Sine.easeInOut', onComplete: back });
+        this.tweens.add({ targets: box, y: r.y - 30 * s, duration: 260, yoyo: true, repeat: 1, ease: 'Quad.easeOut' });
+        break;
+      case 'leo':
+        this.tweens.add({ targets: box, y: r.y - 90 * s, duration: 240, yoyo: true, repeat: 1, ease: 'Quad.easeOut', onComplete: back });
+        break;
+      case 'mia':
+        this.tweens.add({ targets: box, y: r.y - 40 * s, scaleY: s * 1.04, duration: 160, yoyo: true, repeat: 3, ease: 'Quad.easeOut', onComplete: back });
+        break;
+      case 'sam':
+        this.tweens.add({ targets: box, angle: { from: -9, to: 9 }, x: { from: r.x - 20 * s, to: r.x + 20 * s }, duration: 180, yoyo: true, repeat: 3, ease: 'Sine.easeInOut', onComplete: back });
         break;
       default:
         this.tweens.add({ targets: box, y: r.y - 70 * s, duration: 260, yoyo: true, repeat: 1, ease: 'Quad.easeOut' });
@@ -1632,6 +1942,10 @@ export class ClinicScene extends MiniGame {
         const s = this.stickers[0];
         return s ? tapMotion({ x: s.x, y: s.y }, k) : null;
       }
+      case 'problem': {
+        const q = this.problems[this.nextProblem()];
+        return q ? tapMotion(q.at, k) : null;
+      }
       case 'tool': {
         const st = this.station;
         const t = st && this.toolOf(st.tool);
@@ -1668,6 +1982,14 @@ export class ClinicScene extends MiniGame {
         if (!s) return false;
         this.hand.play(tapMotion({ x: s.x, y: s.y }, k));
         this.time.delayedCall(650, () => (this.helped(), this.giveSticker(s)));
+        return true;
+      }
+      case 'problem': {
+        const i = this.nextProblem();
+        const q = this.problems[i];
+        if (!q) return false;
+        this.hand.play(tapMotion(q.at, k));
+        this.time.delayedCall(650, () => (this.helped(), this.phase === 'problem' && this.startProblem(i)));
         return true;
       }
       case 'tool':
@@ -1788,6 +2110,20 @@ export class ClinicScene extends MiniGame {
         const s = this.stickers.find((q) => this.near(at, q, Math.max(120 * k, 110 * q.scale)));
         if (s) this.giveSticker(s);
         return;
+      }
+      case 'problem': {
+        // any problem not fixed yet (easy: Mom suggests one, but any is fine); a fixed one just wiggles
+        const i = this.problems.findIndex((q) => this.near(at, q.at, 125 * k));
+        if (i < 0) {
+          if (this.cur && this.hitPatient(this.cur, at)) this.showSign(this.cur);
+          return;
+        }
+        if (this.cur!.fixed[i]) {
+          boing(this, this.problems[i].img, 0.12);
+          sfx(this, 'tap', { volume: 0.5 });
+          return;
+        }
+        return this.startProblem(i);
       }
       case 'tool': {
         const t = this.tools.find((q) => !q.away && this.near(at, q.img, Math.max(115 * k, 120 * q.homeScale)));
