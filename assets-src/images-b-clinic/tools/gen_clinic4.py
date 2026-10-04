@@ -76,8 +76,9 @@ def gnat():
 def mud():
     """110x100: a splat of brown mud (the sponge foams it)."""
     p = "omu-"
-    s = P(spiky(55, 52, 30, 44, 0, 360, 9, 7), "#8E6440") + P(wob(55, 52, 32, 28, .1, 8, 18), "#A47650")
-    s += P(wob(44, 42, 10, 6, .12, 9, 10, -20), "#C49A70", ' opacity="0.8"') + C(88, 20, 7, "#8E6440") + C(18, 86, 5, "#8E6440")
+    # (dark enough to read on Leo's dark skin too, with a lighter wet shine on it)
+    s = P(spiky(55, 52, 30, 44, 0, 360, 9, 7), "#4E321D") + P(wob(55, 52, 32, 28, .1, 8, 18), "#654128")
+    s += P(wob(44, 42, 10, 6, .12, 9, 10, -20), "#B08A62", ' opacity="0.85"') + C(88, 20, 7, "#4E321D") + C(18, 86, 5, "#4E321D")
     return doc(p, 110, 100, G(s, p + "sh"), "smooth", seed=414)
 
 
