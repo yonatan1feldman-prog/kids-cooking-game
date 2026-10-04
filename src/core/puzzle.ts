@@ -1,4 +1,6 @@
 import Phaser from 'phaser';
+import type { VoiceKey } from './audio';
+import { isBigChef } from './level';
 import { TUNING } from './tuning';
 
 /**
@@ -200,6 +202,65 @@ export function makePuzzleIcon(game: Phaser.Game) {
   game.textures.addCanvas(PUZZLE_ICON, c);
 }
 
+/** The album's button to the puzzle's own pictures: a little landscape (sky, hill, sun) with an orange piece on it. */
+export const PICTURES_ICON = 'puzzle-pictures-icon';
+
+export function makePicturesIcon(game: Phaser.Game) {
+  if (game.textures.exists(PICTURES_ICON)) return;
+  const S = 240;
+  const c = document.createElement('canvas');
+  c.width = c.height = S;
+  const g = c.getContext('2d')!;
+  const disc = (x: number, y: number, fill: string) => {
+    g.beginPath();
+    g.arc(x, y, S * 0.44, 0, Math.PI * 2);
+    g.fillStyle = fill;
+    g.fill();
+  };
+  disc(S / 2 + 6, S / 2 + 8, 'rgba(0,0,0,0.15)');
+  disc(S / 2, S / 2, '#fff6e6');
+  g.lineWidth = S * 0.06;
+  g.strokeStyle = '#c98b5b';
+  g.stroke();
+  // The little picture: sky, a sun, a green hill, a brown edge.
+  const x0 = S * 0.24, y0 = S * 0.26, w = S * 0.52;
+  g.save();
+  g.beginPath();
+  g.rect(x0, y0, w, w);
+  g.clip();
+  const sky = g.createLinearGradient(0, y0, 0, y0 + w);
+  sky.addColorStop(0, '#6fa8dc');
+  sky.addColorStop(1, '#d6ecf4');
+  g.fillStyle = sky;
+  g.fillRect(x0, y0, w, w);
+  g.fillStyle = '#f7c933';
+  g.beginPath();
+  g.arc(x0 + w * 0.72, y0 + w * 0.28, w * 0.12, 0, Math.PI * 2);
+  g.fill();
+  g.fillStyle = '#6fa04a';
+  g.beginPath();
+  g.ellipse(x0 + w * 0.3, y0 + w * 1.05, w * 0.75, w * 0.42, 0, 0, Math.PI * 2);
+  g.fill();
+  g.restore();
+  g.lineWidth = S * 0.025;
+  g.strokeStyle = '#8a4a1f';
+  g.strokeRect(x0, y0, w, w);
+  // One orange piece lying on its corner.
+  const pw = S * 0.26;
+  const pts = piecePath(pw, pw, [1, 0, 0, -1]);
+  const ox = x0 + w - pw * 0.55, oy = y0 + w - pw * 0.6;
+  trace(g, pts, ox + 4, oy + 5);
+  g.fillStyle = 'rgba(0,0,0,0.16)';
+  g.fill();
+  trace(g, pts, ox, oy);
+  g.fillStyle = '#ff8c42';
+  g.fill();
+  g.lineWidth = S * 0.018;
+  g.strokeStyle = '#8a4a1f';
+  g.stroke();
+  game.textures.addCanvas(PICTURES_ICON, c);
+}
+
 /** How many puzzles she has finished on this device (only to make the next one a little bigger; never shown). */
 const KEY = 'cooking.puzzles';
 export function puzzlesDone(): number {
@@ -216,8 +277,35 @@ export function puzzleFinished() {
     /* not kept: the next puzzle is simply the same size */
   }
 }
-/** The grid for the next puzzle: 2x2, then 3x2, 3x3, and 4x3 from then on. */
+/**
+ * The grid for the next puzzle: 2x2, then 3x2, 3x3, and 4x3 from then on. The big chef starts further along
+ * (`TUNING.puzzle.bigFrom`: 3x3, then 4x3), so the level she chose on the title is felt here too.
+ */
 export function nextGrid(): readonly [number, number] {
   const g = TUNING.puzzle.grids;
-  return g[Math.min(puzzlesDone(), g.length - 1)];
+  const from = isBigChef() ? TUNING.puzzle.bigFrom : 0;
+  return g[Math.min(from + puzzlesDone(), g.length - 1)];
 }
+
+/**
+ * The puzzle's own pictures (not from the memory book): painterly-realistic scenes a 4-5-year-old loves, painted by
+ * assets-src/images-b-puzzle/tools/gen_pictures.py and shipped as WebPs in public/assets/puzzle (`<id>.webp`, 800 px,
+ * the board; `<id>-thumb.webp`, the picker's tile). Mom names each one when it is picked (`name`).
+ */
+export const PICTURES: readonly { id: string; name: VoiceKey }[] = [
+  { id: 'puppy', name: 'name-puppy' },
+  { id: 'kitten', name: 'name-kitten' },
+  { id: 'bunny', name: 'name-bunny' },
+  { id: 'ducklings', name: 'name-ducklings' },
+  { id: 'horse', name: 'name-horse' },
+  { id: 'rainbow', name: 'name-a-rainbow' },
+  { id: 'seaside', name: 'name-beach' },
+  { id: 'snowy-tree', name: 'name-snowman' },
+  { id: 'fire-truck', name: 'name-fire-truck' },
+  { id: 'train', name: 'name-train' },
+  { id: 'birthday-cake', name: 'name-cake' },
+  { id: 'balloon', name: 'name-balloon' },
+];
+
+/** A picture's file (relative to the site's base). */
+export const pictureUrl = (id: string, thumb = false) => `${import.meta.env.BASE_URL}assets/puzzle/${id}${thumb ? '-thumb' : ''}.webp`;

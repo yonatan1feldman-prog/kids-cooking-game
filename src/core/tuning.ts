@@ -236,9 +236,10 @@ export const TUNING = {
    * The puzzle from a memory-book photo (research/puzzle-spec.md). `grids`: columns x rows, the first puzzle on this
    * device first, the last one from then on (4, 6, 9, 12 pieces). `snap`: a piece let go this close to its place
    * (times the cell's shorter side) clicks in. `ghost`: how strongly the picture shows on the board under the pieces.
-   * `trayMax`: the largest size a waiting piece is shown at (1 = its size on the board).
+   * `trayMax`: the largest size a waiting piece is shown at (1 = its size on the board). `bigFrom`: where in `grids`
+   * the big chef starts (2 = 9 pieces, then 12).
    */
-  puzzle: { grids: [[2, 2], [3, 2], [3, 3], [4, 3]] as readonly (readonly [number, number])[], snap: 0.55, ghost: 0.3, trayMax: 0.9, helpMs: 900 },
+  puzzle: { grids: [[2, 2], [3, 2], [3, 3], [4, 3]] as readonly (readonly [number, number])[], bigFrom: 2, snap: 0.55, ghost: 0.3, trayMax: 0.9, helpMs: 900 },
   /**
    * The garden (GardenScene, research/new-stage-2-spec.md). `waterMs`: watering one plant (held over it) until it is a young
    * plant (the sprout at `sproutAt` of it). `cloudPush`: how far she moves the cloud before it drifts off on its own (a tap

@@ -17,3 +17,5 @@ audio-src/.venv/
 __pycache__/
 *.pyc
 docs/screenshots-round5v/
+assets-src/images-b-puzzle/*.svg
+assets-src/images-b-puzzle/sheet.jpg
