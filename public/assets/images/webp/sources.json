@@ -474,6 +474,11 @@
   "w": 1500,
   "h": 420
  },
+ "clinic-bite": {
+  "sha1": "266e819c2fe068ce98b50ae04a6023617600dbfc",
+  "w": 153,
+  "h": 136
+ },
  "clinic-bump": {
   "sha1": "705123373296d876822e765259ea7f24b89d564f",
   "w": 120,
@@ -499,6 +504,11 @@
   "w": 170,
   "h": 153
  },
+ "clinic-done": {
+  "sha1": "fa0eef98ccc8ac3784ffc0898e8ac3deb09e76fb",
+  "w": 120,
+  "h": 120
+ },
  "clinic-dust": {
   "sha1": "24fee45df8d797820137b4163718cb203e2ccfef",
   "w": 374,
@@ -508,6 +518,21 @@
   "sha1": "6c726ec91f84767ca9abcf91c9371f3e6127a674",
   "w": 884,
   "h": 884
+ },
+ "clinic-foam": {
+  "sha1": "4eb8b3d92b75521f475abdf82f7dbcce378f1468",
+  "w": 187,
+  "h": 170
+ },
+ "clinic-gnat": {
+  "sha1": "e46fe59c0dff8788d90a5e2641e8f7fa6f832366",
+  "w": 204,
+  "h": 187
+ },
+ "clinic-mud": {
+  "sha1": "7ba2f95127413f785954ac259a73e21852714481",
+  "w": 187,
+  "h": 170
  },
  "clinic-scrape": {
   "sha1": "c7588ba1bc0ac897a70a66aef90d06b5f9ef63e2",
@@ -528,6 +553,11 @@
   "sha1": "06494c13d998dbb48d72dbcfe28bce8b89dc4ade",
   "w": 70,
   "h": 70
+ },
+ "clinic-sting": {
+  "sha1": "bf532d503c3dbd369310b0770e228a15a370d483",
+  "w": 187,
+  "h": 170
  },
  "clinic-sweat": {
   "sha1": "eae4b763dcf8801c7f070a5ee797b7e213510ec9",
@@ -1219,6 +1249,166 @@
   "w": 600,
   "h": 420
  },
+ "kid-leo-body": {
+  "sha1": "a3f1ec0ef9004887fd59c2be94714aba122737b9",
+  "w": 450,
+  "h": 525
+ },
+ "kid-leo-eyes-blink": {
+  "sha1": "8ba719e7c5816d6e7e98a8a9ca2667c9f7493df4",
+  "w": 450,
+  "h": 525
+ },
+ "kid-leo-eyes-happy": {
+  "sha1": "d9379c768464f2154f56e0ebb7caefbb9e3e76b3",
+  "w": 450,
+  "h": 525
+ },
+ "kid-leo-eyes-open": {
+  "sha1": "ea2ee928e673647892cde4441358bc8de6e996e1",
+  "w": 450,
+  "h": 525
+ },
+ "kid-leo-eyes-surprised": {
+  "sha1": "915679d316903ffdc7676df7ccc645747316f705",
+  "w": 450,
+  "h": 525
+ },
+ "kid-leo-mouth-chew": {
+  "sha1": "df9e96c46728e294610a9391573b0bc0b993e7b3",
+  "w": 450,
+  "h": 525
+ },
+ "kid-leo-mouth-closed": {
+  "sha1": "3fb63a3e4fd06e4bb42e26a76ff63b286b3b9ea6",
+  "w": 450,
+  "h": 525
+ },
+ "kid-leo-mouth-open": {
+  "sha1": "9da426fba3962e806ad94ff6988894ef74d839a6",
+  "w": 450,
+  "h": 525
+ },
+ "kid-lily-body": {
+  "sha1": "cf7b484b544b172f624fc28967d2b8c94b3c0694",
+  "w": 450,
+  "h": 525
+ },
+ "kid-lily-eyes-blink": {
+  "sha1": "08b3738ba8fc0c7e0fb420a5a38f936cb404699a",
+  "w": 450,
+  "h": 525
+ },
+ "kid-lily-eyes-happy": {
+  "sha1": "117a3aa0ae2140c6d8680919d45ec015a9acfb40",
+  "w": 450,
+  "h": 525
+ },
+ "kid-lily-eyes-open": {
+  "sha1": "29459b96bd82af238c5a11c47df4cd798bd98f1e",
+  "w": 450,
+  "h": 525
+ },
+ "kid-lily-eyes-surprised": {
+  "sha1": "68eaae15919f24a1b015238d310b7b7169eb0935",
+  "w": 450,
+  "h": 525
+ },
+ "kid-lily-mouth-chew": {
+  "sha1": "59a2a67be29490e2e9d2c45b6c0ea2a3fd3deb7a",
+  "w": 450,
+  "h": 525
+ },
+ "kid-lily-mouth-closed": {
+  "sha1": "d2d5b17be486859340442e7f0c7fe33f0f44e91d",
+  "w": 450,
+  "h": 525
+ },
+ "kid-lily-mouth-open": {
+  "sha1": "2d6832b889f332233d9382892adef48826935aeb",
+  "w": 450,
+  "h": 525
+ },
+ "kid-mia-body": {
+  "sha1": "bfadd3088a5ae00536dd776d5418e88c3691ebe4",
+  "w": 450,
+  "h": 525
+ },
+ "kid-mia-eyes-blink": {
+  "sha1": "b4b60444f08072d40131fd774492cc327d72b11b",
+  "w": 450,
+  "h": 525
+ },
+ "kid-mia-eyes-happy": {
+  "sha1": "f1d5f614b3d298edfe882430f025e6904921b94e",
+  "w": 450,
+  "h": 525
+ },
+ "kid-mia-eyes-open": {
+  "sha1": "cbe25fad670bea050c4bb090a059e7f1647b5a9a",
+  "w": 450,
+  "h": 525
+ },
+ "kid-mia-eyes-surprised": {
+  "sha1": "db6ed3914b379007fb351c827a4edf01fcfedd92",
+  "w": 450,
+  "h": 525
+ },
+ "kid-mia-mouth-chew": {
+  "sha1": "9bd1698f16489f23387cb76daf7f2b46d3ea7665",
+  "w": 450,
+  "h": 525
+ },
+ "kid-mia-mouth-closed": {
+  "sha1": "ffc915e0cf701d5bd35f9b82e2273e7e2ca5973e",
+  "w": 450,
+  "h": 525
+ },
+ "kid-mia-mouth-open": {
+  "sha1": "ca6f37a736a38668f98f0685dcaeac31b44ddf3a",
+  "w": 450,
+  "h": 525
+ },
+ "kid-sam-body": {
+  "sha1": "9eb1ca63c227baa438afd594f8884f84e6dd806a",
+  "w": 450,
+  "h": 525
+ },
+ "kid-sam-eyes-blink": {
+  "sha1": "be748134864c6dac6efc576c95673e18be32b740",
+  "w": 450,
+  "h": 525
+ },
+ "kid-sam-eyes-happy": {
+  "sha1": "05e940e25540f8fff19d2dc8017a7bbc8462ea65",
+  "w": 450,
+  "h": 525
+ },
+ "kid-sam-eyes-open": {
+  "sha1": "37c6d7891ce92dd5c1ba55da1c4f6934a9e5c6fe",
+  "w": 450,
+  "h": 525
+ },
+ "kid-sam-eyes-surprised": {
+  "sha1": "dcc55776693048606de3af9dcc1d30ee82927516",
+  "w": 450,
+  "h": 525
+ },
+ "kid-sam-mouth-chew": {
+  "sha1": "aa29ad0653ba77b21e5667c23918c47fa51b8d2a",
+  "w": 450,
+  "h": 525
+ },
+ "kid-sam-mouth-closed": {
+  "sha1": "468c02bac059410c268ec429e6d8237cb9127988",
+  "w": 450,
+  "h": 525
+ },
+ "kid-sam-mouth-open": {
+  "sha1": "6195f6c0e6a17d1f9dcca020d4216b1b030511b4",
+  "w": 450,
+  "h": 525
+ },
  "kitchen-basil": {
   "sha1": "9d48a325f1439949bd35e8ea510e670505c0bccb",
   "w": 102,
@@ -1439,6 +1629,11 @@
   "w": 884,
   "h": 884
  },
+ "lens-hand": {
+  "sha1": "2b49e1d2922bbf964b99d09d50f8db94339f9c51",
+  "w": 884,
+  "h": 884
+ },
  "lens-knee": {
   "sha1": "3c32e090746f1021356280ef53908abe2a63ad83",
   "w": 884,
@@ -1458,6 +1653,11 @@
   "sha1": "5ed812d35bc251818f4c51a7762564757ef90de6",
   "w": 1020,
   "h": 1020
+ },
+ "lens-skin": {
+  "sha1": "ea97b7507dfa5aa91defff07eae5fb8f738a455f",
+  "w": 884,
+  "h": 884
  },
  "lens-tummy": {
   "sha1": "f6910ef1572978cc5b60de09b263c9236b4024b4",
@@ -2054,6 +2254,11 @@
   "w": 480,
   "h": 320
  },
+ "sick-bites": {
+  "sha1": "177a5f7064e0303126c9912a09c490483e2e05c9",
+  "w": 200,
+  "h": 200
+ },
  "sick-cold": {
   "sha1": "ab5e29b6c480f13f78f7c0fa4da5a410ae8c10ab",
   "w": 200,
@@ -2061,6 +2266,11 @@
  },
  "sick-cough": {
   "sha1": "a79b7652b72f9aba49684331e6ddf7519e8c33fc",
+  "w": 200,
+  "h": 200
+ },
+ "sick-dirty": {
+  "sha1": "c804ce24e0006e46c080c4e1ba35b36b063080be",
   "w": 200,
   "h": 200
  },
@@ -2091,6 +2301,11 @@
  },
  "sick-spots": {
   "sha1": "28487f91b588811ee6220c162e5a3c9b1aa5c145",
+  "w": 200,
+  "h": 200
+ },
+ "sick-sting": {
+  "sha1": "09c86515e31f880077ebe475bc44c6de96d9e400",
   "w": 200,
   "h": 200
  },
@@ -2224,6 +2439,11 @@
   "w": 400,
   "h": 280
  },
+ "tool-bugspray": {
+  "sha1": "53ef0e5f145879c0ae3fa18ba83bb02991a89791",
+  "w": 240,
+  "h": 240
+ },
  "tool-cloth": {
   "sha1": "6639f421bc70d2c08094f602777a121aba32af04",
   "w": 240,
@@ -2281,6 +2501,11 @@
  },
  "tool-plaster": {
   "sha1": "d30aaae06743308d434634fa67625d0149e4e77e",
+  "w": 240,
+  "h": 240
+ },
+ "tool-sponge": {
+  "sha1": "f155e0fb0765ebe47106fdada0e77419765c0b57",
   "w": 240,
   "h": 240
  },

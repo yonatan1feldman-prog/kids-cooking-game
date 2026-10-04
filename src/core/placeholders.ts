@@ -434,43 +434,34 @@ export function makeAlbumTextures(game: Phaser.Game) {
   }
 }
 
-/** The two chef hats on the title (gameplay round 5, core/level.ts): little chef (level 1) and big chef (level 2). */
-export const LEVEL_ICON = { 1: 'level-little-chef', 2: 'level-big-chef' } as const;
+/**
+ * The two difficulty buttons on the title (gameplay round 5, core/level.ts; renamed in clinic round 4, the owner: "an
+ * easy level and a hard level", for both games, not chef hats): easy (level 1) and hard (level 2).
+ */
+export const LEVEL_ICON = { 1: 'level-easy', 2: 'level-hard' } as const;
 
 /**
- * The chef hats, drawn in code like the album's button (text-free): a cream paper disc with a warm brown edge and a
- * white chef's hat on it, small and low for the little chef, tall with a gold star on its band for the big chef.
+ * The level buttons, drawn in code like the album's button (text-free): a cream paper disc with a warm brown edge, one
+ * big gold star on it for easy, three stars (a bigger one in the middle, raised) for hard.
  */
 export function makeLevelTextures(game: Phaser.Game) {
   const t = game.textures;
   const s = 240;
-  const hat = (g: Phaser.GameObjects.Graphics, cx: number, base: number, w: number, h: number, star: boolean) => {
-    const INK_HAT = 0xb9a594;
-    const band = w * 0.36;
-    const puff = w * 0.3;
-    const top = base - band - h;
-    // (the soft shadow, then the puffs: an ink ring under the white, so the paper hat has an outline)
-    g.fillStyle(0x000000, 0.1).fillRoundedRect(cx - w / 2 + 6, base - band + 8, w, band, 10);
-    for (const [col, grow] of [[INK_HAT, 5], [0xffffff, 0]] as const) {
-      g.fillStyle(col);
-      g.fillRoundedRect(cx - w * 0.42 - grow, top + puff * 0.8 - grow, w * 0.84 + 2 * grow, base - band - top - puff * 0.6 + 2 * grow, 12);
-      g.fillCircle(cx - w * 0.3, top + puff, puff + grow);
-      g.fillCircle(cx + w * 0.3, top + puff, puff + grow);
-      g.fillCircle(cx, top + puff * 0.7, puff * 1.12 + grow);
-      g.fillRoundedRect(cx - w / 2 - grow, base - band - grow, w + 2 * grow, band + 2 * grow, 10);
-    }
-    g.fillStyle(0xf1e6d8).fillRect(cx - w / 2 + 6, base - band + 6, w - 12, 5);
-    if (star) {
-      g.fillStyle(0xffc93c);
-      const sy = base - band / 2;
-      const pts: Phaser.Math.Vector2[] = [];
+  const star = (g: Phaser.GameObjects.Graphics, cx: number, cy: number, r: number) => {
+    const pts = (R: number, dy = 0) => {
+      const out: Phaser.Math.Vector2[] = [];
       for (let i = 0; i < 10; i++) {
         const a = -Math.PI / 2 + (i * Math.PI) / 5;
-        const r = i % 2 ? band * 0.2 : band * 0.46;
-        pts.push(new Phaser.Math.Vector2(cx + Math.cos(a) * r, sy + Math.sin(a) * r));
+        const rr = i % 2 ? R * 0.45 : R;
+        out.push(new Phaser.Math.Vector2(cx + Math.cos(a) * rr, cy + dy + Math.sin(a) * rr));
       }
-      g.fillPoints(pts, true);
-    }
+      return out;
+    };
+    // (a soft shadow, an ink rim, the gold, a light on its upper left: the paper star)
+    g.fillStyle(0x000000, 0.12).fillPoints(pts(r, r * 0.12), true);
+    g.fillStyle(0xc98b2b).fillPoints(pts(r * 1.1), true);
+    g.fillStyle(0xffc93c).fillPoints(pts(r), true);
+    g.fillStyle(0xffe08a).fillPoints(pts(r * 0.5).map((p) => new Phaser.Math.Vector2(p.x - r * 0.12, p.y - r * 0.14)), true);
   };
   for (const level of [1, 2] as const) {
     const key = LEVEL_ICON[level];
@@ -479,8 +470,12 @@ export function makeLevelTextures(game: Phaser.Game) {
     g.fillStyle(0x000000, 0.15).fillCircle(s / 2 + 6, s / 2 + 8, s * 0.44);
     g.fillStyle(0xfff6e6).fillCircle(s / 2, s / 2, s * 0.44);
     g.lineStyle(s * 0.05, 0xc98b5b).strokeCircle(s / 2, s / 2, s * 0.44);
-    if (level === 1) hat(g, s / 2, s * 0.7, s * 0.42, s * 0.2, false);
-    else hat(g, s / 2, s * 0.8, s * 0.5, s * 0.34, true);
+    if (level === 1) star(g, s / 2, s * 0.52, s * 0.26);
+    else {
+      star(g, s * 0.29, s * 0.6, s * 0.15);
+      star(g, s * 0.71, s * 0.6, s * 0.15);
+      star(g, s / 2, s * 0.43, s * 0.2);
+    }
     g.generateTexture(key, s, s);
     g.destroy();
   }

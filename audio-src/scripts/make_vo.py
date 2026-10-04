@@ -453,6 +453,25 @@ MOM_LINES = {
     # the title's two games (clinic round 3): Mom says the card's title when it is tapped
     "vo-world-cooking": "Cooking with Mom!",
     "vo-world-doctor": "Doctor with Mom!",
+    # The clinic, round 4 (added 2026-10-04; Voice A only: python make_vo.py mom-a <names>): the children, two problems a
+    # patient, the bee sting, the bug bites, the mud; the easy / hard level on the title (no longer chef hats)
+    "vo-hi-lily": "Hello, Lily! Come in.",
+    "vo-hi-leo": "Hi, Leo! Come on in.",
+    "vo-hi-mia": "Hello, little Mia! Come in, sweetie.",
+    "vo-hi-sam": "Hi, Sam! In you come.",
+    "vo-sick-sting": "Ouch, a bee sting! Let's make it better.",
+    "vo-sick-bites": "Oh, itchy bug bites!",
+    "vo-sick-dirty": "Oh my, you're all muddy! Let's wash you clean.",
+    "vo-tool-sponge": "Scrub, scrub, scrub with the sponge!",
+    "vo-tool-bugspray": "Spray the little bugs away!",
+    "vo-rinse-foam": "Now rinse off the bubbles!",
+    "vo-bugs-bye": "Bye bye, little bugs!",
+    "vo-all-clean": "All clean!",
+    "vo-clinic-fixfirst": "What shall we fix first?",
+    "vo-clinic-fixed": "That's better! Now, what else?",
+    "vo-bug-hop": "Hee hee! It hopped away!",
+    "vo-level-easy": "Easy!",
+    "vo-level-hard": "Hard!",
 }
 SUFFIX = ""
 if len(sys.argv) > 1 and sys.argv[1] in ("mom", "mom-a"):

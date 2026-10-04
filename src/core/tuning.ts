@@ -309,12 +309,13 @@ export const TUNING = {
    * `dripMs` between two drops; `findR` how near the magnifier / light / x-ray must come to show a hidden thing (the
    * stethoscope finds the wheezy spot within `wheezeR`, it is heard louder within `hearR`); `pull` how far a gripped thing
    * is drawn out (`magnetR` / `magnetPull` for the bell); `decoys` the tools on the tray not needed; `dodge` the share of
-   * a germ's cleaning at which it hops to another tooth (big chef, once); `helpMs` Mom's hand reaching for the target.
+   * a germ's cleaning at which it hops to another tooth (big chef, once); `helpMs` Mom's hand reaching for the target;
+   * `problems` how many problems each patient brings (round 4: their cards float beside her, a tap on one starts it).
    */
   clinic: {
     patients: 3, reach: 120, rub: [240, 300], rubOne: [700, 900], timeMs: [650, 800], holdMs: [1500, 1800], dripMs: 520,
     findR: 95, wheezeR: 70, hearR: 330, pull: 170, magnetR: 150, magnetPull: 240, decoys: [1, 2], dodge: 0.5, helpMs: 1100,
-    zoomMax: 1.6,
+    zoomMax: 1.6, problems: [2, 2],
   },
   help: { pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150, chopEveryMs: 950, openMs: 1500, tempEveryMs: 1100, peelEveryMs: 900, candleEveryMs: 700, threadEveryMs: 700 },
 } as const;

@@ -24,7 +24,7 @@
   - new recipe or step type: "Recipes are data", "Asset contract", Handoff notes 00000 (cookies), 0000 (salad) and 000 (part B).
   - layout / positions: "Landscape layout", Handoff notes 2; tuning after watching her play: `core/tuning.ts` only.
   - voice or sound: "Asset contract" (levels), "Recipes are data" (voice lines per event, the queue rules).
-  - the difficulty level (little chef / big chef): Handoff notes, gameplay round 5 (`core/level.ts`, `recipes/bigChef.ts`).
+  - the difficulty level (easy / hard; in code still little chef / big chef): Handoff notes, gameplay round 5 and the clinic round 4 (`core/level.ts`, `recipes/bigChef.ts`).
   - testing: "Testing notes for agents", Handoff notes 1 (harness) and 5 (Phaser pitfalls).
   - working in the cloud, art or voice sources: "Cloud workflow".
   - deploying: "Deployment" (every push needs the owner's explicit approval for that round).
@@ -232,7 +232,7 @@ src/scenes/
   MiniGame                 the frame the market and washing up share: home button, Mom, Pipa, demo / hint / help, one finger
   MarketScene / DishesScene  the market (shopping from a list) and washing up (scrub, rack by colour)
   ArtScene                 the art corner: the easel wall and five ways to draw (trace, dots, colour, mirror, steam)
-  ClinicScene              the clinic, the second world (waiting room, the patient big, stations of small targets in big close-ups, stickers, photo; 11 ailments)
+  ClinicScene              the clinic, the second world (waiting room, 4 animals and 4 children, two problems each, stations of small targets in big close-ups, stickers, photo; 14 ailments)
 ```
 
 ## Recipes are data
@@ -672,7 +672,40 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 0000000000000000000000000000. The clinic, round 4 (closer to "Doctor Games for kids": children, two problems each; easy / hard)
+The owner: "the clinic is not good enough; research again, as close to the original as possible, more patients, at least 3
+children"; then "the levels must also hold for the clinic, called an easy level and a hard level, not little chef / big
+chef". Research: `/mnt/project-files/research/clinic-research-2.md`. Branch `claude/clinic-4-newokw`.
+- **Four children** (`core/clinic.ts` `KIDS`, `kid()`): Lily (ginger pigtails, freckles), Leo (dark skin, curls), Mia (3,
+  a bob with a red bow, smaller: `body` 0.86) and Sam (blond, striped shirt); 8 patients now. Layers like Pipa's on the
+  600x700 frame (`kid-<name>-body / eyes-* / mouth-*`, `GUEST_RASTER`), drawn by `assets-src/images-b-clinic/tools/gen_kids.py`
+  (it prints the frame points: forehead, cheeks, nose, chest, knees, hands). `isKid()`; a kid's `foot` is her knee and
+  `hand` the splinter's place (close-up `lens-hand`). Every visit has at least one child (`planVisit`).
+- **Two problems a patient** (`TUNING.clinic.problems`, like the original's 2-3 mini-games per patient): in the treatment
+  room her problems' cards float beside her head (`layProblems`); a tap on one starts it (`startProblem`). Easy: the next
+  one glows and hops and Mom says it; hard: "What shall we fix first?" and she chooses. A fixed one comes back faded with a
+  star badge (`clinic-done`; a tap only wiggles it) and "That's better! Now, what else?"; all fixed: "All better!", dance,
+  sticker. Each problem's own signs go when it is fixed (`Visitor.signs` per ailment). `planVisit(n, m)` gives each one a
+  close-up ailment first where it can, never the same ailment twice in a visit. `window.__clinicPlan = [['lily', 'tooth',
+  'sting'], ...]`.
+- **Three ailments from the original** (14 now): `sting` (tweezers pull each sting out of the skin close-up, cream on each
+  bump; hard: the ice pack too), `bites` (the bug spray sends each smiling gnat off, cream on each bite; hard: a gnat hops
+  once, `vo-bug-hop`), `dirty` (the sponge foams each mud splat on her body, the water spray rinses the foam). New
+  `Station.on`: targets that wait under others (the bites under the gnats, the foam where the mud was) and show as those go.
+  Art: `gen_clinic4.py` (lens-skin, lens-hand, sting, bite, gnat, mud, foam, sponge, bug spray, three cards, the badge).
+- **Easy / hard** (the owner): the title's level buttons are one star (easy, level 1) and three stars (hard, level 2),
+  drawn in code (`makeLevelTextures`, `LEVEL_ICON` = `level-easy` / `level-hard`); Mom says "Easy!" / "Hard!"
+  (vo-level-easy / -hard). The internal names stay (`isBigChef`, `bigChef.ts`, comments saying little / big chef mean
+  easy / hard). The clinic's hard level: she chooses the problem and the tool, more targets, a germ or a gnat hops once,
+  hidden things fully hidden, an extra station in several ailments.
+- **Voice:** 17 Mom lines (`make_vo.py mom-a`), not heard by a human.
+- **Checked (cloud, virtual clock, simulated voice):** full visits easy at 20:9, hard at 4:3 (random plan, a wrong tool) and
+  at 20:9, no touch at 4:3 (Mom helped 26 times to the title): every problem fixed, no voice overlap, no console errors;
+  screenshots in `/mnt/project-files/research/screens-clinic4/`. Harness: `__clinicPlay` taps a problem (easy the glowing
+  one, hard the last one open).
+- **Needs a real child:** does she find the problem cards and tap one? Is a visit of six problems too long (then
+  `problems: [1, 2]`)? Do the children read as children on the phone?
 ### 000000000000000000000000000. The clinic, round 3 (rebuilt in the style of "Doctor Games for kids")
 The owner did not like the clinic's gameplay and pointed at Yateland's "Doctor Games for kids". Research:
 `/mnt/project-files/research/clinic-doctor-games.md`. Branch `claude/clinic-3-2fdtp7`. The waiting room, the sticker, the

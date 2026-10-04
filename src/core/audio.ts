@@ -128,6 +128,10 @@ export type VoiceKey =
   | 'vo-tool-xray' | 'vo-tummy-germs' | 'vo-germs-gone' | 'vo-clinic-which' | 'vo-knee-dirt'
   | 'vo-world-cooking'
   | 'vo-world-doctor'
+  // the clinic, round 4: the children, two problems a patient, the sting, the bug bites, the mud; the easy / hard level
+  | 'vo-hi-lily' | 'vo-hi-leo' | 'vo-hi-mia' | 'vo-hi-sam' | 'vo-sick-sting' | 'vo-sick-bites' | 'vo-sick-dirty'
+  | 'vo-tool-sponge' | 'vo-tool-bugspray' | 'vo-rinse-foam' | 'vo-bugs-bye' | 'vo-all-clean' | 'vo-clinic-fixfirst'
+  | 'vo-clinic-fixed' | 'vo-bug-hop' | 'vo-level-easy' | 'vo-level-hard'
   | CountKey | TempKey | NameKey;
 
 /** Mom counting (count-1..10) and saying the oven temperature (temp-50..250). */

@@ -1501,7 +1501,7 @@ window.__artVerify = async (kind, level, opts = {}) => {
 };
 
 // ---- The clinic (round 3, the Doctor Games loop): __clinicPlay({wrongTool, none, gap, mid}) plays a whole visit like a
-// child: pick a patient, then every station (pick its tool from the tray, work on each target: rub, hold, touch, drip,
+// child: pick a patient, then (round 4) one of her problems, then every station (pick its tool from the tray, work on each target: rub, hold, touch, drip,
 // find, pull out, give), the sticker; __clinicVerify(level, opts): the same on the virtual clock with the simulated voice,
 // from the clinic's start to the title. `none`: no touch at all (Mom helps to the end). `mid(what)`: awaited mid-action.
 window.__clinicPlay = async (opts = {}) => {
@@ -1519,6 +1519,16 @@ window.__clinicPlay = async (opts = {}) => {
       const c = v.view.at({ x: 300, y: 430 });
       if (opts.mid) await opts.mid('pick');
       __tap(c.x, c.y); log.push('pick ' + v.p.id + '-' + v.a.id);
+      await __run(gap * 2);
+    } else if (ph === 'problem') {
+      // round 4: her problems' cards beside her; easy: the glowing one, hard: she picks the last one not fixed first
+      const v = m.cur;
+      const open = v.fixed.map((f, j) => (f ? -1 : j)).filter((j) => j >= 0);
+      const j = m.level === 2 ? open[open.length - 1] : open[0];
+      const q = m.problems[j];
+      if (!q) { await __run(300); continue; }
+      if (opts.mid) await opts.mid('problem');
+      __tap(q.at.x, q.at.y); log.push('problem ' + v.as[j].id);
       await __run(gap * 2);
     } else if (ph === 'sticker') {
       if (opts.mid) await opts.mid('sticker');
