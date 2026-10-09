@@ -3,6 +3,7 @@ import { TUNING } from '../core/tuning';
 import type { FruitName } from '../core/vegArt';
 import type { Recipe, StepDef } from './types';
 import { pizza } from './pizza';
+import { FIND_STICK } from './bigChef';
 import { smoothie } from './smoothie';
 
 /**
@@ -106,4 +107,6 @@ export const skewers: Recipe = {
       params: { frame: 'photo-frame-skewers', backdrop: 'bg-kitchen-landscape', line: 'vo-photo-skewers', finale: 'vo-finale-skewers', bye: 'vo-bye', made: true },
     },
   ],
+  // The recipe challenges (PR A), hard: find the skewer stick before threading.
+  bigExtra: [{ before: 'thread', step: FIND_STICK }],
 };

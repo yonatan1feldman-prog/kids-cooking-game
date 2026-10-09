@@ -3,6 +3,7 @@ import { TUNING } from '../core/tuning';
 import type { FruitName } from '../core/vegArt';
 import type { Recipe, StepDef } from './types';
 import { pizza } from './pizza';
+import { FIND_SPOON } from './bigChef';
 
 /**
  * The fruit smoothie: the fourth recipe, data on the step types of the others plus `blend` (README-smoothie.md for the
@@ -163,4 +164,6 @@ export const smoothie: Recipe = {
       params: { frame: 'photo-frame-smoothie', backdrop: 'bg-kitchen-landscape', line: 'vo-photo-smoothie', finale: 'vo-finale-smoothie', bye: 'vo-bye', made: true },
     },
   ],
+  // The recipe challenges (PR A), hard: find the wooden spoon before the milk (the second pour).
+  bigExtra: [{ before: 'open-pour', nth: 1, step: FIND_SPOON }],
 };

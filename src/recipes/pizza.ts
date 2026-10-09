@@ -71,6 +71,8 @@ export const pizza: Recipe = {
         hands: 'kid-hands',
         bubble: 'bubble',
         ...TUNING.wash,
+        // (the recipe challenges, PR A: soap before rubbing; TUNING.wash.soap turns it off)
+        soap: 'soap-bar',
         line: 'vo-wash',
         rubLine: 'vo-wash-rub',
         doneLine: 'vo-wash-done',
