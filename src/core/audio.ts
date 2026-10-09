@@ -137,6 +137,8 @@ export type VoiceKey =
   // the clinic, round 5: eight more patients, the scratchy throat, the sunburn
   | 'vo-hi-cat' | 'vo-hi-panda' | 'vo-hi-bunny' | 'vo-hi-puppy' | 'vo-hi-ruby' | 'vo-hi-noah' | 'vo-hi-zoe' | 'vo-hi-max'
   | 'vo-sick-throat' | 'vo-sick-sunburn' | 'vo-tool-honey' | 'vo-tool-aloe' | 'vo-tool-hat' | 'vo-tickles'
+  // the clinic, round 5, more challenge: hide and seek, the germ behind the tongue, the blink
+  | 'vo-hide' | 'vo-found-you' | 'vo-tongue' | 'vo-hold-still'
   // the clinic, round 5, part 2: the care rooms next door
   | 'vo-care-go' | 'vo-care-remember' | 'vo-care-right' | 'vo-care-medicine' | 'vo-care-flavor' | 'vo-care-shake' | 'vo-care-spoon'
   | 'vo-care-bath' | 'vo-care-duck' | 'vo-care-rinse' | 'vo-care-towel' | 'vo-care-wrap' | 'vo-care-heart' | 'vo-care-paste'

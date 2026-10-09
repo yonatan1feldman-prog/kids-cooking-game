@@ -775,6 +775,9 @@ export const IMAGES = {
   'tool-honey': { size: [240, 240] },
   'tool-aloe': { size: [240, 240] },
   'tool-hat': { size: [240, 240] },
+  // round 5, more challenge (gen_clinic5c.py): the tongue a germ hides behind, the eye's lid for the blink
+  'care-tongue': { size: [240, 180], raster: ZOOM_RASTER },
+  'lens-eye-lid': { size: [520, 520], raster: ZOOM_RASTER },
   'sick-throat': { size: [200, 200] },
   'sick-sunburn': { size: [200, 200] },
   // the clinic, round 5, part 2 (gen_clinic5.py part B): the care room next door and each care's props
@@ -1125,6 +1128,7 @@ RECIPE_ASSETS.clinic = {
     'lens-skin', 'lens-hand', 'clinic-sting', 'clinic-bite', 'clinic-gnat', 'clinic-mud', 'clinic-foam', 'tool-sponge',
     'tool-bugspray', 'sick-sting', 'sick-bites', 'sick-dirty', 'clinic-done',
     'lens-throat', 'clinic-tickle', 'clinic-burn', 'tool-honey', 'tool-aloe', 'tool-hat', 'sick-throat', 'sick-sunburn',
+    'lens-eye-lid', // (care-tongue is among the care- keys below)
     // round 5, part 2: the care rooms next door
     ...IMAGE_KEYS.filter((k) => k.startsWith('care-')), 'bg-clinic-care', 'tool-shower', 'tool-towel', 'tool-roll', 'tool-polisher',
     ...IMAGE_KEYS.filter((k) => k.startsWith('kid-') || k.startsWith('animal-')),
@@ -1147,6 +1151,7 @@ RECIPE_ASSETS.clinic = {
     'vo-tool-bugspray', 'vo-rinse-foam', 'vo-bugs-bye', 'vo-all-clean', 'vo-clinic-fixfirst', 'vo-clinic-fixed', 'vo-bug-hop',
     'vo-hi-cat', 'vo-hi-panda', 'vo-hi-bunny', 'vo-hi-puppy', 'vo-hi-ruby', 'vo-hi-noah', 'vo-hi-zoe', 'vo-hi-max',
     'vo-sick-throat', 'vo-sick-sunburn', 'vo-tool-honey', 'vo-tool-aloe', 'vo-tool-hat', 'vo-tickles',
+    'vo-hide', 'vo-found-you', 'vo-tongue', 'vo-hold-still',
     // round 5, part 2: the care rooms next door
     'vo-care-go', 'vo-care-remember', 'vo-care-right', 'vo-care-medicine', 'vo-care-flavor', 'vo-care-shake', 'vo-care-spoon',
     'vo-care-bath', 'vo-care-duck', 'vo-care-rinse', 'vo-care-towel', 'vo-care-wrap', 'vo-care-heart', 'vo-care-paste',

@@ -502,6 +502,16 @@ Same engine, voice and processing as every line above; no fix was needed. The ef
 | vo-care-rest · vo-care-lamp · vo-care-wake · vo-care-order | Time for a little rest. Pull up the blanket! · Now turn off the lamp. · Good morning! Time for a snack. · Two snacks, in order. First... |
 | name-blueberry · name-moon · name-triangle | Blueberry! · Moon! · Triangle! |
 
+### New in the clinic, round 5, more challenge (hide and seek, the germ behind the tongue, the blink; 4 lines)
+
+Same engine, voice and processing as every line above; no fix was needed. The tongue (`care-tongue`) and the eye's lid
+(`lens-eye-lid`) are drawn by `assets-src/images-b-clinic/tools/gen_clinic5c.py` (our own, like the rest of the clinic's art).
+
+| Key | Line |
+|---|---|
+| vo-hide · vo-found-you | Oh! Someone is hiding! Can you find them? · Peekaboo! Found you! |
+| vo-tongue · vo-hold-still | One more germ is hiding behind the tongue! · Oops, a blink! Hold it still. |
+
 ### New in the recipe challenges, PR A (soap first, the pour order, Mom's oven number, Mom's picture, find the tool; 14 lines)
 
 Same engine, voice and processing as every line above; no fix was needed (-18.0 to -18.9 LUFS).

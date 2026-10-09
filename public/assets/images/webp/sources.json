@@ -584,6 +584,11 @@
   "w": 400,
   "h": 520
  },
+ "care-tongue": {
+  "sha1": "ea306f762e94f77e23d2b7460f332c4701741b10",
+  "w": 408,
+  "h": 306
+ },
  "care-apple": {
   "sha1": "330b328ef36571b28ed5d8a4cef4fea1523106dc",
   "w": 160,
@@ -2531,6 +2536,11 @@
  },
  "lens-eye-ball": {
   "sha1": "da64f16e0bfbe762a0023e4a0dba93f6f81c45c0",
+  "w": 884,
+  "h": 884
+ },
+ "lens-eye-lid": {
+  "sha1": "3ad1e48f5023afa8cddb567e1072c4c8a4209297",
   "w": 884,
   "h": 884
  },

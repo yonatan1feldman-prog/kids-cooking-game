@@ -60,6 +60,11 @@ const HAND_SPLINTERS: readonly P[] = [{ x: 262, y: 330 }, { x: 196, y: 290 }, { 
 const PLACE: Partial<Record<What, P>> = { knee: C.knee, paw: C.paw, eye: C.eye, ear: { x: C.earHole.x + 4, y: C.earHole.y + 10 }, skin: { x: 260, y: 290 } };
 /** Places on her (not things to clean away): every station that goes there gets them fresh (`freshPlaces`). */
 const PLACES: readonly What[] = ['mouth', 'forehead', 'nose', 'tummy', 'knee', 'paw', 'eye', 'ear', 'skin'];
+/** The tongue in lens-mouth's frame (gen_clinic5c.py TONGUE_AT) and the lower teeth it covers (C.teeth's indexes). */
+const TONGUE_AT: P = { x: 260, y: 362 };
+const UNDER_TONGUE = [5, 6];
+/** The tools that tickle when they pass over her tummy (round 5; the care rooms' towel too). */
+const TICKLERS: readonly string[] = ['sponge', 'towel'];
 
 /** A patient: the layered character (Character.ts) with her own voice's pitch and things drawn on her. */
 export class PatientView extends Character {
@@ -152,6 +157,8 @@ interface Thing {
   drops: number;
   /** Under another thing still there (the bump under a sting, the soap where the mud was): it shows when that goes. */
   waiting: boolean;
+  /** Behind the tongue (round 5, hard level): it waits until the tongue moves. */
+  tongue?: true;
 }
 
 interface Zoom {
@@ -167,6 +174,10 @@ interface Zoom {
   sore: Phaser.GameObjects.Image[];
   /** The cream rubbed in (knee, paw). */
   cream?: Phaser.GameObjects.Image;
+  /** The eye's lid (round 5: it shuts for a moment when the drops come too fast). */
+  lid?: Phaser.GameObjects.Image;
+  /** The tongue a germ hides behind (round 5, hard level, the teeth): a touch moves it down. */
+  tongue?: { img: Phaser.GameObjects.Image; moved: boolean };
 }
 
 /**
@@ -189,7 +200,7 @@ export class ClinicScene extends MiniGame {
   protected readonly song = 'clinic' as const;
   protected readonly momOutfit = 'nurse' as const;
   protected readonly homeScene = 'Title' as const;
-  protected readonly waiting = ['pick', 'problem', 'tool', 'care', 'sticker'] as const;
+  protected readonly waiting = ['hide', 'pick', 'problem', 'tool', 'care', 'sticker'] as const;
   private visit: Visitor[] = [];
   private cur: Visitor | null = null;
   private waitRoom: Phaser.GameObjects.GameObject[] = [];
@@ -208,7 +219,7 @@ export class ClinicScene extends MiniGame {
   /** A close-up is opening or closing: tools don't work until it is there. */
   private zoomBusy = false;
   private things: Thing[] = [];
-  private held: { tool: Tool; from: P; moved: number; last: P; t0: number } | null = null;
+  private held: { tool: Tool; from: P; moved: number; last: P; t0: number; lastT: number; arrived: boolean } | null = null;
   private gripped: Thing | null = null;
   private gripAt: P | null = null;
   private stickers: Phaser.GameObjects.Image[] = [];
@@ -219,6 +230,16 @@ export class ClinicScene extends MiniGame {
   private lightGlow: Phaser.GameObjects.Image | null = null;
   /** The current patient's problems beside her (round 4), and the one Mom suggests (easy level). */
   private problems: Problem[] = [];
+  /** The bench in the waiting room (its centre and scale): where someone hides (round 5). */
+  private bench = { x: 0, y: 0, s: 1 };
+  /** Who is hiding in the waiting room (hard level, round 5), where, and the point that peeks out. */
+  private hider: { v: Visitor; spot: 'back' | 'under'; at: P } | null = null;
+  /** The eye's blink (round 5): shut until then; how many blinks this station; "Hold it still!" said. */
+  private blinkUntil = 0;
+  private blinks = 0;
+  private stillSaid = false;
+  private tongueSaid = false;
+  private tickledAt = -Infinity;
 
   constructor() {
     super('Clinic');
@@ -249,7 +270,13 @@ export class ClinicScene extends MiniGame {
     this.dripT = 0;
     this.lightGlow = null;
     this.problems = [];
-    Object.assign(this.shown, { patients: [] as string[], fixed: 0,  treated: 0, step: '', tool: '', wrong: 0, photo: 0, zoom: '', stations: 0, things: 0 });
+    this.hider = null;
+    this.blinkUntil = 0;
+    this.blinks = 0;
+    this.stillSaid = false;
+    this.tongueSaid = false;
+    this.tickledAt = -Infinity;
+    Object.assign(this.shown, { patients: [] as string[], fixed: 0,  treated: 0, step: '', tool: '', wrong: 0, photo: 0, zoom: '', stations: 0, things: 0, hide: '', found: 0, blinks: 0, tongue: 0, tickles: 0, loves: 0 });
   }
 
   protected withPipa() {
@@ -286,6 +313,7 @@ export class ClinicScene extends MiniGame {
     const bs = Math.min(0.9 * k, (right - wl) / 1500);
     const benchX = (wl + right) / 2;
     const benchY = L.Y(992) - 210 * bs;
+    this.bench = { x: benchX, y: benchY, s: bs };
     this.waitRoom.push(this.add.image(benchX, benchY, 'clinic-bench').setScale(bs).setDepth(2));
     const seatY = benchY + (C.benchSeat - 210) * bs;
     const pw = Math.min(0.6 * k, (400 * bs) / 500);
@@ -340,7 +368,7 @@ export class ClinicScene extends MiniGame {
   }
 
   protected ready() {
-    this.time.delayedCall(500, () => this.startPick(true));
+    this.time.delayedCall(500, () => this.hideOne() || this.startPick(true));
   }
 
   protected shutdown() {
@@ -463,6 +491,88 @@ export class ClinicScene extends MiniGame {
   private startPick(first: boolean) {
     this.cur = null;
     this.begin('pick', first ? 'vo-clinic-hello' : 'vo-clinic-next');
+  }
+
+  // ---------------------------------------------------------------- hide and seek (round 5, hard level)
+
+  /**
+   * Hard level, now and then (`hideChance`): one patient hides before the visit starts, ducked behind the bench's back
+   * (only the top of her head and her ears peek over it) or under the bench (only her feet show). Mom: "Someone is
+   * hiding!"; a tap on what peeks out brings her out giggling. Not the giraffe (her neck would give her away).
+   */
+  private hideOne(): boolean {
+    const forced = (globalThis as { __clinicHide?: 'back' | 'under' | false }).__clinicHide;
+    if (forced === false) return false;
+    if (!forced && Math.random() >= T.hideChance[this.level - 1]) return false;
+    const who = this.visit.filter((q) => q.p.id !== 'giraffe');
+    if (!who.length) return false;
+    const v = Phaser.Utils.Array.GetRandom(who);
+    const spot = forced || (Math.random() < 0.5 ? 'back' : 'under');
+    const b = this.bench;
+    const benchAt = (y: number) => b.y + (y - 210) * b.s;
+    const s = v.seat.scale;
+    // (the cut through her frame: over the back, her head down to her eyes, which just peek over it; under, her feet)
+    const cut = spot === 'back' ? v.p.forehead.y + 110 : FEET - 74;
+    const y = spot === 'back' ? benchAt(62) - (cut - FH / 2) * s : benchAt(400) - (FEET - FH / 2) * s;
+    v.view.moveTo({ x: v.seat.x, y, scale: s }, 0);
+    this.tweens.killTweensOf(v.view.box);
+    v.view.box.setPosition(v.seat.x, y).setDepth(spot === 'back' ? 1 : 3);
+    this.cropTo(v, spot === 'back' ? [0, cut] : [cut, FH]);
+    for (const c of v.cards) c.setVisible(false);
+    const at = v.view.at({ x: 300, y: spot === 'back' ? cut - 130 : FEET - 30 });
+    this.hider = { v, spot, at };
+    this.shown.hide = `${v.p.id}:${spot}`;
+    // (a little peek as Mom says it: up a bit, and down again)
+    this.tweens.add({ targets: v.view.box, y: y - 26 * s, duration: 220, yoyo: true, hold: 250, delay: 600, ease: 'Quad.easeOut' });
+    sfx(this, 'char-giggle', { rate: v.view.rate, volume: 0.5 });
+    this.begin('hide', 'vo-hide');
+    return true;
+  }
+
+  /** Shows only a band of her frame (`band` [from, to] in frame y), or all of her again (null); what is on her hides with it. */
+  private cropTo(v: Visitor, band: [number, number] | null) {
+    for (const o of v.view.box.list) {
+      if (!(o instanceof Phaser.GameObjects.Image)) continue;
+      const fr = o.frame;
+      const r = fr.realHeight / FH;
+      if (Math.abs(fr.realWidth / r - FW) > 2) {
+        o.setVisible(!band);
+        continue;
+      }
+      if (band) o.setCrop(0, band[0] * r, fr.realWidth, (band[1] - band[0]) * r);
+      else o.setCrop();
+    }
+  }
+
+  /** Found! Out she comes, giggling, back onto her seat; then the visit starts as usual. */
+  private found() {
+    const h = this.hider;
+    if (!h) return;
+    const v = h.v;
+    const k = this.L.k;
+    this.hider = null;
+    this.setPhase('intro');
+    this.shown.found = (this.shown.found as number) + 1;
+    stars(this, h.at.x, h.at.y, 8, 40 * k);
+    sfx(this, 'pop');
+    sfx(this, 'char-giggle', { minGapMs: 0, rate: v.view.rate });
+    this.cropTo(v, null);
+    v.view.setMood('happy');
+    v.view.box.setDepth(6);
+    v.view.moveTo(v.seat, 480);
+    this.time.delayedCall(520, () => {
+      if (this.leaving) return;
+      boing(this, v.view.box, 0.1);
+      for (const c of v.cards) {
+        const sc = c.scale;
+        c.setVisible(true).setScale(0);
+        this.tweens.add({ targets: c, scale: sc, duration: 300, ease: 'Back.easeOut' });
+      }
+      this.time.delayedCall(500, () => v.view.setMood('rest'));
+    });
+    this.mom?.happy();
+    this.time.delayedCall(800, () => this.mom?.rest());
+    this.say('vo-found-you', { ttlMs: 4000, done: () => this.time.delayedCall(300, () => !this.leaving && this.startPick(true)) });
   }
 
   private hitPatient(v: Visitor, at: P) {
@@ -748,7 +858,9 @@ export class ClinicScene extends MiniGame {
       return img;
     };
     const pick = (list: readonly P[]) => Phaser.Utils.Array.Shuffle([...list]).slice(0, n);
-    const teeth = () => Phaser.Utils.Array.Shuffle(C.teeth.map(([x, y]) => ({ x, y })));
+    // (the teeth the tongue covers carry nothing but the germ hiding there)
+    const tg = z.tongue && !z.tongue.moved ? z.tongue : null;
+    const teeth = () => Phaser.Utils.Array.Shuffle(C.teeth.map(([x, y]) => ({ x, y })).filter((_, i) => !tg || !UNDER_TONGUE.includes(i)));
     switch (st.what) {
       case 'sting':
         pick(SPOTS.skin!.sting!).forEach((f) => add('sting', 'clinic-sting', f, 0.8, Phaser.Math.Between(-15, 15)));
@@ -766,8 +878,18 @@ export class ClinicScene extends MiniGame {
         pick(SPOTS.skin!.sting!).forEach((f) => add('bite', 'clinic-bite', f, 0.75));
         return;
       case 'germ': {
-        const fs = z.id === 'mouth' ? teeth().slice(0, n).map((t) => ({ x: t.x + Phaser.Math.Between(-6, 6), y: t.y + (t.y < 270 ? -4 : 4) })) : pick(SPOTS.xray!.germ!);
+        const hide = z.id === 'mouth' && tg ? 1 : 0;
+        const fs = z.id === 'mouth' ? teeth().slice(0, n - hide).map((t) => ({ x: t.x + Phaser.Math.Between(-6, 6), y: t.y + (t.y < 270 ? -4 : 4) })) : pick(SPOTS.xray!.germ!);
         fs.forEach((f, i) => add('germ', GERMS[i % GERMS.length], f, z.id === 'mouth' ? 0.62 : 0.72, Phaser.Math.Between(-12, 12), 1, found));
+        if (tg && hide) {
+          // one more, behind the tongue: it waits there until the tongue moves
+          const [x, y] = C.teeth[Phaser.Utils.Array.GetRandom(UNDER_TONGUE)];
+          const img = add('germ', GERMS[n % GERMS.length], { x: x + Phaser.Math.Between(-6, 6), y: y + 4 }, 0.62, Phaser.Math.Between(-12, 12));
+          z.box.moveBelow(img, tg.img);
+          const t = this.things[this.things.length - 1];
+          t.waiting = true;
+          t.tongue = true;
+        }
         return;
       }
       case 'food': {
@@ -829,12 +951,18 @@ export class ClinicScene extends MiniGame {
     };
     const sore: Phaser.GameObjects.Image[] = [];
     let cream: Phaser.GameObjects.Image | undefined;
+    let lid: Phaser.GameObjects.Image | undefined;
+    let tongue: Zoom['tongue'];
     // (the close-ups' skin is light grey art: a lighter tint keeps the face bright, not muddy)
     const c = Phaser.Display.Color.IntegerToColor(v.p.tint.skin);
     const skin = Phaser.Display.Color.GetColor(c.red + (255 - c.red) * 0.4, c.green + (255 - c.green) * 0.4, c.blue + (255 - c.blue) * 0.4);
     switch (id) {
       case 'mouth':
         layer('lens-mouth');
+        // (hard level, round 5: the tongue is up over the lower middle teeth, and a germ hides behind it)
+        if (this.level === 2 && this.steps.some((q) => q.view === 'mouth' && q.what === 'germ')) {
+          tongue = { img: layer('care-tongue').setScale(rs('care-tongue', 0.85 * s)).setPosition((TONGUE_AT.x - LENS / 2) * s, (TONGUE_AT.y - LENS / 2) * s), moved: false };
+        }
         break;
       case 'throat':
         layer('lens-throat');
@@ -843,6 +971,7 @@ export class ClinicScene extends MiniGame {
         layer('lens-eye', skin);
         layer('lens-eye-ball');
         sore.push(layer('clinic-eye-red'));
+        lid = layer('lens-eye-lid', skin).setAlpha(0);
         break;
       case 'ear':
         layer('lens-ear', skin);
@@ -867,7 +996,7 @@ export class ClinicScene extends MiniGame {
     }
     layer('lens-ring');
     const box = this.add.container(at.x, at.y, parts).setDepth(30).setScale(0).setVisible(false);
-    this.zooms.set(id, { id, box, at, s, from: at, open: false, sore, cream });
+    this.zooms.set(id, { id, box, at, s, from: at, open: false, sore, cream, lid, tongue });
   }
 
   /** The body part a close-up grows out of. */
@@ -999,6 +1128,7 @@ export class ClinicScene extends MiniGame {
     this.freshPlaces(st);
     this.gripped = null;
     this.dripT = 0;
+    this.blinks = 0;
     this.shown.step = `${st.tool}-${st.act}-${st.what}`;
     this.shown.tool = st.tool;
     this.setPhase('intro');
@@ -1083,7 +1213,7 @@ export class ClinicScene extends MiniGame {
   /** Where the current station's tool should go next (the hint, Mom's help, the harness). */
   target(): P | null {
     const t = this.targets()[0];
-    if (!t) return null;
+    if (!t) return this.tongueWaits() ? this.tongueAt() : null;
     if (this.station?.act === 'find') {
       // (hidden: where it is, all the same; Mom's hint sweeps to it)
       return this.worldOf(t);
@@ -1151,6 +1281,8 @@ export class ClinicScene extends MiniGame {
     const k = this.L.k;
     const reach = T.reach * k;
     if (st.tool === 'light') this.lightAt(tp);
+    // (a tool on the tongue moves it, round 5)
+    if (st.view === 'mouth' && dist > 0 && this.tongueNear(tp, 70)) this.moveTongue();
     switch (st.act) {
       case 'clean': {
         const gain = st.by === 'rub' ? dist : delta;
@@ -1174,6 +1306,8 @@ export class ClinicScene extends MiniGame {
         const t = this.targets()[0];
         if (!t || !this.near(tp, this.worldOf(t), reach * 1.6)) return;
         this.poke();
+        // (shut for a blink: no drop falls)
+        if (t.what === 'eye' && this.eyeShut()) return;
         this.dripT += delta;
         if (this.dripT >= T.dripMs) {
           this.dripT = 0;
@@ -1313,7 +1447,8 @@ export class ClinicScene extends MiniGame {
   private dodge(t: Thing) {
     const z = this.zooms.get(t.zoom!)!;
     const gnat = t.what === 'gnat';
-    const places = gnat ? SPOTS.skin!.sting! : C.teeth.map(([x, y]) => ({ x, y }));
+    const tg = z.tongue && !z.tongue.moved;
+    const places = gnat ? SPOTS.skin!.sting! : C.teeth.map(([x, y]) => ({ x, y })).filter((_, i) => !tg || !UNDER_TONGUE.includes(i));
     const taken = this.things.filter((q) => q.zoom === t.zoom && !q.done && q !== t && q.what === t.what).map((q) => q.f);
     const free = places.filter((p) => !taken.some((q) => Math.hypot(q.x - p.x, q.y - p.y) < 50) && Math.hypot(p.x - t.f.x, p.y - t.f.y) > 60);
     t.dodged = true;
@@ -1333,6 +1468,115 @@ export class ClinicScene extends MiniGame {
 
   private germWiggle(t: Thing) {
     this.tweens.add({ targets: t.img, angle: { from: -14, to: 14 }, duration: 160, yoyo: true, repeat: 2, ease: 'Sine.easeInOut' });
+  }
+
+  // ---------------------------------------------------------------- round 5: the tongue, the blink, tickles, faces
+
+  /** A germ still hides behind the tongue (hard level, the teeth). */
+  private tongueWaits() {
+    return this.things.some((t) => t.tongue && t.waiting && !t.done);
+  }
+
+  /** The tongue in the world (the open mouth close-up), a little below its middle (clear of the outer lower teeth). */
+  private tongueAt(): P | null {
+    const z = this.zooms.get('mouth');
+    if (!z?.tongue || z.tongue.moved || !z.open) return null;
+    return { x: z.box.x + z.box.scale * z.tongue.img.x, y: z.box.y + z.box.scale * (z.tongue.img.y + 18 * z.s) };
+  }
+
+  private tongueNear(p: P, r: number) {
+    const at = this.tongueAt();
+    return !!at && this.near(p, at, r * this.zooms.get('mouth')!.s);
+  }
+
+  /** A touch on the tongue (a tap, the brush, Mom's hand): down it goes, with a giggle, and the germ behind it shows. */
+  private moveTongue() {
+    const z = this.zooms.get('mouth');
+    const tg = z?.tongue;
+    if (!z || !tg || tg.moved || !z.open || this.zoomBusy) return false;
+    const k = this.L.k;
+    tg.moved = true;
+    this.shown.tongue = 1;
+    this.poke();
+    this.tweens.add({ targets: tg.img, y: tg.img.y + 100 * z.s, scaleY: tg.img.scaleY * 0.6, duration: 380, ease: 'Back.easeOut' });
+    sfx(this, 'char-giggle', { minGapMs: 0, rate: this.cur?.view.rate ?? 1, volume: 0.7 });
+    sfx(this, 'squish', { minGapMs: 0, volume: 0.5 });
+    for (const t of this.things) {
+      if (!t.tongue || t.done) continue;
+      t.waiting = false;
+      this.germWiggle(t);
+      const w = this.worldOf(t);
+      this.time.delayedCall(250, () => stars(this, w.x, w.y + 40 * k, 5, 30 * k));
+    }
+    return true;
+  }
+
+  /**
+   * The eye drops (round 5, both levels): a bottle that comes at the eye fast makes it blink shut for a moment ("Hold it
+   * still!"); held still, it stays open. A drop only lands in an open eye. Never while Mom's hand helps; a few a station.
+   */
+  private maybeBlink(tp: P, speed: number) {
+    const st = this.station;
+    const z = this.zoom;
+    if (!st || st.act !== 'drops' || st.what !== 'eye' || z?.id !== 'eye' || !z.lid || this.zoomBusy || this.helping || this.phase !== 'tool') return;
+    const now = this.time.now;
+    const k = this.L.k;
+    if (now < this.blinkUntil || this.blinks >= T.blinks[this.level - 1] || speed < T.blinkSpeed * k) return;
+    const t = this.targets()[0];
+    if (!t || !this.near(tp, this.worldOf(t), T.reach * k * 2.2)) return;
+    this.blinks++;
+    this.shown.blinks = (this.shown.blinks as number) + 1;
+    this.blinkUntil = now + T.blinkMs;
+    this.dripT = 0;
+    const lid = z.lid;
+    this.tweens.killTweensOf(lid);
+    this.tweens.add({ targets: lid, alpha: 1, duration: 70 });
+    this.tweens.add({ targets: lid, alpha: 0, duration: 140, delay: T.blinkMs - 140 });
+    sfx(this, 'squeak', { minGapMs: 0, volume: 0.3, rate: 1.4 });
+    if (!this.stillSaid) {
+      this.stillSaid = true;
+      this.say('vo-hold-still', { ttlMs: 3000 });
+    }
+  }
+
+  private eyeShut() {
+    return this.time.now < this.blinkUntil;
+  }
+
+  /** A tool coming up to her face (none open in a close-up): she looks at it, eyes wide, "ooh" (round 5). */
+  private arriving(h: NonNullable<ClinicScene['held']>, tp: P) {
+    const v = this.cur;
+    if (!v || h.arrived || this.zoom || this.phase !== 'tool') return;
+    if (!this.near(tp, v.view.at({ x: 300, y: 380 }), 330 * v.view.scale)) return;
+    h.arrived = true;
+    if (v.view.mood !== 'rest') return;
+    v.view.setMood('expect');
+    this.time.delayedCall(700, () => {
+      if (this.cur !== v || v.view.mood !== 'expect') return;
+      const id = this.held?.tool.id;
+      if (id === 'thermometer' || id === 'tissue') return;
+      v.view.setMood('rest');
+    });
+  }
+
+  /** A sponge (or the care rooms' towel) over her tummy tickles: she giggles and wriggles (round 5). */
+  tickleTummy(id: string, tp: P) {
+    const v = this.cur;
+    if (!v || !TICKLERS.includes(id) || this.zoom || !v.view.box.visible) return;
+    const p = v.p;
+    const f = { x: (p.chest[1].x + p.chest[2].x) / 2, y: Math.min(FEET - 120, (p.chest[1].y + p.chest[2].y) / 2 + 20) };
+    if (!this.near(tp, v.view.at(f), 120 * v.view.scale + 30 * this.L.k)) return;
+    const now = this.time.now;
+    if (now - this.tickledAt < T.tickleGapMs) return;
+    this.tickledAt = now;
+    this.shown.tickles = (this.shown.tickles as number) + 1;
+    sfx(this, 'char-giggle', { minGapMs: 0, rate: v.view.rate, volume: 0.7 });
+    const box = v.view.box;
+    if (!this.tweens.isTweening(box)) this.tweens.add({ targets: box, angle: { from: -4, to: 4 }, duration: 110, yoyo: true, repeat: 2, ease: 'Sine.easeInOut', onComplete: () => box.setAngle(0) });
+    if (v.view.mood === 'rest') {
+      v.view.setMood('happy');
+      this.time.delayedCall(650, () => this.cur === v && v.view.mood === 'happy' && v.view.setMood('rest'));
+    }
   }
 
   /** The light in her hand lights up the ear around its tip. */
@@ -1362,6 +1606,8 @@ export class ClinicScene extends MiniGame {
         sfx(this, 'drip', { minGapMs: 0, volume: 0.7 });
         burst(this, at.x, at.y, { texture: FX_SOFT, count: 4, tint: 0xbfe6f7, size: 34 * k, speed: 200 * k, gravityY: 300, lifespan: 420, depth: 58 });
         if (this.station !== st || t.done) return;
+        // (it landed on the shut lid: it doesn't count, nothing lost)
+        if (t.what === 'eye' && this.eyeShut()) return;
         t.drops++;
         this.cur?.view.setMood('happy');
         if (t.drops >= this.count(st)) this.thingDone(t);
@@ -1609,7 +1855,11 @@ export class ClinicScene extends MiniGame {
         } else stars(this, w.x, w.y, 5, 30 * k);
     }
     if (!this.targets().length && !this.things.some((q) => q.what === st.what && q.zoom === t.zoom && !q.done && !q.hidden)) this.stationDone();
-    else if (Math.random() < 0.35) v.view.react('giggle');
+    else if (!this.targets().length && this.tongueWaits() && !this.tongueSaid) {
+      // (only the one behind the tongue is left: Mom gives a clue)
+      this.tongueSaid = true;
+      this.say('vo-tongue', { ttlMs: 4000 });
+    } else if (Math.random() < 0.35) v.view.react('giggle');
   }
 
   /** A thing gone shows what waited under it (the bump under the sting, the soap where the mud was). */
@@ -1725,6 +1975,14 @@ export class ClinicScene extends MiniGame {
     this.time.delayedCall(700, () => this.mom?.rest());
     this.revealPlaces();
     const next = this.firstOpen();
+    // (round 5: every station done, she is glad; the problem's own cheer comes after the last one)
+    if (next >= 0) {
+      this.time.delayedCall(250, () => {
+        if (this.leaving || this.cur !== v || v.view.mood === 'react' || v.view.mood === 'chew') return;
+        this.shown.loves = (this.shown.loves as number) + 1;
+        v.view.react('love');
+      });
+    }
     if (next < 0) return this.time.delayedCall(st.after ? 1300 : 600, () => !this.leaving && this.cur === v && this.problemDone());
     this.time.delayedCall(st.after ? 1500 : 700, () => this.startStation(next));
   }
@@ -2136,6 +2394,8 @@ export class ClinicScene extends MiniGame {
   protected way(): HandMotion | null {
     const k = this.L.k;
     switch (this.phase) {
+      case 'hide':
+        return this.hider ? tapMotion(this.hider.at, k) : null;
       case 'care':
         return this.care?.way() ?? null;
       case 'pick': {
@@ -2174,6 +2434,13 @@ export class ClinicScene extends MiniGame {
   protected helpOnce() {
     const k = this.L.k;
     switch (this.phase) {
+      case 'hide': {
+        const h = this.hider;
+        if (!h) return false;
+        this.hand.play(tapMotion(h.at, k));
+        this.time.delayedCall(650, () => (this.helped(), this.phase === 'hide' && this.found()));
+        return true;
+      }
       case 'care':
         return this.care?.help() ?? false;
       case 'pick': {
@@ -2227,6 +2494,8 @@ export class ClinicScene extends MiniGame {
 
   private runHelp(st: Station, t: Tool, si: number): boolean {
     const k = this.L.k;
+    // (only the germ behind the tongue left: Mom's hand moves the tongue first)
+    if (!this.targets().length && this.tongueWaits()) this.moveTongue();
     if (!this.targets().length) {
       this.helped();
       if (st.act === 'give') this.give(t);
@@ -2305,6 +2574,15 @@ export class ClinicScene extends MiniGame {
   protected down(p: Phaser.Input.Pointer, at: P) {
     const k = this.L.k;
     switch (this.phase) {
+      case 'hide': {
+        // found her (what peeks out, generously); a tap on someone on the bench just makes her giggle
+        const h = this.hider;
+        if (h && this.near(at, h.at, Math.max(170 * k, 260 * h.v.seat.scale))) return this.found();
+        const o = this.visit.find((q) => q !== h?.v && this.hitPatient(q, at));
+        if (o) o.view.react('giggle');
+        else this.miss();
+        return;
+      }
       case 'care':
         return this.care?.down(p, at);
       case 'pick': {
@@ -2336,6 +2614,10 @@ export class ClinicScene extends MiniGame {
       case 'tool': {
         const t = this.tools.find((q) => !q.away && this.near(at, q.img, Math.max(115 * k, 120 * q.homeScale)));
         if (!t) {
+          if (this.zoom?.id === 'mouth' && this.tongueNear(at, 110)) {
+            this.moveTongue();
+            return;
+          }
           if (this.cur && !this.zoom && this.hitPatient(this.cur, at)) this.showSign(this.cur);
           return;
         }
@@ -2354,6 +2636,7 @@ export class ClinicScene extends MiniGame {
           this.shown.tool = st.tool;
           this.gripped = null;
           this.dripT = 0;
+          this.blinks = 0;
           this.revealPlaces();
           this.viewFor(st, () => undefined);
         } else if (this.level === 2) this.viewFor(this.steps[i], () => undefined);
@@ -2370,7 +2653,7 @@ export class ClinicScene extends MiniGame {
           if (line) this.say(line, { ttlMs: 3000 });
         }
         for (const g of this.tools) this.tweens.add({ targets: g.glow, alpha: 0, duration: 200 });
-        this.held = { tool: t, from: at, moved: 0, last: this.tip(t), t0: this.time.now };
+        this.held = { tool: t, from: at, moved: 0, last: this.tip(t), t0: this.time.now, lastT: this.time.now, arrived: false };
         this.own(p);
         return;
       }
@@ -2390,6 +2673,12 @@ export class ClinicScene extends MiniGame {
     const tp = this.tip(h.tool);
     const dist = Math.hypot(tp.x - h.last.x, tp.y - h.last.y);
     h.last = tp;
+    const now = this.time.now;
+    const speed = dist / Math.max(16, now - h.lastT);
+    h.lastT = now;
+    this.maybeBlink(tp, speed);
+    this.arriving(h, tp);
+    this.tickleTummy(h.tool.id, tp);
     this.work(h.tool, tp, dist, 0);
   }
 

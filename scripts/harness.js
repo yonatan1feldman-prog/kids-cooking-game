@@ -1623,7 +1623,13 @@ window.__clinicPlay = async (opts = {}) => {
   for (let i = 0; i < (opts.maxSteps ?? 3000) && m.scene.isActive(); i++) {
     const ph = m.shown.phase;
     if (opts.none || m.helping) { await __run(500); continue; }
-    if (ph === 'pick') {
+    if (ph === 'hide' && m.hider) {
+      // round 5 (hard): someone is hiding; `wrong` taps the bench's middle first (a miss)
+      if (opts.wrong && !log.includes('hide-miss')) { __tap(m.bench.x, m.bench.y - 200 * k); log.push('hide-miss'); await __run(gap); continue; }
+      if (opts.mid) await opts.mid('hide');
+      const hd = m.hider; __tap(hd.at.x, hd.at.y); log.push('found ' + hd.v.p.id + ' ' + hd.spot);
+      await __run(gap * 2);
+    } else if (ph === 'pick') {
       const v = m.visit.find((q) => !q.done);
       const c = v.view.at({ x: 300, y: 430 });
       if (opts.mid) await opts.mid('pick');
