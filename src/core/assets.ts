@@ -908,6 +908,7 @@ RECIPE_ASSETS.garden = {
     'vo-garden-bunny', 'vo-garden-bunny-this', 'vo-garden-bunny-yum', 'vo-garden-rain', 'vo-garden-rainbow', 'vo-garden-birds',
     'vo-garden-hat', 'vo-garden-shirt', 'vo-garden-scare-copy', 'vo-garden-scare-look', 'vo-garden-shoo', 'vo-garden-butterfly',
     'vo-garden-butterfly-done', 'vo-garden-sun-tap', 'name-red', 'name-blue', 'name-yellow', 'name-rainbow', 'name-butterfly',
+    'vo-not-ripe', 'vo-one-more-seed', 'vo-sort-basket', 'vo-find-caterpillar', 'vo-caterpillar-found', 'vo-caterpillar-bye',
     ...OUTSIDE_SONG,
   ],
 };
@@ -926,7 +927,8 @@ RECIPE_ASSETS.market = {
     'name-tomato', 'name-carrot', 'name-cucumber', 'name-onion', 'name-potato', 'name-mushroom', 'name-zucchini',
     'name-banana', 'name-kiwi', 'name-mango', 'name-strawberry', 'name-lettuce', 'vo-market-guest', 'vo-market-guest-yum',
     'vo-market-mixed', 'vo-market-mixed-yes', 'vo-market-mixed-more', 'vo-market-pay', 'vo-market-pay-dots', 'vo-market-count',
-    'vo-market-paid', ...OUTSIDE_SONG,
+    'vo-market-paid', 'vo-weigh', 'vo-too-heavy', 'vo-need-green', 'vo-need-tree', 'vo-need-round', 'vo-is-green', 'vo-is-tree',
+    'vo-is-round', 'vo-big-coin', 'vo-small-coin', ...OUTSIDE_SONG,
   ],
 };
 RECIPE_ASSETS.dishes = {
@@ -936,7 +938,8 @@ RECIPE_ASSETS.dishes = {
   ],
   sounds: [
     'vo-dishes-start', 'vo-dishes-scrub', 'vo-dishes-clean', 'vo-dishes-rack', 'vo-dishes-rack-2', 'vo-dishes-colour',
-    'vo-dishes-done', 'name-blue', 'name-yellow', 'name-pink',
+    'vo-dishes-done', 'name-blue', 'name-yellow', 'name-pink', 'vo-dry', 'vo-dry-first', 'vo-try-sponge', 'vo-biggest-first',
+    'name-cup', 'name-plate', 'squeak',
   ],
 };
 /** The art corner (ArtScene): loaded on its card like a recipe. Names some recipe lists are listed here too. */
@@ -951,7 +954,9 @@ RECIPE_ASSETS.art = {
     'vo-colour-done', 'vo-mirror', 'vo-mirror-done', 'vo-mirror-plate', 'vo-steam', 'vo-steam-find', 'vo-steam-done',
     'name-sun', 'name-egg', 'name-fish', 'name-ball', 'name-rainbow', 'name-house', 'name-tree', 'name-boat', 'name-butterfly',
     'name-crown', 'name-bird', 'name-cat', 'name-red', 'name-green', 'name-purple', 'name-orange', 'name-heart', 'name-star',
-    'name-blue', 'name-yellow', 'name-pink', 'crayon', 'xylo', 'splosh', 'squeak', ...ART_SONG,
+    'name-blue', 'name-yellow', 'name-pink', 'crayon', 'xylo', 'splosh', 'squeak', 'vo-art-stamps', 'vo-find-number',
+    'vo-follow-arrows', 'vo-next', 'name-kite', 'name-ice-cream', 'name-balloon', 'name-snail', 'name-cloud', 'name-flower',
+    'stamp', ...ART_SONG,
   ],
 };
 /** The clinic (ClinicScene, the second world, chosen on the title): loaded on its button like a recipe. The patients are
