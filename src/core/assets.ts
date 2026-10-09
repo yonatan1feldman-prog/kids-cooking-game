@@ -564,6 +564,12 @@ export const IMAGES = {
   'art-find-bird': { size: [200, 160] },
   'art-find-cat': { size: [260, 220] },
   'art-find-rainbow': { size: [360, 210] },
+  // the sixth kind, stamps (challenge round): its card and the four stamps (their prints are drawn in code, STAMP in artPictures.ts)
+  'art-pick-stamps': { size: [300, 300] },
+  'art-stamp-sun': { size: [240, 240] },
+  'art-stamp-cloud': { size: [240, 240] },
+  'art-stamp-flower': { size: [240, 240] },
+  'art-stamp-bird': { size: [240, 240] },
   // ---- The clinic world (research/clinic-spec.md; assets-src/images-b-clinic, tools/gen_clinic.py). Anchors: ART.clinic.
   /** The title's two worlds: cook with Mom, or help the patients with Mom the nurse (shown at 1.4x like btn-play). */
   // the title's two games (clinic round 3): their lettering is the title art, like the logo's
@@ -970,6 +976,7 @@ RECIPE_ASSETS.art = {
     'art-easel', 'photo-frame-art', 'art-pick-trace', 'art-pick-dots', 'art-pick-colour', 'art-pick-mirror', 'art-pick-steam',
     'art-pot-red', 'art-pot-yellow', 'art-pot-blue', 'art-pot-green', 'art-pot-pink', 'art-pot-purple', 'art-pot-orange',
     'art-pot-rainbow', 'art-window-view', 'art-window-frame', 'art-find-sun', 'art-find-bird', 'art-find-cat', 'art-find-rainbow',
+    'art-pick-stamps', 'art-stamp-sun', 'art-stamp-cloud', 'art-stamp-flower', 'art-stamp-bird',
   ],
   sounds: [
     'vo-art-what', 'vo-trace', 'vo-trace-done', 'vo-dots', 'vo-dots-done', 'vo-colour', 'vo-colour-copy', 'vo-colour-mom',

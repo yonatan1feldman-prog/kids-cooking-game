@@ -324,12 +324,19 @@ export const TUNING = {
    * paint spreading. Mirror: `mirrorInk` of the shape covered before the done button. Steam: `steamClear` of the glass
    * clear (level 1), a thing is found when `findClear` of its box is clear, wiped glass fogs over again after `refogMs`
    * (level 2). Idle: free drawing (mirror) waits `freeHintMs` / `freeHelpMs`. `aliveMs`: the picture coming alive.
+   * Challenge round (research/challenge-spec.md): `traceDir` the trace follows its arrows (level 2): ink glows and lights
+   * only moving within `traceAngle` degrees of the arrows' way, from the lit front (at most `traceGap` checkpoints
+   * ahead); `traceWrong` of travel the other way in one stroke is a wrong stroke (three: Mom's hand shows the way).
+   * Dots on level 2: Mom says the number; the right dot glows after `dotsGlowAfter` misses. Stamps: `stampTouch` a
+   * stamp's touch radius, `stampScale` its size in the column (x k, at most), `stampMs` its press.
    */
   art: {
     brushR: 22, sparkleEvery: 160, grid: 24,
     traceBand: [0.09, 0.06], traceMin: [70, 55], checkpoints: 24, traceDone: [0.75, 0.85], partDone: 0.5,
     dotTouch: 160, dotR: [32, 44], fillMs: 450, mirrorInk: [0.25, 0.35], steamClear: 0.6, findClear: 0.4, refogMs: 9000,
     freeHintMs: 15000, freeHelpMs: 15000, aliveMs: 2500, helpMs: 1300,
+    traceDir: [false, true], traceAngle: 50, traceGap: 1, traceWrong: 90, dotsGlowAfter: 3,
+    stampTouch: 120, stampScale: 0.9, stampMs: 420,
   },
   /**
    * The clinic (ClinicScene; round 3, research/clinic-doctor-games.md). Distances are world units x k, [little, big] where
