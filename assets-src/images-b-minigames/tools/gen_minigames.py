@@ -367,6 +367,85 @@ def dishes_towel():
 ITEMS.update({"dishes-towel": dishes_towel})
 
 
+# ================================================================ market, more challenge (research/challenge-spec.md M-E1, M-H1, M-H2)
+# The balance scale in three parts (the code turns the beam on its pivot and hangs the pans upright from its ends),
+# the big coin (worth two: two stars), and three category cards in the shopping list's paper style (the code lays the
+# slots on CAT_SLOTS). Anchors: ART.market in src/core/assets.ts.
+BRASS = "#D9A441"; BRASS_D = "#A8761E"; BRASS_L = "#F2CF7A"
+SCALE_PIVOT = (200, 70)        # market-scale-base (400x440): where the beam turns; its foot's bottom at y 436
+BEAM_PIVOT = (280, 30)         # market-scale-beam (560x60): its hub; the pans hang from BEAM_ENDS
+BEAM_ENDS = ((34, 30), (526, 30))
+PAN_HOOK = (130, 10)           # market-scale-pan (260x220): the ring it hangs from; goods sit on PAN_TOP (its middle)
+PAN_TOP = (130, 170)
+CAT_SLOTS = (300, 70, 260, 220)  # market-cat-* (600x320): where the code draws the slots (x, y, w, h)
+
+
+def market_scale_base():
+    p = "msb-"
+    foot = P(wr(60, 396, 280, 40, 18, 1.4, 501), BRASS_D) + P(wr(70, 398, 260, 22, 12, 1, 502), BRASS) + P(wr(96, 402, 120, 8, 4, 1, 503), BRASS_L, ' opacity="0.8"')
+    post = P(wr(184, 76, 32, 330, 12, 1, 504), BRASS_D) + P(wr(190, 80, 14, 318, 7, 1, 505), BRASS) + P(wr(192, 90, 5, 280, 3, 1, 506), BRASS_L, ' opacity="0.8"')
+    neck = P(wob(200, 384, 40, 18, .05, 507, 18), BRASS_D) + P(wob(200, 380, 32, 12, .05, 508, 18), BRASS)
+    top = C(200, 70, 26, BRASS_D) + C(198, 68, 20, BRASS) + C(193, 62, 7, BRASS_L)
+    s = ground_shadow(200, 432, 150, 10, p) + G(foot + post + neck, p + "cut") + G(top, p + "sh")
+    return doc(p, 400, 440, s, "smooth", seed=509, sh=(3, 3, .3), cut={"rim": 2.2, "rough": 3})
+
+
+def market_scale_beam():
+    p = "msm-"
+    bar = P(wr(22, 22, 516, 18, 9, 1, 511), BRASS_D) + P(wr(28, 24, 504, 10, 5, 1, 512), BRASS) + P(wr(60, 25, 160, 4, 2, 1, 513), BRASS_L, ' opacity="0.8"')
+    ends = "".join(C(x, y, 16, BRASS_D) + C(x, y, 7, "#F8EBCB") for x, y in BEAM_ENDS)
+    hub = C(280, 30, 22, BRASS_D) + C(279, 29, 16, BRASS) + C(275, 25, 5, BRASS_L)
+    s = G(bar + ends, p + "cut") + G(hub, p + "sh")
+    return doc(p, 560, 60, s, "smooth", seed=514, sh=(3, 3, .3), cut={"rim": 2, "rough": 3})
+
+
+def market_scale_pan():
+    p = "msp-"
+    hx, hy = PAN_HOOK
+    strings = stroke(f"M{hx},{hy} L28,166 M{hx},{hy} L232,166", BRASS_D, 4, ' opacity="0.85"')
+    ring = C(hx, hy, 9, BRASS_D) + C(hx, hy, 4, "#F8EBCB")
+    dish = P(f"M14,166 Q130,236 246,166 Z", BRASS_D) + P(f"M22,168 Q130,224 238,168 Z", BRASS) + E(130, 168, 116, 10, BRASS_L, ' opacity="0.9"') + P("M44,182 Q90,204 140,206 Q90,198 52,178Z", BRASS_L, ' opacity="0.7"')
+    s = G(strings, p + "sh") + G(dish, p + "cut") + G(ring, p + "sh")
+    return doc(p, 260, 220, s, "smooth", seed=515, sh=(3, 3, .3), cut={"rim": 2.2, "rough": 3})
+
+
+def market_coin_big():
+    """150x150: the big coin, worth two (two stars on it); the small one (market-coin) has one."""
+    p = "mcb-"
+    s = G(C(76, 78, 68, COIN_D) + C(73, 73, 66, "#F0B429") + C(73, 73, 54, COIN_D, ' opacity="0.4"') + C(73, 73, 50, "#F0B429") + C(73, 73, 44, COIN_D, ' opacity="0.25"') + C(73, 73, 41, "#F0B429"), p + "cut")
+    for cx, sd in ((52, 521), (94, 522)):
+        s += P(spiky(cx, 76, 7, 17, -90, 270, 5, sd, 1.0), COIN_D, ' opacity="0.85"')
+    s += P("M30,52 Q42,22 80,16 Q50,32 40,60Z", COIN_L, ' opacity="0.9"')
+    return doc(p, 150, 150, s, "smooth", seed=523, sh=(3, 3, .3), cut={"rim": 2.4, "rough": 3})
+
+
+def cat_card(kind):
+    """600x320: a list card, the paper of market-list with its peg; the left part shows the kind, the code draws the slots."""
+    p = f"mca{kind[0]}-"
+    s = G(P(wr(20, 40, 560, 270, 18, 2, 531, step=24), WHITE), p + "cut")
+    for y in range(110, 300, 60):
+        s += stroke(f"M50,{y} L550,{y}", "#BFD6E6", 3, ' opacity="0.8"')
+    s += stroke("M270,60 L270,292", "#F2A6A0", 3, ' opacity="0.7"')
+    if kind == "green":
+        icon = P(wob(146, 182, 92, 80, .12, 532, 16), GREEN_D) + P(wob(142, 176, 82, 70, .12, 533, 16), GREEN) + P(wob(116, 150, 30, 18, .2, 534, 12, -30), GREEN_L, ' opacity="0.85"')
+    elif kind == "tree":
+        icon = P(wr(132, 196, 28, 92, 8, 1, 535), WALNUT) + P(wr(138, 200, 8, 80, 4, 1, 536), WALNUT_L, ' opacity="0.7"')
+        icon += P(wob(146, 150, 98, 72, .1, 537, 18), GREEN_D) + P(wob(144, 144, 88, 62, .1, 538, 18), GREEN) + P(wob(118, 118, 36, 18, .2, 539, 12), GREEN_L, ' opacity="0.7"')
+        for i, (x, y) in enumerate(((104, 160), (156, 122), (190, 170), (136, 186))):
+            icon += C(x, y, 17, CORAL_D) + C(x - 1, y - 1, 14, CORAL) + C(x - 5, y - 5, 4, CORAL_L)
+    else:
+        icon = C(146, 178, 88, BLUE_D) + C(144, 175, 80, BLUE) + C(144, 175, 52, BLUE_L, ' opacity="0.35"') + P("M90,140 Q104,108 140,100 Q112,118 102,148Z", WHITE, ' opacity="0.7"')
+    s += G(icon, p + "sh")
+    peg = P(wr(276, 0, 48, 90, 10, 1, 62), WOOD) + P(wr(284, 8, 32, 74, 8, 1, 63), WOOD_L) + P(wr(282, 36, 36, 10, 3, 1, 64), METAL_D)
+    s += G(peg, p + "sh")
+    return doc(p, 600, 320, s, "default", seed=540, sh=(4, 3.5, .3), cut={"rim": 3, "rough": 5})
+
+
+ITEMS.update({"market-scale-base": market_scale_base, "market-scale-beam": market_scale_beam, "market-scale-pan": market_scale_pan,
+              "market-coin-big": market_coin_big, "market-cat-green": lambda: cat_card("green"),
+              "market-cat-tree": lambda: cat_card("tree"), "market-cat-round": lambda: cat_card("round")})
+
+
 def save(name, s):
     path = os.path.join(OUTDIR, name + ".svg")
     with open(path, "w", encoding="utf8") as f:

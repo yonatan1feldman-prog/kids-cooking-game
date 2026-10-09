@@ -519,6 +519,15 @@ export const IMAGES = {
   'market-coin': { size: [110, 110] },
   'market-purse': { size: [260, 230] },
   'market-slate': { size: [380, 300] },
+  /** Market, more challenge (research/challenge-spec.md M-E1, M-H1, M-H2; gen_minigames.py): the balance scale in three
+   * parts (anchors ART.market.scale), the big coin (worth two), the three category cards (slots on ART.market.catSlots). */
+  'market-scale-base': { size: [400, 440] },
+  'market-scale-beam': { size: [560, 60] },
+  'market-scale-pan': { size: [260, 220] },
+  'market-coin-big': { size: [150, 150] },
+  'market-cat-green': { size: [600, 320] },
+  'market-cat-tree': { size: [600, 320] },
+  'market-cat-round': { size: [600, 320] },
   // ---- The art corner (research/drawing-stages-spec.md; assets-src/images-b-art, tools/gen_art.py). The pictures she
   // traces, joins and colours are drawn in code (core/artPictures.ts). Anchors: ART.art.
   'card-art': { size: [400, 520] },
@@ -922,7 +931,8 @@ RECIPE_ASSETS.market = {
     'garden-basket', 'garden-basket-front', 'veg-tomato-whole', 'veg-carrot-whole', 'veg-cucumber-whole', 'veg-pepper-whole',
     'veg-onion-whole', 'veg-potato-whole', 'veg-mushroom-whole', 'veg-zucchini-whole', 'fruit-banana-whole',
     'fruit-kiwi-whole', 'fruit-mango-whole', 'fruit-strawberry-whole', 'lettuce-head', 'market-coin', 'market-purse',
-    'market-slate',
+    'market-slate', 'market-scale-base', 'market-scale-beam', 'market-scale-pan', 'market-coin-big', 'market-cat-green',
+    'market-cat-tree', 'market-cat-round',
   ],
   sounds: [
     'vo-market-list', 'vo-market-remember', 'vo-market-not', 'vo-market-pipa', 'vo-market-two', 'vo-market-done',
@@ -1248,6 +1258,11 @@ export const ART = {
   /** The market's paying (assets-src/images-b-minigames/tools/gen_minigames.py): market-slate's chalk face. */
   market: {
     slateFace: { x: 44, y: 40, w: 292, h: 196 },
+    /** The balance scale (gen_minigames.py): the base's pivot and foot, the beam's hub and the ends the pans hang from, a
+     * pan's ring and the middle of its dish (where the goods sit, 200 wide). */
+    scale: { pivot: { x: 200, y: 70 }, foot: 436, hub: { x: 280, y: 30 }, ends: [{ x: 34, y: 30 }, { x: 526, y: 30 }], hook: { x: 130, y: 10 }, top: { x: 130, y: 170 }, panW: 200 },
+    /** market-cat-* (600x320): where the code lays the slots of a category list. */
+    catSlots: { x: 300, y: 70, w: 260, h: 220 },
   },
   /** The art corner (assets-src/images-b-art/tools/gen_art.py prints it). */
   art: {
