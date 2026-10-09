@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { keepPhoto } from '../core/album';
 import { ART, FX_SOFT, IMAGES, type ImageKey } from '../core/assets';
 import { music } from '../core/audio';
-import { AILMENTS, PATIENTS, planVisit, TOOL_LINE, TOOLS, type Ailment, type AilmentId, type Patient, type Station, type ToolId, type What, type ZoomId } from '../core/clinic';
+import { AILMENTS, burnPlaces, PATIENTS, planVisit, TOOL_LINE, TOOLS, type Ailment, type AilmentId, type Patient, type Station, type ToolId, type What, type ZoomId } from '../core/clinic';
 import type { VoiceKey } from '../core/audio';
 import { boing, burst, puff, stars } from '../core/fx';
 import { tapMotion, type HandKey, type HandMotion } from '../core/hand';
@@ -46,6 +46,8 @@ const SPOTS: Partial<Record<ZoomId, Partial<Record<What, readonly P[]>>>> = {
   skin: {
     sting: [{ x: 150, y: 170 }, { x: 270, y: 140 }, { x: 380, y: 190 }, { x: 190, y: 290 }, { x: 320, y: 280 }, { x: 400, y: 330 }, { x: 150, y: 380 }, { x: 260, y: 390 }, { x: 360, y: 410 }],
   },
+  // round 5 (gen_clinic5.py TICKLES: in the throat, around the uvula)
+  throat: { tickle: [{ x: 196, y: 268 }, { x: 324, y: 268 }, { x: 260, y: 318 }, { x: 214, y: 352 }, { x: 306, y: 352 }, { x: 260, y: 376 }] },
   xray: {
     germ: [{ x: 202, y: 300 }, { x: 318, y: 296 }, { x: 260, y: 384 }, { x: 196, y: 396 }, { x: 326, y: 394 }, { x: 260, y: 262 }],
     bell: [{ x: 200, y: 300 }, { x: 322, y: 300 }, { x: 262, y: 390 }, { x: 214, y: 380 }, { x: 310, y: 380 }],
@@ -341,12 +343,13 @@ export class ClinicScene extends MiniGame {
   }
 
   /** The things on her a problem works on, made now so she shows them in the waiting room (the spots, the mud). */
-  private preOn(v: Visitor, a: Ailment, what: 'spot' | 'mud', key: string, places: readonly P[]) {
+  private preOn(v: Visitor, a: Ailment, what: 'spot' | 'mud' | 'burn', key: string, places: readonly P[]) {
     const st = a.steps[this.level - 1].find((q) => q.what === what);
     const n = st?.n ? st.n[this.level - 1] : 1;
-    const fs = Phaser.Utils.Array.Shuffle([...places]).slice(0, n);
+    // (a sunburn is on her face first, then her arms: in that order)
+    const fs = (what === 'burn' ? [...places] : Phaser.Utils.Array.Shuffle([...places])).slice(0, n);
     const list = fs.map((f) => {
-      const base = Phaser.Math.FloatBetween(0.85, 1.1) * (what === 'mud' ? 0.62 : 1);
+      const base = Phaser.Math.FloatBetween(0.85, 1.1) * (what === 'mud' ? 0.62 : what === 'burn' ? 0.62 : 1);
       return { f, base, img: v.view.put(key, f, base, what === 'mud' ? Phaser.Math.Between(-30, 30) : 0) };
     });
     v.pre[what] = list;
@@ -361,6 +364,11 @@ export class ClinicScene extends MiniGame {
         return this.preOn(v, a, 'spot', 'clinic-spot', p.spots);
       case 'dirty':
         return this.preOn(v, a, 'mud', 'clinic-mud', [...p.cheeks, p.forehead, ...p.spots]);
+      // round 5: a sunburn glows on her nose, cheeks and arms; a scratchy throat makes her cheeks a little pink
+      case 'sunburn':
+        return this.preOn(v, a, 'burn', 'clinic-burn', burnPlaces(p));
+      case 'throat':
+        return [view.put('clinic-cheek', p.cheeks[0], 0.8).setAlpha(0.55), view.put('clinic-cheek', p.cheeks[1], 0.8).setAlpha(0.55)];
       case 'sting':
         return [view.put('clinic-bite', { x: p.cheeks[1].x - 10, y: p.cheeks[1].y - 20 }, 0.7)];
       case 'bites': {
@@ -414,6 +422,7 @@ export class ClinicScene extends MiniGame {
     box.setScale(s).setPosition(view.rest.x, view.rest.y).setAngle(0);
     switch (a.id) {
       case 'cough':
+      case 'throat':
         sfx(this, 'cough', { minGapMs: 0, rate });
         this.tweens.add({ targets: box, scaleY: s * 0.92, duration: 90, yoyo: true, repeat: 1, ease: 'Quad.easeOut' });
         break;
@@ -678,7 +687,8 @@ export class ClinicScene extends MiniGame {
     const marker = (f: P) => view.put(FX_SOFT, f, 0.01).setAlpha(0);
     switch (st.what) {
       case 'spot':
-      case 'mud': {
+      case 'mud':
+      case 'burn': {
         // (made in the waiting room already: she showed them there)
         for (const q of (v.pre[st.what] ?? []).slice(0, n)) add(st.what, q.f, q.img, q.base);
         return;
@@ -778,6 +788,9 @@ export class ClinicScene extends MiniGame {
         list.slice(0, n).forEach((f) => add('splinter', 'clinic-splinter', f, 0.8, -28, 1, found));
         return;
       }
+      case 'tickle':
+        pick(SPOTS.throat!.tickle!).forEach((f) => add('tickle', 'clinic-tickle', f, 0.72, Phaser.Math.Between(-15, 15), 1, found));
+        return;
       case 'bell':
         add('bell', 'clinic-toy', Phaser.Utils.Array.GetRandom([...SPOTS.xray!.bell!]), 0.95, Phaser.Math.Between(-15, 15), 1, found);
         return;
@@ -809,6 +822,9 @@ export class ClinicScene extends MiniGame {
     switch (id) {
       case 'mouth':
         layer('lens-mouth');
+        break;
+      case 'throat':
+        layer('lens-throat');
         break;
       case 'eye':
         layer('lens-eye', skin);
@@ -847,6 +863,7 @@ export class ClinicScene extends MiniGame {
     const p = v.p;
     switch (id) {
       case 'mouth':
+      case 'throat':
         return v.view.mouthAt;
       case 'eye':
         return v.view.at({ x: p.forehead.x - 50, y: p.forehead.y + 70 });
@@ -1163,7 +1180,7 @@ export class ClinicScene extends MiniGame {
           boing(this, t.img, 0.4);
           const w = this.worldOf(t);
           stars(this, w.x, w.y, 6, 34 * k);
-          sfx(this, t.what === 'bell' ? 'jingle' : t.what === 'bug' ? 'char-giggle' : 'star', { minGapMs: 0, volume: 0.7 });
+          sfx(this, t.what === 'bell' ? 'jingle' : t.what === 'bug' || t.what === 'tickle' ? 'char-giggle' : 'star', { minGapMs: 0, volume: 0.7, rate: t.what === 'tickle' ? 1.7 : 1 });
           if (t.what === 'germ') this.germWiggle(t);
           this.shown.things = (this.shown.things as number) + 1;
         }
@@ -1213,6 +1230,14 @@ export class ClinicScene extends MiniGame {
         if (this.level === 2 && !t.dodged && u >= T.dodge) this.dodge(t);
         return;
       }
+      case 'tickle':
+        // the spray tickles the tickle: it wriggles, giggles and shrinks
+        t.img.setScale(rs(t.img.texture.key, t.base * s * (1 - 0.4 * u)));
+        t.img.setAngle(Math.sin(this.time.now / 45) * 16);
+        sfx(this, 'spray', { minGapMs: 520, volume: 0.55 });
+        sfx(this, 'char-giggle', { minGapMs: 900, volume: 0.3, rate: 1.8 });
+        if (Math.random() < delta / 60) burst(this, tp.x, tp.y, { texture: FX_SOFT, count: 2, tint: 0xdff3fa, size: 40 * k, speed: 150 * k, gravityY: 60, lifespan: 500, depth: 60 });
+        return;
       case 'mud':
         // the sponge foams it away: bubbles under the sponge, the mud fades
         t.img.setAlpha(1 - 0.85 * u);
@@ -1472,6 +1497,28 @@ export class ClinicScene extends MiniGame {
         stars(this, w.x, w.y, 7, 34 * k);
         break;
       }
+      case 'tickle': {
+        // off it floats in a bubble, giggling
+        sfx(this, 'pop', { minGapMs: 0, volume: 0.5 });
+        sfx(this, 'char-giggle', { minGapMs: 0, rate: 1.8, volume: 0.45 });
+        this.tweens.killTweensOf(t.img);
+        this.tweens.add({ targets: t.img, y: t.img.y - 120 * s, alpha: 0, scale: t.img.scale * 0.6, angle: 30, duration: 700, ease: 'Sine.easeOut' });
+        for (let i = 0; i < 4; i++) this.bubble(w.x + Phaser.Math.Between(-30, 30) * k, w.y + Phaser.Math.Between(-30, 10) * k);
+        stars(this, w.x, w.y, 4, 28 * k);
+        break;
+      }
+      case 'burn': {
+        // a dab of cool aloe: the red glow fades
+        const dab = v.view.put('clinic-cream', t.f, 0.4).setAlpha(0.95).setTint(0xbfe8a8);
+        boing(this, dab, 0.2);
+        this.tweens.add({ targets: t.img, alpha: 0, duration: 700 });
+        this.tweens.add({ targets: dab, alpha: 0, duration: 600, delay: 900, onComplete: () => dab.destroy() });
+        burst(this, w.x, w.y, { texture: FX_SOFT, count: 4, tint: [0xdff3fa, 0xc8ebb8], size: 34 * k, speed: 140 * k, gravityY: -60, lifespan: 700, depth: 60 });
+        sfx(this, 'squish', { minGapMs: 0, volume: 0.45 });
+        sfx(this, 'sparkle', { minGapMs: 200, volume: 0.4 });
+        v.view.setMood('happy');
+        break;
+      }
       case 'spot': {
         const dab = v.view.put('clinic-cream', t.f, 0.42).setAlpha(0.95);
         boing(this, dab, 0.2);
@@ -1584,6 +1631,23 @@ export class ClinicScene extends MiniGame {
     const tg = thing ? this.worldOf(thing) : v.view.mouthAt;
     this.setPhase('intro');
     this.poke();
+    if (st.tool === 'hat') {
+      // the sun hat goes on her head and stays there (like the plaster)
+      t.away = true;
+      this.tweens.killTweensOf(t.img);
+      t.img.setVisible(false);
+      const f = { x: v.p.forehead.x, y: v.p.forehead.y - 70 };
+      const hat = v.view.put('tool-hat', f, 1.3, -6);
+      boing(this, hat, 0.25);
+      sfx(this, 'pop');
+      sfx(this, 'sparkle', { minGapMs: 0, volume: 0.6 });
+      const at = v.view.at(f);
+      stars(this, at.x, at.y, 7, 36 * k);
+      v.view.react('love');
+      if (thing) thing.done = true;
+      this.time.delayedCall(700, () => this.stationDone());
+      return;
+    }
     if (st.tool === 'plaster') {
       t.away = true;
       this.tweens.killTweensOf(t.img);
@@ -1711,6 +1775,33 @@ export class ClinicScene extends MiniGame {
         break;
       case 'sam':
         this.tweens.add({ targets: box, angle: { from: -9, to: 9 }, x: { from: r.x - 20 * s, to: r.x + 20 * s }, duration: 180, yoyo: true, repeat: 3, ease: 'Sine.easeInOut', onComplete: back });
+        break;
+      // round 5: Mittens stretches with her back arched, Bao rolls back and forth, Clover hops three times high, Biscuit
+      // wags all over; Ruby spins on her heel, Noah star-jumps, Zoe waves and turns, Max jumps with his arms up
+      case 'cat':
+        this.tweens.add({ targets: box, scaleY: s * 1.1, scaleX: s * 0.92, duration: 300, yoyo: true, repeat: 1, ease: 'Sine.easeInOut', onComplete: back });
+        break;
+      case 'panda':
+        this.tweens.add({ targets: box, angle: { from: -22, to: 22 }, duration: 340, yoyo: true, repeat: 1, ease: 'Sine.easeInOut', onComplete: back });
+        break;
+      case 'bunny':
+        this.tweens.add({ targets: box, y: r.y - 110 * s, duration: 200, yoyo: true, repeat: 2, ease: 'Quad.easeOut', onComplete: back });
+        break;
+      case 'puppy':
+        this.tweens.add({ targets: box, angle: { from: -7, to: 7 }, x: { from: r.x - 26 * s, to: r.x + 26 * s }, duration: 110, yoyo: true, repeat: 5, ease: 'Sine.easeInOut', onComplete: back });
+        break;
+      case 'ruby':
+        this.tweens.add({ targets: box, scaleX: { from: s, to: -s }, duration: 200, yoyo: true, repeat: 2, ease: 'Sine.easeInOut', onComplete: back });
+        break;
+      case 'noah':
+        this.tweens.add({ targets: box, y: r.y - 80 * s, scaleX: s * 1.14, duration: 220, yoyo: true, repeat: 1, ease: 'Quad.easeOut', onComplete: back });
+        break;
+      case 'zoe':
+        this.tweens.add({ targets: box, angle: { from: -8, to: 8 }, duration: 180, yoyo: true, repeat: 1, ease: 'Sine.easeInOut' });
+        this.tweens.add({ targets: box, scaleX: { from: s, to: -s }, duration: 260, yoyo: true, delay: 720, ease: 'Sine.easeInOut', onComplete: back });
+        break;
+      case 'max':
+        this.tweens.add({ targets: box, y: r.y - 100 * s, scaleY: s * 1.06, duration: 230, yoyo: true, repeat: 2, ease: 'Quad.easeOut', onComplete: back });
         break;
       default:
         this.tweens.add({ targets: box, y: r.y - 70 * s, duration: 260, yoyo: true, repeat: 1, ease: 'Quad.easeOut' });

@@ -134,6 +134,9 @@ export type VoiceKey =
   | 'vo-tool-sponge' | 'vo-tool-bugspray' | 'vo-rinse-foam' | 'vo-bugs-bye' | 'vo-all-clean' | 'vo-clinic-fixfirst'
   | 'vo-clinic-fixed' | 'vo-bug-hop' | 'vo-level-easy' | 'vo-level-hard'
   | FarmVoiceKey
+  // the clinic, round 5: eight more patients, the scratchy throat, the sunburn
+  | 'vo-hi-cat' | 'vo-hi-panda' | 'vo-hi-bunny' | 'vo-hi-puppy' | 'vo-hi-ruby' | 'vo-hi-noah' | 'vo-hi-zoe' | 'vo-hi-max'
+  | 'vo-sick-throat' | 'vo-sick-sunburn' | 'vo-tool-honey' | 'vo-tool-aloe' | 'vo-tool-hat' | 'vo-tickles'
   // more challenge in the games that are not cooking (research/challenge-spec.md, PR B)
   | 'vo-not-ripe' | 'vo-one-more-seed' | 'vo-sort-basket' | 'vo-find-caterpillar' | 'vo-caterpillar-found' | 'vo-caterpillar-bye'
   | 'vo-weigh' | 'vo-too-heavy' | 'vo-need-green' | 'vo-need-tree' | 'vo-need-round' | 'vo-is-green' | 'vo-is-tree' | 'vo-is-round'
