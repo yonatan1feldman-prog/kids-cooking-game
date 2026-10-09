@@ -497,6 +497,8 @@ export const IMAGES = {
   'dish-sponge': { size: [240, 150] },
   /** The drying rack: a column per colour (blue, yellow, pink), a hook on top (cups), a slot of dowels below (plates). */
   'dish-rack': { size: [960, 720] },
+  /** The tea towel hanging from its peg (the peg at the top centre); a rinsed dish is dried on it (challenge round). */
+  'dishes-towel': { size: [220, 320] },
   /** Level 2 (garden round 2): a weed standing in a hole (the soil line at ART.garden.weedTop, its root below), the
    *  puddle of too much water, and the bunny (facing left, sitting on its feet at the bottom) with its wish. */
   'garden-weed': { size: [200, 320] },
@@ -515,10 +517,28 @@ export const IMAGES = {
   'garden-bird-up': { size: [170, 140] },
   'garden-bird-down': { size: [170, 140] },
   'garden-butterfly': { size: [200, 160] },
+  /** Challenge round (PR B): unripe fruit (the ripe ones' frames), a second basket for sorting (level 2; the same shape,
+   *  blue; `-front` over what is in it), the caterpillar hiding under a leaf (facing left) and the jar it goes into
+   *  (its mouth at ART.garden.jarMouth). */
+  'garden-tomato-green': { size: [140, 150] },
+  'garden-strawberry-green': { size: [130, 150] },
+  'garden-basket-2': { size: [440, 320] },
+  'garden-basket-2-front': { size: [440, 320] },
+  'garden-caterpillar': { size: [220, 120] },
+  'garden-jar': { size: [220, 260] },
   /** Market round 2 (paying): a coin, Mom's purse, the price slate (the price is drawn in code on ART.market.slateFace). */
   'market-coin': { size: [110, 110] },
   'market-purse': { size: [260, 230] },
   'market-slate': { size: [380, 300] },
+  /** Market, more challenge (research/challenge-spec.md M-E1, M-H1, M-H2; gen_minigames.py): the balance scale in three
+   * parts (anchors ART.market.scale), the big coin (worth two), the three category cards (slots on ART.market.catSlots). */
+  'market-scale-base': { size: [400, 440] },
+  'market-scale-beam': { size: [560, 60] },
+  'market-scale-pan': { size: [260, 220] },
+  'market-coin-big': { size: [150, 150] },
+  'market-cat-green': { size: [600, 320] },
+  'market-cat-tree': { size: [600, 320] },
+  'market-cat-round': { size: [600, 320] },
   // ---- The art corner (research/drawing-stages-spec.md; assets-src/images-b-art, tools/gen_art.py). The pictures she
   // traces, joins and colours are drawn in code (core/artPictures.ts). Anchors: ART.art.
   'card-art': { size: [400, 520] },
@@ -546,6 +566,12 @@ export const IMAGES = {
   'art-find-bird': { size: [200, 160] },
   'art-find-cat': { size: [260, 220] },
   'art-find-rainbow': { size: [360, 210] },
+  // the sixth kind, stamps (challenge round): its card and the four stamps (their prints are drawn in code, STAMP in artPictures.ts)
+  'art-pick-stamps': { size: [300, 300] },
+  'art-stamp-sun': { size: [240, 240] },
+  'art-stamp-cloud': { size: [240, 240] },
+  'art-stamp-flower': { size: [240, 240] },
+  'art-stamp-bird': { size: [240, 240] },
   // ---- The clinic world (research/clinic-spec.md; assets-src/images-b-clinic, tools/gen_clinic.py). Anchors: ART.clinic.
   /** The title's two worlds: cook with Mom, or help the patients with Mom the nurse (shown at 1.4x like btn-play). */
   // the title's two games (clinic round 3): their lettering is the title art, like the logo's
@@ -979,7 +1005,8 @@ RECIPE_ASSETS.garden = {
     'watering-can', 'garden-sun', 'garden-cloud', 'garden-snail', 'garden-leaf', 'garden-basket', 'garden-basket-front',
     'water-drop', 'garden-weed', 'garden-puddle', 'garden-bunny', 'garden-scarecrow', 'garden-hat-red', 'garden-hat-blue',
     'garden-hat-yellow', 'garden-shirt-red', 'garden-shirt-blue', 'garden-shirt-yellow', 'garden-bird-up', 'garden-bird-down',
-    'garden-butterfly',
+    'garden-butterfly', 'garden-tomato-green', 'garden-strawberry-green', 'garden-basket-2', 'garden-basket-2-front',
+    'garden-caterpillar', 'garden-jar',
   ],
   sounds: [
     'vo-garden-seeds', 'vo-garden-plant', 'vo-garden-water', 'vo-garden-sprout', 'vo-garden-cloud', 'vo-garden-sun',
@@ -988,6 +1015,7 @@ RECIPE_ASSETS.garden = {
     'vo-garden-bunny', 'vo-garden-bunny-this', 'vo-garden-bunny-yum', 'vo-garden-rain', 'vo-garden-rainbow', 'vo-garden-birds',
     'vo-garden-hat', 'vo-garden-shirt', 'vo-garden-scare-copy', 'vo-garden-scare-look', 'vo-garden-shoo', 'vo-garden-butterfly',
     'vo-garden-butterfly-done', 'vo-garden-sun-tap', 'name-red', 'name-blue', 'name-yellow', 'name-rainbow', 'name-butterfly',
+    'vo-not-ripe', 'vo-one-more-seed', 'vo-sort-basket', 'vo-find-caterpillar', 'vo-caterpillar-found', 'vo-caterpillar-bye',
     ...OUTSIDE_SONG,
   ],
 };
@@ -999,24 +1027,27 @@ RECIPE_ASSETS.market = {
     'garden-basket', 'garden-basket-front', 'veg-tomato-whole', 'veg-carrot-whole', 'veg-cucumber-whole', 'veg-pepper-whole',
     'veg-onion-whole', 'veg-potato-whole', 'veg-mushroom-whole', 'veg-zucchini-whole', 'fruit-banana-whole',
     'fruit-kiwi-whole', 'fruit-mango-whole', 'fruit-strawberry-whole', 'lettuce-head', 'market-coin', 'market-purse',
-    'market-slate',
+    'market-slate', 'market-scale-base', 'market-scale-beam', 'market-scale-pan', 'market-coin-big', 'market-cat-green',
+    'market-cat-tree', 'market-cat-round',
   ],
   sounds: [
     'vo-market-list', 'vo-market-remember', 'vo-market-not', 'vo-market-pipa', 'vo-market-two', 'vo-market-done',
     'name-tomato', 'name-carrot', 'name-cucumber', 'name-onion', 'name-potato', 'name-mushroom', 'name-zucchini',
     'name-banana', 'name-kiwi', 'name-mango', 'name-strawberry', 'name-lettuce', 'vo-market-guest', 'vo-market-guest-yum',
     'vo-market-mixed', 'vo-market-mixed-yes', 'vo-market-mixed-more', 'vo-market-pay', 'vo-market-pay-dots', 'vo-market-count',
-    'vo-market-paid', ...OUTSIDE_SONG,
+    'vo-market-paid', 'vo-weigh', 'vo-too-heavy', 'vo-need-green', 'vo-need-tree', 'vo-need-round', 'vo-is-green', 'vo-is-tree',
+    'vo-is-round', 'vo-big-coin', 'vo-small-coin', ...OUTSIDE_SONG,
   ],
 };
 RECIPE_ASSETS.dishes = {
   images: [
     ...WASH, 'dish-plate-blue', 'dish-plate-yellow', 'dish-plate-pink', 'dish-cup-blue', 'dish-cup-yellow', 'dish-cup-pink',
-    'dish-mess', 'dish-sponge', 'dish-rack', 'water-drop',
+    'dish-mess', 'dish-sponge', 'dish-rack', 'water-drop', 'dishes-towel',
   ],
   sounds: [
     'vo-dishes-start', 'vo-dishes-scrub', 'vo-dishes-clean', 'vo-dishes-rack', 'vo-dishes-rack-2', 'vo-dishes-colour',
-    'vo-dishes-done', 'name-blue', 'name-yellow', 'name-pink',
+    'vo-dishes-done', 'name-blue', 'name-yellow', 'name-pink', 'vo-dry', 'vo-dry-first', 'vo-try-sponge', 'vo-biggest-first',
+    'name-cup', 'name-plate', 'squeak',
   ],
 };
 /** The art corner (ArtScene): loaded on its card like a recipe. Names some recipe lists are listed here too. */
@@ -1025,13 +1056,16 @@ RECIPE_ASSETS.art = {
     'art-easel', 'photo-frame-art', 'art-pick-trace', 'art-pick-dots', 'art-pick-colour', 'art-pick-mirror', 'art-pick-steam',
     'art-pot-red', 'art-pot-yellow', 'art-pot-blue', 'art-pot-green', 'art-pot-pink', 'art-pot-purple', 'art-pot-orange',
     'art-pot-rainbow', 'art-window-view', 'art-window-frame', 'art-find-sun', 'art-find-bird', 'art-find-cat', 'art-find-rainbow',
+    'art-pick-stamps', 'art-stamp-sun', 'art-stamp-cloud', 'art-stamp-flower', 'art-stamp-bird',
   ],
   sounds: [
     'vo-art-what', 'vo-trace', 'vo-trace-done', 'vo-dots', 'vo-dots-done', 'vo-colour', 'vo-colour-copy', 'vo-colour-mom',
     'vo-colour-done', 'vo-mirror', 'vo-mirror-done', 'vo-mirror-plate', 'vo-steam', 'vo-steam-find', 'vo-steam-done',
     'name-sun', 'name-egg', 'name-fish', 'name-ball', 'name-rainbow', 'name-house', 'name-tree', 'name-boat', 'name-butterfly',
     'name-crown', 'name-bird', 'name-cat', 'name-red', 'name-green', 'name-purple', 'name-orange', 'name-heart', 'name-star',
-    'name-blue', 'name-yellow', 'name-pink', 'crayon', 'xylo', 'splosh', 'squeak', ...ART_SONG,
+    'name-blue', 'name-yellow', 'name-pink', 'crayon', 'xylo', 'splosh', 'squeak', 'vo-art-stamps', 'vo-find-number',
+    'vo-follow-arrows', 'vo-next', 'name-kite', 'name-ice-cream', 'name-balloon', 'name-snail', 'name-cloud', 'name-flower',
+    'stamp', ...ART_SONG,
   ],
 };
 /** The clinic (ClinicScene, the second world, chosen on the title): loaded on its button like a recipe. The patients are
@@ -1320,10 +1354,17 @@ export const ART = {
     scareHat: { x: 190, y: 104 },
     scareShirt: { x: 190, y: 386 },
     hatBrim: { x: 120, y: 128 },
+    /** garden-jar (220x260): the middle of its open mouth. */
+    jarMouth: { x: 110, y: 66 },
   },
   /** The market's paying (assets-src/images-b-minigames/tools/gen_minigames.py): market-slate's chalk face. */
   market: {
     slateFace: { x: 44, y: 40, w: 292, h: 196 },
+    /** The balance scale (gen_minigames.py): the base's pivot and foot, the beam's hub and the ends the pans hang from, a
+     * pan's ring and the middle of its dish (where the goods sit, 200 wide). */
+    scale: { pivot: { x: 200, y: 70 }, foot: 436, hub: { x: 280, y: 30 }, ends: [{ x: 34, y: 30 }, { x: 526, y: 30 }], hook: { x: 130, y: 10 }, top: { x: 130, y: 170 }, panW: 200 },
+    /** market-cat-* (600x320): where the code lays the slots of a category list. */
+    catSlots: { x: 300, y: 70, w: 260, h: 220 },
   },
   /** The art corner (assets-src/images-b-art/tools/gen_art.py prints it). */
   art: {

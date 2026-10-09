@@ -350,15 +350,90 @@ def find_rainbow():
     return doc(p, 360, 210, G(s, p + "cut"), "smooth", seed=463, cut={"rim": 2.6, "rough": 3.5})
 
 
+# ================================================================ stamps (the sixth kind: challenge round)
+def _circ(cx, cy, r):
+    return f"M{n(cx - r)},{n(cy)} a{n(r)},{n(r)} 0 1,0 {n(2 * r)},0 a{n(r)},{n(r)} 0 1,0 {n(-2 * r)},0Z"
+
+
+def _star(ro, ri, pts):
+    return "M" + " L".join(f"{n(math.cos(-math.pi / 2 + i * math.pi / pts) * (ro if i % 2 == 0 else ri))},"
+                           f"{n(math.sin(-math.pi / 2 + i * math.pi / pts) * (ro if i % 2 == 0 else ri))}" for i in range(pts * 2)) + "Z"
+
+
+# The stamps' shapes round (0, 0), about 200 across: the same numbers as STAMP in src/core/artPictures.ts (the print the
+# game draws on the sheet must be the picture on the stamp).
+STAMP = {
+    "sun": ([_star(100, 68, 10), _circ(0, 0, 66)], PAINT["yellow"]),
+    "cloud": (["M-92,42 C-128,40 -126,-14 -86,-14 C-90,-62 -28,-74 -6,-38 C12,-84 88,-74 82,-16 C124,-16 124,42 86,42Z"], PAINT["blue"]),
+    "flower": ([_circ(round(math.cos(i * 2 * math.pi / 5 - math.pi / 2) * 56), round(math.sin(i * 2 * math.pi / 5 - math.pi / 2) * 56), 42) for i in range(5)]
+               + [_circ(0, 0, 36)], PAINT["pink"]),
+    "bird": (["M-66,14 a74,50 0 1,0 148,0 a74,50 0 1,0 -148,0Z", _circ(-52, -30, 38), "M58,4 L104,-36 L100,34Z", "M-86,-40 L-114,-28 L-86,-18Z"], PAINT["red"]),
+}
+
+
+def stamp_face(name, cx, cy, sc):
+    """The stamp's picture (its print) at (cx, cy), scale sc: the paint, the flower's yellow middle, the little marks."""
+    parts, col = STAMP[name]
+    t = f' transform="translate({n(cx)} {n(cy)}) scale({sc})"'
+    s = "".join(P(d, col, t) for d in parts)
+    if name == "flower":
+        s += P(parts[-1], PAINT["yellow"], t)
+    if name == "sun":
+        s += f'<g{t}>' + C(-22, -12, 7, EYE) + C(22, -12, 7, EYE) + stroke("M-17,25 Q0,40 17,25", EYE, 6) + "</g>"
+    if name == "bird":
+        s += f'<g{t}>' + C(-60, -36, 7, EYE) + "</g>"
+    if name == "cloud":
+        s += f'<g{t}>' + C(-24, 4, 6, EYE) + C(24, 4, 6, EYE) + "</g>"
+    return s
+
+
+def stamp_body(name, cx, cy, sc=1.0):
+    """A wooden stamp round (cx, cy) (240 frame at sc 1): the knob, the block with its picture, the rubber under it."""
+    _, col = STAMP[name]
+
+    def X(v):
+        return cx + (v - 120) * sc
+
+    def Y(v):
+        return cy + (v - 120) * sc
+    s = P(wr(X(104), Y(60), 32 * sc, 44 * sc, 8 * sc, 1, 7), WALNUT_D)                                # the neck
+    s += C(X(120), Y(52), 34 * sc, WALNUT) + C(X(110), Y(42), 12 * sc, WALNUT_L, ' opacity="0.8"')     # the knob
+    s += P(wr(X(20), Y(96), 200 * sc, 128 * sc, 14 * sc, 1.2, 9), WOOD)                                 # the block
+    s += P(wr(X(30), Y(104), 180 * sc, 102 * sc, 10 * sc, 1, 10), CREAM)                                # its label
+    s += P(wr(X(26), Y(214), 188 * sc, 16 * sc, 6 * sc, 1, 8), mix(col, "#000000", .3))                 # the rubber under it
+    s += stamp_face(name, X(120), Y(155), .48 * sc)
+    return s
+
+
+def art_stamp(name):
+    p = f"ast{name[:2]}-"
+    return doc(p, 240, 240, G(stamp_body(name, 120, 120), p + "cut"), "smooth", seed=470 + len(name), sh=(4, 3.5, .3), cut={"rim": 2.6, "rough": 3.5})
+
+
+def pick_stamps():
+    p = "apx-"
+    s = card_base(p)
+    # two prints on the paper, a dashed outline waiting, the stamp coming down on it
+    s += G(stamp_face("sun", 84, 206, .48) + stamp_face("flower", 160, 226, .4), p + "sh")
+    s += G('<g transform="translate(226 226) scale(.4)">' + stroke(STAMP["bird"][0][0], "#A8967A", 10, ' stroke-dasharray="18 12"')
+           + stroke(STAMP["bird"][0][1], "#A8967A", 10, ' stroke-dasharray="18 12"') + "</g>", p + "sh")
+    s += G(stamp_body("bird", 214, 98, .6), p + "sh")
+    s += G(stroke("M214,176 L214,190", INK, 5, ' opacity="0.5"') + stroke("M188,172 L180,184", INK, 5, ' opacity="0.5"')
+           + stroke("M240,172 L248,184", INK, 5, ' opacity="0.5"'), p + "sh")
+    return doc(p, 300, 300, s, "rough", seed=425, cut={"rim": 3, "rough": 6, "freq": .12})
+
+
 ITEMS = {
     "card-art": card_art, "art-easel": art_easel, "photo-frame-art": photo_frame_art,
     "art-pick-trace": pick_trace, "art-pick-dots": pick_dots, "art-pick-colour": pick_colour,
-    "art-pick-mirror": pick_mirror, "art-pick-steam": pick_steam,
+    "art-pick-mirror": pick_mirror, "art-pick-steam": pick_steam, "art-pick-stamps": pick_stamps,
     "art-window-view": art_window_view, "art-window-frame": art_window_frame,
     "art-find-sun": find_sun, "art-find-bird": find_bird, "art-find-cat": find_cat, "art-find-rainbow": find_rainbow,
 }
 for _c in list(PAINT) + ["rainbow"]:
     ITEMS[f"art-pot-{_c}"] = (lambda c: (lambda: art_pot(c)))(_c)
+for _s in STAMP:
+    ITEMS[f"art-stamp-{_s}"] = (lambda c: (lambda: art_stamp(c)))(_s)
 
 
 def save(name, s):
