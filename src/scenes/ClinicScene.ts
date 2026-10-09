@@ -13,6 +13,7 @@ import { Character } from '../steps/Character';
 import type { CharacterDef } from '../recipes/types';
 import type { Spot } from '../core/stage';
 import { MiniGame, type P } from './MiniGame';
+import { ClinicCare, type CareHost } from './ClinicCare';
 
 const T = TUNING.clinic;
 const C = ART.clinic;
@@ -61,7 +62,7 @@ const PLACE: Partial<Record<What, P>> = { knee: C.knee, paw: C.paw, eye: C.eye, 
 const PLACES: readonly What[] = ['mouth', 'forehead', 'nose', 'tummy', 'knee', 'paw', 'eye', 'ear', 'skin'];
 
 /** A patient: the layered character (Character.ts) with her own voice's pitch and things drawn on her. */
-class PatientView extends Character {
+export class PatientView extends Character {
   constructor(scene: Phaser.Scene, def: CharacterDef, spot: Spot, rate: number) {
     super(scene, def, spot, spot);
     this.voiceRate = rate;
@@ -82,6 +83,13 @@ class PatientView extends Character {
   }
   get rate() {
     return this.voiceRate;
+  }
+  /** A nap in the rest room: eyes shut, mouth closed (and awake again, happy). */
+  doze(on: boolean) {
+    if (!on) return this.setMood('happy');
+    this.setMood('rest');
+    this.eyes.setTexture(this.def.eyesBlink);
+    this.mouth.setTexture(this.def.mouthClosed);
   }
 }
 
@@ -181,11 +189,14 @@ export class ClinicScene extends MiniGame {
   protected readonly song = 'clinic' as const;
   protected readonly momOutfit = 'nurse' as const;
   protected readonly homeScene = 'Title' as const;
-  protected readonly waiting = ['pick', 'problem', 'tool', 'sticker'] as const;
+  protected readonly waiting = ['pick', 'problem', 'tool', 'care', 'sticker'] as const;
   private visit: Visitor[] = [];
   private cur: Visitor | null = null;
   private waitRoom: Phaser.GameObjects.GameObject[] = [];
   private treatRoom: Phaser.GameObjects.GameObject[] = [];
+  /** The care room next door (round 5, part 2): its pictures (they slide in) and what runs it. */
+  private careRoom: Phaser.GameObjects.GameObject[] = [];
+  private care: ClinicCare | null = null;
   private room!: { x0: number; x1: number; bedX: number; seatY: number; bedScale: number; ps: number; toolS: number; zoom: { at: P; s: number } };
   private tools: Tool[] = [];
   private steps: Station[] = [];
@@ -219,6 +230,8 @@ export class ClinicScene extends MiniGame {
     this.cur = null;
     this.waitRoom = [];
     this.treatRoom = [];
+    this.careRoom = [];
+    this.care = null;
     this.tools = [];
     this.steps = [];
     this.doneSt = [];
@@ -596,7 +609,7 @@ export class ClinicScene extends MiniGame {
         this.tweens.add({ targets: pl, alpha: 1, duration: 400, delay: 300 });
       }
     }
-    if (v.fixed.every(Boolean)) return this.time.delayedCall(350, () => this.better());
+    if (v.fixed.every(Boolean)) return this.time.delayedCall(350, () => this.startCare(v));
     this.time.delayedCall(400, () => {
       if (this.leaving || this.cur !== v) return;
       sfx(this, 'sparkle', { minGapMs: 0 });
@@ -1718,6 +1731,103 @@ export class ClinicScene extends MiniGame {
 
   // ---------------------------------------------------------------- all better, a sticker, back to the bench
 
+  // ---------------------------------------------------------------- next door: the care room (round 5, part 2)
+
+  /** Her problems are fixed: a little cheer, "Now, let's go next door!", and the screen slides to her own care room. */
+  private startCare(v: Visitor) {
+    if (this.leaving || this.cur !== v) return;
+    const k = this.L.k;
+    this.setPhase('intro');
+    for (const t of this.things) if (!t.zoom && t.img.active) this.tweens.add({ targets: t.img, alpha: 0, duration: 400 });
+    sfx(this, 'sparkle', { minGapMs: 0 });
+    const head = v.view.at({ x: 300, y: 200 });
+    stars(this, head.x, head.y, 8, 44 * k);
+    v.view.react('love');
+    this.mom?.happy();
+    let gone = false;
+    const go = () => {
+      if (gone || this.leaving || this.cur !== v) return;
+      gone = true;
+      this.slideTo(v);
+    };
+    this.time.delayedCall(700, () => this.say('vo-care-go', { ttlMs: 4000, done: () => this.time.delayedCall(150, go) }));
+    this.time.delayedCall(4200, go);
+  }
+
+  /** What the care room borrows from the scene. */
+  private careHost(v: Visitor): CareHost {
+    const self = this;
+    const r = this.room;
+    return {
+      scene: this,
+      L: this.L,
+      S: this.S,
+      level: this.level,
+      area: { x0: r.x0, x1: r.x1, zoom: r.zoom },
+      patient: v.p,
+      view: v.view,
+      as: v.as,
+      hand: this.hand,
+      shown: this.shown,
+      say: (key, opts) => self.say(key, opts),
+      begin: (p, line) => self.begin(p, line),
+      setPhase: (p) => self.setPhase(p),
+      phase: () => self.phase,
+      poke: () => self.poke(),
+      miss: () => self.miss(),
+      hintNow: () => self.hintNow(),
+      helped: () => self.helped(),
+      own: (p) => self.own(p),
+      mom: () => self.mom,
+      done: () => !self.leaving && self.cur === v && self.better(),
+    };
+  }
+
+  /**
+   * The slide next door, like "Doctor Games for kids": the treatment room moves out to the left, the care room comes in
+   * from the right (`TUNING.care.slideMs`), and the patient goes along to her place in it.
+   */
+  private slideTo(v: Visitor) {
+    const L = this.L;
+    const ms = TUNING.care.slideMs;
+    this.closeZoom();
+    this.clearTray();
+    const care = new ClinicCare(this.careHost(v));
+    this.care = care;
+    this.careRoom = care.build(L.W);
+    sfx(this, 'whoosh', { volume: 0.6 });
+    const moving = [...this.treatRoom, ...this.careRoom].filter((o) => (o as Phaser.GameObjects.Image).active);
+    this.tweens.add({ targets: moving, x: `-=${L.W}`, duration: ms, ease: 'Sine.easeInOut' });
+    v.view.moveTo(care.spot, ms);
+    this.shown.room = 'slide';
+    this.time.delayedCall(ms + 30, () => {
+      if (this.leaving || this.cur !== v || this.care !== care) return;
+      for (const o of this.treatRoom) {
+        const im = o as Phaser.GameObjects.Image;
+        this.tweens.killTweensOf(im);
+        im.setVisible(false).setX(im.x + L.W);
+      }
+      for (const o of this.careRoom) this.tweens.killTweensOf(o);
+      this.shown.room = 'care';
+      care.start();
+    });
+  }
+
+  /** Back to the waiting room (a door): the care room goes at once, the treatment room is back in its place. */
+  private leaveCare() {
+    if (!this.care) return;
+    this.care.destroy();
+    this.care = null;
+    this.careRoom = [];
+    const W = this.L.W;
+    for (const o of this.treatRoom) {
+      const im = o as Phaser.GameObjects.Image;
+      this.tweens.killTweensOf(im);
+      // (where it slid out from: the backdrop at the middle, the bed at its own x)
+      if (im.x < 0) im.setX(im.x + W);
+    }
+  }
+
   private better() {
     const v = this.cur!;
     const L = this.L;
@@ -1859,6 +1969,7 @@ export class ClinicScene extends MiniGame {
     this.shown.treated = (this.shown.treated as number) + 1;
     this.through(() => {
       this.cur = null;
+      this.leaveCare();
       for (const z of this.zooms.values()) z.box.destroy();
       this.zooms = new Map();
       this.zoom = null;
@@ -2025,6 +2136,8 @@ export class ClinicScene extends MiniGame {
   protected way(): HandMotion | null {
     const k = this.L.k;
     switch (this.phase) {
+      case 'care':
+        return this.care?.way() ?? null;
       case 'pick': {
         const v = this.visit.find((q) => !q.done);
         return v ? tapMotion(v.view.at({ x: 300, y: 420 }), k) : null;
@@ -2061,6 +2174,8 @@ export class ClinicScene extends MiniGame {
   protected helpOnce() {
     const k = this.L.k;
     switch (this.phase) {
+      case 'care':
+        return this.care?.help() ?? false;
       case 'pick': {
         const v = this.visit.find((q) => !q.done);
         if (!v) return false;
@@ -2190,6 +2305,8 @@ export class ClinicScene extends MiniGame {
   protected down(p: Phaser.Input.Pointer, at: P) {
     const k = this.L.k;
     switch (this.phase) {
+      case 'care':
+        return this.care?.down(p, at);
       case 'pick': {
         const v = this.visit.find((q) => !q.done && this.hitPatient(q, at));
         if (v) return this.callIn(v);
@@ -2262,6 +2379,7 @@ export class ClinicScene extends MiniGame {
   }
 
   protected move(p: Phaser.Input.Pointer) {
+    if (this.care?.holding) return this.care.move(p);
     const h = this.held;
     if (!h) return;
     const L = this.L;
@@ -2276,6 +2394,7 @@ export class ClinicScene extends MiniGame {
   }
 
   protected tick(delta: number) {
+    this.care?.tick(delta);
     const h = this.held;
     if (!h || this.phase !== 'tool') return;
     const st = this.station;
@@ -2284,6 +2403,7 @@ export class ClinicScene extends MiniGame {
   }
 
   protected up(_p: Phaser.Input.Pointer, cancelled: boolean) {
+    if (this.care?.holding) return this.care.up(_p, cancelled);
     const h = this.held;
     this.held = null;
     if (!h) return;
@@ -2331,6 +2451,8 @@ export class ClinicScene extends MiniGame {
   }
 
   protected lookTarget() {
+    const c = this.care?.look();
+    if (c) return c;
     if (this.held) return { x: this.held.tool.img.x, y: this.held.tool.img.y };
     return null;
   }

@@ -339,6 +339,11 @@
   "w": 2400,
   "h": 1080
  },
+ "bg-clinic-care": {
+  "sha1": "da0d09f49f630c89e6b9ae6b309b882b75a200fc",
+  "w": 2400,
+  "h": 1080
+ },
  "bg-clinic-wait": {
   "sha1": "93d719accc35482386c95dde413485a6b4900995",
   "w": 2400,
@@ -578,6 +583,151 @@
   "sha1": "954989be41d633cc2268611053cadd8c6e848a8f",
   "w": 400,
   "h": 520
+ },
+ "care-apple": {
+  "sha1": "330b328ef36571b28ed5d8a4cef4fea1523106dc",
+  "w": 160,
+  "h": 160
+ },
+ "care-banana": {
+  "sha1": "ed890655150edfa35f488768df82cbae2f69377c",
+  "w": 160,
+  "h": 160
+ },
+ "care-bed-back": {
+  "sha1": "187d46c96a2606d6e9ca8536371db73e1af13c32",
+  "w": 1000,
+  "h": 560
+ },
+ "care-bed-front": {
+  "sha1": "1ffa56bf95c5d879755bc3884b770d2d766b3451",
+  "w": 1000,
+  "h": 560
+ },
+ "care-berry": {
+  "sha1": "c4e2b3d7aaf3869158adf557bd05424ae377bfa5",
+  "w": 160,
+  "h": 160
+ },
+ "care-blanket": {
+  "sha1": "da0aab9121a3e585145f2887b07e1fc5b93cb023",
+  "w": 720,
+  "h": 340
+ },
+ "care-bottle-back": {
+  "sha1": "d7917c455790c579da1b87d2ab11d0a7f5753d9e",
+  "w": 260,
+  "h": 380
+ },
+ "care-bottle-fill": {
+  "sha1": "8ab9a6816acb0a6d97165235b56cb8e5092b2036",
+  "w": 260,
+  "h": 380
+ },
+ "care-bottle-front": {
+  "sha1": "3d27bcd243d5bb7f551019531a4b3fc3eee79887",
+  "w": 260,
+  "h": 380
+ },
+ "care-chart": {
+  "sha1": "01accfd1962589b9f1c4286b6d639caf221811c4",
+  "w": 520,
+  "h": 640
+ },
+ "care-duck": {
+  "sha1": "1628ab0607d59470a050435d0fe966933e60c095",
+  "w": 140,
+  "h": 120
+ },
+ "care-glasses": {
+  "sha1": "9f7148c39850f540092e86157d779085ddd1f0fd",
+  "w": 240,
+  "h": 120
+ },
+ "care-heart": {
+  "sha1": "1c9c1d34f0f80052e83d1b2227ec72f0e66d7167",
+  "w": 204,
+  "h": 204
+ },
+ "care-jar-banana": {
+  "sha1": "545f9d9eaa7592bb0d164d4477bdb147e4bec5b0",
+  "w": 240,
+  "h": 240
+ },
+ "care-jar-blueberry": {
+  "sha1": "223e86de49b35bb822f11732d6e57e72e7f66c41",
+  "w": 240,
+  "h": 240
+ },
+ "care-jar-strawberry": {
+  "sha1": "5c8df9013dcf738dc6d3e19f7d6159d8810b5c4f",
+  "w": 240,
+  "h": 240
+ },
+ "care-lamp-off": {
+  "sha1": "b95523b49dae9b14ab6c91afed42b87b507b7e3d",
+  "w": 240,
+  "h": 380
+ },
+ "care-lamp-on": {
+  "sha1": "eb3c7c608d53a67217605332228fbe478ed8f3e8",
+  "w": 240,
+  "h": 380
+ },
+ "care-paste": {
+  "sha1": "41b928da07bc425ecc77b8ceb597212d89647bd6",
+  "w": 240,
+  "h": 240
+ },
+ "care-shape-circle": {
+  "sha1": "fdbe2dfa216ab2024fb4123dfa3e533365de169d",
+  "w": 200,
+  "h": 200
+ },
+ "care-shape-heart": {
+  "sha1": "17a5084aba6877da1b60fa174bf865510b96deb3",
+  "w": 200,
+  "h": 200
+ },
+ "care-shape-house": {
+  "sha1": "6ae5adb0f0f96209ed0dc99c6cfea056fb563951",
+  "w": 200,
+  "h": 200
+ },
+ "care-shape-moon": {
+  "sha1": "27fe1903ce3189f9c047baf25114b529a5c20a66",
+  "w": 200,
+  "h": 200
+ },
+ "care-shape-star": {
+  "sha1": "d4b8fe42a03f4ae6d8385e3724bc0e5e952c2af8",
+  "w": 200,
+  "h": 200
+ },
+ "care-shape-triangle": {
+  "sha1": "e0d8bc3dcd9d3dcc106e69c2b6861ba2da31047f",
+  "w": 200,
+  "h": 200
+ },
+ "care-towel-head": {
+  "sha1": "09dff7a7df93420cc32401847628d7f64ae17d6f",
+  "w": 320,
+  "h": 200
+ },
+ "care-tub-back": {
+  "sha1": "1f98705565b03b909f63b5101a32cd9f97ea5340",
+  "w": 1000,
+  "h": 520
+ },
+ "care-tub-front": {
+  "sha1": "5c082de316cd9bf18ef48a6d10cc7d0df107ef94",
+  "w": 1000,
+  "h": 520
+ },
+ "care-wrap": {
+  "sha1": "aa1d90a7b29f4e57b5aa071d0ea0aa6cbde0832a",
+  "w": 612,
+  "h": 187
  },
  "character-body": {
   "sha1": "c9653d3984497c5b8074e9af01539ebe3b934b43",
@@ -3399,6 +3549,21 @@
   "w": 240,
   "h": 240
  },
+ "tool-polisher": {
+  "sha1": "e092dde134a2f3e5ea09b1829440d9edd76dc018",
+  "w": 240,
+  "h": 240
+ },
+ "tool-roll": {
+  "sha1": "534edbcc4d1ab88cabe7e97f79b639bc034e2bb9",
+  "w": 240,
+  "h": 240
+ },
+ "tool-shower": {
+  "sha1": "f25e1eb9a8643c3e88ae009d49e40d3cd00ab277",
+  "w": 240,
+  "h": 240
+ },
  "tool-sponge": {
   "sha1": "f155e0fb0765ebe47106fdada0e77419765c0b57",
   "w": 240,
@@ -3436,6 +3601,11 @@
  },
  "tool-toothbrush": {
   "sha1": "c122a50190af74b0c39ad795f12bc056daa03734",
+  "w": 240,
+  "h": 240
+ },
+ "tool-towel": {
+  "sha1": "d6bf3c03dad12c114702002f2e67999ba019d3f0",
   "w": 240,
   "h": 240
  },

@@ -233,7 +233,8 @@ src/scenes/
   MiniGame                 the frame the market and washing up share: home button, Mom, Pipa, demo / hint / help, one finger
   MarketScene / DishesScene  the market (shopping from a list) and washing up (scrub, rack by colour)
   ArtScene                 the art corner: the easel wall and five ways to draw (trace, dots, colour, mirror, steam)
-  ClinicScene              the clinic, the second world (waiting room, 8 animals and 8 children, each with her own first problem and a second one, stations of small targets in big close-ups, stickers, photo; 16 ailments)
+  ClinicScene              the clinic, the second world (waiting room, 8 animals and 8 children, each with her own first problem and a second one, stations of small targets in big close-ups, then her own care room next door, stickers, photo; 16 ailments)
+  ClinicCare               the six care rooms the clinic slides to after a patient's problems (data in core/care.ts)
 ```
 
 ## Recipes are data
@@ -673,7 +674,38 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the farm, the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; the clinic round 5 (part 2, the care rooms), the farm, the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 000000000000000000000000000000000. The clinic, round 5, part 2 (the care rooms next door)
+The owner: "another treatment for every patient, like in the original, so that you move to another screen". Spec:
+`/mnt/project-files/research/clinic-spec-5.md` section 4. Branch `claude/clinic-5-care-rooms-0a3236`.
+- **The slide:** after her last problem (`problemDone` -> `startCare`): stars, "Now, let's go next door!", and the screen
+  slides sideways (`slideTo`, `TUNING.care.slideMs` 520): the treatment room's pictures move out left, the care room's
+  (`careRoom`, built at +W) come in from the right, the patient walks along to her place in it. Then the room's parts; at
+  its end `better()` as before (All better, dance, sticker, back to the bench: a door, `leaveCare` drops the room).
+- **Six rooms** (`core/care.ts` data, `scenes/ClinicCare.ts` runs them; `Patient.care` decides, never random): medicine
+  (tap a flavour jar, it pours into the bottle; shake it by tapping it; a spoonful to her mouth, hard: two, and the flavour
+  Mom names), bath (the sponge makes foam on her; hard: find the duck under the bubbles; the shower rinses the foam; the
+  towel rubs her head dry, it stays as a turban until the room ends), bandage (the roll goes round the close-up of where
+  she was hurt, `bandageView`; hard: more turns and only clockwise along the arrows; a heart sticker on top), polish (pick
+  a toothpaste colour; the polisher shines each tooth in the mouth close-up, 4 / all 8; rinse cup), eyes (the chart: find
+  the card of the shape glowing on the chart, three rounds; hard: four cards and the same shape at another size, the
+  size must match too; pick new glasses, they stay on), rest (pull
+  the blanket up, tap the lamp off, she naps, morning; a snack to her mouth, hard: two in the order of her wish bubble).
+- **Hard only, on entering:** "Do you remember what was wrong?": two ailment cards, hers and another; the other wiggles
+  (a miss), hers: "Yes, that's right!".
+- **The frame:** ClinicScene lends the room a `CareHost` (layout, patient, Mom's voice and hand, MiniGame's begin /
+  poke / miss / hintNow / helped / own) and delegates phase `care` (`way`, `helpOnce`, `down`, `move` / `up` while it
+  holds, `tick`, `lookTarget`). Every part has Mom's demo the first visit, the hint after 8 s, help 20 s later (one piece);
+  easy: the thing to use glows and hops. A tool may be taken from the tray or by touching her (it jumps to the finger).
+  `PatientView` is exported and gained `doze(on)`.
+- **Art:** `gen_clinic5.py` part B (34 SVGs: `bg-clinic-care`, `care-*`, `tool-shower/-towel/-roll/-polisher`; anchors
+  printed at the end = `ART.clinic.care` and the four tips). **Sound:** 23 `vo-care-*` lines and name-blueberry / -moon /
+  -triangle (`make_vo.py mom-a`), shake / splash / wrap (`make_clinic_sfx.py`); not heard by a human. `care-tongue` is PR 3's.
+- **Harness:** `__clinicPlay` plays phase `care` from `m.care.plan()` (tap, drag, rub, hold, twirl; a tool's `at` is its
+  working point). `shown.care` / `careTask` name the room and part.
+- **Needs a real child:** is the slide clear ("next door")? Shaking by tapping; the bandage's circles (hard: clockwise
+  only); does she find the duck; is the nap too long (`napMs`); is a visit with three rooms too long (then
+  `TUNING.clinic.problems` [1, 1] on easy).
 ### 00000000000000000000000000000000. The farm (caring for farm animals, in the cooking world)
 The owner: "another mini-game of caring for farm animals: feeding a horse, milking a cow, shearing a sheep; check for a
 good one online and take ideas from it; in the cooking-with-Mom area". Research and spec: `/mnt/project-files/research/farm-spec.md`
