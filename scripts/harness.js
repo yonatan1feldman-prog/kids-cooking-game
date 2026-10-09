@@ -1464,29 +1464,35 @@ window.__artPlay = async (kind, opts = {}) => {
   const a = game.scene.getScene('Art');
   if (!opts.started) {
     for (let i = 0; i < 60 && !(a.shown.phase === 'pick' && a.cardOf(kind)); i++) await __run(300);
-    localStorage.setItem('cooking.runs.art-' + kind, '3');
+    // (`visit`: which visit this is, so which picture comes: the visits go round the kind's pictures)
+    localStorage.setItem('cooking.runs.art-' + kind, String(opts.visit ?? 3));
     if (opts.first) localStorage.removeItem('cooking.runs.art-' + kind);
     const c = a.cardOf(kind);
     __tap(c.x, c.y);
     await __run(1500);
   }
-  const log = []; let drawn = false; let pic = null; let alive = false;
+  const log = []; let drawn = false; let pic = null; let alive = false; let missed = 0;
+  a.__wrongN = 0;
   for (let i = 0; i < 3000; i++) {
     const ph = a.shown.phase;
-    if (ph === 'draw') { drawn = true; pic = a.shown.pic; }
+    if (ph === 'draw') { drawn = true; pic = a.shown.pic; missed = a.shown.missed; }
     if (ph === 'alive' && !alive) { alive = true; if (opts.onAlive) { await __run(opts.aliveAt ?? 600); await opts.onAlive(a); } }
     if (drawn && ph === 'pick') break;
     if (!game.scene.isActive('Art')) break;
     if (ph !== 'draw' || opts.none || a.helping) { await __run(400); continue; }
     if (opts.demoWait && a.hand && a.hand.active) { await __run(300); continue; }
-    const pl = a.plan();
+    // (`wrong`: the child's mistakes first, where the picture has one: three strokes against the arrows (trace, hard), a
+    // wrong dot (dots, hard), another shape's outline (stamps, easy), a stamp off Mom's pattern (stamps, hard))
+    const wrongs = kind === 'trace' ? 3 : 1;
+    const pl = a.plan(!!opts.wrong && (a.__wrongN ?? 0) < wrongs);
     if (!pl) { await __run(400); continue; }
+    if (pl.wrong) { a.__wrongN = (a.__wrongN ?? 0) + 1; log.push('wrong'); }
     if (pl.tap) { __tap(pl.tap.x, pl.tap.y); log.push('t'); }
     else if (pl.drag) { await __drag(pl.drag.map((q) => [q.x, q.y])); log.push('d'); }
     await __run(opts.gap ?? 700);
     if (opts.onGesture) await opts.onGesture(log.length, a);
   }
-  return { kind, pic, gestures: log.length, back: a.shown.phase === 'pick' };
+  return { kind, pic, gestures: log.length, wrongs: a.__wrongN, missed, back: a.shown.phase === 'pick' };
 };
 window.__artVerify = async (kind, level, opts = {}) => {
   for (let i = 0; i < 60 && !__voice.allLoaded; i++) await new Promise((r) => setTimeout(r, 250));

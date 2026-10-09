@@ -3,8 +3,9 @@ import { keepPhoto } from '../core/album';
 import { ART, FX_SOFT } from '../core/assets';
 import { setWallDrawing } from '../core/artWall';
 import {
-  BUTTERFLY_BODY, BUTTERFLY_FEELERS, BUTTERFLY_LEFT, COLOUR, DOTS, HIDDEN, INK_CSS, PAINT, PLATE, POTS, RAINBOW, SHEET_H, SHEET_W, TRACE,
-  lengthOf, resample, type Alive, type ColourPic, type DotsPic, type Hidden, type Paint, type Pt, type TracePic,
+  BUTTERFLY_FEELERS, COLOUR, DOTS, INK_CSS, MIRROR, PAINT, POTS, RAINBOW, SHEET_H, SHEET_W, STAMP, STAMP_CARD, STAMP_PATTERNS, STAMP_ROW,
+  STAMP_SCENES, STAMPS, STEAM, TRACE, lengthOf, resample, type Alive, type ColourPic, type DotsPic, type Hidden, type MirrorPic, type Paint,
+  type Pt, type StampId, type StampSlot, type TracePic,
 } from '../core/artPictures';
 import { countKey, music, voice, type NameKey, type Song, type VoiceKey } from '../core/audio';
 import { boing, burst, stars } from '../core/fx';
@@ -19,8 +20,8 @@ import { MiniGame, visits, type P } from './MiniGame';
 const T = TUNING.art;
 /** The longest a finished picture may take to come alive and go back to the easel wall (normally about 6-9 s). */
 const ALIVE_MAX_MS = 16000;
-export type Kind = 'trace' | 'dots' | 'colour' | 'mirror' | 'steam';
-const KINDS: Kind[] = ['trace', 'dots', 'colour', 'mirror', 'steam'];
+export type Kind = 'trace' | 'dots' | 'colour' | 'mirror' | 'steam' | 'stamps';
+const KINDS: Kind[] = ['trace', 'dots', 'colour', 'mirror', 'steam', 'stamps'];
 type Brush = Paint | 'rainbow';
 /** A rising scale for the notes she hears as she goes (semitones over C: two octaves of the major scale). */
 const SCALE = [0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23, 24];
@@ -34,16 +35,17 @@ function segDist(p: Pt, a: Pt, b: Pt) {
 }
 const note = (i: number) => Math.pow(2, SCALE[Math.min(SCALE.length - 1, i % SCALE.length)] / 12) * 0.75;
 
-/** Her last colour (the next picture starts with it) and the picture decks (each picture once before any repeats). */
+/** Her last colour (the next picture starts with it). */
 let lastBrush: Brush = 'red';
-const decks = new Map<string, number[]>();
-function fromDeck<X>(key: string, list: readonly X[]): X {
-  let d = decks.get(key);
-  if (!d || !d.length) {
-    d = Phaser.Utils.Array.Shuffle(list.map((_, i) => i));
-    decks.set(key, d);
-  }
-  return list[d.shift()!];
+/** The picture of this visit: the visits go round the kind's pictures (cooking.runs.art-<kind>), so a fifth visit is new. */
+const byVisit = <X>(list: readonly X[], run: number): X => list[((run % list.length) + list.length) % list.length];
+/** The direction of a polyline at its point i (a unit vector, the way its points go). */
+function tangent(pts: Pt[], i: number, closed: boolean): Pt {
+  const n = pts.length;
+  const a = pts[closed ? (i - 1 + n) % n : Math.max(0, i - 1)];
+  const b = pts[closed ? (i + 1) % n : Math.min(n - 1, i + 1)];
+  const l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+  return [(b[0] - a[0]) / l, (b[1] - a[1]) / l];
 }
 
 interface Layer {
@@ -69,6 +71,17 @@ interface DotView {
   box: Phaser.GameObjects.Container;
   joined: boolean;
 }
+interface StampView {
+  id: StampId;
+  img: Phaser.GameObjects.Image;
+  x: number;
+  y: number;
+}
+interface SlotView {
+  slot: StampSlot;
+  /** What was stamped on it (null: still empty). */
+  got: StampId | null;
+}
 interface AreaView {
   path: Path2D;
   mom: Paint;
@@ -80,7 +93,7 @@ interface AreaView {
 }
 
 /**
- * The art corner (research/drawing-stages-spec.md): an easel wall with five picture cards, one per kind of drawing.
+ * The art corner (research/drawing-stages-spec.md): an easel wall with six picture cards, one per kind of drawing.
  * A tap picks one; the picture is drawn, comes alive, goes into the memory book and onto the kitchen cabinet, and then
  * it is the easel wall again (the game never starts the next one by itself; the home button goes home).
  * - trace: a dotted outline; ink near it glows and lights its checkpoints (any order, any direction, any strokes).
@@ -88,6 +101,10 @@ interface AreaView {
  * - colour: pick a pot, tap an area and the paint spreads inside it; level 2 copies Mom's little picture.
  * - mirror: free drawing on a butterfly (level 2 a party plate, both ways), every stroke mirrored at once.
  * - steam: wipe the fogged window to find what is outside; level 2 Mom asks for one thing at a time, the fog creeps back.
+ * - stamps: pick a stamp, tap the sheet: it lands on the nearest outline of its shape; level 2 a row of six circles to
+ *   stamp with Mom's pattern (her card on the sheet; a stamp off it stays, her card's one hops: "What comes next?").
+ * Challenge round: each kind has more pictures and the visits go round them (cooking.runs.art-<kind>); level 2 trace
+ * follows its arrows from a green start dot, level 2 dots are found by ear ("Find... four!").
  * Nothing is ever wrong: a stroke off the line still draws, a wrong dot only wiggles, a wrong colour stays.
  */
 export class ArtScene extends MiniGame {
@@ -115,15 +132,20 @@ export class ArtScene extends MiniGame {
   private restarting = false;
   private dotsLast: P | null = null;
   // trace
-  private trace?: { pic: TracePic; dense: Pt[][]; cps: Checkpoint[]; band: number; base: Layer; ink: Layer };
+  // (level 2, `dir`: each part is traced the arrows' way from its green start dot; `front` its next checkpoint to light,
+  // `wrongRun` the wrong-way strokes in a row, `told` "Follow the arrows!" said)
+  private trace?: { pic: TracePic; dense: Pt[][]; cps: Checkpoint[]; band: number; base: Layer; ink: Layer; dir: boolean; front: number[]; wrongRun: number; told: boolean };
   // dots
-  private dots?: { pic: DotsPic; views: DotView[]; cur: number; next: number; misses: number; glow: Phaser.GameObjects.Image; live: Phaser.GameObjects.Graphics; ink: Layer; base: Layer };
+  private dots?: { pic: DotsPic; views: DotView[]; cur: number; next: number; misses: number; asked: number; glow: Phaser.GameObjects.Image; live: Phaser.GameObjects.Graphics; ink: Layer; base: Layer };
   // colour
   private colour?: { pic: ColourPic; areas: AreaView[]; fill: Layer; lines: Layer; anim: { i: number; to: Paint; at: Pt; t: number } | null; model?: Phaser.GameObjects.Image };
   // mirror
-  private mirror?: { plate: boolean; clip: Path2D; inside: number; base: Layer; ink: Layer; top: Layer; shown: boolean };
+  private mirror?: { pic: MirrorPic; plate: boolean; clip: Path2D; inside: number; base: Layer; ink: Layer; top: Layer; shown: boolean };
   // steam
-  private steam?: { fog: Layer; things: { h: Hidden; img: Phaser.GameObjects.Image; found: boolean }[]; level: Float32Array; at: Float64Array; targets: Hidden[]; target: number; refog: number; clear: boolean };
+  private steam?: { flip: boolean; fog: Layer; things: { h: Hidden; img: Phaser.GameObjects.Image; found: boolean }[]; level: Float32Array; at: Float64Array; targets: Hidden[]; target: number; refog: number; clear: boolean };
+
+  // stamps: the four stamps in the pot column, the outlines on the sheet; level 2 Mom's pattern (her card on the sheet)
+  private stamps?: { stamps: StampView[]; sel: StampId; slots: SlotView[]; pattern: StampId[] | null; base: Layer; ink: Layer; ring: Phaser.GameObjects.Image; card: Phaser.GameObjects.Image[]; busy: boolean; misses: number };
 
   constructor() {
     super('Art');
@@ -141,7 +163,7 @@ export class ArtScene extends MiniGame {
     this.potRing = undefined;
     this.finished = this.restarting = false;
     this.aliveFor = this.checkIn = 0;
-    this.trace = this.dots = this.colour = this.mirror = this.steam = undefined;
+    this.trace = this.dots = this.colour = this.mirror = this.steam = this.stamps = undefined;
     Object.assign(this.shown, { kind: null, pic: null, progress: 0, strokes: 0 });
   }
 
@@ -175,7 +197,7 @@ export class ArtScene extends MiniGame {
 
   // ---------------------------------------------------------------- the easel wall (the five cards)
 
-  /** Where the five cards sit: three on top, two below, right of the home button, left of Mom's face, Pipa and her hand. */
+  /** Where the six cards sit: three on top, three below, right of the home button, left of Mom's face, Pipa and her hand. */
   private cardSpots() {
     const L = this.L;
     const S = this.S;
@@ -191,7 +213,8 @@ export class ArtScene extends MiniGame {
     const scale = Math.min(1.25 * k, (w - 30 * k) / 300, (h - 30 * k) / 300);
     return KINDS.map((_, i) => {
       const row = i < 3 ? 0 : 1;
-      const col = row === 0 ? i : i - 3 + 0.5;
+      // (three and three; an odd last row would sit in the gaps)
+      const col = row === 0 ? i : i - 3 + (6 - KINDS.length) / 2;
       return { x: x0 + w * (col + 0.5), y: y0 + h * (row + 0.5), scale };
     });
   }
@@ -225,18 +248,22 @@ export class ArtScene extends MiniGame {
   private start(kind: Kind) {
     this.kind = kind;
     this.shown.kind = kind;
-    this.first = visits(`art-${kind}`) === 0;
+    const run = visits(`art-${kind}`);
+    this.first = run === 0;
     this.layout(kind);
-    if (kind !== 'steam') this.makePots(kind);
+    if (kind !== 'steam' && kind !== 'stamps') this.makePots(kind);
     const lvl = this.level - 1;
     let line: VoiceKey = 'vo-trace';
-    if (kind === 'trace') this.startTrace(fromDeck(`trace${lvl}`, TRACE[lvl]));
-    if (kind === 'dots') (this.startDots(fromDeck(`dots${lvl}`, DOTS[lvl])), (line = 'vo-dots'));
-    if (kind === 'colour') (this.startColour(fromDeck(`colour${lvl}`, COLOUR[lvl])), (line = this.level === 2 ? 'vo-colour-copy' : 'vo-colour'));
-    if (kind === 'mirror') (this.startMirror(), (line = 'vo-mirror'));
-    if (kind === 'steam') (this.startSteam(), (line = 'vo-steam'));
+    if (kind === 'trace') this.startTrace(byVisit(TRACE[lvl], run));
+    if (kind === 'dots') (this.startDots(byVisit(DOTS[lvl], run)), (line = 'vo-dots'));
+    if (kind === 'colour') (this.startColour(byVisit(COLOUR[lvl], run)), (line = this.level === 2 ? 'vo-colour-copy' : 'vo-colour'));
+    if (kind === 'mirror') (this.startMirror(byVisit(MIRROR[lvl], run)), (line = 'vo-mirror'));
+    if (kind === 'steam') (this.startSteam(byVisit(STEAM, run)), (line = 'vo-steam'));
+    if (kind === 'stamps') (this.startStamps(run), (line = 'vo-art-stamps'));
     this.begin('draw', line);
     if (kind === 'steam' && this.level === 2) this.time.delayedCall(3600, () => this.askNext());
+    // (level 2 dots: after the line, Mom says the first number to find)
+    if (kind === 'dots' && this.level === 2) this.askDot();
   }
 
   /** The sheet's place: between the pots and Mom (and Pipa), on the easel, as big as it fits (5:4). */
@@ -466,7 +493,8 @@ export class ArtScene extends MiniGame {
       resample(p.pts, p.closed, step).slice(0, n).forEach((at) => cps.push({ at, lit: false, part: i }));
     });
     const band = Math.max(T.traceBand[lvl] * Math.min(this.sheet.w, this.sheet.h), T.traceMin[lvl] * this.L.k) / this.sheet.u;
-    this.trace = { pic, dense, cps, band, base, ink };
+    const dir = T.traceDir[lvl];
+    this.trace = { pic, dense, cps, band, base, ink, dir, front: pic.parts.map(() => 0), wrongRun: 0, told: false };
     // the dotted outline: a faint line, cream dots with a soft edge
     const g = base.g;
     this.units(g);
@@ -488,39 +516,89 @@ export class ArtScene extends MiniGame {
         g.fill();
       }
     }
+    if (dir) this.drawArrows(g, cps, pic);
     base.dirty = true;
+  }
+
+  /** Level 2: a green start dot on each part and arrowheads along it, the way to go (as the cut guide's). */
+  private drawArrows(g: CanvasRenderingContext2D, cps: Checkpoint[], pic: TracePic) {
+    pic.parts.forEach((part, i) => {
+      const mine = cps.filter((c) => c.part === i).map((c) => c.at);
+      const s = 30;
+      mine.forEach((at, j) => {
+        if (j === 0 || (!part.closed && j === mine.length - 1)) return;
+        const [ux, uy] = tangent(mine, j, part.closed);
+        // between this checkpoint and the next
+        const nx = mine[(j + 1) % mine.length];
+        const x = (at[0] + nx[0]) / 2;
+        const y = (at[1] + nx[1]) / 2;
+        const l: Pt = [x - ux * s - uy * s * 0.8, y - uy * s + ux * s * 0.8];
+        const r: Pt = [x - ux * s + uy * s * 0.8, y - uy * s - ux * s * 0.8];
+        for (const [w, c] of [[22, 'rgba(107,59,31,0.4)'], [12, '#FFFFFF']] as const) {
+          g.strokeStyle = c;
+          g.lineWidth = w;
+          g.beginPath();
+          g.moveTo(l[0], l[1]);
+          g.lineTo(x, y);
+          g.lineTo(r[0], r[1]);
+          g.stroke();
+        }
+      });
+      const [x, y] = mine[0];
+      g.fillStyle = '#FFFFFF';
+      g.beginPath();
+      g.arc(x, y, 34, 0, Math.PI * 2);
+      g.fill();
+      g.fillStyle = '#5CB547';
+      g.beginPath();
+      g.arc(x, y, 26, 0, Math.PI * 2);
+      g.fill();
+    });
   }
 
   private nearestOn(dense: Pt[][], p: Pt) {
     let best: Pt = dense[0][0];
     let bd = Infinity;
-    for (const d of dense) {
-      for (const q of d) {
-        const dd = (q[0] - p[0]) ** 2 + (q[1] - p[1]) ** 2;
-        if (dd < bd) (bd = dd), (best = q);
-      }
-    }
-    return { at: best, d: Math.sqrt(bd) };
+    let part = 0;
+    let idx = 0;
+    dense.forEach((d, pi) => d.forEach((q, qi) => {
+      const dd = (q[0] - p[0]) ** 2 + (q[1] - p[1]) ** 2;
+      if (dd < bd) (bd = dd), (best = q), (part = pi), (idx = qi);
+    }));
+    return { at: best, d: Math.sqrt(bd), part, idx };
   }
 
   /** A bit of her stroke at p (sheet units): near the outline it snaps a little to it, glows and lights checkpoints. */
   private traceAt(p: Pt) {
     const t = this.trace!;
-    const pen = this.pen!;
+    const pen = this.pen as NonNullable<ArtScene['pen']> & { lastQ?: Pt; lastP?: Pt; way?: number; wrong?: number };
     const near = this.nearestOn(t.dense, p);
-    const on = near.d < t.band;
-    const q: Pt = on ? [p[0] + (near.at[0] - p[0]) * 0.35, p[1] + (near.at[1] - p[1]) * 0.35] : p;
-    const last = (pen.last ? this.toSheet(pen.last) : null) as Pt | null;
-    this.crayon(t.ink, (pen as { lastQ?: Pt }).lastQ ?? last ?? q, q, this.css(this.brush), { glow: on, thin: !on });
-    (pen as { lastQ?: Pt }).lastQ = q;
     // (the finger's path since the last point, not only where it is now: a fast stroke on the phone, or a slow frame
     // while Mom's hand draws, jumps far between two moves and would pass a checkpoint by)
-    const from = (pen as { lastP?: Pt }).lastP ?? p;
-    (pen as { lastP?: Pt }).lastP = p;
+    const from = pen.lastP ?? p;
+    let on = near.d < t.band;
+    if (t.dir && on) {
+      // level 2: only the arrows' way counts (the way of the move against the outline's own way where she is)
+      const mx = p[0] - from[0];
+      const my = p[1] - from[1];
+      const d = Math.hypot(mx, my);
+      if (d > 2) {
+        const [ux, uy] = tangent(t.dense[near.part], near.idx, t.pic.parts[near.part].closed);
+        const cos = (mx * ux + my * uy) / d;
+        const c = Math.cos((T.traceAngle * Math.PI) / 180);
+        pen.way = cos >= c ? 1 : cos <= -c ? -1 : 0;
+        if (pen.way < 0) pen.wrong = (pen.wrong ?? 0) + d * this.sheet.u;
+      }
+      on = (pen.way ?? 1) > 0;
+    }
+    const q: Pt = on ? [p[0] + (near.at[0] - p[0]) * 0.35, p[1] + (near.at[1] - p[1]) * 0.35] : p;
+    const last = (pen.last ? this.toSheet(pen.last) : null) as Pt | null;
+    this.crayon(t.ink, pen.lastQ ?? last ?? q, q, this.css(this.brush), { glow: on, thin: !on });
+    pen.lastQ = q;
+    pen.lastP = p;
     if (!on) return;
     let lit = 0;
-    for (const c of t.cps) {
-      if (c.lit || segDist(c.at, from, p) > t.band) continue;
+    const light = (c: Checkpoint) => {
       c.lit = true;
       lit++;
       const w = this.toWorld(c.at);
@@ -535,12 +613,42 @@ export class ArtScene extends MiniGame {
       g.arc(c.at[0], c.at[1], 13, 0, Math.PI * 2);
       g.fill();
       t.base.dirty = true;
+    };
+    if (!t.dir) {
+      for (const c of t.cps) if (!c.lit && segDist(c.at, from, p) <= t.band) light(c);
+    } else if (from !== p) {
+      // level 2: from the lit front of each part on, in order (a checkpoint a little ahead of the front lights those before it too)
+      t.pic.parts.forEach((_, i) => {
+        const mine = t.cps.filter((c) => c.part === i);
+        for (;;) {
+          const f = t.front[i];
+          if (f >= mine.length) break;
+          let hit = -1;
+          for (let j = f; j <= Math.min(mine.length - 1, f + T.traceGap); j++) if (segDist(mine[j].at, from, p) <= t.band) hit = j;
+          if (hit < 0) break;
+          for (let j = f; j <= hit; j++) if (!mine[j].lit) light(mine[j]);
+          t.front[i] = hit + 1;
+        }
+      });
     }
     if (lit) {
+      t.wrongRun = 0;
       this.poke();
       this.shown.progress = Math.round((t.cps.filter((c) => c.lit).length / t.cps.length) * 100) / 100;
       this.checkTrace();
     }
+  }
+
+  /** Level 2: a stroke the other way (the ink did not glow). A miss; three in a row: "Follow the arrows!" (once) and Mom's hand. */
+  private wrongStroke() {
+    const t = this.trace!;
+    t.wrongRun++;
+    sfx(this, 'xylo', { rate: 0.5, vary: false, volume: 0.3 });
+    if (t.wrongRun >= 3 && !t.told) {
+      t.told = true;
+      this.say('vo-follow-arrows', { ttlMs: 4000 });
+    }
+    this.miss();
   }
 
   private checkTrace() {
@@ -610,7 +718,7 @@ export class ArtScene extends MiniGame {
       this.box.add(box);
       return { at, box, joined: false };
     });
-    this.dots = { pic, views, cur: -1, next: 0, misses: 0, glow, live, ink, base };
+    this.dots = { pic, views, cur: -1, next: 0, misses: 0, asked: -1, glow, live, ink, base };
     this.markNext();
   }
 
@@ -629,10 +737,10 @@ export class ArtScene extends MiniGame {
     for (const [x, y] of at) gr.fillCircle(x * step, y * step - (n === 10 ? step * 0.5 : 0), Math.max(2.5, s * (n > 6 ? 0.38 : 0.48)));
   }
 
-  /** The next dot: bigger, with a soft glow under it (level 1; level 2 only after two misses). */
+  /** The next dot: bigger, with a soft glow under it (level 1; level 2 only after `dotsGlowAfter` misses: Mom says its number). */
   private markNext() {
     const d = this.dots!;
-    const showGlow = this.level === 1 || d.misses >= 2;
+    const showGlow = this.level === 1 || d.misses >= T.dotsGlowAfter;
     d.views.forEach((v, i) => {
       this.tweens.killTweensOf(v.box);
       v.box.setScale(i === d.next && showGlow ? 1.3 : 1);
@@ -673,7 +781,8 @@ export class ArtScene extends MiniGame {
     sfx(this, 'xylo', { rate: note(i), vary: false, minGapMs: 30, volume: 0.75 });
     const w = this.toWorld(v.at);
     burst(this, w.x, w.y, { texture: 'star', count: 5, size: 26 * this.L.k, speed: 260, gravityY: 400, lifespan: 500, depth: 60 });
-    voice.say(countKey(i + 1), { group: 'count', sequence: true, ttlMs: 4000, valid: () => this.scene.isActive() && !this.leaving });
+    // (level 2: Mom asks for the next number instead of counting the one joined)
+    if (this.level === 1) voice.say(countKey(i + 1), { group: 'count', sequence: true, ttlMs: 4000, valid: () => this.scene.isActive() && !this.leaving });
     this.poke();
     this.shown.progress = i + 1;
     if (d.next >= d.views.length) {
@@ -689,6 +798,19 @@ export class ArtScene extends MiniGame {
       return;
     }
     this.markNext();
+    if (this.level === 2) this.askDot();
+  }
+
+  /** Level 2: "Find..." and the next dot's number (its pips): she listens, counts the pips and finds it. */
+  private askDot(numberOnly = false) {
+    const d = this.dots;
+    if (!d) return;
+    const want = d.next;
+    const valid = () => this.scene.isActive() && !this.leaving && !this.finished && this.dots?.next === want;
+    // (`asked`: the number has been said, or its moment passed: the test harness's child waits for it)
+    const num = () => voice.say(countKey(want + 1), { group: 'count', ttlMs: 4000, valid, done: () => this.dots && (this.dots.asked = want) });
+    if (numberOnly) return num();
+    voice.say('vo-find-number', { ttlMs: 5000, valid, done: num });
   }
 
   private wrongDot(i: number) {
@@ -698,7 +820,11 @@ export class ArtScene extends MiniGame {
     this.tweens.add({ targets: v.box, angle: { from: -12, to: 12 }, duration: 70, yoyo: true, repeat: 2, onComplete: () => v.box.setAngle(0) });
     sfx(this, 'xylo', { rate: 0.5, vary: false, volume: 0.35 });
     d.misses++;
-    if (this.level === 2 && d.misses >= 2) this.markNext();
+    if (this.level === 2) {
+      if (d.misses >= T.dotsGlowAfter) this.markNext();
+      // (the number again: which one Mom asked for)
+      else this.askDot(true);
+    }
     this.miss();
   }
 
@@ -885,35 +1011,34 @@ export class ArtScene extends MiniGame {
 
   // ---------------------------------------------------------------- 4. mirror magic
 
-  private startMirror() {
-    const plate = this.level === 2;
-    this.shown.pic = plate ? 'plate' : 'butterfly';
+  private startMirror(pic: MirrorPic) {
+    const plate = pic.both;
+    this.shown.pic = pic.id;
     const base = this.layer('base');
     const ink = this.layer('ink');
     const top = this.layer('top');
     const clip = new Path2D();
     const flip = new DOMMatrix([-1, 0, 0, 1, SHEET_W, 0]);
-    if (plate) clip.addPath(new Path2D(`M${PLATE.cx - PLATE.r},${PLATE.cy} a${PLATE.r},${PLATE.r} 0 1,0 ${2 * PLATE.r},0 a${PLATE.r},${PLATE.r} 0 1,0 ${-2 * PLATE.r},0Z`));
-    else {
-      for (const d of BUTTERFLY_LEFT) {
-        clip.addPath(new Path2D(d));
-        clip.addPath(new Path2D(d), flip);
-      }
-      clip.addPath(new Path2D(BUTTERFLY_BODY));
+    for (const d of pic.left ?? []) {
+      clip.addPath(new Path2D(d));
+      clip.addPath(new Path2D(d), flip);
     }
+    for (const d of pic.whole) clip.addPath(new Path2D(d));
     const g = base.g;
     this.units(g);
     g.fillStyle = plate ? '#FFF6E6' : '#FFFAF0';
     g.fill(clip);
+    // (the outline of the whole shape only: thick ink under, the paper over its inner half, so overlapping parts show no seams)
     g.strokeStyle = INK_CSS;
-    g.lineWidth = 7;
+    g.lineWidth = 14;
     g.lineJoin = 'round';
     g.stroke(clip);
-    if (plate) {
+    g.fill(clip);
+    if (pic.rim) {
       g.strokeStyle = 'rgba(150,130,105,0.5)';
       g.lineWidth = 5;
       g.beginPath();
-      g.arc(PLATE.cx, PLATE.cy, PLATE.rim, 0, Math.PI * 2);
+      g.arc(pic.rim.cx, pic.rim.cy, pic.rim.r, 0, Math.PI * 2);
       g.stroke();
     }
     // the fold: where the magic mirror is
@@ -930,11 +1055,11 @@ export class ArtScene extends MiniGame {
     g.stroke();
     g.setLineDash([]);
     base.dirty = true;
-    if (!plate) {
+    if (pic.id === 'butterfly') {
       const t = top.g;
       this.units(t);
       t.fillStyle = INK_CSS;
-      t.fill(new Path2D(BUTTERFLY_BODY));
+      for (const d of pic.whole) t.fill(new Path2D(d));
       t.strokeStyle = INK_CSS;
       t.lineWidth = 9;
       t.lineCap = 'round';
@@ -949,7 +1074,7 @@ export class ArtScene extends MiniGame {
     for (let j = 0; j < G.h; j++) for (let i = 0; i < G.w; i++) if (probe.isPointInPath(clip, ((i + 0.5) * SHEET_W) / G.w, ((j + 0.5) * SHEET_H) / G.h)) inside++, (G.on[j * G.w + i] = 0);
     // (cells outside never count: mark them 2)
     for (let j = 0; j < G.h; j++) for (let i = 0; i < G.w; i++) if (!probe.isPointInPath(clip, ((i + 0.5) * SHEET_W) / G.w, ((j + 0.5) * SHEET_H) / G.h)) G.on[j * G.w + i] = 2;
-    this.mirror = { plate, clip, inside, base, ink, top, shown: false };
+    this.mirror = { pic, plate, clip, inside, base, ink, top, shown: false };
   }
 
   private mirrorAt(p: Pt) {
@@ -987,13 +1112,14 @@ export class ArtScene extends MiniGame {
 
   // ---------------------------------------------------------------- 5. the steamy window
 
-  private startSteam() {
+  private startSteam(garden: (typeof STEAM)[number]) {
     const s = this.sheet;
     const f = s.w / 800;
-    const view = this.add.image(0, 0, 'art-window-view').setOrigin(0, 0).setScale(f);
+    // (the second garden: the same view the other way round, the hidden things in other places)
+    const view = this.add.image(0, 0, 'art-window-view').setOrigin(0, 0).setScale(f).setFlipX(garden.flip);
     this.box.add(view);
-    const things = HIDDEN.map((h) => {
-      const img = this.add.image(h.at[0] * f, h.at[1] * f, h.key).setScale(h.scale * f);
+    const things = garden.hidden.map((h) => {
+      const img = this.add.image(h.at[0] * f, h.at[1] * f, h.key).setScale(h.scale * f).setFlipX(garden.flip && h.id !== 'rainbow');
       this.box.add(img);
       return { h, img, found: false };
     });
@@ -1023,9 +1149,9 @@ export class ArtScene extends MiniGame {
     }
     fog.dirty = true;
     const n = this.grid.w * this.grid.h;
-    const targets = this.level === 2 ? Phaser.Utils.Array.Shuffle([...HIDDEN]).slice(0, 3) : [];
-    this.steam = { fog, things, level: new Float32Array(n).fill(1), at: new Float64Array(n), targets, target: -1, refog: 0, clear: false };
-    this.shown.pic = 'window';
+    const targets = this.level === 2 ? Phaser.Utils.Array.Shuffle([...garden.hidden]).slice(0, 3) : [];
+    this.steam = { flip: garden.flip, fog, things, level: new Float32Array(n).fill(1), at: new Float64Array(n), targets, target: -1, refog: 0, clear: false };
+    this.shown.pic = garden.flip ? 'window-2' : 'window';
   }
 
   /** Is cell (i, j) on the glass (not under the frame)? */
@@ -1214,6 +1340,300 @@ export class ArtScene extends MiniGame {
     return st.things.find((t) => !t.found)?.h ?? null;
   }
 
+  // ---------------------------------------------------------------- 6. stamps
+
+  /** Level 1: a garden of outlines, each a stamp's shape; level 2: a row of six circles and Mom's pattern on a card. */
+  private startStamps(run: number) {
+    const base = this.layer('base');
+    const ink = this.layer('ink');
+    const hard = this.level === 2;
+    const scene = byVisit(STAMP_SCENES, run);
+    const pattern = hard ? [...byVisit(STAMP_PATTERNS, run)] : null;
+    const slots: SlotView[] = (hard ? STAMP_ROW : scene.slots).map((slot) => ({ slot, got: null }));
+    this.shown.pic = hard ? `pattern-${pattern!.join('-')}` : `garden-${STAMP_SCENES.indexOf(scene)}`;
+    // the prints, one picture each (shown as images on the sheet, so they can come alive one by one)
+    for (const id of STAMPS) this.printTexture(id);
+    const g = base.g;
+    this.units(g);
+    g.lineCap = g.lineJoin = 'round';
+    if (!hard) {
+      g.strokeStyle = 'rgba(92,181,71,0.75)';
+      g.lineWidth = 10;
+      for (const d of scene.lines) g.stroke(new Path2D(d));
+    } else {
+      // the line the row stands on
+      g.strokeStyle = 'rgba(150,130,105,0.4)';
+      g.lineWidth = 6;
+      g.beginPath();
+      g.moveTo(40, 620);
+      g.lineTo(960, 620);
+      g.stroke();
+    }
+    for (const s of slots) this.drawOutline(g, s.slot);
+    base.dirty = true;
+    // the four stamps in the pot column (two by two)
+    const L = this.L;
+    const S = this.S;
+    const k = L.k;
+    const top = S.home.y + (S.home.x - L.m) + 16 * k;
+    const bottom = L.Y(994) - 14 * k;
+    const cell = Math.min(230 * k, (bottom - top) / 2);
+    const scale = Math.min(T.stampScale * k, (cell - 8 * k) / 240);
+    const colX = [L.m + 30 * k + 100 * k, L.m + 30 * k + 300 * k];
+    const stamps: StampView[] = STAMPS.map((id, i) => {
+      const x = colX[i % 2];
+      const y = bottom - cell * (2 - Math.floor(i / 2) - 0.5);
+      return { id, x, y, img: this.add.image(x, y, `art-stamp-${id}`).setScale(scale).setDepth(10) };
+    });
+    const ring = this.add.image(0, 0, FX_SOFT).setDepth(9).setScale((270 * k) / this.textures.getFrame(FX_SOFT).realWidth).setAlpha(0.8);
+    const card: Phaser.GameObjects.Image[] = [];
+    if (pattern) {
+      // Mom's card along the top of the sheet: her pattern, small, in a wooden frame, a heart in its corner (it is Mom's)
+      const C = STAMP_CARD;
+      g.fillStyle = 'rgba(58,34,22,0.22)';
+      g.beginPath();
+      g.roundRect(C.x + 5, C.y + 8, C.w, C.h, 16);
+      g.fill();
+      g.fillStyle = '#9E643A';
+      g.beginPath();
+      g.roundRect(C.x, C.y, C.w, C.h, 16);
+      g.fill();
+      g.fillStyle = '#FFFDF7';
+      g.beginPath();
+      g.roundRect(C.x + 14, C.y + 14, C.w - 28, C.h - 28, 10);
+      g.fill();
+      g.fillStyle = PAINT.pink;
+      g.fill(new Path2D(`M${C.x + C.w - 6},${C.y + 22} c-8,-16 -34,-12 -30,8 c3,14 22,22 30,30 c8,-8 27,-16 30,-30 c4,-20 -22,-24 -30,-8Z`));
+      const step = (C.w - 60) / pattern.length;
+      pattern.forEach((id, i) => {
+        const at: Pt = [C.x + 30 + step * (i + 0.5), C.y + C.h / 2];
+        const img = this.add.image(at[0] * this.sheet.u, at[1] * this.sheet.u, `art-cv-print-${id}`).setScale(0.62);
+        this.box.add(img);
+        card.push(img);
+      });
+    }
+    this.stamps = { stamps, sel: 'sun', slots, pattern, base, ink, ring, card, busy: false, misses: 0 };
+    this.selectStamp(this.nextStamp() ?? 'sun', false);
+  }
+
+  /** A print of a stamp, drawn once in its paint (240 sheet units square at s 1). */
+  private printTexture(id: StampId) {
+    const key = `art-cv-print-${id}`;
+    if (this.textures.exists(key)) this.textures.remove(key);
+    const u = this.sheet.u;
+    const px = Math.max(8, Math.round(240 * u));
+    const tex = this.textures.createCanvas(key, px, px)!;
+    const g = tex.getContext();
+    g.setTransform(u, 0, 0, u, px / 2, px / 2);
+    this.drawPrint(g, id);
+    tex.refresh();
+    this.layers.push({ key, tex, g, img: this.add.image(-9999, -9999, key).setVisible(false), dirty: false });
+  }
+
+  /** A stamp's print round (0, 0): its paint, a lighter grain like a real rubber stamp, its few marks. */
+  private drawPrint(g: CanvasRenderingContext2D, id: StampId) {
+    const st = STAMP[id];
+    const paths = st.parts.map((d) => new Path2D(d));
+    g.fillStyle = st.paint;
+    for (const p of paths) g.fill(p);
+    if (id === 'flower') {
+      g.fillStyle = PAINT.yellow;
+      g.fill(paths[paths.length - 1]);
+    }
+    const m = g.getTransform();
+    const rnd = new Phaser.Math.RandomDataGenerator([`print-${id}`]);
+    g.fillStyle = 'rgba(255,253,247,0.35)';
+    for (let i = 0; i < 26; i++) {
+      const x = rnd.realInRange(-90, 90);
+      const y = rnd.realInRange(-80, 80);
+      const r = rnd.realInRange(2, 5);
+      if (!paths.some((p) => g.isPointInPath(p, x * m.a + m.e, y * m.d + m.f))) continue;
+      g.beginPath();
+      g.arc(x, y, r, 0, Math.PI * 2);
+      g.fill();
+    }
+    g.fillStyle = '#2E201B';
+    g.strokeStyle = '#2E201B';
+    g.lineCap = 'round';
+    const dot = (x: number, y: number, r: number) => {
+      g.beginPath();
+      g.arc(x, y, r, 0, Math.PI * 2);
+      g.fill();
+    };
+    if (id === 'sun') {
+      dot(-22, -12, 7);
+      dot(22, -12, 7);
+      g.lineWidth = 6;
+      g.beginPath();
+      g.arc(0, 4, 26, 0.2 * Math.PI, 0.8 * Math.PI);
+      g.stroke();
+    }
+    if (id === 'bird') dot(-60, -36, 7);
+    if (id === 'cloud') (dot(-24, 4, 6), dot(24, 4, 6));
+  }
+
+  /** An outline to stamp on (dashed, the shape's own or a plain circle), a soft cream inside; `erase`: gone under a print. */
+  private drawOutline(g: CanvasRenderingContext2D, slot: StampSlot, erase = false) {
+    const parts = (slot.shape ? STAMP[slot.shape].parts : ['M-100,0 a100,100 0 1,0 200,0 a100,100 0 1,0 -200,0Z']).map((d) => new Path2D(d));
+    g.save();
+    g.translate(slot.at[0], slot.at[1]);
+    g.scale(slot.s, slot.s);
+    g.lineJoin = 'round';
+    if (erase) {
+      g.fillStyle = g.strokeStyle = '#FFFDF7';
+      g.lineWidth = 26 / slot.s;
+      for (const p of parts) (g.stroke(p), g.fill(p));
+      g.restore();
+      return;
+    }
+    // (thick dashes under, the cream over their inner half: one outline round the whole shape, no seams inside)
+    g.strokeStyle = '#A8967A';
+    g.lineWidth = 16 / slot.s;
+    g.setLineDash([18 / slot.s, 12 / slot.s]);
+    for (const p of parts) g.stroke(p);
+    g.setLineDash([]);
+    g.fillStyle = '#F6EFE2';
+    for (const p of parts) g.fill(p);
+    g.restore();
+  }
+
+  /** Is anything left to stamp with this stamp (level 1: an empty outline of its shape; level 2: an empty circle)? */
+  private stampFree(id: StampId) {
+    const st = this.stamps!;
+    return st.slots.some((s) => !s.got && (st.pattern || s.slot.shape === id));
+  }
+
+  /** The stamp the next outline needs (level 1: the picked one while it has outlines left). */
+  private nextStamp(): StampId | null {
+    return this.stampTarget()?.need ?? null;
+  }
+
+  private selectStamp(id: StampId, say = true) {
+    const st = this.stamps!;
+    st.sel = id;
+    const k = this.L.k;
+    for (const v of st.stamps) {
+      this.tweens.killTweensOf(v.img);
+      v.img.setY(v.y - (v.id === id ? 18 * k : 0)).setAngle(0);
+      v.img.setAlpha(this.stampFree(v.id) ? 1 : 0.45);
+    }
+    const v = st.stamps.find((q) => q.id === id)!;
+    st.ring.setPosition(v.x, v.y + 10 * k).setTint(Phaser.Display.Color.HexStringToColor(STAMP[id].paint).color);
+    if (!say) return;
+    boing(this, v.img, 0.12);
+    sfx(this, 'pop', { volume: 0.6 });
+    voice.say(STAMP[id].name, { group: 'name', ttlMs: 2000, valid: () => this.scene.isActive() && !this.leaving });
+  }
+
+  private stampViewAt(at: P): StampView | null {
+    const st = this.stamps!;
+    const r = T.stampTouch * this.L.k;
+    let best: StampView | null = null;
+    let bd = Infinity;
+    for (const v of st.stamps) {
+      const d = Math.hypot(at.x - v.x, at.y - v.y);
+      if (d < r && d < bd) (best = v), (bd = d);
+    }
+    return best;
+  }
+
+  /** Where the picked stamp lands for a tap at p (sheet units): level 1 the nearest empty outline of its shape, level 2 the nearest empty circle. */
+  private slotFor(id: StampId, p: Pt) {
+    const st = this.stamps!;
+    let best = -1;
+    let bd = Infinity;
+    st.slots.forEach((s, i) => {
+      if (s.got || (!st.pattern && s.slot.shape !== id)) return;
+      const d = Math.hypot(s.slot.at[0] - p[0], s.slot.at[1] - p[1]);
+      if (d < bd) (bd = d), (best = i);
+    });
+    return best;
+  }
+
+  /** The next outline Mom's hand goes to and the stamp it needs (level 2: the leftmost empty circle, Mom's pattern). */
+  private stampTarget(): { i: number; need: StampId } | null {
+    const st = this.stamps!;
+    if (st.pattern) {
+      const i = st.slots.findIndex((s) => !s.got);
+      return i < 0 ? null : { i, need: st.pattern[i] };
+    }
+    // (the picked stamp's own outline first, so Mom's hand does not ask for a change she does not need)
+    let i = st.slots.findIndex((s) => !s.got && s.slot.shape === st.sel);
+    if (i < 0) i = st.slots.findIndex((s) => !s.got);
+    return i < 0 ? null : { i, need: st.slots[i].slot.shape! };
+  }
+
+  /** The picked stamp comes down onto outline i: a thump, the print, Mom counts. */
+  private press(i: number) {
+    const st = this.stamps!;
+    const s = st.slots[i];
+    const id = st.sel;
+    s.got = id;
+    st.busy = true;
+    const k = this.L.k;
+    const v = st.stamps.find((q) => q.id === id)!;
+    const at = this.toWorld(s.slot.at);
+    const n = st.slots.filter((q) => q.got).length;
+    const ghost = this.add.image(at.x, at.y - 150 * k, `art-stamp-${id}`).setScale(v.img.scale).setDepth(40);
+    // level 2: a stamp that is not Mom's next one stays (nothing is wrong), but her card's one hops: "What comes next?"
+    const off = !!st.pattern && id !== st.pattern[i];
+    if (off) {
+      st.misses++;
+      this.miss();
+    } else this.poke();
+    this.shown.progress = n;
+    this.tweens.add({
+      targets: ghost, y: at.y - 40 * k, duration: 150, ease: 'Quad.easeIn',
+      onComplete: () => {
+        sfx(this, 'stamp', { volume: 0.9 });
+        this.drawOutline(st.base.g, s.slot, true);
+        st.base.dirty = true;
+        const u = this.sheet.u;
+        const print = this.add.image(s.slot.at[0] * u, s.slot.at[1] * u, `art-cv-print-${id}`).setScale(s.slot.s).setAlpha(0);
+        print.setData('id', id);
+        this.box.add(print);
+        this.tweens.add({ targets: print, alpha: 1, duration: 120 });
+        burst(this, at.x, at.y, { texture: 'star', count: 5, size: 24 * k, speed: 240, gravityY: 400, lifespan: 480, depth: 60 });
+        this.tweens.add({
+          targets: ghost, scaleY: ghost.scaleY * 0.86, duration: 90, yoyo: true,
+          onComplete: () => this.tweens.add({ targets: ghost, y: ghost.y - 120 * k, alpha: 0, duration: 240, onComplete: () => ghost.destroy() }),
+        });
+        voice.say(countKey(n), { group: 'count', sequence: true, ttlMs: 4000, valid: () => this.scene.isActive() && !this.leaving });
+        if (off) {
+          const c = st.card[i];
+          if (c) this.tweens.add({ targets: c, y: c.y - 26 * k, duration: 160, yoyo: true, repeat: 1, ease: 'Quad.easeOut' });
+          this.say('vo-next', { ttlMs: 4000 });
+        }
+        if (n >= st.slots.length) {
+          this.setPhase('intro');
+          this.time.delayedCall(700, () => this.finish());
+        } else if (!st.pattern && !this.stampFree(id)) {
+          // (level 1: this stamp has no outline left: the next one is picked for her)
+          const nx = this.nextStamp();
+          if (nx) this.selectStamp(nx);
+        } else this.selectStamp(id, false);
+        this.time.delayedCall(Math.max(0, T.stampMs - 150), () => (st.busy = false));
+      },
+    });
+  }
+
+  private aliveStamps() {
+    const st = this.stamps!;
+    const k = this.L.k;
+    const ms: number = T.aliveMs;
+    const prints = this.box.list.filter((o) => o instanceof Phaser.GameObjects.Image && o.getData('id')) as Phaser.GameObjects.Image[];
+    prints.forEach((img, i) => {
+      const id = img.getData('id') as StampId;
+      const d = i * 90;
+      if (id === 'sun') this.tweens.add({ targets: img, angle: 360, duration: ms * 0.8, delay: d, ease: 'Cubic.easeInOut' });
+      if (id === 'cloud') this.tweens.add({ targets: img, x: img.x + 40 * k, duration: ms / 4, delay: d, yoyo: true, repeat: 1, ease: 'Sine.easeInOut' });
+      if (id === 'flower') this.tweens.add({ targets: img, angle: { from: -10, to: 10 }, duration: ms / 8, delay: d, yoyo: true, repeat: 3, ease: 'Sine.easeInOut', onComplete: () => img.setAngle(0) });
+      if (id === 'bird') this.tweens.add({ targets: img, y: img.y - 50 * k, duration: ms / 8, delay: d, yoyo: true, repeat: 3, ease: 'Quad.easeOut' });
+      this.time.delayedCall(d, () => stars(this, this.sheet.x + img.x, this.sheet.y + img.y, 4, 30 * k));
+    });
+    for (const c of st.card) this.tweens.add({ targets: c, y: c.y - 16 * k, duration: 200, yoyo: true, delay: 300 });
+  }
+
   // ---------------------------------------------------------------- the finished picture comes alive
 
   private finish() {
@@ -1244,7 +1664,13 @@ export class ArtScene extends MiniGame {
     if (kind === 'trace') (name = this.trace!.pic.name), this.aliveTrace();
     if (kind === 'dots') (name = this.dots!.pic.name), (line = 'vo-dots-done'), (ms = this.aliveDots());
     if (kind === 'colour') (line = 'vo-colour-done'), this.aliveColour();
-    if (kind === 'mirror') (line = this.mirror!.plate ? 'vo-mirror-plate' : 'vo-mirror-done'), (ms = this.aliveMirror());
+    if (kind === 'mirror') {
+      const id = this.mirror!.pic.id;
+      line = id === 'plate' ? 'vo-mirror-plate' : id === 'butterfly' ? 'vo-mirror-done' : 'vo-dots-done';
+      name = this.mirror!.pic.name;
+      ms = this.aliveMirror();
+    }
+    if (kind === 'stamps') (line = 'vo-dots-done'), this.aliveStamps();
     if (kind === 'steam') (line = 'vo-steam-done'), this.aliveSteam();
     this.time.delayedCall(900, () => this.mom?.rest());
     // Mom: "Look, a sun!" (its name, for the ones she traced or joined) and the line; then back to the easel wall
@@ -1255,7 +1681,7 @@ export class ArtScene extends MiniGame {
       this.time.delayedCall(Math.max(0, ms + 300 - (this.time.now - t0)), () => this.capture(() => this.time.delayedCall(700, () => this.backToWall())));
     };
     const t0 = this.time.now;
-    if (kind === 'dots') this.say(line, { ttlMs: 4000, done: () => (name ? this.say(name, { ttlMs: 3000, done: goBack }) : goBack()) });
+    if (kind === 'dots' || kind === 'mirror' || kind === 'stamps') this.say(line, { ttlMs: 4000, done: () => (name ? this.say(name, { ttlMs: 3000, done: goBack }) : goBack()) });
     else if (name) this.say(name, { ttlMs: 3000, done: () => this.say(line, { ttlMs: 4000, done: goBack }) });
     else this.say(line, { ttlMs: 4000, done: goBack });
     this.time.delayedCall(ms + 6500, goBack);
@@ -1284,6 +1710,8 @@ export class ArtScene extends MiniGame {
         return this.dots!.next >= this.dots!.views.length;
       case 'colour':
         return this.colourDone();
+      case 'stamps':
+        return !!this.stamps && !this.stamps.busy && this.stamps.slots.every((q) => q.got);
       default:
         return false;
     }
@@ -1534,13 +1962,14 @@ export class ArtScene extends MiniGame {
   private aliveMirror(): number {
     const m = this.mirror!;
     const sources = [m.base, m.ink, m.top].map((l) => l.tex.getSourceImage() as HTMLCanvasElement);
-    if (m.plate) {
+    if (m.pic.alive !== 'fly') {
       const l = this.aliveLayer((g) => {
         g.setTransform(1, 0, 0, 1, 0, 0);
         for (const s of sources) g.drawImage(s, 0, 0);
       });
       for (const q of [m.base, m.ink, m.top]) q.img.setVisible(false);
-      this.tweens.add({ targets: l.img, angle: 360, duration: T.aliveMs, ease: 'Cubic.easeInOut' });
+      if (m.pic.alive === 'beat') this.tweens.add({ targets: l.img, scale: 1.12, duration: T.aliveMs / 8, yoyo: true, repeat: 3, ease: 'Quad.easeOut' });
+      else this.tweens.add({ targets: l.img, angle: 360, duration: T.aliveMs, ease: 'Cubic.easeInOut' });
       l.img.setOrigin(0.5, 0.5).setPosition(this.sheet.w / 2, this.sheet.h / 2);
       for (let i = 0; i < 3; i++) this.time.delayedCall(i * 500, () => stars(this, this.sheet.x + this.sheet.w / 2, this.sheet.y + this.sheet.h / 2, 8, 50 * this.L.k));
       return T.aliveMs;
@@ -1689,7 +2118,7 @@ export class ArtScene extends MiniGame {
 
   private mirrorLoop(): Pt[] {
     const m = this.mirror!;
-    const spots: Pt[] = m.plate ? [[330, 260], [380, 340], [260, 330]] : [[300, 260], [330, 560], [240, 330]];
+    const spots = m.pic.spots;
     const n = (this.shown.helped as number) % spots.length;
     return this.loopPts(spots[n], m.plate ? 70 : 60);
   }
@@ -1742,6 +2171,24 @@ export class ArtScene extends MiniGame {
         if (!h) return null;
         const keys = this.along(this.zigzag(h), 300, 2200);
         return { kind: 'point', keys: [{ ...keys[0], t: 0 }, ...keys, { ...keys[keys.length - 1], t: 2500 }], glow: keys[0] };
+      }
+      case 'stamps': {
+        const n = this.stampTarget();
+        if (!n) return null;
+        const st = this.stamps!;
+        const at = this.toWorld(st.slots[n.i].slot.at);
+        if (n.need !== st.sel) {
+          const p = st.stamps.find((q) => q.id === n.need)!;
+          return {
+            kind: 'point',
+            keys: [
+              { x: p.x + 60 * k, y: p.y + 70 * k, t: 0 }, { x: p.x, y: p.y, t: 400 }, { x: p.x, y: p.y, t: 600, press: true }, { x: p.x, y: p.y, t: 800 },
+              { x: at.x, y: at.y, t: 1600 }, { x: at.x, y: at.y, t: 1800, press: true }, { x: at.x, y: at.y, t: 2000 }, { x: at.x + 60 * k, y: at.y + 70 * k, t: 2400 },
+            ],
+            glow: { x: p.x, y: p.y },
+          };
+        }
+        return tapMotion(at, k);
       }
       default:
         return null;
@@ -1845,6 +2292,26 @@ export class ArtScene extends MiniGame {
         this.helpStroke(this.zigzag(h), T.helpMs + 400);
         return true;
       }
+      case 'stamps': {
+        const n = this.stampTarget();
+        const st = this.stamps!;
+        if (!n || st.busy) return false;
+        const at = this.toWorld(st.slots[n.i].slot.at);
+        const v = n.need !== st.sel ? st.stamps.find((q) => q.id === n.need)! : null;
+        let to: P = v ? { x: v.x, y: v.y } : at;
+        this.hand.follow('point', () => to);
+        const stamp = () => {
+          to = at;
+          this.time.delayedCall(500, () => {
+            this.helped();
+            if (this.finished || st.slots[n.i].got) return;
+            this.press(n.i);
+          });
+        };
+        if (v) this.time.delayedCall(600, () => (this.selectStamp(v.id), stamp()));
+        else this.time.delayedCall(300, stamp);
+        return true;
+      }
       default:
         return false;
     }
@@ -1887,6 +2354,7 @@ export class ArtScene extends MiniGame {
       return;
     }
     if (this.phase !== 'draw' || this.finished) return;
+    if (this.kind === 'stamps') return this.stampDown(at);
     const pot = this.potAt(at);
     if (pot) return pot.brush === this.brush ? boing(this, pot.img, 0.08) : this.selectPot(pot.brush);
     switch (this.kind) {
@@ -1920,6 +2388,24 @@ export class ArtScene extends MiniGame {
     }
   }
 
+  /** Stamps: a tap on a stamp picks it (Mom names it); a tap on the sheet presses the picked one into an outline. */
+  private stampDown(at: P) {
+    const st = this.stamps!;
+    const v = this.stampViewAt(at);
+    if (v) {
+      if (v.id === st.sel) return boing(this, v.img, 0.08);
+      // (level 1: a stamp with no outline left only wiggles)
+      if (!this.stampFree(v.id)) {
+        this.tweens.add({ targets: v.img, angle: { from: -8, to: 8 }, duration: 70, yoyo: true, repeat: 2, onComplete: () => v.img.setAngle(0) });
+        return;
+      }
+      return this.selectStamp(v.id);
+    }
+    if (st.busy || !this.onSheet(at, 20 * this.L.k)) return;
+    const i = this.slotFor(st.sel, this.toSheet(at));
+    if (i >= 0) this.press(i);
+  }
+
   protected move(p: Phaser.Input.Pointer) {
     if (this.phase !== 'draw' || this.finished) return;
     const at = { x: p.worldX, y: p.worldY };
@@ -1948,6 +2434,8 @@ export class ArtScene extends MiniGame {
   }
 
   protected up() {
+    const pen = this.pen as { wrong?: number } | null;
+    if (this.kind === 'trace' && this.trace?.dir && !this.finished && (pen?.wrong ?? 0) > T.traceWrong * this.L.k) this.wrongStroke();
     this.pen = null;
     this.dotsLast = null;
     this.dots?.live.clear();
@@ -1981,7 +2469,8 @@ export class ArtScene extends MiniGame {
   // ---------------------------------------------------------------- for the test harness
 
   /** What a child would do next (world points): a tap, or a drag through points. */
-  plan(): { tap?: P; drag?: P[] } | null {
+  /** `wrong`: a child's mistake instead (`wrong: true` in the answer when this move is the mistake itself). */
+  plan(wrong = false): { tap?: P; drag?: P[]; wrong?: boolean } | null {
     const k = this.L.k;
     if (this.phase === 'pick') return null;
     if (this.phase !== 'draw' || this.finished) return null;
@@ -1990,15 +2479,43 @@ export class ArtScene extends MiniGame {
         const t = this.trace!;
         const part = t.cps.find((c) => !c.lit)?.part;
         if (part === undefined) return null;
-        // a wobbly stroke along the whole part, a little off the line
+        // a wobbly stroke along the whole part, a little off the line (level 2: less wobbly, the arrows' way; wrong: the other way)
         const d = t.dense[part];
-        const pts = d.filter((_, i) => i % 4 === 0).map((q, i) => this.toWorld([q[0] + Math.sin(i) * 14, q[1] + Math.cos(i * 1.3) * 14]));
+        const w = t.dir ? 5 : 14;
+        const pts = d.filter((_, i) => i % 4 === 0).map((q, i) => this.toWorld([q[0] + Math.sin(i) * w, q[1] + Math.cos(i * 1.3) * w]));
+        if (wrong && t.dir) return { drag: pts.reverse(), wrong: true };
         return { drag: pts };
       }
       case 'dots': {
         const d = this.dots!;
         const n = d.views[d.next];
+        // (level 2: she listens for the number first)
+        if (this.level === 2 && n && d.asked !== d.next) return null;
+        if (wrong && this.level === 2 && n) {
+          const o = d.views.findIndex((v, i) => !v.joined && i !== d.next && Math.hypot(...([0, 1] as const).map((j) => (v.at[j] - n.at[j]) * this.sheet.u) as [number, number]) > T.dotTouch * k * 1.2);
+          if (o >= 0) return { tap: this.toWorld(d.views[o].at), wrong: true };
+        }
         return n ? { tap: this.toWorld(n.at) } : null;
+      }
+      case 'stamps': {
+        const n = this.stampTarget();
+        const st = this.stamps!;
+        if (!n || st.busy) return null;
+        if (wrong && st.pattern) {
+          // level 2: another stamp than Mom's next one, then pressed
+          if (st.sel === n.need) return { tap: (({ x, y }) => ({ x, y }))(st.stamps.find((q) => q.id !== n.need)!) };
+          return { tap: this.toWorld(st.slots[n.i].slot.at), wrong: true };
+        }
+        if (wrong) {
+          // level 1: a tap on an outline of another shape (the stamp still lands on its own shape's)
+          const o = st.slots.find((q) => !q.got && q.slot.shape !== st.sel);
+          if (o && this.stampFree(st.sel)) return { tap: this.toWorld(o.slot.at), wrong: true };
+        }
+        if (n.need !== st.sel) {
+          const v = st.stamps.find((q) => q.id === n.need)!;
+          return { tap: { x: v.x, y: v.y } };
+        }
+        return { tap: this.toWorld(st.slots[n.i].slot.at) };
       }
       case 'colour': {
         const n = this.colourNext();
