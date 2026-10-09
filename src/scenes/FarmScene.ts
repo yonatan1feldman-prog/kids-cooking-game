@@ -1298,7 +1298,9 @@ export class FarmScene extends MiniGame {
         const hs = b.s * 1.1;
         const tg = { x: q.img.x + 110 * hs, y: q.img.y - 200 * q.img.scale + 80 * hs };
         const plan = this.dragPlan(null, b.spot, [tg], 'milk-bucket-full', 'thing', T.pourMs * (1 - q.level) + 400);
-        plan.keys![0] = { ...plan.keys![0], x: b.spot.x, y: b.spot.y + 50 * k };
+        // the bucket stands low: take it by its upper half, above the palm strip where a touch can start
+        plan.keys![0] = { ...plan.keys![0], x: b.spot.x, y: Math.min(b.spot.y, this.L.H * 0.92 - 24 * k) };
+        plan.keys![1] = { ...plan.keys![1], x: plan.keys![0].x, y: plan.keys![0].y };
         return plan;
       },
     };
