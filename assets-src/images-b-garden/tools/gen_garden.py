@@ -36,31 +36,31 @@ def doc(p, w, h, body, material="default", seed=3, sh=(4, 3.5, .33), cut=None, e
 
 
 # ---------------------------------------------------------------- the fruit (small, shared by packets, card, basket)
-def tomato(cx, cy, r, seed=1):
-    s = G(P(wob(cx, cy, r, r * .92, .04, seed, 22), RED_D) + P(wob(cx - r * .04, cy - r * .04, r * .9, r * .82, .04, seed + 1, 22), RED))
-    s += P(f"M{n(cx - r * .62)},{n(cy - r * .1)} Q{n(cx - r * .55)},{n(cy - r * .6)} {n(cx - r * .12)},{n(cy - r * .7)} Q{n(cx - r * .45)},{n(cy - r * .45)} {n(cx - r * .5)},{n(cy - r * .05)}Z", RED_L, ' opacity="0.9"')
+def tomato(cx, cy, r, seed=1, cols=(RED_D, RED, RED_L)):
+    s = G(P(wob(cx, cy, r, r * .92, .04, seed, 22), cols[0]) + P(wob(cx - r * .04, cy - r * .04, r * .9, r * .82, .04, seed + 1, 22), cols[1]))
+    s += P(f"M{n(cx - r * .62)},{n(cy - r * .1)} Q{n(cx - r * .55)},{n(cy - r * .6)} {n(cx - r * .12)},{n(cy - r * .7)} Q{n(cx - r * .45)},{n(cy - r * .45)} {n(cx - r * .5)},{n(cy - r * .05)}Z", cols[2], ' opacity="0.9"')
     star = spiky(cx, cy - r * .78, r * .12, r * .42, 0, 360, 5, seed + 3, .55)
     s += P(star, LEAF_D) + P(spiky(cx, cy - r * .8, r * .08, r * .34, 20, 380, 5, seed + 4, .5), LEAF)
     s += P(f"M{n(cx - r * .05)},{n(cy - r * .85)} L{n(cx + r * .02)},{n(cy - r * 1.12)} L{n(cx + r * .12)},{n(cy - r * 1.1)} L{n(cx + r * .07)},{n(cy - r * .82)}Z", LEAF_D)
     return s
 
 
-def strawberry(cx, cy, r, seed=1):
+def strawberry(cx, cy, r, seed=1, cols=(STRAW_D, STRAW, STRAW_L, SUN_L)):
     # r = half width; the berry is a rounded heart tip down, leaves on top
     pts = [(cx - r, cy - r * .5), (cx - r * .92, cy + r * .2), (cx - r * .55, cy + r * .85), (cx, cy + r * 1.25),
            (cx + r * .55, cy + r * .85), (cx + r * .92, cy + r * .2), (cx + r, cy - r * .5), (cx + r * .5, cy - r * .78),
            (cx, cy - r * .7), (cx - r * .5, cy - r * .78)]
-    s = P(smooth(pts), STRAW_D)
+    s = P(smooth(pts), cols[0])
     inner = [(x * .9 + cx * .1, y * .9 + (cy - r * .05) * .1) for x, y in pts]
-    s += P(smooth(inner), STRAW)
-    s += P(f"M{n(cx - r * .7)},{n(cy - r * .3)} Q{n(cx - r * .7)},{n(cy + r * .3)} {n(cx - r * .35)},{n(cy + r * .7)} Q{n(cx - r * .5)},{n(cy + r * .2)} {n(cx - r * .45)},{n(cy - r * .35)}Z", STRAW_L, ' opacity="0.8"')
+    s += P(smooth(inner), cols[1])
+    s += P(f"M{n(cx - r * .7)},{n(cy - r * .3)} Q{n(cx - r * .7)},{n(cy + r * .3)} {n(cx - r * .35)},{n(cy + r * .7)} Q{n(cx - r * .5)},{n(cy + r * .2)} {n(cx - r * .45)},{n(cy - r * .35)}Z", cols[2], ' opacity="0.8"')
     rr = random.Random(seed)
     for i in range(11):
         x = cx + rr.uniform(-.65, .65) * r
         y = cy + rr.uniform(-.35, .8) * r
         if abs(x - cx) / r > 0.75 - (y - cy) / r * .35:
             continue
-        s += E(x, y, r * .06, r * .09, SUN_L)
+        s += E(x, y, r * .06, r * .09, cols[3])
     s += P(spiky(cx, cy - r * .7, r * .15, r * .62, 180, 360, 4, seed + 5, .55), LEAF_D)
     s += P(spiky(cx, cy - r * .74, r * .1, r * .5, 190, 350, 4, seed + 6, .5), LEAF)
     return s
@@ -629,6 +629,84 @@ ITEMS.update({
 })
 
 
+# ---------------------------------------------------------------- challenge round (PR B): unripe fruit, a second basket,
+# the caterpillar and its jar. The green fruit use the ripe ones' frames.
+UNRIPE_T = ("#7FA83E", "#A8CB5E", "#CBE38E")            # a green tomato
+UNRIPE_S = ("#B9C98E", "#E6EFC6", "#F7FBE6", "#B9D07A")  # a white-green strawberry (pale green seeds)
+BLUE = "#5B8FD6"; BLUE_D = "#3F6FB4"; BLUE_L = "#8DB4E8"
+
+
+def garden_tomato_green():
+    p = "gtg-"
+    return doc(p, 140, 150, G(tomato(70, 82, 56, 111, UNRIPE_T), p + "cut"), seed=112, sh=(3, 3, .3), cut={"rim": 2.4, "rough": 3.5})
+
+
+def garden_strawberry_green():
+    p = "gsg-"
+    return doc(p, 130, 150, G(strawberry(65, 64, 50, 113, UNRIPE_S), p + "cut"), seed=114, sh=(3, 3, .3), cut={"rim": 2.4, "rough": 3.5})
+
+
+def weave2(p, y0, y1):
+    s = ""
+    for r_, y in enumerate(range(y0, y1, 30)):
+        for i, x in enumerate(range(56, 390, 44)):
+            s += P(wr(x + (22 if r_ % 2 else 0) - 6, y, 44, 26, 12, 1, 190 + r_ * 20 + i), [BLUE_L, BLUE][(i + r_) % 2])
+    return s
+
+
+def garden_basket_2():
+    # the second basket (level 2, sorting): the same shape as garden-basket, painted blue
+    p = "gb2-"
+    s = G(stroke("M60,130 Q60,-10 220,-6 Q380,-10 380,130", BLUE_D, 22) + stroke("M60,130 Q62,6 220,8 Q378,6 380,130", BLUE_L, 8), p + "sh")
+    s += G(P(wob(220, 124, 186, 40, .02, 201, 26), BLUE_D), p + "cut") + P(wob(220, 128, 170, 30, .03, 202, 24), "#2E4A72")
+    return doc(p, 440, 320, s, "rough", seed=223, sh=(4, 3.5, .3), cut={"rim": 3, "rough": 5})
+
+
+def garden_basket_2_front():
+    p = "gb2x-"
+    clip = f'<clipPath id="{p}cl"><path d="{basket_front_shape()}"/></clipPath>'
+    s = G(P(basket_front_shape(), BLUE_D), p + "cut") + f'<g clip-path="url(#{p}cl)">{weave2(p, 118, 300)}</g>'
+    s += P(wr(30, 108, 380, 30, 14, 1.4, 211), BLUE_D) + P(wr(36, 112, 368, 18, 9, 1, 212), BLUE_L, ' opacity="0.8"')
+    return doc(p, 440, 320, s, "rough", seed=233, sh=(4, 3.5, .3), cut={"rim": 3, "rough": 5}, extra_defs=clip)
+
+
+def garden_caterpillar():
+    # 220x120, facing left: the head at the left end, four round body segments behind it, little feet
+    p = "gcp-"
+    segs = [(178, 74, 26), (146, 70, 28), (112, 66, 29), (80, 68, 29)]
+    feet = "".join(stroke(f"M{x - 8},{y + r - 6} l-3,14 M{x + 8},{y + r - 6} l3,14", GREEN_D, 5) for x, y, r in segs)
+    body = "".join(P(wob(x, y, r, r * .95, .04, 300 + i, 18), GREEN_D) + P(wob(x - 2, y - 2, r * .86, r * .8, .04, 310 + i, 18), GREEN_L if i % 2 else GREEN) for i, (x, y, r) in enumerate(segs))
+    spots = "".join(C(x + 4, y - r * .45, r * .18, MUSTARD, ' opacity="0.9"') for x, y, r in segs)
+    head = P(wob(44, 62, 34, 33, .03, 320, 22), GREEN_D) + P(wob(42, 60, 30, 29, .03, 321, 22), "#9FD77A")
+    ant = stroke("M34,32 Q26,12 16,8 M54,32 Q60,12 70,8", EYE, 4) + C(16, 8, 6, CORAL) + C(70, 8, 6, CORAL)
+    face = C(32, 56, 6, EYE) + C(56, 56, 6, EYE) + C(30, 54, 2, WHITE) + C(54, 54, 2, WHITE) + stroke("M30,74 Q42,86 56,74", EYE, 4) + C(22, 72, 6, CHEEK, ' opacity="0.6"') + C(64, 72, 6, CHEEK, ' opacity="0.6"')
+    s = G(feet, p + "sh") + G(body + spots, p + "cut") + G(head, p + "cut") + G(ant, p + "sh") + face
+    return doc(p, 220, 120, s, seed=330, sh=(3, 3, .3), cut={"rim": 2.2, "rough": 3})
+
+
+JAR_MOUTH = (110, 66)   # the middle of the jar's open mouth (where the caterpillar goes in)
+
+
+def garden_jar():
+    # 220x260: a glass jar with a little grass and a twig inside, its lid lying open on the right
+    p = "gjr-"
+    glass = P(wr(36, 60, 148, 186, 36, 1.4, 341), "#9FC9D2", ' opacity="0.55"')
+    glass_rim = stroke("M40,96 Q40,60 70,60 L150,60 Q180,60 180,96 L180,210 Q180,246 146,246 L74,246 Q40,246 40,210Z", TEAL_D, 6)
+    inside = P("M48,226 Q80,206 110,216 Q140,204 172,224 L170,232 Q170,240 150,240 L70,240 Q50,240 48,232Z", GRASS) + stroke("M70,224 Q96,160 120,150", WOOD_D, 6) + P(wob(124, 150, 16, 9, .1, 345, 10, -30), LEAF)
+    shine = P("M58,104 Q60,86 76,80 L76,200 Q60,196 58,180Z", WHITE, ' opacity="0.6"')
+    neck = P(wr(46, 50, 128, 22, 10, 1, 342), TEAL_D) + P(wr(50, 53, 120, 14, 7, 1, 343), TEAL_L)
+    lid = P(wr(132, 20, 84, 28, 12, 1.2, 344), RUST) + "".join(C(148 + i * 18, 33, 3, "#7A3020") for i in range(4))
+    s = G(inside + glass, p + "cut") + glass_rim + shine + G(neck, p + "cut") + G(lid, p + "cut")
+    return doc(p, 220, 260, s, seed=350, sh=(3, 3, .3), cut={"rim": 2.4, "rough": 3})
+
+
+ITEMS.update({
+    "garden-tomato-green": garden_tomato_green, "garden-strawberry-green": garden_strawberry_green,
+    "garden-basket-2": garden_basket_2, "garden-basket-2-front": garden_basket_2_front,
+    "garden-caterpillar": garden_caterpillar, "garden-jar": garden_jar,
+})
+
+
 def save(name, s):
     path = os.path.join(OUTDIR, name + ".svg")
     with open(path, "w", encoding="utf8") as f:
@@ -645,4 +723,4 @@ if __name__ == "__main__":
     print("anchors: SOIL_Y", SOIL_Y, "HOLES", HOLES, "TOMATO_FRUITS", TOMATO_FRUITS, "STRAW_FRUITS", STRAW_FRUITS,
           "CARROT_TOP", CARROT_TOP, "SPOUT", SPOUT, "SNAIL_MOUTH", SNAIL_MOUTH, "BASKET_IN", BASKET_IN,
           "WEED_TOP", WEED_TOP, "BUNNY_MOUTH", BUNNY_MOUTH, "SCARE_HAT", SCARE_HAT,
-          "SCARE_SHIRT", SCARE_SHIRT, "HAT_BRIM", HAT_BRIM)
+          "SCARE_SHIRT", SCARE_SHIRT, "HAT_BRIM", HAT_BRIM, "JAR_MOUTH", JAR_MOUTH)

@@ -1230,7 +1230,9 @@ window.__pancakeMoments = () => [
 // ---------------------------------------------------------------- The garden (GardenScene; garden round 2 adds level 2)
 // window.__gardenLevel = 1 | 2 picks the level; __gardenSeed = 'tomato' | 'strawberry' | 'carrot' picks the packet
 // (default: Pipa's wish); __overWater = true pours on a grown plant once (level 2); __bunnyWrong = true offers the bunny
-// a wrong thing first.
+// a wrong thing first. Challenge round: __gardenWrong = true makes one mistake in each new task (a green fruit to the
+// basket, the other kind's basket on level 2, an empty leaf before the caterpillar's, the caterpillar let go short of
+// the jar); __gardenVisit = n sets the visit number (Pipa's count at picking).
 window.__GS = () => game.scene.getScene('Garden');
 /** One round of whatever the garden's current part expects (with the child __drag of __gardenRun, at her pace). */
 window.__gardenGesture = async () => {
@@ -1246,10 +1248,22 @@ window.__gardenGesture = async () => {
       await __drag([[sp.x, soil - 90 * bs], [sp.x, soil - 300 * bs]]); return;
     }
     case 'plant': {
-      const h = g.nextHole(); if (!h) return;
+      const h = g.nextHole(), pk = g.nextPacket(); if (!h || !pk) return;
       if (g.spots.filter((s) => s.stage > 0).length % 2) __tap(h.x, soil);
-      else await __drag([[g.packet.x, g.packet.y], [h.x, soil - 30 * k]]);
+      else await __drag([[pk.img.x, pk.img.y], [h.x, soil - 30 * k]]);
       return;
+    }
+    case 'cater': {
+      const c = g.cater; if (!c) return;
+      if (!c.found) {
+        const empty = c.leaves.find((q) => q !== c.under);
+        if (window.__gardenWrong && !c.empty && empty) { __tap(empty.at.x, empty.at.y); return; }
+        __tap(c.under.at.x, c.under.at.y); return;
+      }
+      if (!c.jar) return;
+      const m = g.jarMouth();
+      if (window.__gardenWrong && !window.__caterMissed) { window.__caterMissed = true; await __drag([[c.img.x, c.img.y], [c.img.x + 60, c.img.y - 200]]); return; }
+      await __drag([[c.img.x, c.img.y], [m.x, m.y]]); return;
     }
     case 'water': {
       const grown = g.spots.find((s) => s.stage >= 3);
@@ -1295,9 +1309,23 @@ window.__gardenGesture = async () => {
       const m = g.bunnyMouth(); await __drag([[f.img.x, f.img.y], [m.x, m.y]]); return;
     }
     case 'pick': {
-      const f = g.nextFruit(); if (!f) return;
+      const W = window.__gardenWrong;
+      const green = g.fruits.find((q) => !q.picked && q.green);
+      // (a mistake: a green one to the basket, once)
+      if (W && green && !g.shown.notRipe) {
+        const b = g.basketFor(green);
+        if (green.carrot) await __drag([[green.home.x, green.home.y - 60 * bs], [green.home.x, green.home.y - 320 * bs]]);
+        else await __drag([[green.img.x, green.img.y], [b.x, b.y]]);
+        return;
+      }
+      const f = g.nextFruit();
+      if (!f) { if (green) __tap(g.sunAt.x, g.sunAt.y); return; }
+      const b = g.basketFor(f);
+      // (a mistake on level 2: the other kind's basket, once)
+      const other = g.baskets.find((q) => q !== b);
+      const to = W && other && !g.shown.sortWrong && !f.carrot ? other : b;
       if (f.carrot) await __drag([[f.home.x, f.home.y - 60 * bs], [f.home.x, f.home.y - 320 * bs]]);
-      else await __drag([[f.img.x, f.img.y], [g.basket.x, g.basket.y]]);
+      else await __drag([[f.img.x, f.img.y], [to.x, to.y]]);
       return;
     }
   }
@@ -1312,6 +1340,7 @@ window.__gardenRun = async (level = 1, mode = 'child', w = 900, h = 405, demos =
   // (level 0: the level chosen on the title, core/level.ts)
   if (level) window.__gardenLevel = level; else delete window.__gardenLevel;
   window.__overDone = false;
+  window.__caterMissed = false;
   for (let i = 0; i < 60 && !__voice.allLoaded; i++) await new Promise((r) => setTimeout(r, 250));
   localStorage.setItem('cooking.runs.garden', demos ? '0' : '5');
   await __setup(w, h); __voSim(true);
@@ -1325,7 +1354,7 @@ window.__gardenRun = async (level = 1, mode = 'child', w = 900, h = 405, demos =
   };
   const T = () => __T;
   try {
-    const b = game.scene.getScene('Title').children.list.find((o) => (o.texture?.key === 'btn-play' || o.texture?.key === 'btn-world-kitchen'));
+    const b = game.scene.getScene('Title').children.list.find((o) => ['btn-play', 'btn-world-kitchen', 'world-card-kitchen'].includes(o.texture?.key));
     __tap(b.x, b.y); await __run(2500);
     const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-garden');
     const n0 = __voLog.length, t0 = T(), l0 = game.loop.time, at = {}, gest = {};

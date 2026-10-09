@@ -250,7 +250,7 @@ export const TUNING = {
    */
   garden: {
     waterMs: 2200, sproutAt: 0.35, cloudPush: 260, cloudTap: 90, pull: 0.75, perPlant: 3, carrotsPerPlant: 2, reach: 230, helpMs: 1100,
-    hard: { waterMs: 3000, weedPull: 0.7, puddleMs: 700, drainMs: 1400, clouds: 2, bunnyFoods: 3 },
+    hard: { waterMs: 3000, weedPull: 0.7, puddleMs: 700, drainMs: 1400, clouds: 2, bunnyFoods: 3, seeds: [2, 1] as readonly [number, number], caterpillar: true, leaves: 2, emptyTaps: 3 },
     /**
      * Garden round 3 (both levels; each visit is drawn at random). `rainChance`: a rainy day (the rain cloud waters the
      * mounds while she moves it over them, then she pushes it off the sun; a rainbow), else the watering can. Then one of
@@ -260,6 +260,15 @@ export const TUNING = {
      * butterfly let go (or dragged) this near a flower visits it.
      */
     rainChance: 0.5, scarecrowChance: 0.5, birds: 3, sunTaps: 3, bflyReach: 150,
+    /**
+     * Challenge round (research/challenge-spec.md, both levels). `unripe` [easy, hard]: fruit per plant still green (a
+     * carrot: a small top) at picking; one dragged to a basket floats back ("Not ripe yet!", a miss); a tap on the sun
+     * ripens them all (`ripenMs`). `pipaCount`: Pipa's bubble wants this many of the fruit (by visit: first, second,
+     * then on), counted into the basket; only where Pipa is on screen. Level 2 (`hard`): `seeds` = seeds in the first and
+     * the second packet (two kinds, two baskets to sort into at picking); `caterpillar`: after the sun a caterpillar hides
+     * under one of `leaves` leaves per plant (a miss every `emptyTaps` empty leaves); she carries it to the jar.
+     */
+    unripe: [1, 2] as readonly [number, number], ripenMs: 1000, pipaCount: [2, 3, 4] as readonly number[],
   },
   /**
    * The market (MarketScene, research/minigames-spec.md). `listItems`: pictures on each list at level 1 / 2 by visit (level
