@@ -388,6 +388,66 @@ Same engine, voice and processing (seven lines soft-limited by `audio-src/script
 | vo-tummy-germs · vo-germs-gone · vo-clinic-which · vo-knee-dirt | Tummy germs! A drop of medicine on each one. · Bye bye, germs! · Which tool do we need now? · Let's wash all the dirt off. |
 | vo-world-cooking · vo-world-doctor (the title's two cards) | Cooking with Mom! · Doctor with Mom! |
 
+### New in the farm (caring for farm animals: 51 lines and 10 effects)
+
+Same engine, voice and processing as every line above (Kokoro af_heart, `make_vo.py mom-a`); no fix was needed. The
+effects moo, neigh, baa, cluck, peep, oink, milk-squirt, clip-buzz, cow-bell and splash-mud are own work, synthesised by
+`audio-src/scripts/make_farm_sfx.py` (numpy + scipy + ffmpeg; no samples), -18 LUFS.
+
+| Key | Line |
+|---|---|
+| vo-pick-farm | Let's visit the farm! |
+| vo-farm-hello | Welcome to our farm! Who shall we look after first? |
+| vo-farm-next | Who's next? |
+| vo-farm-what-first | What shall we do first? |
+| vo-farm-first-hmm | Hmm, what comes first? |
+| vo-farm-not-that | Not that one! Which tool do we need? |
+| vo-farm-more | Well done! What else? |
+| vo-horse-feed | The horse is hungry! Give him a carrot or an apple. |
+| vo-horse-wants | Hmm, the horse wants... |
+| vo-horse-brush | Let's brush his coat, nice and shiny! |
+| vo-horse-teeth | Open wide, Horse! Let's brush your teeth. |
+| vo-horse-ride | Horses give rides! Up you go, Pipa! |
+| vo-cow-hay | The cow is hungry! Give her some hay. |
+| vo-cow-bell | Put the bell on her collar! |
+| vo-cow-bucket | Put the bucket under the cow. |
+| vo-cow-milk | Now let's milk her! Squeeze, squeeze! |
+| vo-cow-other | Now the other one! |
+| vo-cow-pour | Pour the milk into the bottles! |
+| vo-sheep-shear | The sheep is so fluffy! Let's give her a haircut. |
+| vo-sheep-tickles | That tickles! |
+| vo-sheep-arrows | Follow the arrows! |
+| vo-sheep-wind | Now wind the wool into a ball! Round and round. |
+| vo-sheep-ribbon | Pick a ribbon for the sheep! |
+| vo-sheep-ribbon-copy | Can you pick the same colour as Mom's picture? |
+| vo-hens-grain | The hens are hungry! Sprinkle some grain. |
+| vo-hens-eggs | Tap a hen and see what's underneath! |
+| vo-hens-basket | Carefully! Put the egg in the basket. |
+| vo-hens-colour | Find the basket with the same colour! |
+| vo-hens-chick | Peep peep! A chick! Bring it to its mommy. |
+| vo-hen-shy | Hee hee! She's a little shy. Tap her again! |
+| vo-pig-muddy | Oh, Pig! You're all muddy. Let's scrub you clean. |
+| vo-pig-soap | Now the soap! Bubbles everywhere! |
+| vo-pig-rinse | Tap the pump to rinse! |
+| vo-pig-feed | Pig is hungry too! |
+| vo-pig-wants | Hmm, Pig wants... |
+| vo-pig-back | Oh, Pig! You love your mud! |
+| vo-farm-thanks-horse | Thank you, Horse! |
+| vo-farm-thanks-cow | Thank you, Cow! |
+| vo-farm-thanks-sheep | Thank you, Sheep! |
+| vo-farm-thanks-hens | Thank you, hens! |
+| vo-farm-thanks-pig | Thank you, Pig! |
+| vo-farm-done | Look at everything we got from our farm! |
+| vo-farm-day | What a lovely day on the farm! |
+| vo-farm-scarf | A warm scarf for Pipa, from our sheep's wool! |
+| name-horse | Horse! |
+| name-cow | Cow! |
+| name-sheep | Sheep! |
+| name-hens | Hens! |
+| name-pig | Pig! |
+| name-apple | Apple! |
+| name-brown | Brown! |
+
 ### New in the clinic, round 4 (four children, two problems a patient, a bee sting, bug bites, mud; the easy / hard level; 17 lines)
 
 Same engine, voice and processing as every line above; no fix was needed.
@@ -458,5 +518,5 @@ layers like Pipa's, the giraffe's neck and the three invitation badges) are draw
 `assets-src/images-b/tools/gen_kitchen_sky.py`, and the 21 files of visual round 5 (the garden, the cat, the clock, the
 child's drawing, the sill's things, the bunting) from `gen_kitchen_view.py` beside it. The 30 garden-stage files (the garden background, the raised
 bed, holes, seeds and packets, the plants, fruit and carrots, the watering can, sun, cloud, snail, leaf, basket and the
-garden card) are drawn by `assets-src/images-b-garden/tools/gen_garden.py` on the same kit. The 18 files of the two mini-games (the market's background, awning, shelf, counter, poles, crates and list, the dishes, the food on them, the sponge, the drying rack and the two cards) are drawn by `assets-src/images-b-minigames/tools/gen_minigames.py` on the same kit, and so are the market's coin, purse and chalk slate (round 3); the garden's scarecrow, its three hats and three shirts, the two bird frames and the butterfly (round 3) by `gen_garden.py`. The 22 files of the art corner (the easel, the five picking cards, the paint pots, the steamy window's view and frame, the things hidden behind the steam, the art card and photo frame) are drawn by `assets-src/images-b-art/tools/gen_art.py` on the same kit. The 52 files of the clinic (the waiting room and the treatment room, the bed, the bench, the tray slot and the chart, fourteen tools, the close-ups and the magnifier's rim, what shows a patient is not well, an itchy spot and a swallowed bell, three stickers, nine ailment cards, the title's two world buttons and the clinic's photo frame) are drawn by `assets-src/images-b-clinic/tools/gen_clinic.py` on the same kit, and the 23 of its round 3 (the eye, ear and x-ray close-ups, three germs, a tooth's hole and its star, food bits, a speck, ear wax, a ladybird, seven more tools and two ailment cards) by `gen_clinic3.py` beside it, and the 13 of its round 4 (the skin and hand close-ups, a sting, a bite, a gnat, mud, foam, the sponge, the bug spray, three ailment cards and the fixed badge) by `gen_clinic4.py`, and the four children Lily, Leo, Mia and Sam (eight layers each) by `gen_kids.py` (Pipa's eyes and mouths from `images-b-guests/tools/gen_guests.py`), and the title's two game cards (`world-card-kitchen`, `world-card-clinic`) by `gen_title_worlds.py` (the logo's letters from `images-b-prep/tools/gen_prep_c.py`), and Mom's nurse dress and cap (`mom-body-nurse`, `mom-cap-nurse`) by `assets-src/images-b/tools/gen_mom.py`; the pictures she draws, traces, joins and colours are drawn in code (`src/core/artPictures.ts`). No third-party art, fonts or images.
+garden card) are drawn by `assets-src/images-b-garden/tools/gen_garden.py` on the same kit. The 18 files of the two mini-games (the market's background, awning, shelf, counter, poles, crates and list, the dishes, the food on them, the sponge, the drying rack and the two cards) are drawn by `assets-src/images-b-minigames/tools/gen_minigames.py` on the same kit, and so are the market's coin, purse and chalk slate (round 3); the garden's scarecrow, its three hats and three shirts, the two bird frames and the butterfly (round 3) by `gen_garden.py`. The 22 files of the art corner (the easel, the five picking cards, the paint pots, the steamy window's view and frame, the things hidden behind the steam, the art card and photo frame) are drawn by `assets-src/images-b-art/tools/gen_art.py` on the same kit. The 52 files of the clinic (the waiting room and the treatment room, the bed, the bench, the tray slot and the chart, fourteen tools, the close-ups and the magnifier's rim, what shows a patient is not well, an itchy spot and a swallowed bell, three stickers, nine ailment cards, the title's two world buttons and the clinic's photo frame) are drawn by `assets-src/images-b-clinic/tools/gen_clinic.py` on the same kit, and the 23 of its round 3 (the eye, ear and x-ray close-ups, three germs, a tooth's hole and its star, food bits, a speck, ear wax, a ladybird, seven more tools and two ailment cards) by `gen_clinic3.py` beside it, and the 13 of its round 4 (the skin and hand close-ups, a sting, a bite, a gnat, mud, foam, the sponge, the bug spray, three ailment cards and the fixed badge) by `gen_clinic4.py`, and the four children Lily, Leo, Mia and Sam (eight layers each) by `gen_kids.py` (Pipa's eyes and mouths from `images-b-guests/tools/gen_guests.py`), and the title's two game cards (`world-card-kitchen`, `world-card-clinic`) by `gen_title_worlds.py` (the logo's letters from `images-b-prep/tools/gen_prep_c.py`), and Mom's nurse dress and cap (`mom-body-nurse`, `mom-cap-nurse`) by `assets-src/images-b/tools/gen_mom.py`. The 90 files of the farm (its backdrop and fence, the horse, cow, sheep and pig in eight layers each, the hens, nests, eggs, chick and basket, the tools, food, trough, pump, bucket, bottles, wool, ribbons, the cart, Pipa's scarf, the card and the photo frame) are drawn by `assets-src/images-b-farm/tools/gen_farm.py` on the same kit (Pipa's eyes and mouths from `gen_pippa.py`, the guests' mouths from `gen_guests.py`); the pictures she draws, traces, joins and colours are drawn in code (`src/core/artPictures.ts`). No third-party art, fonts or images.
 `images/webp/` holds WebP renderings of those same SVGs, made by `scripts/bake-webp.js`.

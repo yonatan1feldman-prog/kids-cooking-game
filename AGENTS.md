@@ -4,8 +4,9 @@
 - **What:** a text-free, English-speaking cooking game for a 5-year-old (Android phone, landscape): she cooks with
   Mom, Pipa the hedgehog watches and eats. Phaser 4 + Vite + TypeScript PWA, deployed to GitHub Pages from `master`.
   Eight recipes: pizza, salad, cookies, smoothie, pancakes, vegetable soup, birthday cake and fruit skewers (`src/recipes/<name>.ts`),
-  cards in a grid on the home screen, then three cards for games that are not cooking (the garden `scenes/GardenScene.ts`,
-  the market `MarketScene.ts`, washing up `DishesScene.ts`; the last two share `scenes/MiniGame.ts`), with the memory
+  cards in a grid on the home screen, then cards for games that are not cooking (the garden `scenes/GardenScene.ts`,
+  the market `MarketScene.ts`, washing up `DishesScene.ts`, the art corner `ArtScene.ts`, the farm `FarmScene.ts`, data in
+  `core/farm.ts`; all but the garden share `scenes/MiniGame.ts`), with the memory
   book's button in one more cell once there is a photo in it. The title offers two games as two big cards, "Cooking
   with Mom" (the home screen above) and "Doctor with Mom" (the clinic with Mom the nurse, `scenes/ClinicScene.ts`, data
   in `core/clinic.ts`); both games' home buttons go back to the title.
@@ -672,7 +673,44 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; the farm, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 00000000000000000000000000000. The farm (caring for farm animals, in the cooking world)
+The owner: "another mini-game of caring for farm animals: feeding a horse, milking a cow, shearing a sheep; check for a
+good one online and take ideas from it; in the cooking-with-Mom area". Research and spec: `/mnt/project-files/research/farm-spec.md`
+(Dirty Farm's chores per animal and the pig back in her mud, Fiete's day on the farm and the produce in a cart, Sago's
+feeding by hand). Branch `claude/project-thread-y324z5`.
+- **Way in:** a card after the art corner (`card-farm`, core; HomeScene `PLAY`), the album one cell on. `RECIPE_ASSETS.farm`
+  (with the outdoors song), scene `Farm` (`scenes/FarmScene.ts` on `MiniGame`). Its whole asset contract is in
+  `core/farmAssets.ts` (images with their anchors `ART_FARM`, effects, voice keys); assets.ts and audio.ts only spread it in.
+- **The visit:** three animals of five (hard: four; `planVisit`, `window.__farmPlan = ['cow', 'pig']`) peek over the fence;
+  a tap brings one to the middle. Its chores are cards above it (`layCards`, as the clinic's problems): easy, the next one
+  glows and Mom says it; hard, "What shall we do first?" and what has to come first hops back (`Chore.after`). A chore is
+  stages (`CHORES[id].stages[level]`), each a `Job` in the scene (its tray slots, its touches, its `plan()`). A tool follows
+  the finger by its working point (`ART_FARM.tip`), food is a copy from its slot (tap: it flies there; drag: let go near).
+  - horse: feed carrots and apples to his mouth (hard: his wish bubble, remembered, `rememberWish`); brush (dust puffs, the
+    coat shines: `horse-shine`; hard: three zones in turn); hard: brush his teeth in a close-up (`horse-teeth`, smudges).
+  - cow: hay to the trough (hard: two, then the bell on her collar); milk: hard, the bucket under her first; tap the teats
+    (hard: the glowing one, in turn), each squeeze squirts and the bucket fills; hard: pour it into two bottles (hold over each).
+  - sheep: shear each fleece band (`fleece-4-*` / `fleece-6-*`; hard: only strokes down along the arrows, up is neutral,
+    sideways wobbles her); wind the wool into a ball by circling it (hard: the arrows' way, turning round half-way,
+    `vo-other-way`); hard: a ribbon like Mom's picture.
+  - hens: sprinkle grain with the scoop over the yard, each grain pecked; tap each hen, she stands, her egg goes to the
+    basket (hard: two baskets by colour, a shy hen, then a chick hatches in the basket and goes back to its mommy).
+  - pig: sponge the mud off, soap her bubbly (a share of her body, `foam`), tap the pump to rinse, feed her at the trough
+    (hard: her wish). Then she runs straight back into the puddle.
+  Every animal gives something to the cart (two milk bottles, the yarn ball, the egg basket; the horse gives Pipa a ride)
+  and says thank you with a little dance, then goes back to the fence. Finale: the cart rolls to the middle, "Look at
+  everything we got from our farm!", a photo (`photo-frame-farm`, `keepPhoto('farm')`), a scarf for Pipa from the wool
+  (or a sip of the milk), bye, Home. Counts: `FARM_TUNING` in `core/farm.ts` (`[easy, hard]`).
+- **Help:** Mom's demo, hint and help all come from the scene's `plan()` (a tap, or a drag along keys): the hint plays it
+  with a see-through prop, the help drives the very same touch handlers with a virtual finger (`helpOnce`).
+- **Art:** `assets-src/images-b-farm/tools/gen_farm.py` (90 SVGs; the animals are 800x700 layers, feet at 684, at
+  raster 0.75). **Sound:** `audio-src/scripts/make_farm_sfx.py` (moo, neigh, baa, cluck, peep, oink, milk-squirt,
+  clip-buzz, cow-bell, splash-mud), 51 Mom lines (`make_vo.py mom-a`, "The farm"), not heard by a human.
+- **Harness:** `__mini('farm', level)`, `__farmPlay({ wrong, none, gap, mid, midDrag })`, `__farmVerify(level, opts)`.
+- **Not done (the spec's PR 2):** the farm's milk and eggs in the kitchen (the sill, Mom's "Milk from our cow!").
+- **Needs a real child:** squeezing the teats (taps), shearing down along the arrows (hard), carrying an egg to the
+  basket, circling the yarn ball, is the pig's splash funny.
 ### 0000000000000000000000000000. The clinic, round 4 (closer to "Doctor Games for kids": children, two problems each; easy / hard)
 The owner: "the clinic is not good enough; research again, as close to the original as possible, more patients, at least 3
 children"; then "the levels must also hold for the clinic, called an easy level and a hard level, not little chef / big

@@ -1004,7 +1004,7 @@ RECIPE_ASSETS.farm = {
   ],
   sounds: [
     ...FARM_SFX, ...FARM_VOICE.filter((k) => k !== 'vo-pick-farm'), 'name-carrot', 'name-corn', 'name-red', 'name-blue',
-    'name-yellow', 'name-white', 'brush', 'sticky', 'sparkle', 'spray', ...OUTSIDE_SONG,
+    'name-yellow', 'name-white', 'brush', 'sticky', 'sparkle', 'spray', 'slurp', 'egg-crack', ...OUTSIDE_SONG,
   ],
 };
 /** A guest's own layers: loaded when the sharing starts (all three, the two not invited are freed at once). */
