@@ -145,6 +145,8 @@ export const IMAGES = {
   'water-stream': { size: [240, 420] },
   'kid-hands': { size: [600, 420] },
   bubble: { size: [240, 240] },
+  /** The recipe challenges (PR A): the soap bar on the sink's rim, tapped before rubbing (soap first). */
+  'soap-bar': { size: [240, 160] },
   /** Knead: the dough from shaggy to smooth, same frame as dough-ball (base y 266). The dent under a press. */
   'dough-knead-1': { size: [360, 300] },
   'dough-knead-2': { size: [360, 300] },
@@ -735,7 +737,7 @@ export const CORE_IMAGES: readonly ImageKey[] = [
   'mom-hand-point', 'mom-hand-roll', 'mom-hand-spread', 'mom-hand-sprinkle', 'mom-hand-grab', 'mom-hand-press',
   'mom-hand-knife', 'mom-hand-mitt',
 ];
-const WASH: ImageKey[] = ['sink-basin', 'faucet', 'water-stream', 'kid-hands', 'bubble'];
+const WASH: ImageKey[] = ['sink-basin', 'faucet', 'water-stream', 'kid-hands', 'bubble', 'soap-bar'];
 const OVEN: ImageKey[] = [
   'oven-inside', 'oven-closed', 'oven-open', 'oven-panel', 'oven-needle', 'oven-start-off', 'oven-start-on', 'temp-glow',
   'btn-temp-up', 'btn-temp-down', 'mitt-single', 'oven-mitts',
@@ -775,6 +777,8 @@ export const RECIPE_ASSETS: Record<string, { images: readonly ImageKey[]; sounds
       'vo-choose-veg', 'vo-finale-salad', 'vo-fresh', 'vo-into-bowl', 'vo-mix', 'vo-oil', 'vo-photo-salad', 'vo-salt',
       'vo-serve', 'vo-squeeze', 'vo-tear', 'vo-wash-veg', 'vo-wash-veg-done', 'vo-cut', 'vo-cut-careful', 'name-tomato',
       'name-onion',
+      // (the hard level's pour order names the lettuce)
+      'name-lettuce',
     ],
   },
   cookies: {
@@ -801,6 +805,8 @@ RECIPE_ASSETS.smoothie = {
     'colander-fruit', 'water-drop', 'blender-jar-back', 'blender-jar-front', 'jar-heap-1', 'jar-heap-2', 'jar-heap-3',
     'blend-stage-1', 'blend-stage-2', 'blend-stage-3', 'blender-base', 'blender-button-off', 'blender-button-on',
     'blender-lid', 'milk-carton', 'milk-drop', 'glass-empty', 'glass-full', 'photo-frame-smoothie',
+    // (the hard level's "find the tool" before the milk)
+    'spoon-wood',
   ],
   sounds: [
     'blender', 'lid-click', 'slurp', 'glass-pour', 'name-banana', 'name-strawberry', 'name-mango', 'name-kiwi',

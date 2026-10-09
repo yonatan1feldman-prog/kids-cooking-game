@@ -672,7 +672,33 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 00000000000000000000000000000. Challenge round A (a little more challenge in all eight recipes)
+The owner: "check how to add a little more challenge to all the games". Spec: `/mnt/project-files/research/challenge-spec.md`
+(PR A = the recipes; PR B = garden, market, washing up, art corner). Branch `claude/project-thread-cla4gn`.
+- **Easy (level 1):** washing hands needs the soap first (`soap-bar`, `WashParams.soap`, pizza.ts's wash, so every
+  recipe): rubbing before it wiggles the hands (a miss, "Soap first!" once); a tap on the soap hops it onto the hands
+  with foam. Counts grow a little with the runs on both levels (`TUNING.grow`, `grown()`, applied in `bigChef.ts`
+  `grownStep`: from the 2nd and 4th run +1 cut, +1 press per stage, +10 sprinkles or +1 salt shake).
+- **Hard (level 2), all in `recipes/bigChef.ts` and `TUNING.big`:** the hint waits 11 s (`big.hintAfterMs`); spread
+  coverage 0.88; **what goes in first:** consecutive named pours into the kept bowl (flour, sugar, milk, butter, the
+  lettuce) are joined into one `open-pour` with `sources` (`joinPours`), and every pour of 2+ things gets `order`: Mom
+  "Let's start with the..." + name, the wrong one hops ("Hmm, not that one yet. First, the..."), after each "and then"
+  + the next; **Mom picks the oven temperature** (`big.ovenTargets`, `panel.sayTarget`: "Let's set the oven to..." +
+  temp-N, said again in the hint); **Mom's picture card** in decorating (`DecorateParams.model`, replaces Pipa's
+  two-kind wish): a paper card beside the dish (or above the bins on 4:3) with two kinds in a face / row / ring
+  (`runNo % 3`); copying it (within `big.model.near` x R; on cookies one cookie holding them) = "Just like mine!",
+  stars, Pipa loves it; anything else is fine too; **find the tool** also in the salad (servers before mixing), the
+  skewers (the stick before threading) and the smoothie (the spoon before the milk; `bigExtra` gained `nth`). A kept
+  prep bowl fades while the tools are shown (FindStep).
+- **Found and fixed:** the cake's decorating showed only the frosting tub she had chosen (decorate took every `run.chosen`;
+  now only chosen options with a `prep`, so the cake gets its sprinkles, candy, berries and chips again); Mom's help
+  at the soap stopped her own hand, so the rubbing never came (`useSoap` keeps the hand while she helps).
+- Voice: 14 lines (`make_vo.py mom-a`), not heard by a human. Art: `soap-bar` (`gen_prep_a.py`).
+- **Harness:** `__gesture` taps the soap, copies the model (`window.__copyModel`), tries a wrong pour once
+  (`window.__pourWrong`); `__start` knows the title's `world-card-kitchen`.
+- **Needs a real child:** does she find the soap? Does she copy Mom's card or ignore it (both fine)? Does "what goes in
+  first" read on the phone (the names only, no pictures)?
 ### 0000000000000000000000000000. The clinic, round 4 (closer to "Doctor Games for kids": children, two problems each; easy / hard)
 The owner: "the clinic is not good enough; research again, as close to the original as possible, more patients, at least 3
 children"; then "the levels must also hold for the clinic, called an easy level and a hard level, not little chef / big

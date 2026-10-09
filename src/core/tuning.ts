@@ -36,7 +36,16 @@ export const TUNING = {
     rubLineAt: 4,
     /** How long the rinse takes (the bubbles slide off, the water runs, the tap closes). */
     rinseMs: 1500,
+    /** The recipe challenges (PR A): a soap bar on the sink's rim; rubbing makes bubbles only after it (both levels). */
+    soap: true,
   },
+  /**
+   * The recipe challenges (PR A), both levels: the busiest counts grow with how often this recipe was played on this
+   * device (`run.runNo`, 0 = the first run). From run `fromRun[0]` (0-based: the 3rd) one more cut per vegetable, one
+   * more press per knead / crush / tear stage, `sprinkle` more cheese pieces and `shakes` more shakes of salt; from run
+   * `fromRun[1]` the same again. Applied as each step starts (`grown` below, RecipeScene).
+   */
+  grow: { fromRun: [2, 4] as readonly number[], chop: 1, presses: 1, sprinkle: 10, shakes: 1 },
   /** Knead: presses on the dough per stage (dough-knead-1 -> 2 -> 3 -> dough-ball: 3 changes). */
   knead: { pressesPerStage: 4 },
   /** Crush: presses on the tomatoes per stage (sauce-stage-0 -> 1 -> 2: 2 changes). */
@@ -215,6 +224,17 @@ export const TUNING = {
     order: 3,
     wish: { rememberMs: 3500, peekMs: 2500, decorate: [2, 2, 3] as readonly number[] },
     thread: { pieces: 6, reach: 200 },
+    /**
+     * The recipe challenges (PR A), hard only. `hintAfterMs`: she gets a little longer to work it out before Mom's hand
+     * comes (help still `AUTO_AFTER_HINT_MS` after). `spreadCoverage`: sauce or frosting "all the way to the edge".
+     * `ovenTargets`: Mom picks one of these each run and says it; she sets the needle on the number she heard.
+     * `model`: Mom's picture in decorating counts as copied when each of its things has one of hers within this share
+     * of the dish's radius of its spot (any order).
+     */
+    hintAfterMs: 11000,
+    spreadCoverage: 0.88,
+    ovenTargets: { pizza: [150, 200, 250], cake: [150, 200, 250], cookies: [100, 150, 200] } as Record<string, readonly number[]>,
+    model: { near: 0.25 },
   },
   /** Mom's help (after the idle hint): the pace of her own presses, rubs and strokes. */
   /**
@@ -323,6 +343,11 @@ export const TUNING = {
 /** How a cut is made on the current level (`cut`, with `big.cut` on the big-chef level). */
 export function cutTuning() {
   return isBigChef() ? { ...TUNING.cut, ...TUNING.big.cut } : TUNING.cut;
+}
+
+/** How many more a count gets on this run (TUNING.grow): 0 on the first runs, then `step`, then twice `step`. */
+export function grown(step: number, runNo: number) {
+  return TUNING.grow.fromRun.filter((r) => runNo >= r).length * step;
 }
 
 /** Where the stirring arrows turn round on the current level (shares of the stirring). */

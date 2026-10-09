@@ -81,6 +81,8 @@
     const r = d.R * d.scaleX;
     if (name === 'WashStep') {
       if (st.phase === 'tap') { const b = st.faucet.getBounds(); __tap(b.centerX, b.y + b.height * 0.35); await __run(500); }
+      // (PR A, the recipe challenges: the soap before rubbing)
+      else if (st.phase === 'rub' && st.soap && !st.soaped) { __tap(st.soap.x, st.soap.y); await __run(900); }
       else if (st.phase === 'rub') {
         const y = st.palmL.y + (st.basket ? 40 : -30), pts = [];
         for (let i = 0; i <= 8; i++) pts.push([i % 2 ? st.palmR.x + 30 : st.palmL.x - 30, y + (i % 2 ? 40 : -20)]);
@@ -109,6 +111,15 @@
     } else if (name === 'SprinkleStep') {
       for (let i = 0; i < 6; i++) { const a = Math.random() * 6.28; __tap(d.x + Math.cos(a) * r * 0.5, d.y + Math.sin(a) * r * 0.5); await __run(120); }
     } else if (name === 'DecorateStep') {
+      // (PR A, hard: Mom's picture first, its things where they are on her card; window.__copyModel = false skips it)
+      if (st.model && !st.model.done && window.__copyModel !== false && st.params.onto !== 'cookies') {
+        const it = st.modelNext(), w = d.toWorld(it.x * d.R, it.y * d.R);
+        await __drag([[it.bin.x, it.bin.y], [w.x, w.y + 90]]); await __run(400); return;
+      }
+      if (st.model && !st.model.done && window.__copyModel !== false && st.params.onto === 'cookies') {
+        const c = st.cookieList[0], n = st.dish.toppings.list.filter((t) => t.getData('on') === 0).length, it = st.model.items[n % st.model.items.length], w = d.toWorld(c.x, c.y);
+        await __drag([[it.bin.x, it.bin.y], [w.x, w.y + 90]]); await __run(400); return;
+      }
       if ((st.placed ?? 0) >= 4) { __tap(st.done.x, st.done.y); await __run(2600); return; }
       const b = st.bins[(st.placed ?? 0) % st.bins.length];
       const a = (st.placed ?? 0) * 1.7;
@@ -161,7 +172,13 @@
         else { const pts = [[b.x, b.y - b.displayHeight * 0.4]]; for (let i = 0; i < 8; i++) pts.push([b.x + (i % 2 ? 90 : -90), b.y - b.displayHeight * 0.4]); await __drag(pts); }
         await __run(500);
       } else if (st.phase === 'pour') {
-        const pp = st.pourPoint(); await __drag([[b.x, b.y], [pp.x, pp.y]], { hold: true }); await __run(st.params.pourMs + 400); __touch('end', 1, pp.x, pp.y); await __run(300);
+        // (PR A, hard: the pour order; window.__pourWrong first tries another one, once per step)
+        if (st.expected && window.__pourWrong && !st.__triedWrong) {
+          st.__triedWrong = true;
+          const o = st.sources.find((x) => !x.done && x !== st.expected);
+          if (o) { await __drag([[o.img.x, o.img.y], [o.img.x + 40, o.img.y - 100]]); await __run(800); return; }
+        }
+        const pp = st.pourPoint(); await __drag([[b.x, b.y], [pp.x, pp.y]], { hold: true }); await __run((st.cur?.pourMs ?? st.params.pourMs) + 400); __touch('end', 1, pp.x, pp.y); await __run(300);
       }
     } else if (name === 'ShareStep') {
       // Gameplay round 2: first she cuts (a stroke across the dish, anywhere), then shares.
@@ -245,8 +262,10 @@
   /** Title -> Home -> Recipe. */
   window.__start = async () => {
     const t = game.scene.getScene('Title');
-    const btn = t.children.list.find((o) => (o.texture?.key === 'btn-play' || o.texture?.key === 'btn-world-kitchen'));
-    __tap(btn.x, btn.y); await __run(1300);
+    // (since the clinic's title, the kitchen is a card: 'world-card-kitchen')
+    const btn = t.children.list.find((o) => ['btn-play', 'btn-world-kitchen', 'world-card-kitchen'].includes(o.texture?.key));
+    if (btn) { __tap(btn.x, btn.y); await __run(1300); }
+    if (!game.scene.isActive('Home')) { game.scene.getScenes(true).forEach((s) => s.scene.stop()); game.scene.start('Home'); await __run(1300); }
     const h = game.scene.getScene('Home');
     const card = h.children.list.find((o) => o.texture?.key === `card-${window.__recipe || 'pizza'}`);
     __tap(card.x, card.y); await __run(1600);
