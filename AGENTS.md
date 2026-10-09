@@ -708,6 +708,12 @@ feeding by hand). Branch `claude/project-thread-y324z5`.
   raster 0.75). **Sound:** `audio-src/scripts/make_farm_sfx.py` (moo, neigh, baa, cluck, peep, oink, milk-squirt,
   clip-buzz, cow-bell, splash-mud), 51 Mom lines (`make_vo.py mom-a`, "The farm"), not heard by a human.
 - **Harness:** `__mini('farm', level)`, `__farmPlay({ wrong, none, gap, mid, midDrag })`, `__farmVerify(level, opts)`.
+- **Checked (cloud, virtual clock, simulated voice; `__farmVerify`):** easy at 20:9 (horse, cow, sheep, demos), hard at 20:9
+  (horse, cow, pig, sheep) and at 4:3 (hens, pig, sheep, cow; a wrong card, tool and food), no touch on hard (Mom helped
+  67 times, all four animals, home), rotation while food is carried (dropped, finished), the photo kept in the book
+  (with rendering on), the home grid at 4:3 and 20:9; screenshots in `/mnt/project-files/research/screens-farm/`.
+  Found and fixed: on 4:3 the cow's two teats' touch areas overlap (a touch that reaches the due one counts for it);
+  Mom's pour hint missed the bottles and grabbed the bucket inside the palm strip.
 - **Not done (the spec's PR 2):** the farm's milk and eggs in the kitchen (the sill, Mom's "Milk from our cow!").
 - **Needs a real child:** squeezing the teats (taps), shearing down along the arrows (hard), carrying an egg to the
   basket, circling the yarn ball, is the pig's splash funny.
