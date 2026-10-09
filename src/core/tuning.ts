@@ -262,22 +262,33 @@ export const TUNING = {
     rainChance: 0.5, scarecrowChance: 0.5, birds: 3, sunTaps: 3, bflyReach: 150,
   },
   /**
-   * The market (MarketScene, research/minigames-spec.md). `listItems`: pictures on each list at level 1 / 2 (level 2: one
-   * of them twice, `pair`); `rounds` lists (the second is Pipa's). Level 2's paper list folds `foldAfterMs` after it
+   * The market (MarketScene, research/minigames-spec.md). `listItems`: pictures on each list at level 1 / 2 by visit (level
+   * 2: one of them twice, `pair`); `rounds` lists (the second is Pipa's). Level 2's paper list folds `foldAfterMs` after it
    * shows and a tap opens it for `peekMs`. `slot`: the narrowest a crate may be (world units x k; 3-5 in a row), `itemH`
    * the tallest a good is drawn. `tapMove`: a press that moves less than this is a tap (the good goes in by itself);
    * `reach`: a good let go this near the basket goes in.
    */
   market: {
-    listItems: [3, 4], pair: true, rounds: 2, foldAfterMs: 4200, peekMs: 3000, slot: 215, itemH: 180, tapMove: 40, reach: 220, helpMs: 1100,
+    listItems: [[3, 3, 4], [4]], pair: true, pairEasyFrom: 2, rounds: 2, foldAfterMs: 4200, peekMs: 3000, slot: 215, itemH: 180, tapMove: 40, reach: 220, helpMs: 1100,
     /**
      * Market round 2 (every visit, in a shuffled order between the two lists, then paying). `guestWants`: what the visitor
      * at the stall wishes for at level 1 / 2. `mixed`: things in the mixed-up box (2 rows of 3) and how many do not belong
      * at level 1 / 2 (level 2's look alike: a strawberry among tomatoes). `price`: the coins to pay at level 1 / 2 (from,
-     * to); level 1 fills a chalk circle per coin from Mom's purse, level 2 shows the price as dice dots and she picks the
-     * pile of coins with as many (the other piles have one less and one more). `countMs`: Mom counting a pile, per coin.
+     * to); level 1 fills a chalk circle per coin from Mom's purse, level 2 shows the price as dice dots and circles for a
+     * big coin (2) and a small one (1) under the slate (see below).
      */
-    guestWants: [1, 2], mixed: { items: 6, odd: [1, 2] }, price: [[2, 4], [3, 6]], countMs: 520,
+    guestWants: [1, 2], mixed: { items: 6, odd: [1, 2] }, price: [[2, 4], [4, 7]],
+    /**
+     * More challenge (research/challenge-spec.md, section 3). `listItems` is per visit now (`[easy by visit, hard by visit]`,
+     * the last value holds for later visits); on easy Pipa's list has one pair from visit `pairEasyFrom` (0-based: the
+     * third visit). Hard (`pair`): one thing twice on both lists, as before. `weigh` (both levels, a part in the shuffled
+     * middle): how many of one good balance the scale, (from, to) per level; each one tips the beam by `weighTilt`
+     * degrees x (1 / n) from `weighTilt` down to level; at the number it is level and waits `weighSettleMs` for one too
+     * many (it tips the other way, the extra slides back, a miss) before the part ends. `catNeed`: on hard one of the two
+     * lists is a kind (green, grows on a tree, round) and needs this many things of it. Hard paying (`price` [4, 7]): big
+     * coins worth 2 and small ones worth 1 onto circles of their size: floor((n - 1) / 2) big circles, the rest small.
+     */
+    weigh: [[2, 3], [3, 5]], weighTilt: 12, weighSettleMs: 1600, catNeed: 2,
   },
   /**
    * Washing up (DishesScene, research/minigames-spec.md). `dishes`: how many at level 1 / 2. `scrub`: finger travel on a

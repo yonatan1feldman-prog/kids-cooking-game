@@ -1369,8 +1369,10 @@ window.__mini = async (id, level = 1, opts = {}) => {
 window.__marketPlay = async (opts = {}) => {
   const m = game.scene.getScene('Market');
   const log = [];
-  for (let i = 0; i < 1200 && m.scene.isActive(); i++) {
-    if (!opts.none && !m.helping && ['guest', 'mixed', 'pay'].includes(m.shown.phase)) {
+  // (the scene object lives on between visits: forget the last run's one-time mistakes)
+  for (const f of ['__gWrong', '__mWrong', '__pWrong', '__wrongDone', '__catWrong', '__wGood', '__wHeavy']) delete m[f];
+  for (let i = 0; i < 2400 && m.scene.isActive(); i++) {
+    if (!opts.none && !m.helping && ['guest', 'mixed', 'weigh', 'pay'].includes(m.shown.phase)) {
       const k = m.L.k;
       if (m.shown.phase === 'guest' && m.guest) {
         const w = m.guestWant();
@@ -1378,15 +1380,35 @@ window.__marketPlay = async (opts = {}) => {
           if (opts.wrong && !m.__gWrong) { m.__gWrong = true; const c = m.crates.find((q) => !m.guest.wants.some((z) => z.good === q.good)); log.push('guest-wrong ' + c.good.id); __tap(c.item.x, c.item.y); }
           else { const c = m.crateOf(w.good), mo = m.guest.who.mouthAt; if (opts.drag) await __drag([[c.item.x, c.item.y], [mo.x, mo.y]]); else __tap(c.item.x, c.item.y); log.push('guest ' + w.good.id); }
         }
+      } else if (m.shown.phase === 'weigh' && m.weigh) {
+        // the scale: the card's good from the upper shelf onto the right pan; `wrong`: one other good, and one too many
+        const W = m.weigh, upper = m.crates.slice(0, m.cols);
+        const c = upper.find((q) => q.good === W.good);
+        if (opts.wrong && !m.__wGood) { m.__wGood = true; const o = upper.find((q) => q.good !== W.good); log.push('weigh-wrong ' + o.good.id); __tap(o.item.x, o.item.y); }
+        else if (W.on.length < W.n || (opts.wrong && !m.__wHeavy && W.on.length === W.n)) {
+          if (W.on.length === W.n) { m.__wHeavy = true; log.push('weigh-too-heavy'); }
+          const t = m.panTop();
+          if (opts.drag) await __drag([[c.item.x, c.item.y], [(c.item.x + t.x) / 2, c.item.y - 40], [t.x, t.y - 30]]); else __tap(c.item.x, c.item.y);
+          log.push('weigh ' + W.good.id + ' ' + (W.on.length) + '/' + W.n);
+        }
+        await __run(opts.gap ?? 700);
+        if (game.scene.isActive('Home')) break;
+        continue;
       } else if (m.shown.phase === 'mixed' && m.mixed) {
         const it = (opts.wrong && !m.__mWrong) ? m.mixed.items.find((q) => !q.odd) : m.mixed.items.find((q) => q.odd && !q.out);
         if (opts.wrong && !m.__mWrong) m.__mWrong = true;
         if (it) { __tap(it.x, it.y); log.push('mixed ' + it.good.id + (it.odd ? '' : '(belongs)')); }
-      } else if (m.shown.phase === 'pay' && m.pay && !m.pay.busy) {
+      } else if (m.shown.phase === 'pay' && m.pay) {
         if (m.level === 2) {
-          const pile = (opts.wrong && !m.__pWrong) ? m.pay.piles.find((q) => q.n !== m.pay.n) : m.pay.piles.find((q) => q.n === m.pay.n);
-          if (opts.wrong) m.__pWrong = true;
-          __tap(pile.x, pile.y); log.push('pile ' + pile.n + '/' + m.pay.n);
+          // hard: a coin of the next free circle's size from its heap (`wrong`: once a coin of the other size dragged onto it)
+          const c = m.pay.circles.find((q) => !q.coin);
+          if (c) {
+            const bad = opts.wrong && !m.__pWrong;
+            if (bad) m.__pWrong = true;
+            const heap = m.pay.heaps.find((h) => h.big === (bad ? !c.big : c.big));
+            if (opts.drag || bad) await __drag([[heap.x, heap.y], [(heap.x + c.x) / 2, (heap.y + c.y) / 2 - 40], [c.x, c.y + 30]]); else __tap(heap.x, heap.y);
+            log.push('coin ' + (heap.big ? 'big' : 'small') + (bad ? '(wrong)' : ''));
+          }
         } else if (m.pay.purse) {
           if (opts.drag) await __drag([[m.pay.purse.x, m.pay.purse.y], [m.pay.slate.x, m.pay.slate.y]]); else __tap(m.pay.purse.x, m.pay.purse.y);
           log.push('coin');
@@ -1400,7 +1422,9 @@ window.__marketPlay = async (opts = {}) => {
       const w = m.wants.find((q) => !q.got);
       if (opts.none) { await __run(500); continue; }
       if (w) {
-        if (opts.wrong && !m.__wrongDone) { m.__wrongDone = true; const c = m.crates.find((q) => !m.wants.some((z) => z.good === q.good)); log.push('wrong ' + c.good.id); __tap(c.item.x, c.item.y); await __run(opts.gap ?? 900); continue; }
+        // (`wrong`: one thing not on the list; on a list of a kind (hard) one of another kind, once more)
+        const cat = m.wants.some((z) => z.cat);
+        if (opts.wrong && (!m.__wrongDone || (cat && !m.__catWrong))) { m.__wrongDone = true; if (cat) m.__catWrong = true; const c = m.crates.find((q) => !m.wantFor(q.good)); log.push('wrong ' + c.good.id + (cat ? '(kind)' : '')); __tap(c.item.x, c.item.y); await __run(opts.gap ?? 900); continue; }
         const c = m.crates.find((q) => q.good === w.good);
         if (opts.drag) await __drag([[c.item.x, c.item.y], [(c.item.x + m.basket.x) / 2, c.item.y - 50], [m.basket.x, m.basket.y - 30]]);
         else __tap(c.item.x, c.item.y);
