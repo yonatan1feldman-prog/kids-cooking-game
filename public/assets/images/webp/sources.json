@@ -2779,6 +2779,11 @@
   "w": 240,
   "h": 360
  },
+ "soap-bar": {
+  "sha1": "502272db78b14b8a7746aeeb0c6890a6d5c753d2",
+  "w": 240,
+  "h": 160
+ },
  "soup-bowl-empty": {
   "sha1": "d15b55944870187b39aedd92eb07ec675f7d9ecd",
   "w": 560,

@@ -673,8 +673,8 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the farm, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
-### 00000000000000000000000000000. The farm (caring for farm animals, in the cooking world)
+## Handoff notes (written for the next agent; the farm, challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 000000000000000000000000000000. The farm (caring for farm animals, in the cooking world)
 The owner: "another mini-game of caring for farm animals: feeding a horse, milking a cow, shearing a sheep; check for a
 good one online and take ideas from it; in the cooking-with-Mom area". Research and spec: `/mnt/project-files/research/farm-spec.md`
 (Dirty Farm's chores per animal and the pig back in her mud, Fiete's day on the farm and the produce in a cart, Sago's
@@ -711,6 +711,32 @@ feeding by hand). Branch `claude/project-thread-y324z5`.
 - **Not done (the spec's PR 2):** the farm's milk and eggs in the kitchen (the sill, Mom's "Milk from our cow!").
 - **Needs a real child:** squeezing the teats (taps), shearing down along the arrows (hard), carrying an egg to the
   basket, circling the yarn ball, is the pig's splash funny.
+### 00000000000000000000000000000. Challenge round A (a little more challenge in all eight recipes)
+The owner: "check how to add a little more challenge to all the games". Spec: `/mnt/project-files/research/challenge-spec.md`
+(PR A = the recipes; PR B = garden, market, washing up, art corner). Branch `claude/project-thread-cla4gn`.
+- **Easy (level 1):** washing hands needs the soap first (`soap-bar`, `WashParams.soap`, pizza.ts's wash, so every
+  recipe): rubbing before it wiggles the hands (a miss, "Soap first!" once); a tap on the soap hops it onto the hands
+  with foam. Counts grow a little with the runs on both levels (`TUNING.grow`, `grown()`, applied in `bigChef.ts`
+  `grownStep`: from the 2nd and 4th run +1 cut, +1 press per stage, +10 sprinkles or +1 salt shake).
+- **Hard (level 2), all in `recipes/bigChef.ts` and `TUNING.big`:** the hint waits 11 s (`big.hintAfterMs`); spread
+  coverage 0.88; **what goes in first:** consecutive named pours into the kept bowl (flour, sugar, milk, butter, the
+  lettuce) are joined into one `open-pour` with `sources` (`joinPours`), and every pour of 2+ things gets `order`: Mom
+  "Let's start with the..." + name, the wrong one hops ("Hmm, not that one yet. First, the..."), after each "and then"
+  + the next; **Mom picks the oven temperature** (`big.ovenTargets`, `panel.sayTarget`: "Let's set the oven to..." +
+  temp-N, said again in the hint); **Mom's picture card** in decorating (`DecorateParams.model`, replaces Pipa's
+  two-kind wish): a paper card beside the dish (or above the bins on 4:3) with two kinds in a face / row / ring
+  (`runNo % 3`); copying it (within `big.model.near` x R; on cookies one cookie holding them) = "Just like mine!",
+  stars, Pipa loves it; anything else is fine too; **find the tool** also in the salad (servers before mixing), the
+  skewers (the stick before threading) and the smoothie (the spoon before the milk; `bigExtra` gained `nth`). A kept
+  prep bowl fades while the tools are shown (FindStep).
+- **Found and fixed:** the cake's decorating showed only the frosting tub she had chosen (decorate took every `run.chosen`;
+  now only chosen options with a `prep`, so the cake gets its sprinkles, candy, berries and chips again); Mom's help
+  at the soap stopped her own hand, so the rubbing never came (`useSoap` keeps the hand while she helps).
+- Voice: 14 lines (`make_vo.py mom-a`), not heard by a human. Art: `soap-bar` (`gen_prep_a.py`).
+- **Harness:** `__gesture` taps the soap, copies the model (`window.__copyModel`), tries a wrong pour once
+  (`window.__pourWrong`); `__start` knows the title's `world-card-kitchen`.
+- **Needs a real child:** does she find the soap? Does she copy Mom's card or ignore it (both fine)? Does "what goes in
+  first" read on the phone (the names only, no pictures)?
 ### 0000000000000000000000000000. The clinic, round 4 (closer to "Doctor Games for kids": children, two problems each; easy / hard)
 The owner: "the clinic is not good enough; research again, as close to the original as possible, more patients, at least 3
 children"; then "the levels must also hold for the clinic, called an easy level and a hard level, not little chef / big
@@ -865,8 +891,11 @@ The owner: "she got bored after a while; add drawing stages, each a different ki
 - **Way in:** a card after the dishes (`card-art`, core; HomeScene `PLAY`), the album one cell on (13 cells). It loads
   `RECIPE_ASSETS.art` (with the art song) and starts `Art`: the easel wall with five picking cards (3 + 2). A finished
   picture goes back to the wall (`scene.restart({ back: true })`), never to the next one by itself; home = two taps.
-- **The scene (`scenes/ArtScene.ts`, on `MiniGame`):** the sheet (1000x800 sheet units, `toWorld`) on `art-easel`
-  between the pot column and Mom's face / Pipa / her pointing arm; every layer is a 2D canvas texture (`layer()`),
+- **The scene (`scenes/ArtScene.ts`, on `MiniGame`):** the sheet (1000x800 sheet units, `toWorld`) on a wooden
+  board drawn in code, as big as it fits (`layout()`, the owner asked for a bigger picture: `art-easel` is no longer
+  shown): from the screen's top, right of the pot column, left of Mom's face / Pipa / her pointing arm; Mom and Pipa
+  step right when a picture starts (her face stays on screen), and on 4:3 the sheet sits above her arm and reaches to
+  her face; the crayon grows with the sheet (`brushShare`); Mom's model (colour, level 2) goes right of it or under it; every layer is a 2D canvas texture (`layer()`),
   strokes are round crayon lines with a glow (`crayon()`), coverage a 24x19 grid. The pictures are data in
   `core/artPictures.ts` (outlines, dots, colour areas as SVG paths with Mom's colours, the butterfly, the hidden things).
   First visit of each kind (`cooking.runs.art-<kind>`): Mom's demo; hint after 8 s (15 s in the open-ended mirror),

@@ -42,6 +42,11 @@ export class WashStep extends Step<WashParams> {
   /** Basket mode: the shine on the vegetables (a lighter copy of the basket), growing with the rubbing. */
   private shine?: Phaser.GameObjects.Image;
   private drops = 0;
+  /** The recipe challenges (PR A): the soap bar (hands only), and whether the hands have had it. */
+  private soap?: Phaser.GameObjects.Image;
+  private soaped = true;
+  private soapRest = { x: 0, y: 0 };
+  private soapSaid = false;
 
   private get basket() {
     return this.params.target === 'basket';
@@ -92,10 +97,21 @@ export class WashStep extends Step<WashParams> {
     this.streamScaleY = (tips + 40 * k - (this.outlet.y - 4 * k)) / 420;
     this.stream.setScale(k, 0).setVisible(false);
 
+    // The recipe challenges (PR A): the soap bar lies on the sink's rim, left of the hands; it comes first.
+    const soapKey = this.params.soap;
+    if (typeof soapKey === 'string' && TUNING.wash.soap && !this.basket) {
+      const ss = 1.0 * k;
+      const sinkLeft = S.sink.x - 450 * S.sink.scale;
+      this.soapRest = { x: Math.max(sinkLeft + 40 * k, this.layout.m + 150 * k), y: S.sink.y - 150 * S.sink.scale };
+      this.soap = add(this.soapRest.x, this.soapRest.y, soapKey).setScale(ss).setDepth(4);
+      this.soaped = false;
+    }
+
     this.onDown((p) => {
       const x = p.worldX;
       const y = p.worldY;
       if (this.phase === 'rinse') return;
+      if (this.onSoap(x, y)) return this.useSoap();
       if (this.onFaucet(x, y)) {
         if (this.phase === 'tap') this.open();
         else this.splash(this.outlet.x, this.outlet.y + 60 * k, 4);
@@ -108,6 +124,17 @@ export class WashStep extends Step<WashParams> {
         sfx(this.scene, 'tap');
         this.splash(x, y, 3);
         this.miss();
+        return;
+      }
+      if (!this.soaped) {
+        // Rubbing before the soap: the hands only wiggle (a miss); Mom says it once.
+        boing(this.scene, this.hands, 0.05);
+        this.splash(x, y, 3);
+        this.miss();
+        if (!this.soapSaid) {
+          this.soapSaid = true;
+          voice.say('vo-soap', { valid: () => !this.soaped && this.phase === 'rub', ttlMs: 4000 });
+        }
         return;
       }
       this.rubbing = true;
@@ -133,6 +160,42 @@ export class WashStep extends Step<WashParams> {
 
     this.scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => waterLoop.stop());
     this.setIdle(true);
+  }
+
+  /** The soap bar, with a generous touch area (at least 200 x 200 world units at k 1). */
+  private onSoap(x: number, y: number) {
+    if (!this.soap || this.soaped) return false;
+    const b = this.soap.getBounds();
+    const px = Math.max(30 * this.k, (200 * this.k - b.width) / 2);
+    const py = Math.max(30 * this.k, (200 * this.k - b.height) / 2);
+    return x > b.x - px && x < b.right + px && y > b.y - py && y < b.bottom + py;
+  }
+
+  /** The soap: it hops onto the hands and back, foam bursts on the palms; from now on rubbing makes bubbles. */
+  private useSoap() {
+    if (this.soaped || !this.soap) return;
+    this.soaped = true;
+    this.poke();
+    this.hit();
+    // (her own tap ends a hint; Mom's help goes on with its rubbing)
+    if (!this.isAuto) this.hand.stop();
+    sfx(this.scene, 'squish');
+    const k = this.k;
+    const s = this.soap;
+    const to = { x: (this.palmL.x + this.palmR.x) / 2, y: this.palmL.y - 30 * k };
+    this.scene.tweens.killTweensOf(s);
+    this.scene.tweens.chain({
+      targets: s,
+      tweens: [
+        { x: to.x, y: to.y, angle: 20, duration: 260, ease: 'Quad.easeOut' },
+        { angle: -20, duration: 120, yoyo: true, repeat: 1 },
+        { x: this.soapRest.x, y: this.soapRest.y, angle: 0, duration: 320, ease: 'Sine.easeInOut' },
+      ],
+    });
+    this.scene.time.delayedCall(260, () => {
+      sfx(this.scene, 'bubbles');
+      for (const p of [this.palmL, this.palmR]) burst(this.scene, p.x, p.y - 40 * k, { texture: this.params.bubble, count: 5, size: 40 * k, speed: 200 * k, gravityY: -260, lifespan: 800, depth: 6 });
+    });
   }
 
   private onFaucet(x: number, y: number) {
@@ -176,6 +239,10 @@ export class WashStep extends Step<WashParams> {
     this.stream.setVisible(true).setScale(this.k, 0);
     this.scene.tweens.add({ targets: this.stream, scaleY: this.streamScaleY, duration: 350, ease: 'Quad.easeIn' });
     this.scene.time.delayedCall(300, () => this.splash(this.outlet.x, this.palmL.y - 60 * this.k, 8));
+    if (!this.soaped) {
+      this.soapSaid = true;
+      voice.say('vo-soap', { valid: () => !this.soaped && this.phase === 'rub', ttlMs: 5000 });
+    }
   }
 
   private rub(dist: number, x: number, y: number) {
@@ -263,8 +330,21 @@ export class WashStep extends Step<WashParams> {
 
   /** The tap first (Mom's finger taps it), then rubbing (her finger rubs over the hands). */
   protected demo(): HandMotion {
-    if (this.phase === 'tap') return tapMotion(this.tapPoint(), this.k);
+    if (this.phase === 'tap') {
+      // (the soap's moment follows the tap's in the same demo)
+      const m = tapMotion(this.tapPoint(), this.k);
+      if (this.soaped || !this.soap) return m;
+      const sp = this.soapPoint();
+      const end = m.keys[m.keys.length - 1].t;
+      m.keys.push({ x: sp.x, y: sp.y - 40 * this.k, t: end + 500 }, { x: sp.x, y: sp.y, t: end + 750, press: true }, { x: sp.x, y: sp.y - 40 * this.k, t: end + 950 });
+      return m;
+    }
+    if (!this.soaped && this.soap) return tapMotion(this.soapPoint(), this.k);
     return this.rubMotion();
+  }
+
+  private soapPoint() {
+    return { x: this.soapRest.x, y: this.soapRest.y };
   }
 
   /** Mom taps the tap's handle (the blue knob at art (206, 313), right of its base). */
@@ -304,10 +384,15 @@ export class WashStep extends Step<WashParams> {
         });
       }
     };
+    const soapThenRub = () => {
+      if (this.soaped || !this.soap) return rubAll();
+      this.hand.play(tapMotion(this.soapPoint(), k), { onDone: rubAll });
+      this.scene.time.delayedCall(600, () => this.useSoap());
+    };
     if (this.phase === 'tap') {
-      this.hand.play(tapMotion(this.tapPoint(), k), { onDone: rubAll });
+      this.hand.play(tapMotion(this.tapPoint(), k), { onDone: soapThenRub });
       this.scene.time.delayedCall(600, () => this.open());
-    } else rubAll();
+    } else soapThenRub();
   }
 
   abort() {

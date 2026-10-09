@@ -5,7 +5,9 @@ import { boing, burst } from '../core/fx';
 import { tapMotion, type HandMotion } from '../core/hand';
 import { sfx } from '../core/sfx';
 import { TUNING } from '../core/tuning';
-import type { OpenPourParams } from '../recipes/types';
+import type { BowlExtra, OpenPourParams, PourSource } from '../recipes/types';
+import type { SoundKey } from '../core/assets';
+import type { VoiceKey } from '../core/audio';
 import { MADE_KEY, snapshotTexture } from './Dish';
 import { BOWL_DEPTH, PrepBowl } from './PrepBowl';
 import { Step } from './Step';
@@ -41,6 +43,13 @@ interface Source {
   rest: { x: number; y: number };
   poured: number;
   done: boolean;
+  /** Its own pouring, where it differs from the step's (PourSource); Mom's name for it (the pour order). */
+  name?: VoiceKey;
+  pieceTint?: number;
+  pieceSize?: number;
+  pourSound?: SoundKey;
+  pourMs?: number;
+  dropIn?: BowlExtra;
 }
 
 /**
@@ -107,6 +116,12 @@ export class OpenPourStep extends Step<OpenPourParams> {
     else this.buildSources();
     this.cur = this.sources[0];
     this.phase = opening ? 'open' : 'pour';
+    // The hard level's pour order: Mom names the first one.
+    const first = this.sources[0];
+    if (p.order && this.sources.length > 1 && this.sources.every((x) => x.name)) {
+      this.stepLine = p.order.line;
+      this.moreLines = [first.name!];
+    }
     const entering = [
       ...(p.keep ? [] : [this.back, this.front]),
       ...this.sources.filter((s) => !s.img.getData('adopted') && !p.glasses).map((s) => s.img),
@@ -121,6 +136,7 @@ export class OpenPourStep extends Step<OpenPourParams> {
       if (this.phase === 'done') return;
       const s = this.phase === 'open' ? (this.onBox(this.cur, q.worldX, q.worldY) ? this.cur : null) : this.sourceAt(q.worldX, q.worldY);
       if (!s) return;
+      if (this.phase === 'pour' && this.notYet(s)) return;
       this.cur = s;
       this.held = true;
       this.start0 = this.last = { x: q.worldX, y: q.worldY };
@@ -179,15 +195,15 @@ export class OpenPourStep extends Step<OpenPourParams> {
       this.sources.push({ img, piece: p.piece, mouth: p.mouth ?? kindTop, tilt: p.tilt ?? TILT, rest: { x: at.x, y: at.y }, poured: 0, done: false });
       return;
     }
-    const list = p.sources.flatMap((s) =>
-      s === 'chosen' ? this.ctx.run.chosen.map((o) => ({ handoff: binKey(o.topping), image: 'topping-bin' as ImageKey, piece: o.topping, tilt: undefined })) : [s],
+    const list: PourSource[] = p.sources.flatMap((s) =>
+      s === 'chosen' ? this.ctx.run.chosen.map((o) => ({ handoff: binKey(o.topping), image: 'topping-bin' as ImageKey, piece: o.topping, name: o.name })) : [s],
     );
     const spots = this.restSpots(list.length);
     list.forEach((s, i) => {
       const at = spots[i];
-      const isBin = s.handoff.startsWith('bin:') && s.image === 'topping-bin';
+      const isBin = !!s.handoff?.startsWith('bin:') && s.image === 'topping-bin';
       const scale = this.fitScale(s.image, at.w, at.h);
-      let img = this.adopt(s.handoff);
+      let img = s.handoff ? this.adopt(s.handoff) : null;
       if (img) {
         img.setData('adopted', true);
         const icon = binIcon(img);
@@ -198,19 +214,35 @@ export class OpenPourStep extends Step<OpenPourParams> {
         img.setData({ restScaleX: scale, restScaleY: scale });
       } else {
         // (nothing was left for it, e.g. a dev jump straight to this step: a fresh one)
-        img = this.own(isBin ? makeBin(this.scene, s.image, s.piece, at.x, at.y, scale) : this.scene.add.image(at.x, at.y, s.image).setScale(scale));
+        img = this.own(isBin ? makeBin(this.scene, s.image, s.piece as ImageKey, at.x, at.y, scale) : this.scene.add.image(at.x, at.y, s.image).setScale(scale));
       }
       img.setDepth(6);
       binIcon(img)?.setDepth(6.1);
-      const mouth = isBin ? BIN_MOUTH : { x: IMAGES[s.image].size[0] / 2, y: IMAGES[s.image].size[1] * 0.4 };
-      this.sources.push({ img, piece: s.piece, mouth, tilt: s.tilt ?? (isBin ? TILT : 0), rest: { x: at.x, y: at.y }, poured: 0, done: false });
+      const mouth = s.mouth ?? (isBin ? BIN_MOUTH : { x: IMAGES[s.image].size[0] / 2, y: IMAGES[s.image].size[1] * 0.4 });
+      this.sources.push({
+        img, piece: s.piece, mouth, tilt: s.tilt ?? (isBin ? TILT : 0), rest: { x: at.x, y: at.y }, poured: 0, done: false,
+        name: s.name, pieceTint: s.pieceTint, pieceSize: s.pieceSize, pourSound: s.pourSound, pourMs: s.pourMs, dropIn: s.dropIn,
+      });
     });
   }
 
   /** Spots for n things in `stage.pourFrom` (two columns from three on), each with its room. */
   private restSpots(n: number) {
-    const a = this.ctx.stage.pourFrom;
-    const cols = n > 2 ? 2 : 1;
+    const S = this.ctx.stage;
+    let a = S.pourFrom;
+    if (this.params.keep?.spot === 'pourBowl') {
+      // (the prep bowl on the pour spot: they wait on its left, where a can or a jar does; several of them (hard: the
+      // pour order) also take the left column, empty at that moment, so each stays as big as a can)
+      const bowlLeft = S.pourBowl.x - (IMAGES['prep-bowl-back'].size[0] / 2) * S.pourBowl.scale;
+      const x0 = n > 1 ? Math.min(S.prepArea.x0, this.layout.m + 30 * this.k) : S.prepArea.x0 + 20 * this.k;
+      a = { x0, y0: this.layout.Y(420), x1: bowlLeft - 10 * this.k, y1: S.prepArea.y1 };
+    }
+    // (two columns from three on; beside the prep bowl the grid whose cells are biggest: one row when it is wide)
+    let cols = n > 2 ? 2 : 1;
+    if (this.params.keep?.spot === 'pourBowl') for (let c = 1; c <= n; c++) {
+      const cell = (k: number) => Math.min((a.x1 - a.x0) / k, (a.y1 - a.y0) / Math.ceil(n / k));
+      if (cell(c) > cell(cols) + 1) cols = c;
+    }
     const rows = Math.ceil(n / cols);
     const w = (a.x1 - a.x0) / cols;
     const h = (a.y1 - a.y0) / rows;
@@ -220,7 +252,7 @@ export class OpenPourStep extends Step<OpenPourParams> {
   /** As big as its room allows (with air), at most 0.8 (the size the bins are made at). */
   private fitScale(key: ImageKey, w: number, h: number) {
     const [iw, ih] = IMAGES[key].size;
-    return Math.min(0.8 * this.k, (w * 0.82) / iw, (h * 0.82) / ih);
+    return Math.min(Math.max(0.8 * this.k, this.ctx.stage.pourRest.scale), (w * 0.82) / iw, (h * 0.82) / ih);
   }
 
   update(delta: number) {
@@ -228,7 +260,7 @@ export class OpenPourStep extends Step<OpenPourParams> {
     for (const s of this.sources) this.syncIcon(s.img);
     if (this.phase !== 'pour' || !this.over) return;
     const s = this.cur;
-    if (this.params.dropIn) return this.dropIn(s);
+    if (s.dropIn ?? this.params.dropIn) return this.dropIn(s);
     if (this.params.glasses) return this.pourGlass(delta);
     s.poured += delta;
     this.sinceDrop += delta;
@@ -237,7 +269,39 @@ export class OpenPourStep extends Step<OpenPourParams> {
       this.dropPiece();
     }
     if (!this.helping) this.poke();
-    if (s.poured >= this.params.pourMs) this.sourceDone(s);
+    if (s.poured >= (s.pourMs ?? this.params.pourMs)) this.sourceDone(s);
+  }
+
+  /** The source the pour order wants now (the first one not poured), if the order applies. */
+  private wrongAt = -1e9;
+  private get expected() {
+    if (!this.params.order || this.sources.length < 2 || !this.sources.every((x) => x.name)) return null;
+    return this.sources.find((x) => !x.done) ?? null;
+  }
+
+  /**
+   * The pour order (hard): another one than the next is not picked up. It hops where it stands and Mom names the right
+   * one ("Hmm, not that one yet. First, the... Flour!"), a miss; her hand shows the right one after three.
+   */
+  private notYet(s: Source) {
+    const want = this.expected;
+    if (!want || want === s) return false;
+    const k = this.k;
+    sfx(this.scene, 'tap');
+    this.scene.tweens.killTweensOf(s.img);
+    s.img.setPosition(s.rest.x, s.rest.y).setAngle(0);
+    this.scene.tweens.add({ targets: s.img, y: s.rest.y - 40 * k, duration: 140, yoyo: true, ease: 'Quad.easeOut' });
+    this.scene.tweens.add({ targets: s.img, angle: { from: -6, to: 6 }, duration: 90, yoyo: true, repeat: 1, onComplete: () => s.img.setAngle(0) });
+    boing(this.scene, want.img, 0.12);
+    const o = this.params.order!;
+    // (once in a while: quick taps on the wrong one don't stack her lines)
+    if (want.name && this.scene.time.now - this.wrongAt > 4000) {
+      this.wrongAt = this.scene.time.now;
+      voice.say(o.wrong, { ttlMs: 3000 });
+      voice.say(want.name, { ttlMs: 5000 });
+    }
+    this.miss();
+    return true;
   }
 
   /** A bin's topping rides on it (turned with it). */
@@ -386,11 +450,12 @@ export class OpenPourStep extends Step<OpenPourParams> {
     const to = { x: o.x + Math.cos(a) * o.rx * rr, y: o.y + 12 * k + Math.sin(a) * o.ry * rr };
     // (in the kept bowl every piece melts into the contents, which rise instead)
     const keep = !this.bowl && this.inBowl.length < MAX_IN_BOWL;
-    const f = this.params.pieceSize ?? 1;
+    const f = this.cur.pieceSize ?? this.params.pieceSize ?? 1;
     const piece = this.scene.add.image(m.x, m.y, this.cur.piece).setScale(FALLING * k * f).setAngle(Phaser.Math.Between(0, 359)).setDepth(keep ? BOWL_DEPTH.contents : BOWL_DEPTH.contents + 0.01);
-    if (this.params.pieceTint !== undefined) piece.setTint(this.params.pieceTint);
+    const tint = this.cur.pieceTint ?? this.params.pieceTint;
+    if (tint !== undefined) piece.setTint(tint);
     if (keep) this.inBowl.push(this.own(piece));
-    sfx(this.scene, this.params.pourSound ?? 'pour', { minGapMs: 1700, volume: 0.8, vary: false });
+    sfx(this.scene, this.cur.pourSound ?? this.params.pourSound ?? 'pour', { minGapMs: 1700, volume: 0.8, vary: false });
     this.scene.tweens.add({
       targets: piece,
       x: to.x,
@@ -408,20 +473,28 @@ export class OpenPourStep extends Step<OpenPourParams> {
   /** The thing itself drops into the bowl and stays on the contents (the butter cube): the step is done. */
   private dropIn(s: Source) {
     if (s.done || !this.bowl) return;
+    const many = this.sources.length > 1;
     s.done = true;
     this.held = false;
     this.over = false;
     this.helping = false;
-    this.phase = 'done';
-    this.setIdle(false);
+    if (!many) {
+      this.phase = 'done';
+      this.setIdle(false);
+    }
     this.hand.stop();
     this.poke();
     this.hit();
     this.scene.tweens.killTweensOf(s.img);
     this.handOff('dropped-in', s.img);
     this.ctx.run.handoff.delete('dropped-in');
-    this.bowl.addExtra(this.params.dropIn!, s.img);
-    sfx(this.scene, this.params.pourSound ?? 'pop');
+    this.bowl.addExtra((s.dropIn ?? this.params.dropIn)!, s.img);
+    sfx(this.scene, s.pourSound ?? this.params.pourSound ?? 'pop');
+    // (one of several things: the next one, or the end)
+    if (many) {
+      this.scene.time.delayedCall(330, () => boing(this.scene, this.bowl!.front, 0.05));
+      return this.afterSource();
+    }
     this.scene.time.delayedCall(330, () => {
       const o = this.opening();
       burst(this.scene, o.x, o.y, { count: 8, size: 16 * this.k, tint: [0xfff6e6, 0xffe07a], speed: 300 * this.k, gravityY: 600 });
@@ -448,6 +521,11 @@ export class OpenPourStep extends Step<OpenPourParams> {
     this.scene.tweens.add({ targets: s.img, x: s.rest.x, y: s.rest.y, angle: 0, duration: 420, ease: 'Sine.easeInOut' });
     // (a bottle stays; emptied bins and the lettuce's board fade away)
     if (this.params.sources) this.scene.tweens.add({ targets: s.img, alpha: 0, delay: 350, duration: 300 });
+    this.afterSource();
+  }
+
+  /** After one of several things: the bowl's contents rise, then the next one (Mom names it on hard) or the end. */
+  private afterSource() {
     const fills = this.params.keep?.fills ?? [];
     const done = this.sources.filter((x) => x.done).length;
     if (fills.length && this.bowl) {
@@ -458,6 +536,12 @@ export class OpenPourStep extends Step<OpenPourParams> {
     }
     if (done < this.sources.length) {
       this.cur = this.sources.find((x) => !x.done)!;
+      const o = this.params.order;
+      if (o && this.expected && !this.helping) {
+        const next = this.cur;
+        voice.say(o.next, { ttlMs: 4000, valid: () => !next.done });
+        voice.say(next.name!, { ttlMs: 5000, valid: () => !next.done });
+      }
       return;
     }
     this.phase = 'done';
@@ -667,7 +751,7 @@ export class OpenPourStep extends Step<OpenPourParams> {
       return { kind: 'grab', keys, glow: lid };
     }
     if (this.phase !== 'pour') return null;
-    const src = this.sources.find((x) => !x.done && x === this.cur) ?? this.sources.find((x) => !x.done);
+    const src = this.expected ?? this.sources.find((x) => !x.done && x === this.cur) ?? this.sources.find((x) => !x.done);
     if (!src) return null;
     const box = src.img;
     const pp = this.pourPoint();

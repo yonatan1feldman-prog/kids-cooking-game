@@ -81,8 +81,8 @@ export abstract class Step<P> {
   protected readonly layout: Layout;
   protected readonly dish: Dish;
   protected readonly hand: MomHandView;
-  /** Idle timings; a step may change them in start(). */
-  protected hintAfterMs = HINT_AFTER_MS;
+  /** Idle timings; a step may change them in start(). Hard: a little longer to work it out (TUNING.big.hintAfterMs). */
+  protected hintAfterMs = isBigChef() ? TUNING.big.hintAfterMs : HINT_AFTER_MS;
   protected autoAfterHintMs = AUTO_AFTER_HINT_MS;
 
   private owned: Phaser.GameObjects.GameObject[] = [];

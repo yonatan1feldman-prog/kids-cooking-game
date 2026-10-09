@@ -33,6 +33,18 @@ const BIN_REACH = 30;
 /** Mom's name for a decorating thing that no choose step named (the rest have none: she says only the number). */
 const DECORATE_NAMES: Record<string, NameKey> = { 'banana-coin': 'name-banana', 'choc-chip': 'name-chocolate' };
 
+/**
+ * Mom's pictures to copy (the recipe challenges, PR A, hard): [kind (0 or 1), x, y], x and y in the dish's radius from
+ * its centre. A face (two eyes and a mouth), a row of three, a ring of four. On the cookies: one cookie with one of
+ * each kind (where on it does not matter).
+ */
+const MODELS: readonly (readonly (readonly [number, number, number])[])[] = [
+  [[0, -0.32, -0.22], [0, 0.32, -0.22], [1, 0, 0.34]],
+  [[0, -0.45, 0], [0, 0, 0], [0, 0.45, 0]],
+  [[0, 0, -0.45], [1, 0.45, 0], [0, 0, 0.45], [1, -0.45, 0]],
+];
+const COOKIE_MODEL: readonly (readonly [number, number, number])[] = [[0, -0.22, -0.05], [1, 0.22, 0.08]];
+
 /** Idle timings for free play: the hand only comes after 15 s, and it ends itself after 30 s. */
 const DECORATE_HINT_MS = 15000;
 const DECORATE_AUTO_AFTER_HINT_MS = 15000;
@@ -67,8 +79,9 @@ export class DecorateStep extends Step<DecorateParams> {
     this.hintAfterMs = DECORATE_HINT_MS;
     this.autoAfterHintMs = DECORATE_AUTO_AFTER_HINT_MS;
 
-    // Only what she chose (and prepared) when the recipe had a choose step; else every item.
-    const chosen = this.ctx.run.chosen.map((o) => o.topping);
+    // Only what she chose (and prepared) when the recipe had a choose step; else every item. (A choice with nothing
+    // to prepare, like the cake's frosting, is not a decoration: the cake shows its own items.)
+    const chosen = this.ctx.run.chosen.filter((o) => o.prep).map((o) => o.topping);
     const items = chosen.length ? chosen : this.params.items;
     const binScale = this.ctx.stage.binScale(items.length);
     items.forEach((key, i) => {
@@ -134,7 +147,124 @@ export class DecorateStep extends Step<DecorateParams> {
     });
 
     this.setIdle(true);
-    this.makeWish();
+    if (this.params.model) this.makeModel();
+    else this.makeWish();
+  }
+
+  /** Mom's picture (hard): what is on it (what each puts on the dish), where, and its card on screen. */
+  private model?: { items: { key: string; bin: Bin; x: number; y: number }[]; card: Phaser.GameObjects.Container; done: boolean };
+
+  /**
+   * Mom's picture to copy (the recipe challenges, PR A, hard): a small card beside her (where Pipa's bubble would be,
+   * or above the bins where Pipa is not on screen) shows two kinds of her toppings in a simple arrangement; "Look at my
+   * picture! Can you make one like mine?". Whatever she makes is fine; when hers has the card's things in about their
+   * places (`TUNING.big.model.near`, any order) the card sparkles, Pipa is overjoyed and Mom says "Just like mine!".
+   */
+  private makeModel() {
+    if (!this.bins.length) return;
+    const run = this.ctx.run;
+    const plain = this.bins.filter((b) => !this.params.places?.[b.key as ImageKey]);
+    const pool = Phaser.Utils.Array.Shuffle([...(plain.length >= 2 ? plain : this.bins)]);
+    const kinds = [pool[0], pool[1] ?? pool[0]];
+    const onCookies = this.params.onto === 'cookies';
+    const spots = onCookies ? COOKIE_MODEL : MODELS[run.runNo % MODELS.length];
+    const items = spots.map(([i, x, y]) => ({ key: this.puts(kinds[i].key), bin: kinds[i], x, y }));
+    const k = this.k;
+    const R = 125 * k;
+    // The card: a paper square, the dish (or one cookie) on it, the things where Mom put them.
+    const g = this.scene.add.graphics();
+    g.fillStyle(0x3a2216, 0.18).fillRoundedRect(-R - 14 * k, -R - 8 * k, 2 * R + 28 * k, 2 * R + 28 * k, 26 * k);
+    g.fillStyle(0xfffdf7, 1).fillRoundedRect(-R - 18 * k, -R - 18 * k, 2 * R + 36 * k, 2 * R + 36 * k, 26 * k);
+    g.lineStyle(5 * k, 0x8a6a55, 1).strokeRoundedRect(-R - 18 * k, -R - 18 * k, 2 * R + 36 * k, 2 * R + 36 * k, 26 * k);
+    const parts: Phaser.GameObjects.GameObject[] = [g];
+    const cookie = onCookies ? this.cookieList[0] : undefined;
+    const baseKey = cookie?.texture.key ?? this.dish.base?.texture.key;
+    // (the dish's own picture; R on the card stands for its radius: the dish's, or the cookie's)
+    let unit: number;
+    if (baseKey) {
+      const b = this.scene.add.image(0, 0, baseKey);
+      if (cookie) b.setTint(cookie.tintTopLeft);
+      else if (this.dish.base) b.setTint(this.dish.base.tintTopLeft);
+      const bw = Math.max(b.frame.realWidth, b.frame.realHeight);
+      b.setScale((2 * R * 0.96) / bw);
+      parts.push(b);
+      unit = cookie ? R * 0.96 * (cookie.displayWidth / 2 / (bw / 2 * cookie.scaleX)) : R * 0.96 * (this.dish.R / ((bw / 2) * (this.dish.base!.scaleX || 1)));
+    } else {
+      g.fillStyle(0xf3d9a4, 1).fillCircle(0, 0, R * 0.92);
+      unit = R * 0.92;
+    }
+    // A topping's size on the card: its size on the dish, at the card's scale.
+    const local = cookie ? cookie.displayWidth / 2 : this.dish.R;
+    for (const it of items) {
+      const size = this.params.sizes?.[it.key as ImageKey] ?? 1;
+      const img = this.scene.add.image(it.x * unit, it.y * unit, it.key).setScale(k * size * (unit / local));
+      parts.push(img);
+    }
+    const at = this.modelSpot(R + 18 * k);
+    const card = this.own(this.scene.add.container(at.x, at.y, parts).setDepth(6).setScale(0));
+    this.model = { items, card, done: false };
+    this.scene.tweens.add({ targets: card, scale: 1, duration: 380, ease: 'Back.easeOut', delay: 250 });
+    this.scene.time.delayedCall(250, () => sfx(this.scene, 'pop', { volume: 0.5 }));
+    this.scene.time.delayedCall(TUNING.wish.sayAfterMs, () => {
+      if (this.aborted || this.finishing) return;
+      voice.say('vo-like-mine', { ttlMs: 9000, valid: () => !this.finishing && !this.model?.done });
+    });
+  }
+
+  /** Where Mom's card goes: where Pipa's bubble would be (clear of Mom's face and the done button), else above the bins. */
+  private modelSpot(half: number) {
+    const S = this.ctx.stage;
+    const k = this.k;
+    const top = half + 16 * k;
+    const dishRight = this.dish.x + this.dish.R * this.dish.scaleX;
+    const right = Math.min(S.momFace.x0, S.done.x - 130 * k) - 12 * k;
+    if (right - dishRight >= 2 * half - 120 * k) return { x: Math.max(right - half, dishRight + half - 120 * k), y: top };
+    // (4:3: no room right of the dish; the top of the left column, right of the home button)
+    const homeRight = S.home.x + 130 * k;
+    const binTop = Math.min(...this.bins.map((b) => b.y - b.half - BIN_REACH * k));
+    return { x: Math.max(homeRight + half, this.layout.m + half), y: Math.max(top, Math.min(binTop - half - 10 * k, this.layout.Y(330))) };
+  }
+
+  /** Does hers have the card's things in about their places? (any order; on the cookies: one cookie with them all) */
+  private checkModel() {
+    const m = this.model;
+    if (!m || m.done) return;
+    const tops = this.dish.toppings.list as Phaser.GameObjects.Image[];
+    let ok: boolean;
+    if (this.params.onto === 'cookies') {
+      ok = this.cookieList.some((_c, i) => {
+        const on = tops.filter((t) => t.getData('on') === i).map((t) => t.getData('key') as string);
+        return m.items.every((it) => {
+          const want = m.items.filter((q) => q.key === it.key).length;
+          return on.filter((q) => q === it.key).length >= want;
+        });
+      });
+    } else {
+      const used = new Set<Phaser.GameObjects.Image>();
+      const near = TUNING.big.model.near * this.dish.R;
+      ok = m.items.every((it) => {
+        const t = tops.find((q) => !used.has(q) && q.getData('key') === it.key && Phaser.Math.Distance.Between(q.x, q.y, it.x * this.dish.R, it.y * this.dish.R) <= near);
+        if (t) used.add(t);
+        return !!t;
+      });
+    }
+    if (!ok) return;
+    m.done = true;
+    const c = m.card;
+    stars(this.scene, c.x, c.y, 10, 70 * this.k);
+    burst(this.scene, c.x, c.y, { count: 12, size: 18 * this.k, tint: [0xffffff, 0xffcb47], speed: 380 * this.k, gravityY: 300 });
+    this.scene.tweens.add({ targets: c, scale: 1.15, duration: 200, yoyo: true, ease: 'Quad.easeOut' });
+    sfx(this.scene, 'star');
+    if (this.ctx.character.visible && this.ctx.character.mood === 'rest') this.ctx.character.react('love');
+    voice.say('vo-same-as-mine', { ttlMs: 5000 });
+  }
+
+  /** The first thing on Mom's card that hers does not have yet (for her hand), else the first. */
+  private modelNext() {
+    const m = this.model!;
+    const tops = this.dish.toppings.list as Phaser.GameObjects.Image[];
+    const near = TUNING.big.model.near * this.dish.R;
+    return m.items.find((it) => !tops.some((q) => q.getData('key') === it.key && Phaser.Math.Distance.Between(q.x, q.y, it.x * this.dish.R, it.y * this.dish.R) <= near)) ?? m.items[0];
   }
 
   /**
@@ -289,6 +419,7 @@ export class DecorateStep extends Step<DecorateParams> {
         burst(this.scene, w.x, w.y, { count: 8, size: 18 * this.k, tint: [0xffffff, 0xffcb47], speed: 350 * this.k, gravityY: 400 });
         this.placed++;
         this.countWish(key);
+        this.checkModel();
         // After her third topping the done button grows twice, once (an answer to what she did, not a lure).
         if (this.placed >= 3 && !this.donePulsed && this.done?.active) {
           this.donePulsed = true;
@@ -364,9 +495,15 @@ export class DecorateStep extends Step<DecorateParams> {
 
   /** Mom carries a topping from a bin to the pizza; it melts away there (the pizza stays hers to fill). */
   protected demo(): HandMotion {
-    const b = this.bins[1] ?? this.bins[0];
+    let b = this.bins[1] ?? this.bins[0];
     const k = this.k;
-    const to = { x: this.dish.x + this.dish.R * 0.2, y: this.dish.y - this.dish.R * 0.25 };
+    let to = { x: this.dish.x + this.dish.R * 0.2, y: this.dish.y - this.dish.R * 0.25 };
+    // (hard, Mom's picture on the pizza: her hand carries one of its things to its place)
+    if (this.model && !this.model.done && this.params.onto !== 'cookies') {
+      const it = this.modelNext();
+      b = it.bin;
+      to = this.dish.toWorld(it.x * this.dish.R, it.y * this.dish.R);
+    }
     return {
       kind: 'grab',
       keys: [
@@ -410,10 +547,14 @@ export class DecorateStep extends Step<DecorateParams> {
   protected autoFinish() {
     this.held?.img.destroy();
     this.held = undefined;
-    const picks = this.placed > 0 ? [] : Phaser.Utils.Array.Shuffle([...this.bins]).slice(0, 4);
+    // (hard, Mom's picture on a bare pizza: she puts its things where they are on her card)
+    const copy = this.placed === 0 && this.model && this.params.onto !== 'cookies';
+    const picks: { b: Bin; to?: { x: number; y: number } }[] = this.placed > 0 ? [] : copy
+      ? this.model!.items.map((it) => ({ b: it.bin, to: this.dish.toWorld(it.x * this.dish.R, it.y * this.dish.R) }))
+      : Phaser.Utils.Array.Shuffle([...this.bins]).slice(0, 4).map((b) => ({ b }));
     this.hand.follow('grab', () => (this.helpCarry?.active ? { x: this.helpCarry.x, y: this.helpCarry.y } : null));
     const each = 650;
-    picks.forEach((b, i) => {
+    picks.forEach(({ b, to }, i) => {
       this.scene.time.delayedCall(i * each, () => {
         const img = art(this.scene.add.image(b.x, b.y, this.puts(b.key)), this.layout, LIFT).setDepth(40);
         this.helpCarry = img;
@@ -421,8 +562,8 @@ export class DecorateStep extends Step<DecorateParams> {
         const r = this.dish.R * this.dish.scaleX * Phaser.Math.FloatBetween(0.2, 0.7);
         this.scene.tweens.add({
           targets: img,
-          x: this.dish.x + Math.cos(a) * r,
-          y: this.dish.y + Math.sin(a) * r,
+          x: to ? to.x : this.dish.x + Math.cos(a) * r,
+          y: to ? to.y : this.dish.y + Math.sin(a) * r,
           duration: 480,
           ease: 'Sine.easeInOut',
           onComplete: () => this.place(img, this.puts(b.key)),

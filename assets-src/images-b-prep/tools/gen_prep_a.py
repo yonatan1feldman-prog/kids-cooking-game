@@ -278,11 +278,28 @@ def spoon_wood():
     return doc(p, 240, 620, "".join(L), material="rough", seed=85, sh=(4, 3.5, .33))
 
 
+# ================= SOAP BAR (240x160; the recipe challenges, PR A: soap before rubbing) =================
+def soap_bar():
+    p = "so-"
+    L = [G(E(120, 136, 96, 12, SH, ' opacity="0.3"'), p + "bl")]
+    # the bar: a soft pink rounded block (its front side a little darker), a pressed oval on top
+    L.append(G(P(wrect(28, 52, 184, 82, 34, .8, 1, 28), PINK_D), p + "cut"))
+    L.append(P(wrect(30, 46, 180, 72, 32, .8, 2, 28), PINK))
+    L.append(G(P(wob(120, 80, 58, 20, .03, 3, 22), mix(PINK_D, PINK, .45)), p + "sh"))
+    L.append(P(wob(118, 78, 50, 15, .03, 4, 22), mix(PINK, WHITE, .35)))
+    L.append(P(wrect(48, 54, 70, 10, 5, .4, 5), WHITE, ' opacity="0.7"'))
+    # a few soap bubbles on it
+    for x, y, r in ((174, 42, 17), (196, 24, 10), (150, 28, 8)):
+        L.append(G(C(x, y, r, "#EAF7F8", ' opacity="0.85"') + C(x - r * .35, y - r * .35, r * .3, WHITE), p + "sh"))
+    return doc(p, 240, 160, "".join(L), material="smooth", seed=91, sh=(3, 3, .25), cut={"rim": 1.8, "rough": 2.5, "op": .18})
+
+
 ITEMS = {"sink-basin": sink_basin, "faucet": faucet, "water-stream": water_stream, "bubble": bubble,
          "dough-knead-1": lambda: dough_knead(1), "dough-knead-2": lambda: dough_knead(2), "dough-knead-3": lambda: dough_knead(3),
          "prep-bowl-back": prep_bowl_back, "prep-bowl-front": prep_bowl_front,
          "sauce-stage-0": lambda: sauce_stage(0), "sauce-stage-1": lambda: sauce_stage(1), "sauce-stage-2": lambda: sauce_stage(2),
-         "sauce-stage-3": lambda: sauce_stage(3), "spoon-wood": spoon_wood}
+         "sauce-stage-3": lambda: sauce_stage(3), "spoon-wood": spoon_wood,
+         "soap-bar": soap_bar}
 
 if __name__ == "__main__":
     only = sys.argv[1:]
