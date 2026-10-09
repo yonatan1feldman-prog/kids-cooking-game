@@ -504,6 +504,22 @@ MOM_LINES = {
     "name-balloon": "Balloon!",
     "name-snail": "Snail!",
     "name-cloud": "Cloud!",
+    # Recipe challenges, PR A (added 2026-10-09; Voice A only: python make_vo.py mom-a <names>): soap before rubbing,
+    # what goes in first (hard), Mom's oven number (hard), Mom's model in decorating (hard), find the tool in every recipe
+    "vo-soap": "Soap first! Rub it on your hands.",
+    "vo-pour-first": "Let's start with the...",
+    "vo-this-first": "Hmm, not that one yet. First, the...",
+    "vo-temp-set": "Let's set the oven to...",
+    "vo-like-mine": "Look at my picture! Can you make one like mine?",
+    "vo-same-as-mine": "Just like mine!",
+    "vo-find-servers": "Where are the salad servers? Can you find them?",
+    "vo-find-stick": "Which one is the skewer stick? Can you find it?",
+    "name-flour": "Flour!",
+    "name-sugar": "Sugar!",
+    "name-milk": "Milk!",
+    "name-butter": "Butter!",
+    "name-servers": "Salad servers!",
+    "name-stick": "Skewer stick!",
 }
 SUFFIX = ""
 if len(sys.argv) > 1 and sys.argv[1] in ("mom", "mom-a"):

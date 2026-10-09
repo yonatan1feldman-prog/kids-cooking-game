@@ -266,35 +266,76 @@ export class ArtScene extends MiniGame {
     if (kind === 'dots' && this.level === 2) this.askDot();
   }
 
-  /** The sheet's place: between the pots and Mom (and Pipa), on the easel, as big as it fits (5:4). */
+  /**
+   * The sheet's place (round 2 of the art corner, the owner: "the picture should take much more of the screen"): a
+   * wooden drawing board as big as it fits (5:4) between the pots (or the home button) and Mom. Mom (and Pipa) step
+   * right as far as her face stays on screen; the sheet's right edge stays clear of her pointing arm where it comes
+   * down beside it, and of her face and Pipa. Where it is narrow (4:3) the sheet may instead sit above her arm and
+   * reach to her face. The top of the screen is free (the home button is left of it), the bottom keeps the palm strip.
+   */
   private layout(kind: Kind) {
     const L = this.L;
-    const S = this.S;
+    const S0 = this.S;
     const k = L.k;
-    const petLeft = S.pet ? S.pet.x - 270 * S.pet.scale : Infinity;
-    const ax0 = kind === 'steam' ? L.m + (S.home.x - L.m) * 2 + 30 * k : L.m + 440 * k;
-    let ax1 = Math.min(S.momFace.x0, petLeft) - 20 * k;
-    // (her pointing hand reaches left of her face, low: the sheet stays clear of it where it comes up into it)
-    if (S.momArm.y0 < L.Y(940)) ax1 = Math.min(ax1, S.momArm.x0 - 20 * k);
-    const E = ART.art.sheet;
-    const top = L.Y(40);
-    const bottom = L.Y(950);
-    let w = Math.min(ax1 - ax0, ((bottom - top) * SHEET_W) / SHEET_H / (1 + (kind === 'steam' ? 0 : E.y / E.h)));
-    if (kind === 'colour' && this.level === 2) w = Math.min(w, (ax1 - ax0) * 0.8);
+    const steam = kind === 'steam';
+    // Mom steps right, her whole face still on screen; Pipa with her
+    const dx = Math.max(0, Math.min(L.W - 8 * k - S0.momFace.x1, 260 * k));
+    const pet = S0.pet ? { ...S0.pet, x: S0.pet.x + dx } : null;
+    const S = (this.S = {
+      ...S0,
+      mom: { ...S0.mom, x: S0.mom.x + dx },
+      momFace: { ...S0.momFace, x0: S0.momFace.x0 + dx, x1: S0.momFace.x1 + dx },
+      momArm: { ...S0.momArm, x0: S0.momArm.x0 + dx },
+      pet,
+      done: { ...S0.done, x: S0.done.x + dx },
+    });
+    if (dx) {
+      this.mom?.stepAside(dx);
+      if (pet && this.pipa) this.pipa.moveTo(pet);
+    }
+    const pad = steam ? 0 : 16 * k;
+    const gap = 20 * k + pad;
+    const ax0 = (steam ? L.m + (S.home.x - L.m) * 2 + 30 * k : L.m + 440 * k) + pad;
+    const top = 24 * k + pad;
+    const bottom = L.Y(990) - pad;
+    const petLeft = pet ? pet.x - 270 * pet.scale : Infinity;
+    const petTop = pet ? pet.y - 350 * pet.scale : Infinity;
+    // the right edge for a sheet reaching down to y: left of Mom's face (and the done button above her head), of her
+    // arm once it reaches below the arm's top, of Pipa once it reaches below Pipa's head
+    const right = (y: number) => {
+      let r = S.momFace.x0;
+      if (y > S.momArm.y0 - 20 * k) r = Math.min(r, S.momArm.x0);
+      if (y > petTop - 20 * k) r = Math.min(r, petLeft);
+      return r - gap;
+    };
+    let w = 0;
+    for (const yb of [bottom, S.momArm.y0 - 20 * k - pad, petTop - 20 * k - pad]) {
+      if (!(yb > top)) continue;
+      const b = Math.min(yb, bottom);
+      w = Math.max(w, Math.min(right(b) - ax0, ((b - top) * SHEET_W) / SHEET_H));
+    }
     const h = (w * SHEET_H) / SHEET_W;
-    const e = w / E.w;
-    const x = kind === 'colour' && this.level === 2 ? ax0 : (ax0 + ax1) / 2 - w / 2;
-    const easelTop = kind === 'steam' ? 0 : E.y * e;
-    const y = Math.max(top + easelTop, (top + bottom) / 2 - h / 2 + easelTop / 2);
+    const x = ax0;
+    const y = top;
     this.sheet = { x, y, w, h, u: w / SHEET_W };
-    if (kind !== 'steam') this.add.image(x - E.x * e, y - E.y * e, 'art-easel').setOrigin(0, 0).setScale(e).setDepth(3);
     this.box.setPosition(x, y);
-    if (kind !== 'steam') {
-      // the paper, a soft shadow under it
+    if (!steam) {
+      // the drawing board (wood, a clip at the top) and the paper, soft shadows under them
+      const b = this.add.graphics().setDepth(3);
+      const r = 14 * k;
+      b.fillStyle(0x3a2216, 0.22).fillRoundedRect(x - pad + 5 * k, y - pad + 8 * k, w + 2 * pad, h + 2 * pad, r);
+      b.fillStyle(0x6e4126, 1).fillRoundedRect(x - pad, y - pad, w + 2 * pad, h + 2 * pad, r);
+      b.fillStyle(0x9e643a, 1).fillRoundedRect(x - pad + 3 * k, y - pad + 3 * k, w + 2 * pad - 6 * k, h + 2 * pad - 6 * k, r - 3 * k);
       const g = this.add.graphics();
       g.fillStyle(0x3a2216, 0.22).fillRoundedRect(4 * k, 6 * k, w, h, 8 * k);
       g.fillStyle(0xfffdf7, 1).fillRoundedRect(0, 0, w, h, 8 * k);
       this.box.add(g);
+      const clip = this.add.graphics().setDepth(6);
+      const cw = 150 * k;
+      const ch = 30 * k;
+      clip.fillStyle(0x3a2216, 0.25).fillRoundedRect(x + w / 2 - cw / 2 + 3 * k, y - ch / 2 + 5 * k, cw, ch, 8 * k);
+      clip.fillStyle(0x7d8a93, 1).fillRoundedRect(x + w / 2 - cw / 2, y - ch / 2, cw, ch, 8 * k);
+      clip.fillStyle(0xb7c3ca, 1).fillRoundedRect(x + w / 2 - cw / 2 + 6 * k, y - ch / 2 + 5 * k, cw - 12 * k, ch * 0.35, 5 * k);
     }
     const gw = T.grid;
     this.grid = { w: gw, h: Math.round((gw * SHEET_H) / SHEET_W), on: new Uint8Array(gw * Math.round((gw * SHEET_H) / SHEET_W)) };
@@ -414,7 +455,8 @@ export class ArtScene extends MiniGame {
   }
 
   private brushR() {
-    return T.brushR * this.L.k;
+    // (a bigger sheet, a thicker crayon: drawing it full takes about as long as before)
+    return Math.max(T.brushR * this.L.k, T.brushShare * this.sheet.w);
   }
 
   /** One segment of crayon from a to b (sheet units) on a layer, in her colour: `glow` = on the line (trace). */
@@ -964,16 +1006,26 @@ export class ArtScene extends MiniGame {
     return !c.anim && (this.level === 1 ? c.areas.every((q) => q.fill) : c.areas.every((q) => q.fill === q.mom));
   }
 
-  /** Level 2: Mom's own little picture, framed, beside the sheet (above her head, or left of it). */
+  /** Level 2: Mom's own little picture, framed, beside the sheet: right of it (above Mom's arm), or under it. */
   private makeModel(pic: ColourPic, areas: AreaView[]) {
     const L = this.L;
     const S = this.S;
     const k = L.k;
-    const x0 = this.sheet.x + this.sheet.w + 22 * k;
-    const y0 = Math.max(L.Y(40), 30 * k);
-    let w = Math.min(0.42 * this.sheet.w, L.W - L.m - 20 * k - x0);
-    if (y0 + w * 0.8 > S.momFace.y0 - 12 * k) w = Math.min(w, Math.min(S.momFace.x0, S.pet ? S.pet.x - 270 * S.pet.scale : Infinity) - 20 * k - x0, (S.momFace.y0 - 12 * k - y0) / 0.8);
-    w = Math.max(w, 120 * k);
+    const s = this.sheet;
+    const edge = 16 * k + 22 * k;
+    const petLeft = S.pet ? S.pet.x - 270 * S.pet.scale : Infinity;
+    const petTop = S.pet ? S.pet.y - 350 * S.pet.scale : Infinity;
+    // right of the sheet: from the top down to Mom's arm (and Pipa's head), left of her face
+    const rx = s.x + s.w + edge;
+    const ry = Math.max(30 * k, s.y);
+    const rw = Math.min(0.42 * s.w, S.momFace.x0 - 20 * k - rx, L.W - L.m - 20 * k - rx, (Math.min(S.momArm.y0, petTop) - 30 * k - ry) / 0.8);
+    // under the sheet: down to the screen's bottom (it is only looked at), left of Mom's arm
+    const by = s.y + s.h + edge;
+    const bw = Math.min(0.42 * s.w, (L.H - 20 * k - by) / 0.8, Math.min(S.momArm.x0, petLeft) - 20 * k - s.x);
+    const under = bw > rw;
+    const x0 = under ? s.x : rx;
+    const y0 = under ? by : ry;
+    const w = Math.max(under ? bw : rw, 120 * k);
     const h = w * 0.8;
     const key = 'art-cv-model';
     if (this.textures.exists(key)) this.textures.remove(key);

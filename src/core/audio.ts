@@ -137,13 +137,15 @@ export type VoiceKey =
   | 'vo-weigh' | 'vo-too-heavy' | 'vo-need-green' | 'vo-need-tree' | 'vo-need-round' | 'vo-is-green' | 'vo-is-tree' | 'vo-is-round'
   | 'vo-big-coin' | 'vo-small-coin' | 'vo-dry' | 'vo-dry-first' | 'vo-try-sponge' | 'vo-biggest-first' | 'vo-art-stamps'
   | 'vo-find-number' | 'vo-follow-arrows'
+  // the recipe challenges (PR A): soap first, the pour order, Mom's oven number, Mom's model, find the tool
+  | 'vo-soap' | 'vo-pour-first' | 'vo-this-first' | 'vo-temp-set' | 'vo-like-mine' | 'vo-same-as-mine' | 'vo-find-servers' | 'vo-find-stick'
   | CountKey | TempKey | NameKey;
 
 /** Mom counting (count-1..10) and saying the oven temperature (temp-50..250). */
 export type CountKey = `count-${1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10}`;
 export type TempKey = `temp-${50 | 100 | 150 | 200 | 250}`;
 /** Mom naming what she picked (the choose step: a new name may cut the name playing, never another line). */
-export type NameKey = `name-${'tomato' | 'mushroom' | 'pepper' | 'onion' | 'corn' | 'olives' | 'cucumber' | 'carrot' | 'lemon' | 'lettuce' | 'star' | 'heart' | 'circle' | 'flower' | 'banana' | 'strawberry' | 'mango' | 'kiwi' | 'potato' | 'zucchini' | 'pink' | 'white' | 'blue' | 'yellow' | 'chocolate' | 'grater' | 'rolling-pin' | 'spoon' | 'whisk' | 'spatula' | 'sun' | 'egg' | 'fish' | 'ball' | 'rainbow' | 'house' | 'tree' | 'boat' | 'butterfly' | 'crown' | 'bird' | 'cat' | 'red' | 'green' | 'purple' | 'orange' | 'cup' | 'plate' | 'kite' | 'ice-cream' | 'balloon' | 'snail' | 'cloud'}`;
+export type NameKey = `name-${'tomato' | 'mushroom' | 'pepper' | 'onion' | 'corn' | 'olives' | 'cucumber' | 'carrot' | 'lemon' | 'lettuce' | 'star' | 'heart' | 'circle' | 'flower' | 'banana' | 'strawberry' | 'mango' | 'kiwi' | 'potato' | 'zucchini' | 'pink' | 'white' | 'blue' | 'yellow' | 'chocolate' | 'grater' | 'rolling-pin' | 'spoon' | 'whisk' | 'spatula' | 'sun' | 'egg' | 'fish' | 'ball' | 'rainbow' | 'house' | 'tree' | 'boat' | 'butterfly' | 'crown' | 'bird' | 'cat' | 'red' | 'green' | 'purple' | 'orange' | 'cup' | 'plate' | 'kite' | 'ice-cream' | 'balloon' | 'snail' | 'cloud' | 'flour' | 'sugar' | 'milk' | 'butter' | 'servers' | 'stick'}`;
 export const countKey = (n: number): CountKey => `count-${Math.max(1, Math.min(10, Math.round(n)))}` as CountKey;
 
 const PRAISE: VoiceKey[] = ['vo-praise-1', 'vo-praise-2', 'vo-praise-3', 'vo-praise-4', 'vo-praise-5', 'vo-praise-6', 'vo-praise-7'];
