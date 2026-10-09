@@ -316,7 +316,7 @@ export const TUNING = {
    * (level 2). Idle: free drawing (mirror) waits `freeHintMs` / `freeHelpMs`. `aliveMs`: the picture coming alive.
    */
   art: {
-    brushR: 22, sparkleEvery: 160, grid: 24,
+    brushR: 22, brushShare: 0.024, sparkleEvery: 160, grid: 24,
     traceBand: [0.09, 0.06], traceMin: [70, 55], checkpoints: 24, traceDone: [0.75, 0.85], partDone: 0.5,
     dotTouch: 160, dotR: [32, 44], fillMs: 450, mirrorInk: [0.25, 0.35], steamClear: 0.6, findClear: 0.4, refogMs: 9000,
     freeHintMs: 15000, freeHelpMs: 15000, aliveMs: 2500, helpMs: 1300,
