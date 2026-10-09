@@ -10,20 +10,26 @@ import { GUESTS } from './guests';
  * a patient "doesn't feel well" (pink cheeks, a red eye, silly germs on the teeth), every tool makes it better at once,
  * and everyone goes home with a sticker.
  */
-export type PatientId = 'turtle' | 'penguin' | 'giraffe' | 'pipa' | 'lily' | 'leo' | 'mia' | 'sam';
+export type PatientId =
+  | 'turtle' | 'penguin' | 'giraffe' | 'pipa' | 'lily' | 'leo' | 'mia' | 'sam'
+  | 'cat' | 'panda' | 'bunny' | 'puppy' | 'ruby' | 'noah' | 'zoe' | 'max';
 export type AilmentId =
-  | 'fever' | 'cough' | 'tummy' | 'tooth' | 'knee' | 'paw' | 'spots' | 'cold' | 'toy' | 'eye' | 'ear' | 'sting' | 'bites' | 'dirty';
+  | 'fever' | 'cough' | 'tummy' | 'tooth' | 'knee' | 'paw' | 'spots' | 'cold' | 'toy' | 'eye' | 'ear' | 'sting' | 'bites' | 'dirty'
+  | 'throat' | 'sunburn';
+/** The care room each patient goes to after her problems (round 5, research/clinic-spec-5.md: built in its own PR). */
+export type CareId = 'medicine' | 'bath' | 'bandage' | 'polish' | 'eyes' | 'rest';
 export type ToolId =
   | 'thermometer' | 'stethoscope' | 'plaster' | 'cream' | 'spray' | 'tweezers' | 'magnifier' | 'toothbrush' | 'cup' | 'syrup'
   | 'cloth' | 'hotbottle' | 'tissue' | 'magnet' | 'filler' | 'cotton' | 'eyedrops' | 'swab' | 'light' | 'icepack' | 'xray'
-  | 'sponge' | 'bugspray';
+  | 'sponge' | 'bugspray' | 'honey' | 'aloe' | 'hat';
 export const TOOLS: readonly ToolId[] = [
   'thermometer', 'stethoscope', 'plaster', 'cream', 'spray', 'tweezers', 'magnifier', 'toothbrush', 'cup', 'syrup', 'hotbottle',
-  'tissue', 'magnet', 'filler', 'cotton', 'eyedrops', 'swab', 'light', 'icepack', 'xray', 'sponge', 'bugspray',
+  'tissue', 'magnet', 'filler', 'cotton', 'eyedrops', 'swab', 'light', 'icepack', 'xray', 'sponge', 'bugspray', 'honey', 'aloe',
+  'hat',
 ];
 /** The big close-ups that grow out of the patient (tinted to her, but the mouth and the x-ray); `paw` is a child's hand
- * (lens-hand), `skin` a patch of her arm (round 4: the stings, the bites). */
-export type ZoomId = 'mouth' | 'eye' | 'ear' | 'knee' | 'paw' | 'xray' | 'skin';
+ * (lens-hand), `skin` a patch of her arm (round 4: the stings, the bites); `throat` the mouth open wide (round 5: the tickles, not tinted). */
+export type ZoomId = 'mouth' | 'eye' | 'ear' | 'knee' | 'paw' | 'xray' | 'skin' | 'throat';
 
 /**
  * What a tool works on: things drawn in a close-up (or on her) that go one by one (germs, food bits, holes to fill,
@@ -31,7 +37,7 @@ export type ZoomId = 'mouth' | 'eye' | 'ear' | 'knee' | 'paw' | 'xray' | 'skin';
  */
 export type What =
   | 'germ' | 'food' | 'hole' | 'tear' | 'speck' | 'wax' | 'bug' | 'dirt' | 'spot' | 'splinter' | 'bell' | 'listen' | 'wheeze'
-  | 'sting' | 'bite' | 'gnat' | 'mud' | 'foam'
+  | 'sting' | 'bite' | 'gnat' | 'mud' | 'foam' | 'tickle' | 'burn'
   | 'mouth' | 'forehead' | 'nose' | 'tummy' | 'eye' | 'ear' | 'knee' | 'paw' | 'skin';
 
 /**
@@ -249,10 +255,49 @@ export const AILMENTS: Record<AilmentId, Ailment> = {
       [{ tool: 'cream', act: 'touch', view: 'body', what: 'spot', n: [4, 6], line: 'vo-tool-dab' }, { tool: 'icepack', act: 'clean', by: 'time', view: 'body', what: 'forehead' }, syrup],
     ],
   },
+  // ---- round 5 (research/clinic-spec-5.md): a scratchy throat (the light finds the tickles in it, the spray sends them
+  // off, a spoon of honey, a warm drink) and a sunburn (cool aloe on every red spot, the ice pack, a sun hat that stays on)
+  throat: {
+    id: 'throat',
+    card: 'sick-throat',
+    line: 'vo-sick-throat',
+    steps: [
+      [
+        { tool: 'light', act: 'find', view: 'throat', what: 'tickle', n: [3, 4], after: 'vo-tickles' },
+        { tool: 'spray', act: 'clean', by: 'time', view: 'throat', what: 'tickle', n: [3, 4], line: null },
+        { tool: 'honey', act: 'give', view: 'body', what: 'mouth' },
+        warmDrink,
+      ],
+      [
+        thermo('vo-thermo-hot'),
+        { tool: 'light', act: 'find', view: 'throat', what: 'tickle', n: [3, 4], after: 'vo-tickles' },
+        { tool: 'spray', act: 'clean', by: 'time', view: 'throat', what: 'tickle', n: [3, 4], line: null },
+        { tool: 'honey', act: 'give', view: 'body', what: 'mouth' },
+        warmDrink,
+      ],
+    ],
+  },
+  sunburn: {
+    id: 'sunburn',
+    card: 'sick-sunburn',
+    line: 'vo-sick-sunburn',
+    steps: [
+      [
+        { tool: 'aloe', act: 'touch', view: 'body', what: 'burn', n: [3, 5] },
+        { tool: 'icepack', act: 'clean', by: 'time', view: 'body', what: 'forehead' },
+        { tool: 'hat', act: 'give', view: 'body', what: 'forehead' },
+      ],
+      [
+        { tool: 'aloe', act: 'touch', view: 'body', what: 'burn', n: [3, 5] },
+        { tool: 'icepack', act: 'clean', by: 'time', view: 'body', what: 'forehead' },
+        { tool: 'hat', act: 'give', view: 'body', what: 'forehead' },
+      ],
+    ],
+  },
 };
 
 /** The ailments that open a big close-up (a visit always has at least two of them: they are the fun of it). */
-export const ZOOM_AILMENTS: readonly AilmentId[] = ['tooth', 'eye', 'ear', 'tummy', 'toy', 'knee', 'paw', 'sting', 'bites'];
+export const ZOOM_AILMENTS: readonly AilmentId[] = ['tooth', 'eye', 'ear', 'tummy', 'toy', 'knee', 'paw', 'sting', 'bites', 'throat'];
 
 type F = { x: number; y: number };
 
@@ -260,7 +305,8 @@ type F = { x: number; y: number };
  * A patient: the layered character (the guests' and Pipa's art: a 600x700 frame, feet at y 684), Mom's hello, her
  * wordless voice's pitch, where things are on her in the frame, the colours her close-ups are tinted, and the ailments
  * she can have (the giraffe is only a head on a long neck: no knee, no foot, no chest to listen to; the penguin has a
- * beak, so no tooth).
+ * beak, so no tooth and no throat). Round 5: each patient has her own `signature` problem, always her first card (Ruby is
+ * the only one with the teeth), and the care room she goes to afterwards (`care`, used by the care rooms' PR).
  */
 export interface Patient {
   id: PatientId;
@@ -280,8 +326,14 @@ export interface Patient {
   kid?: true;
   hand?: F;
   tint: { skin: number; tummy: number };
+  /** What she can have (her second problem comes from these; never the teeth, but for Ruby). */
   ailments: AilmentId[];
+  signature: AilmentId;
+  care: CareId;
 }
+
+/** Every problem but the teeth (round 5: only Ruby has the teeth). */
+const ALL_BUT_TEETH: AilmentId[] = ['fever', 'cough', 'tummy', 'knee', 'paw', 'spots', 'cold', 'toy', 'eye', 'ear', 'sting', 'bites', 'dirty', 'throat', 'sunburn'];
 
 const guest = (id: 'turtle' | 'penguin' | 'giraffe') => GUESTS.find((g) => g.id === id)!;
 
@@ -290,11 +342,16 @@ const guest = (id: 'turtle' | 'penguin' | 'giraffe') => GUESTS.find((g) => g.id 
  * prints their points): they sit on the bench, knees forward, hands in the lap. `hy` is the head's centre in the frame
  * (Mia, the smallest, has a bigger head for her size and her body is drawn at `body` around her feet).
  */
-const KIDS: { id: 'lily' | 'leo' | 'mia' | 'sam'; rate: number; hy: number; body: number; skin: number; shirt: number }[] = [
-  { id: 'lily', rate: 1.25, hy: 240, body: 1, skin: 0xf8d5bc, shirt: 0xf59bb4 },
-  { id: 'leo', rate: 1.05, hy: 240, body: 1, skin: 0x8e5a3b, shirt: 0xf6c445 },
-  { id: 'mia', rate: 1.45, hy: 262, body: 0.86, skin: 0xf4d3b2, shirt: 0xb99ce3 },
-  { id: 'sam', rate: 1.3, hy: 240, body: 1, skin: 0xebb892, shirt: 0x7cc47a },
+const KIDS: { id: 'lily' | 'leo' | 'mia' | 'sam' | 'ruby' | 'noah' | 'zoe' | 'max'; rate: number; hy: number; body: number; skin: number; signature: AilmentId; care: CareId }[] = [
+  { id: 'lily', rate: 1.25, hy: 240, body: 1, skin: 0xf8d5bc, signature: 'eye', care: 'eyes' },
+  { id: 'leo', rate: 1.05, hy: 240, body: 1, skin: 0x8e5a3b, signature: 'knee', care: 'bandage' },
+  { id: 'mia', rate: 1.45, hy: 262, body: 0.86, skin: 0xf4d3b2, signature: 'ear', care: 'rest' },
+  { id: 'sam', rate: 1.3, hy: 240, body: 1, skin: 0xebb892, signature: 'dirty', care: 'bath' },
+  // round 5 (gen_kids.py): Ruby the dentist's patient, Noah with his glasses, Zoe with her puffs, Max with his gappy grin
+  { id: 'ruby', rate: 1.2, hy: 240, body: 1, skin: 0xc98e62, signature: 'tooth', care: 'polish' },
+  { id: 'noah', rate: 1.0, hy: 240, body: 1, skin: 0xf2cda8, signature: 'cough', care: 'medicine' },
+  { id: 'zoe', rate: 1.4, hy: 240, body: 1, skin: 0x6e4128, signature: 'sunburn', care: 'bath' },
+  { id: 'max', rate: 1.15, hy: 240, body: 1, skin: 0xe0a878, signature: 'throat', care: 'rest' },
 ];
 
 function kid(c: (typeof KIDS)[number]): Patient {
@@ -323,7 +380,24 @@ function kid(c: (typeof KIDS)[number]): Patient {
     hand: b(216, 562),
     spots: [{ x: 214, y: hy + 92 }, { x: 386, y: hy + 92 }, b(196, 500), b(404, 500), b(368, 604), { x: 300, y: hy - 40 }, b(256, 470), b(344, 540)],
     tint: { skin: c.skin, tummy: c.skin },
-    ailments: ['fever', 'cough', 'tummy', 'tooth', 'knee', 'paw', 'spots', 'cold', 'toy', 'eye', 'ear', 'sting', 'bites', 'dirty'],
+    ailments: c.signature === 'tooth' ? ['tooth', ...ALL_BUT_TEETH] : ALL_BUT_TEETH,
+    signature: c.signature,
+    care: c.care,
+  };
+}
+
+/** An animal patient of round 5 (gen_animals.py prints her points): layers `animal-<id>-*`. */
+function animal(id: 'cat' | 'panda' | 'bunny' | 'puppy', o: Omit<Patient, 'id' | 'def' | 'hello' | 'ailments'>): Patient {
+  const L = (part: string) => `animal-${id}-${part}` as ImageKey;
+  return {
+    id,
+    def: {
+      body: L('body'), eyesOpen: L('eyes-open'), eyesBlink: L('eyes-blink'), eyesSurprised: L('eyes-surprised'), eyesHappy: L('eyes-happy'),
+      mouthClosed: L('mouth-closed'), mouthOpen: L('mouth-open'), mouthChew: L('mouth-chew'),
+    },
+    hello: `vo-hi-${id}` as VoiceKey,
+    ailments: ALL_BUT_TEETH,
+    ...o,
   };
 }
 
@@ -341,7 +415,9 @@ export const PATIENTS: readonly Patient[] = [
     foot: { x: 448, y: 640 },
     spots: [{ x: 200, y: 560 }, { x: 236, y: 470 }, { x: 362, y: 470 }, { x: 410, y: 590 }, { x: 178, y: 500 }, { x: 422, y: 500 }],
     tint: { skin: 0x9fd27a, tummy: 0xf3dfa6 },
-    ailments: ['fever', 'cough', 'tummy', 'tooth', 'knee', 'paw', 'spots', 'cold', 'toy', 'eye', 'sting', 'bites', 'dirty'],
+    ailments: ALL_BUT_TEETH.filter((a) => a !== 'ear'),
+    signature: 'paw',
+    care: 'bandage',
   },
   {
     id: 'penguin',
@@ -354,7 +430,9 @@ export const PATIENTS: readonly Patient[] = [
     foot: { x: 376, y: 664 },
     spots: [{ x: 250, y: 520 }, { x: 345, y: 520 }, { x: 297, y: 600 }, { x: 230, y: 610 }, { x: 362, y: 610 }, { x: 297, y: 450 }],
     tint: { skin: 0xf6ab5a, tummy: 0xfbf7ee },
-    ailments: ['fever', 'cough', 'tummy', 'knee', 'paw', 'spots', 'cold', 'toy', 'eye', 'sting', 'bites', 'dirty'],
+    ailments: ALL_BUT_TEETH.filter((a) => a !== 'ear' && a !== 'throat'),
+    signature: 'cold',
+    care: 'medicine',
   },
   {
     id: 'giraffe',
@@ -367,7 +445,9 @@ export const PATIENTS: readonly Patient[] = [
     foot: null,
     spots: [],
     tint: { skin: 0xf3c768, tummy: 0xf8e2a8 },
-    ailments: ['fever', 'tooth', 'tummy', 'cold', 'toy', 'eye', 'ear', 'sting', 'dirty'],
+    ailments: ['fever', 'tummy', 'cold', 'toy', 'eye', 'ear', 'sting', 'dirty', 'throat', 'sunburn'],
+    signature: 'fever',
+    care: 'medicine',
   },
   {
     id: 'pipa',
@@ -380,35 +460,121 @@ export const PATIENTS: readonly Patient[] = [
     foot: { x: 392, y: 660 },
     spots: [{ x: 240, y: 560 }, { x: 350, y: 560 }, { x: 182, y: 470 }, { x: 412, y: 470 }, { x: 295, y: 620 }, { x: 250, y: 220 }],
     tint: { skin: 0xf3d9b8, tummy: 0xf3d9b8 },
-    ailments: ['fever', 'cough', 'tummy', 'tooth', 'knee', 'paw', 'spots', 'cold', 'toy', 'eye', 'ear', 'sting', 'bites', 'dirty'],
+    ailments: ALL_BUT_TEETH,
+    signature: 'toy',
+    care: 'rest',
   },
+  // round 5 (gen_animals.py): Mittens the cat, Bao the panda, Clover the bunny, Biscuit the puppy
+  animal('cat', {
+    rate: 1.35,
+    forehead: { x: 300, y: 256 },
+    cheeks: [{ x: 212, y: 374 }, { x: 388, y: 374 }],
+    chest: [{ x: 300, y: 552 }, { x: 256, y: 600 }, { x: 344, y: 600 }],
+    nose: { x: 300, y: 380 },
+    foot: { x: 354, y: 640 },
+    spots: [{ x: 230, y: 380 }, { x: 370, y: 380 }, { x: 196, y: 540 }, { x: 404, y: 540 }, { x: 300, y: 600 }, { x: 300, y: 246 }, { x: 250, y: 520 }, { x: 350, y: 640 }],
+    tint: { skin: 0xf2a65a, tummy: 0xfff6ea },
+    signature: 'spots',
+    care: 'bath',
+  }),
+  animal('panda', {
+    rate: 0.85,
+    forehead: { x: 300, y: 264 },
+    cheeks: [{ x: 204, y: 396 }, { x: 396, y: 396 }],
+    chest: [{ x: 300, y: 540 }, { x: 254, y: 600 }, { x: 346, y: 600 }],
+    nose: { x: 300, y: 392 },
+    foot: { x: 392, y: 646 },
+    spots: [{ x: 210, y: 400 }, { x: 390, y: 400 }, { x: 300, y: 600 }, { x: 240, y: 620 }, { x: 360, y: 620 }, { x: 300, y: 262 }, { x: 256, y: 540 }, { x: 344, y: 560 }],
+    tint: { skin: 0xe8e2d8, tummy: 0xfbf8f2 },
+    signature: 'sting',
+    care: 'bandage',
+  }),
+  animal('bunny', {
+    rate: 1.4,
+    forehead: { x: 300, y: 266 },
+    cheeks: [{ x: 210, y: 380 }, { x: 390, y: 380 }],
+    chest: [{ x: 300, y: 540 }, { x: 256, y: 596 }, { x: 344, y: 596 }],
+    nose: { x: 300, y: 376 },
+    foot: { x: 404, y: 664 },
+    spots: [{ x: 220, y: 384 }, { x: 380, y: 384 }, { x: 196, y: 560 }, { x: 404, y: 560 }, { x: 300, y: 610 }, { x: 300, y: 262 }, { x: 258, y: 540 }, { x: 342, y: 620 }],
+    tint: { skin: 0xf2cda8, tummy: 0xfff6ea },
+    signature: 'tummy',
+    care: 'medicine',
+  }),
+  animal('puppy', {
+    rate: 1.1,
+    forehead: { x: 300, y: 252 },
+    cheeks: [{ x: 214, y: 380 }, { x: 386, y: 380 }],
+    chest: [{ x: 300, y: 540 }, { x: 254, y: 590 }, { x: 346, y: 590 }],
+    nose: { x: 300, y: 370 },
+    foot: { x: 354, y: 650 },
+    spots: [{ x: 226, y: 386 }, { x: 374, y: 386 }, { x: 196, y: 560 }, { x: 404, y: 560 }, { x: 300, y: 600 }, { x: 300, y: 248 }, { x: 250, y: 530 }, { x: 350, y: 620 }],
+    tint: { skin: 0xd9a25e, tummy: 0xf5ddb4 },
+    signature: 'bites',
+    care: 'bath',
+  }),
   ...KIDS.map(kid),
 ];
 
+/** Where a sunburn shows on her (round 5): her nose and cheeks first, then her arms (her spots below the face). */
+export function burnPlaces(p: Patient): F[] {
+  const nose = p.nose ?? { x: (p.cheeks[0].x + p.cheeks[1].x) / 2, y: p.cheeks[0].y - 10 };
+  const face = [nose, { x: p.cheeks[0].x + 14, y: p.cheeks[0].y - 4 }, { x: p.cheeks[1].x - 14, y: p.cheeks[1].y - 4 }];
+  return [...face, ...p.spots.filter((f) => f.y > p.cheeks[0].y + 80).slice(0, 2)];
+}
+
+/** The device's own memory of who came last (a list of ids, never shown, like the run counters). */
+const SEEN_KEY = 'cooking.clinic.seen';
+
 /**
- * A visit (round 4): `n` different patients, at least one of them a child, each with `m` problems of her own (like the
- * patients in "Doctor Games for kids"), no problem twice in a visit, each patient with a close-up among hers when she can
- * (they are the fun of it). Shuffled; never stuck.
+ * Who comes this time (round 5): the ones who have not come for the longest (shuffled among equals), at least one child,
+ * so all 16 come within about six visits. Remembered on the device only; any storage failure just means a random visit.
  */
-export function planVisit(n: number, m: number, rnd: () => number = Math.random): { patient: Patient; ailments: Ailment[] }[] {
+export function pickPatients(n: number, rnd: () => number = Math.random): Patient[] {
+  let seen: string[] = [];
+  try {
+    const v = JSON.parse(localStorage.getItem(SEEN_KEY) ?? '[]');
+    if (Array.isArray(v)) seen = v.filter((x) => typeof x === 'string');
+  } catch {
+    /* none remembered */
+  }
+  const last = (p: Patient) => seen.lastIndexOf(p.id);
+  const order = PATIENTS.map((p) => ({ p, k: last(p) + rnd() * 0.5 })).sort((a, b) => a.k - b.k).map((o) => o.p);
+  const who = order.slice(0, n);
+  if (!who.some(isKid)) {
+    const k = order.find(isKid);
+    if (k) who[who.length - 1] = k;
+  }
+  try {
+    localStorage.setItem(SEEN_KEY, JSON.stringify([...seen.filter((id) => !who.some((p) => p.id === id)), ...who.map((p) => p.id)].slice(-PATIENTS.length)));
+  } catch {
+    /* not remembered */
+  }
+  return who.map((p) => ({ p, r: rnd() })).sort((a, b) => a.r - b.r).map((o) => o.p);
+}
+
+/**
+ * A visit (round 4, round 5): `n` different patients (`who`: by default the ones who have not come for the longest, at
+ * least one of them a child), each with `m` problems: her own signature problem first (round 5), then others of hers (a
+ * close-up among them when hers is not one: they are the fun of it), no problem twice in a visit. Never stuck.
+ */
+export function planVisit(n: number, m: number, rnd: () => number = Math.random, who: Patient[] = pickPatients(n, rnd)): { patient: Patient; ailments: Ailment[] }[] {
   const shuffle = <T>(a: readonly T[]) => a.map((v) => ({ v, r: rnd() })).sort((p, q) => p.r - q.r).map((p) => p.v);
   for (let tries = 0; tries < 60; tries++) {
-    const who = shuffle(PATIENTS).slice(0, n);
-    if (!who.some(isKid) && tries < 50) continue;
-    const used = new Set<AilmentId>();
+    const used = new Set<AilmentId>(who.map((p) => p.signature));
     const out: { patient: Patient; ailments: Ailment[] }[] = [];
     // (the ones with the fewest ailments choose first; a close-up first, then anything)
     for (const p of [...who].sort((a, b) => a.ailments.length - b.ailments.length)) {
       const free = shuffle(p.ailments).filter((x) => !used.has(x));
-      const zoom = free.find((x) => ZOOM_AILMENTS.includes(x));
-      const pick = [...(zoom ? [zoom] : []), ...free.filter((x) => x !== zoom)].slice(0, m);
-      if (pick.length < m) break;
+      const zoom = ZOOM_AILMENTS.includes(p.signature) ? undefined : free.find((x) => ZOOM_AILMENTS.includes(x));
+      const pick = [...(zoom ? [zoom] : []), ...free.filter((x) => x !== zoom)].slice(0, m - 1);
+      if (pick.length < m - 1) break;
       for (const x of pick) used.add(x);
-      out.push({ patient: p, ailments: shuffle(pick).map((x) => AILMENTS[x]) });
+      out.push({ patient: p, ailments: [p.signature, ...shuffle(pick)].map((x) => AILMENTS[x]) });
     }
-    if (out.length === n) return who.map((p) => out.find((o) => o.patient === p)!);
+    if (out.length === who.length) return who.map((p) => out.find((o) => o.patient === p)!);
   }
-  return PATIENTS.slice(0, n).map((p, i) => ({ patient: p, ailments: p.ailments.slice(i * m, i * m + m).map((x) => AILMENTS[x]) }));
+  return who.map((p) => ({ patient: p, ailments: [AILMENTS[p.signature]] }));
 }
 
 /** The tool's own line (its name, as Mom hands it over). */
@@ -436,4 +602,7 @@ export const TOOL_LINE: Record<ToolId, VoiceKey> = {
   xray: 'vo-tool-xray',
   sponge: 'vo-tool-sponge',
   bugspray: 'vo-tool-bugspray',
+  honey: 'vo-tool-honey',
+  aloe: 'vo-tool-aloe',
+  hat: 'vo-tool-hat',
 };
