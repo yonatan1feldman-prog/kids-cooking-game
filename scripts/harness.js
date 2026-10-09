@@ -474,7 +474,7 @@ window.__shotAt = async (w, h, what) => {
   const D = () => __R().ctx.dish;
   if (what === 'title') return __setup(w, h);
   if (what === 'home') {
-    const b = game.scene.getScene('Title').children.list.find((o) => (o.texture?.key === 'btn-play' || o.texture?.key === 'btn-world-kitchen'));
+    const b = game.scene.getScene('Title').children.list.find((o) => ['btn-play', 'btn-world-kitchen', 'world-card-kitchen'].includes(o.texture?.key));
     __tap(b.x, b.y); return __run(1300);
   }
   if (what === 'roll') {
@@ -585,7 +585,7 @@ window.__tour = async (w, h, tag) => {
   const until = async (fn, ms = 8000) => { for (let t = 0; t < ms && !fn(); t += 50) await __run(50); };
   __demos(true);
   await __setup(w, h); await __run(600); await shot('title');
-  const b = game.scene.getScene('Title').children.list.find((o) => (o.texture?.key === 'btn-play' || o.texture?.key === 'btn-world-kitchen'));
+  const b = game.scene.getScene('Title').children.list.find((o) => ['btn-play', 'btn-world-kitchen', 'world-card-kitchen'].includes(o.texture?.key));
   __tap(b.x, b.y); await __run(1600); await shot('home');
   const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-pizza');
   __tap(c.x, c.y); await __waitRecipe(); await until(() => game.scene.isActive('Recipe') && __R().step); await __run(1000); await shot('roll-demo');
@@ -637,7 +637,7 @@ window.__fullRun = async (demos, mode = 'fast') => {
   }
   try {
     const n0 = __voLog.length; const steps = []; const t0 = performance.now(); const at = {};
-    const b = game.scene.getScene('Title').children.list.find((o) => (o.texture?.key === 'btn-play' || o.texture?.key === 'btn-world-kitchen'));
+    const b = game.scene.getScene('Title').children.list.find((o) => ['btn-play', 'btn-world-kitchen', 'world-card-kitchen'].includes(o.texture?.key));
     __tap(b.x, b.y); await __real(mode === 'child' ? 2500 : 1600);
     const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-pizza');
     const tCard = performance.now();
@@ -673,7 +673,7 @@ window.__tour5 = async (w, h, tag) => {
   const until = async (fn, ms = 8000) => { for (let t = 0; t < ms && !fn(); t += 50) await __run(50); };
   __demos(true);
   await __setup(w, h); await __run(900); await shot('title');
-  const b = game.scene.getScene('Title').children.list.find((o) => (o.texture?.key === 'btn-play' || o.texture?.key === 'btn-world-kitchen'));
+  const b = game.scene.getScene('Title').children.list.find((o) => ['btn-play', 'btn-world-kitchen', 'world-card-kitchen'].includes(o.texture?.key));
   __tap(b.x, b.y); await __run(1600); await shot('home');
   const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-pizza');
   __tap(c.x, c.y); await __waitRecipe(); await until(() => game.scene.isActive('Recipe') && __R().step);
@@ -726,7 +726,7 @@ window.__voSim = (on = true) => __voice.simulate(on);
  */
 window.__yourTurnTest = async (w = 900, h = 405, ms = 12000) => {
   __demos(true); await __setup(w, h); __voSim(true);
-  const b = game.scene.getScene('Title').children.list.find((o) => (o.texture?.key === 'btn-play' || o.texture?.key === 'btn-world-kitchen'));
+  const b = game.scene.getScene('Title').children.list.find((o) => ['btn-play', 'btn-world-kitchen', 'world-card-kitchen'].includes(o.texture?.key));
   __tap(b.x, b.y); await __run(1300);
   const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-pizza');
   __voLog.length = 0; const t0 = __voice.now();
@@ -778,7 +778,7 @@ window.__fullRun5 = async (demos, mode = 'child', picks = ['tomato', 'corn', 'ol
   }
   const T = () => game.loop.time;
   try {
-    const b = game.scene.getScene('Title').children.list.find((o) => (o.texture?.key === 'btn-play' || o.texture?.key === 'btn-world-kitchen'));
+    const b = game.scene.getScene('Title').children.list.find((o) => ['btn-play', 'btn-world-kitchen', 'world-card-kitchen'].includes(o.texture?.key));
     __tap(b.x, b.y); await __run(mode === 'child' ? 2500 : 1600);
     const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === `card-${window.__recipe || 'pizza'}`);
     const n0 = __voLog.length; const t0 = T(); const steps = []; const at = {};
@@ -901,7 +901,7 @@ window.__tour5b = async (w, h, tag) => {
   __demos(true); await __setup(w, h); __voSim(true);
   window.__pickOrder = ['tomato', 'corn', 'olive']; window.__shareTo = 'alt';
   await __run(900); await shot('title');
-  const b = game.scene.getScene('Title').children.list.find((o) => (o.texture?.key === 'btn-play' || o.texture?.key === 'btn-world-kitchen'));
+  const b = game.scene.getScene('Title').children.list.find((o) => ['btn-play', 'btn-world-kitchen', 'world-card-kitchen'].includes(o.texture?.key));
   __tap(b.x, b.y); await __run(1600); await shot('home');
   const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-pizza');
   __tap(c.x, c.y); await __waitRecipe(); await until(() => game.scene.isActive('Recipe') && __R().step);
@@ -964,7 +964,7 @@ window.__tour6 = async (w, h, tag) => {
   const until = async (fn, ms = 8000) => { for (let t = 0; t < ms && !fn(); t += 50) await __run(50); };
   window.__recipe = 'salad'; __demos(false); await __setup(w, h); __voSim(true);
   window.__pickOrder = ['cucumber', 'carrot', 'tomato']; window.__shareTo = 'alt';
-  const b = game.scene.getScene('Title').children.list.find((o) => (o.texture?.key === 'btn-play' || o.texture?.key === 'btn-world-kitchen'));
+  const b = game.scene.getScene('Title').children.list.find((o) => ['btn-play', 'btn-world-kitchen', 'world-card-kitchen'].includes(o.texture?.key));
   __tap(b.x, b.y); await __run(1600); await shot('home');
   const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-salad');
   __tap(c.x, c.y); await __waitRecipe(); await until(() => game.scene.isActive('Recipe') && __R().step);
@@ -1061,7 +1061,7 @@ window.__tour7 = async (w, h, tag) => {
   const shot = async (n) => out.push(await __saveShot(`${tag}-${String(i++).padStart(2, '0')}-${n}`, 'screenshots-round7'));
   const until = async (fn, ms = 8000) => { for (let t = 0; t < ms && !fn(); t += 50) await __run(50); };
   window.__recipe = 'cookies'; __demos(false); await __setup(w, h); __voSim(true); window.__shareTo = 'alt';
-  const b = game.scene.getScene('Title').children.list.find((o) => (o.texture?.key === 'btn-play' || o.texture?.key === 'btn-world-kitchen'));
+  const b = game.scene.getScene('Title').children.list.find((o) => ['btn-play', 'btn-world-kitchen', 'world-card-kitchen'].includes(o.texture?.key));
   __tap(b.x, b.y); await __run(1600); await shot('home');
   const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-cookies');
   __tap(c.x, c.y); await __waitRecipe(); await until(() => game.scene.isActive('Recipe') && __R().step);

@@ -1156,9 +1156,10 @@ RECIPE_ASSETS.clinic = {
     'vo-care-go', 'vo-care-remember', 'vo-care-right', 'vo-care-medicine', 'vo-care-flavor', 'vo-care-shake', 'vo-care-spoon',
     'vo-care-bath', 'vo-care-duck', 'vo-care-rinse', 'vo-care-towel', 'vo-care-wrap', 'vo-care-heart', 'vo-care-paste',
     'vo-care-polish', 'vo-care-shiny', 'vo-care-eyes', 'vo-care-chart', 'vo-care-glasses', 'vo-care-rest', 'vo-care-lamp',
-    'vo-care-wake', 'vo-care-order', 'vo-then', 'vo-follow-arrows', 'name-strawberry', 'name-banana', 'name-blueberry',
+    'vo-care-wake', 'vo-care-order', 'vo-follow-arrows', 'name-strawberry', 'name-banana', 'name-blueberry',
     'name-apple', 'name-star', 'name-heart', 'name-moon', 'name-circle', 'name-triangle', 'name-house', 'name-pink', 'name-blue',
     'name-green', 'shake', 'splash', 'wrap',
+    // (not 'vo-then': it is core, Pipa's order and the pours in every recipe say it too; a listed sound is not core)
   ],
 };
 /** The farm (FarmScene, research/farm-spec.md): loaded on its card like the garden. Shared lines and effects it plays are
