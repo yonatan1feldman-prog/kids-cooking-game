@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import manifest from 'virtual:asset-manifest';
 import { RECIPE_SOUNDS } from './assets';
+import type { FarmVoiceKey } from './farmAssets';
 
 /**
  * Every sound, on the one Web Audio context Phaser already made (game.sound.context).
@@ -132,6 +133,7 @@ export type VoiceKey =
   | 'vo-hi-lily' | 'vo-hi-leo' | 'vo-hi-mia' | 'vo-hi-sam' | 'vo-sick-sting' | 'vo-sick-bites' | 'vo-sick-dirty'
   | 'vo-tool-sponge' | 'vo-tool-bugspray' | 'vo-rinse-foam' | 'vo-bugs-bye' | 'vo-all-clean' | 'vo-clinic-fixfirst'
   | 'vo-clinic-fixed' | 'vo-bug-hop' | 'vo-level-easy' | 'vo-level-hard'
+  | FarmVoiceKey
   // the clinic, round 5: eight more patients, the scratchy throat, the sunburn
   | 'vo-hi-cat' | 'vo-hi-panda' | 'vo-hi-bunny' | 'vo-hi-puppy' | 'vo-hi-ruby' | 'vo-hi-noah' | 'vo-hi-zoe' | 'vo-hi-max'
   | 'vo-sick-throat' | 'vo-sick-sunburn' | 'vo-tool-honey' | 'vo-tool-aloe' | 'vo-tool-hat' | 'vo-tickles'

@@ -9,6 +9,8 @@
  * Placeholders are drawn at the same size.
  */
 /** The guests' layers are made at this fraction of their native size (they are never shown bigger). */
+import { FARM_IMAGES, FARM_SFX, FARM_VOICE } from './farmAssets';
+
 export const GUEST_RASTER = 0.75;
 
 /** The clinic's close-ups (and what is drawn in them) are shown up to 1.7x their 520 frame: rasterized that big. */
@@ -775,6 +777,8 @@ export const IMAGES = {
   'tool-hat': { size: [240, 240] },
   'sick-throat': { size: [200, 200] },
   'sick-sunburn': { size: [200, 200] },
+  // the farm (core/farmAssets.ts)
+  ...FARM_IMAGES,
 } as const satisfies Record<string, { size: readonly [number, number]; raster?: number }>;
 
 /** Texture size of an image: its native size, times its `raster` factor if it is shown bigger than native. */
@@ -827,7 +831,7 @@ export const SCENERY_KEYS: readonly ImageKey[] = [
 export const CORE_IMAGES: readonly ImageKey[] = [
   'bg-kitchen-landscape', ...KITCHEN_KEYS, ...SCENERY_KEYS, 'logo-cooking-with-mom', 'star', 'btn-play', 'world-card-kitchen', 'world-card-clinic', 'btn-home', 'btn-done', 'hand-hint',
   'card-pizza', 'card-salad', 'card-cookies', 'card-smoothie', 'card-pancakes', 'card-soup', 'card-cake',
-  'card-skewers', 'card-garden', 'card-market', 'card-dishes', 'card-art',
+  'card-skewers', 'card-garden', 'card-market', 'card-dishes', 'card-art', 'card-farm',
   'character-body', 'character-eyes-open', 'character-eyes-blink', 'character-eyes-surprised', 'character-eyes-happy',
   'character-mouth-closed', 'character-mouth-open', 'character-mouth-chew',
   'mom-arm-right', 'mom-body', 'mom-head', 'mom-hair', 'mom-eyes-open', 'mom-eyes-blink', 'mom-eyes-happy',
@@ -1108,6 +1112,18 @@ RECIPE_ASSETS.clinic = {
     'vo-sick-throat', 'vo-sick-sunburn', 'vo-tool-honey', 'vo-tool-aloe', 'vo-tool-hat', 'vo-tickles',
   ],
 };
+/** The farm (FarmScene, research/farm-spec.md): loaded on its card like the garden. Shared lines and effects it plays are
+ * listed here too (a listed sound is not core). The tooth brush and the close-up's rim are the clinic's. */
+RECIPE_ASSETS.farm = {
+  images: [
+    ...(Object.keys(FARM_IMAGES) as ImageKey[]).filter((k) => k !== 'card-farm'), 'tool-toothbrush', 'lens-ring', 'bubble',
+    'water-drop',
+  ],
+  sounds: [
+    ...FARM_SFX, ...FARM_VOICE.filter((k) => k !== 'vo-pick-farm'), 'name-carrot', 'name-corn', 'name-red', 'name-blue',
+    'name-yellow', 'name-white', 'brush', 'sticky', 'sparkle', 'spray', 'slurp', 'egg-crack', ...OUTSIDE_SONG,
+  ],
+};
 /** A guest's own layers: loaded when the sharing starts (all three, the two not invited are freed at once). */
 export const GUEST_LAYERS: readonly ImageKey[] = IMAGE_KEYS.filter((k) => k.startsWith('guest-') && !k.startsWith('guest-card-'));
 
@@ -1139,6 +1155,8 @@ export const SOUND_KEYS = [
   'heartbeat', 'cough', 'gurgle', 'spray', 'sticky', 'brush', 'wheeze', 'honk', 'jingle', 'zing',
   // the clinic, round 3: a germ popping, a drop landing, the x-ray's hum, a star filling a tooth
   'eek', 'drip', 'scan', 'sparkle',
+  // the farm (core/farmAssets.ts)
+  ...FARM_SFX,
 ] as const;
 export type SoundKey = (typeof SOUND_KEYS)[number];
 

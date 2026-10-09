@@ -344,6 +344,11 @@
   "w": 2400,
   "h": 1080
  },
+ "bg-farm": {
+  "sha1": "179d1075340fe4c2be9ac612ac245297fc086f03",
+  "w": 2400,
+  "h": 1080
+ },
  "bg-garden": {
   "sha1": "f3e31aebe5df10f5b46ecfc287818fe73e615778",
   "w": 2400,
@@ -526,6 +531,11 @@
  },
  "card-dishes": {
   "sha1": "121ea1891876335aa587efaf1334179d909299f8",
+  "w": 400,
+  "h": 520
+ },
+ "card-farm": {
+  "sha1": "c6ae16a5f99f8b6db5b1be9df97a086e064f9ef3",
   "w": 400,
   "h": 520
  },
@@ -819,6 +829,11 @@
   "w": 260,
   "h": 260
  },
+ "cow-bell": {
+  "sha1": "014581a61634e15d72214f94b8b82cd19d30fb13",
+  "w": 140,
+  "h": 160
+ },
  "cutter-circle": {
   "sha1": "17dc3f832d869cf678c017098ba12bfc7765bf90",
   "w": 320,
@@ -944,10 +959,265 @@
   "w": 400,
   "h": 440
  },
+ "egg-basket": {
+  "sha1": "253c832635358616b3ca182b6911e10c117352bb",
+  "w": 300,
+  "h": 220
+ },
+ "egg-brown": {
+  "sha1": "9e6eef9e8483b8f707ac4528d0bec4a6854655ff",
+  "w": 100,
+  "h": 120
+ },
+ "egg-white": {
+  "sha1": "1fe292b1d41b13800f5666d2ba256521c10dc054",
+  "w": 100,
+  "h": 120
+ },
  "eye-speck": {
   "sha1": "8731fb1a626487bd79f031f6ac8e20633f85495b",
   "w": 153,
   "h": 85
+ },
+ "farm-apple": {
+  "sha1": "d595d3b6c7c375fa75f881af43a324b10c2b656f",
+  "w": 200,
+  "h": 200
+ },
+ "farm-brush": {
+  "sha1": "4dfe53dd5622dcb56d3fe9f81136b153e6d52015",
+  "w": 240,
+  "h": 240
+ },
+ "farm-card": {
+  "sha1": "74d6eba884142a4fc844bda33362afea9ed81fe9",
+  "w": 240,
+  "h": 240
+ },
+ "farm-carrot": {
+  "sha1": "529755c9b666848a06a65191d4fa31dee6169411",
+  "w": 200,
+  "h": 240
+ },
+ "farm-cart": {
+  "sha1": "b1e6e880eb4656b57fa5000a8b1abcbac708e2f2",
+  "w": 480,
+  "h": 330
+ },
+ "farm-chick": {
+  "sha1": "6538faa514d1bb92f18fb4efbb48b29bf639840a",
+  "w": 140,
+  "h": 140
+ },
+ "farm-corn": {
+  "sha1": "bf7e2a451e9b1eb7f700c65b9f215853d63972aa",
+  "w": 200,
+  "h": 240
+ },
+ "farm-cow-body": {
+  "sha1": "1bd9d47462fe820f43385264f25f83bf3075fca7",
+  "w": 600,
+  "h": 525
+ },
+ "farm-cow-eyes-blink": {
+  "sha1": "7ae815ee3a406645098b3b94102bb54ec24d3a03",
+  "w": 600,
+  "h": 525
+ },
+ "farm-cow-eyes-happy": {
+  "sha1": "a01a90374c5e3df8e01c503314161d0ae2993808",
+  "w": 600,
+  "h": 525
+ },
+ "farm-cow-eyes-open": {
+  "sha1": "c8ba03635b2329e223a15521bd87b15dcc8486ca",
+  "w": 600,
+  "h": 525
+ },
+ "farm-cow-eyes-surprised": {
+  "sha1": "2559139c1e93e44363b530a33de0d4bc35e25d68",
+  "w": 600,
+  "h": 525
+ },
+ "farm-cow-mouth-chew": {
+  "sha1": "e111df71cd2958b22814acb9f554ecea5ed573ae",
+  "w": 600,
+  "h": 525
+ },
+ "farm-cow-mouth-closed": {
+  "sha1": "a2dac41d3fa893b9c82ae86c3e5aed27c4c80f59",
+  "w": 600,
+  "h": 525
+ },
+ "farm-cow-mouth-open": {
+  "sha1": "196293fc8da858d39d7eb8e954b9fdebf532e618",
+  "w": 600,
+  "h": 525
+ },
+ "farm-done": {
+  "sha1": "346e44289d0bf742a9ba27041e7344b9ff2c1755",
+  "w": 120,
+  "h": 120
+ },
+ "farm-fence": {
+  "sha1": "0a6cede47a9930ba77c54981231597d1a97424b6",
+  "w": 2400,
+  "h": 240
+ },
+ "farm-horse-body": {
+  "sha1": "7d2268d9515948e5484de45dbae016668cb69ad1",
+  "w": 600,
+  "h": 525
+ },
+ "farm-horse-eyes-blink": {
+  "sha1": "dd822fb8a869ee2d49b87dcb555f30f613e5b5fe",
+  "w": 600,
+  "h": 525
+ },
+ "farm-horse-eyes-happy": {
+  "sha1": "9ce73ec4b6f0f0b63e8f8af46ca18010ba62a925",
+  "w": 600,
+  "h": 525
+ },
+ "farm-horse-eyes-open": {
+  "sha1": "c31905880d21db647b53feb5b6a8bb471f73f0a8",
+  "w": 600,
+  "h": 525
+ },
+ "farm-horse-eyes-surprised": {
+  "sha1": "c89c3c8eb1981cb0d05c366b3face121e0ef24e5",
+  "w": 600,
+  "h": 525
+ },
+ "farm-horse-mouth-chew": {
+  "sha1": "93051392b9b3ad98a6419a972b365ef52d428a3e",
+  "w": 600,
+  "h": 525
+ },
+ "farm-horse-mouth-closed": {
+  "sha1": "9cf8a2ec122d1de81297fb66fda2662ecd1cfe31",
+  "w": 600,
+  "h": 525
+ },
+ "farm-horse-mouth-open": {
+  "sha1": "6231f473fef409eda2f1e816a381dc673d281466",
+  "w": 600,
+  "h": 525
+ },
+ "farm-nest": {
+  "sha1": "9cc38bb7d9c51c92ebabd9a17dc331b1a184cc4b",
+  "w": 340,
+  "h": 170
+ },
+ "farm-pig-body": {
+  "sha1": "3f5e651fd6abc9ad1cb4de761cfa5fb9eb8e57b5",
+  "w": 600,
+  "h": 525
+ },
+ "farm-pig-eyes-blink": {
+  "sha1": "1d795d54f36616c286f1b5fb53e4ff0c253fbbe0",
+  "w": 600,
+  "h": 525
+ },
+ "farm-pig-eyes-happy": {
+  "sha1": "383651dfe2f8d8da21124abd3ca0a5addaf439be",
+  "w": 600,
+  "h": 525
+ },
+ "farm-pig-eyes-open": {
+  "sha1": "39bc52451de730b45281e8549e08a4e508938f8b",
+  "w": 600,
+  "h": 525
+ },
+ "farm-pig-eyes-surprised": {
+  "sha1": "eaf8e7ae8a90d3b09fd3ae4c28394ba0b30ac5dd",
+  "w": 600,
+  "h": 525
+ },
+ "farm-pig-mouth-chew": {
+  "sha1": "100100e15d7857a9771e50e30dd246682ae31430",
+  "w": 600,
+  "h": 525
+ },
+ "farm-pig-mouth-closed": {
+  "sha1": "e199685394df9ddd5f201fab897492b76b9bda64",
+  "w": 600,
+  "h": 525
+ },
+ "farm-pig-mouth-open": {
+  "sha1": "381c61b421eda35e86be287b4b07316e3edf59a9",
+  "w": 600,
+  "h": 525
+ },
+ "farm-pump": {
+  "sha1": "a6e3a234c91f560c43d4f0d7f2bf9a22d3c4267c",
+  "w": 240,
+  "h": 400
+ },
+ "farm-shears": {
+  "sha1": "01a4b8d7294dd9fcccb5e45fda5e4eb34f9e5e09",
+  "w": 240,
+  "h": 240
+ },
+ "farm-sheep-body": {
+  "sha1": "2e60ca98190ce8643243c5abeba551b33208b524",
+  "w": 600,
+  "h": 525
+ },
+ "farm-sheep-eyes-blink": {
+  "sha1": "4ad540ccad5f1f20c7385657fd84cd9c36e3181a",
+  "w": 600,
+  "h": 525
+ },
+ "farm-sheep-eyes-happy": {
+  "sha1": "17ab4b7f9eb9712028057ba9b6e86ed259c81b4e",
+  "w": 600,
+  "h": 525
+ },
+ "farm-sheep-eyes-open": {
+  "sha1": "60785c794cdc4b316019055b298518cc0822f26e",
+  "w": 600,
+  "h": 525
+ },
+ "farm-sheep-eyes-surprised": {
+  "sha1": "5304cbd849da1c0cfd7fa72d84b516099854b322",
+  "w": 600,
+  "h": 525
+ },
+ "farm-sheep-mouth-chew": {
+  "sha1": "05bdb8a7606eaa618d08887e31cc0cdf63f114ea",
+  "w": 600,
+  "h": 525
+ },
+ "farm-sheep-mouth-closed": {
+  "sha1": "5ff69d10b5f2715d8b6bb8ffbe15975675cbb903",
+  "w": 600,
+  "h": 525
+ },
+ "farm-sheep-mouth-open": {
+  "sha1": "b26c46f062d788935a478a6276437c63ed8c02bc",
+  "w": 600,
+  "h": 525
+ },
+ "farm-smudge": {
+  "sha1": "39e152bda855e8185904d160fdf60e9f97214f85",
+  "w": 100,
+  "h": 80
+ },
+ "farm-soap": {
+  "sha1": "d25aa8055dc6105ac585799a266d6a15823b3574",
+  "w": 240,
+  "h": 240
+ },
+ "farm-sponge": {
+  "sha1": "e82ccda90b20d5bf5eadd0fa16bf7443c20998b3",
+  "w": 240,
+  "h": 240
+ },
+ "farm-trough": {
+  "sha1": "812b5c5ee69b54231c4afaf17e0ce4aea60af684",
+  "w": 360,
+  "h": 170
  },
  "faucet": {
   "sha1": "61f616bdc7d7085177015a53839eb5b6aa299274",
@@ -963,6 +1233,56 @@
   "sha1": "a690a204996faf84380939b1f836a20b129e75de",
   "w": 200,
   "h": 280
+ },
+ "fleece-4-1": {
+  "sha1": "23d057b34afb7d7f505c3de44deddd0bc8d3c5fe",
+  "w": 154,
+  "h": 390
+ },
+ "fleece-4-2": {
+  "sha1": "ddf8fb119421f933cea03fd7a0e9e48e40ce256c",
+  "w": 128,
+  "h": 390
+ },
+ "fleece-4-3": {
+  "sha1": "66e89dc2fb4209b50ed4201186e4f9d8d638f143",
+  "w": 128,
+  "h": 390
+ },
+ "fleece-4-4": {
+  "sha1": "07781c262eb28dc0b9d9079eaa242b08d6acdac2",
+  "w": 154,
+  "h": 390
+ },
+ "fleece-6-1": {
+  "sha1": "40e64fa41ab2b1d117987cb83d5a9e92da6991dd",
+  "w": 114,
+  "h": 390
+ },
+ "fleece-6-2": {
+  "sha1": "6b6e0e04c0a592f73a47136bb8d6c98a113b4c30",
+  "w": 88,
+  "h": 390
+ },
+ "fleece-6-3": {
+  "sha1": "1bc16939969ddf4752771db759e6d7aa9fb92275",
+  "w": 88,
+  "h": 390
+ },
+ "fleece-6-4": {
+  "sha1": "7ce3182ae25fc6fa35f2bc80297812c366f78e87",
+  "w": 88,
+  "h": 390
+ },
+ "fleece-6-5": {
+  "sha1": "1701163bfbd7d136282cbbb49b665eeb08e702fd",
+  "w": 88,
+  "h": 390
+ },
+ "fleece-6-6": {
+  "sha1": "22cd4337f390d3b3f3737b84e0cfcfdf5f3e20a3",
+  "w": 114,
+  "h": 390
  },
  "flour-bag": {
   "sha1": "65195daf2cfca3f56d5d0b223082867e1f035195",
@@ -1254,6 +1574,11 @@
   "w": 320,
   "h": 440
  },
+ "grain-scoop": {
+  "sha1": "8721ca9daffe90d1d81e1cbd5fb115c32255ee75",
+  "w": 240,
+  "h": 240
+ },
  "grater": {
   "sha1": "d48b1748d37b82e98e68b74a1c8343bd2816701f",
   "w": 506,
@@ -1418,6 +1743,46 @@
   "sha1": "6b68a244d4079f2bf1f08f923612e6e87c72919c",
   "w": 220,
   "h": 280
+ },
+ "hay-bale": {
+  "sha1": "be780a3ad85d573c3ea324d6c6d96ce1f64b57b3",
+  "w": 240,
+  "h": 220
+ },
+ "hay-pile": {
+  "sha1": "a6548238a974598c0a8d29d7453a86a2bc7193b0",
+  "w": 280,
+  "h": 140
+ },
+ "hen-sit-brown": {
+  "sha1": "b9c70e5894a0c9fecea54d370cf0304590ac6ae8",
+  "w": 300,
+  "h": 260
+ },
+ "hen-sit-white": {
+  "sha1": "12083ba20401a8a436f298a362446ba02f141e39",
+  "w": 300,
+  "h": 260
+ },
+ "hen-up-brown": {
+  "sha1": "59db376e32db6f4e9e717dd5402798bd824cb443",
+  "w": 300,
+  "h": 320
+ },
+ "hen-up-white": {
+  "sha1": "9f1bc4d51fa0c8f36417a96e0ef6eebee12936d6",
+  "w": 300,
+  "h": 320
+ },
+ "horse-shine": {
+  "sha1": "d0734db3cbfb8f1102dcfd4e867cab71295c9e9d",
+  "w": 470,
+  "h": 220
+ },
+ "horse-teeth": {
+  "sha1": "30a5b25f7d2007df7b88ab41ac4b65d80bdb58b8",
+  "w": 520,
+  "h": 520
  },
  "icing-blob-choc": {
   "sha1": "33918d929b33556df72ed894df9787dcf5b0ab76",
@@ -2169,6 +2534,26 @@
   "w": 380,
   "h": 300
  },
+ "milk-bottle-empty": {
+  "sha1": "5aeee170061e11e72f220d23b2abed4331d265ed",
+  "w": 140,
+  "h": 260
+ },
+ "milk-bottle-full": {
+  "sha1": "19611ecd961557e9fef19ebad7d33d622b5af59b",
+  "w": 140,
+  "h": 260
+ },
+ "milk-bucket": {
+  "sha1": "eade03bc4388666567db5d6efef06b527535985e",
+  "w": 260,
+  "h": 260
+ },
+ "milk-bucket-full": {
+  "sha1": "1eb61a01b6f52ea8115f4c7e58c540f9fe4edaa5",
+  "w": 260,
+  "h": 260
+ },
  "milk-carton": {
   "sha1": "5138a695096f18727a15b4cc93879ec35ae7b9eb",
   "w": 320,
@@ -2334,6 +2719,31 @@
   "w": 800,
   "h": 800
  },
+ "mud-patch-1": {
+  "sha1": "4ec255f2a1e82091a70b0771e75f64e752680d8a",
+  "w": 166,
+  "h": 126
+ },
+ "mud-patch-2": {
+  "sha1": "78d21cd26fdb3ab61a3237857dbf203fb7479a3e",
+  "w": 176,
+  "h": 116
+ },
+ "mud-patch-3": {
+  "sha1": "324c6c41d76ddca984698dfb312efc657bc9db0a",
+  "w": 166,
+  "h": 136
+ },
+ "mud-patch-4": {
+  "sha1": "549f3a706090359e21f481a6374fafcd0253e6a5",
+  "w": 186,
+  "h": 116
+ },
+ "mud-patch-5": {
+  "sha1": "d83ec18d1569ae5c842d3a3f596aca2c32b3a037",
+  "w": 136,
+  "h": 106
+ },
  "oil-bottle": {
   "sha1": "257930d1da6dc064088666f494d63323589583f6",
   "w": 300,
@@ -2464,6 +2874,11 @@
   "w": 700,
   "h": 780
  },
+ "photo-frame-farm": {
+  "sha1": "2f968e2f7b3908852e5cf633e421202f35128bf0",
+  "w": 700,
+  "h": 780
+ },
  "photo-frame-pancakes": {
   "sha1": "bafab9fdb5c75d84b8ada1b06af7828440013516",
   "w": 700,
@@ -2503,6 +2918,11 @@
   "sha1": "8e9c98a28eead9e15a9bb8a5c30e4ca83f44e5c2",
   "w": 140,
   "h": 140
+ },
+ "pipa-scarf": {
+  "sha1": "11e8ccac3fbb155af07bc274d88528307ec4019e",
+  "w": 260,
+  "h": 160
  },
  "pizza-board": {
   "sha1": "c08421194607fb7f6063afb679cc7dcb24b1a1da",
@@ -2683,6 +3103,21 @@
   "sha1": "808424878595a2e0b836828988d52c52b788e886",
   "w": 480,
   "h": 320
+ },
+ "sheep-ribbon-blue": {
+  "sha1": "d778edd1cd811f77a2e285b76413d5a37b575263",
+  "w": 200,
+  "h": 150
+ },
+ "sheep-ribbon-red": {
+  "sha1": "4406a467a98c8d5f30716275c5e859441688bed4",
+  "w": 200,
+  "h": 150
+ },
+ "sheep-ribbon-yellow": {
+  "sha1": "7a3e6c7ff9d93df2e87cae212ff326c22f8b8ee7",
+  "w": 200,
+  "h": 150
  },
  "sick-bites": {
   "sha1": "177a5f7064e0303126c9912a09c490483e2e05c9",
@@ -3204,6 +3639,16 @@
   "w": 440,
   "h": 320
  },
+ "wool-curl": {
+  "sha1": "ade93509c36cb24559aefd7f78bd364580d46fcc",
+  "w": 140,
+  "h": 110
+ },
+ "wool-pile": {
+  "sha1": "0f8508702e70eab7c7b9a6de9134422b7f7309be",
+  "w": 340,
+  "h": 180
+ },
  "world-card-clinic": {
   "sha1": "518bfc92d0deb395642f2e2ac05e02f517595c21",
   "w": 700,
@@ -3213,5 +3658,10 @@
   "sha1": "8ae8f93ab6141ec85ba9133f1558238fb375bbc7",
   "w": 700,
   "h": 760
+ },
+ "yarn-ball": {
+  "sha1": "2fc08015aad3dafd9793655df56253b197aa995a",
+  "w": 240,
+  "h": 240
  }
 }
