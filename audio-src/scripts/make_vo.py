@@ -488,6 +488,12 @@ MOM_LINES = {
     "vo-tool-aloe": "Cool aloe gel on every red spot.",
     "vo-tool-hat": "A sun hat for next time!",
     "vo-tickles": "Look, little tickles! Spray them away.",
+    # The clinic, round 5, more challenge (added 2026-10-09; Voice A only: python make_vo.py mom-a <names>): hide and seek
+    # in the waiting room, the germ behind the tongue, the blink with the eye drops
+    "vo-hide": "Oh! Someone is hiding! Can you find them?",
+    "vo-found-you": "Peekaboo! Found you!",
+    "vo-tongue": "One more germ is hiding behind the tongue!",
+    "vo-hold-still": "Oops, a blink! Hold it still.",
     # More challenge in the games that are not cooking (added 2026-10-09; Voice A only: python make_vo.py mom-a <names>):
     # the garden, the market, washing up, the art corner (research/challenge-spec.md, PR B)
     "vo-not-ripe": "Not ripe yet! Let the sun help it.",

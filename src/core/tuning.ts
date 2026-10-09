@@ -373,6 +373,10 @@ export const TUNING = {
     patients: 3, reach: 120, rub: [240, 300], rubOne: [700, 900], timeMs: [650, 800], holdMs: [1500, 1800], dripMs: 520,
     findR: 95, wheezeR: 70, hearR: 330, pull: 170, magnetR: 150, magnetPull: 240, decoys: [1, 2], dodge: 0.5, helpMs: 1100,
     zoomMax: 1.6, problems: [2, 2],
+    // round 5, more challenge: how often someone hides in the waiting room (hard only), the eye's blink when the drops
+    // come fast (both levels: how long it stays shut, how fast is "fast" in units/ms x k, how many blinks a station),
+    // the tickle of a sponge on her tummy (ms between giggles)
+    hideChance: [0, 0.7], blinkMs: 750, blinkSpeed: 1.6, blinks: [1, 2], tickleGapMs: 1100,
   },
   help: { pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150, chopEveryMs: 950, openMs: 1500, tempEveryMs: 1100, peelEveryMs: 900, candleEveryMs: 700, threadEveryMs: 700 },
 } as const;

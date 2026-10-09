@@ -672,7 +672,29 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; the clinic round 5 (part 3, more challenge; part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 00000000000000000000000000000000. The clinic, round 5, part 3 (more challenge, mostly on hard)
+Spec `/mnt/project-files/research/clinic-spec-5.md` section 5, brief `research/clinic-5-briefs.md` (PR 3). Branch
+`claude/clinic-5-challenge-1fjxiw`. All in `ClinicScene.ts` (station code, the waiting room) and `TUNING.clinic`.
+- **Hide and seek** (hard, `hideChance` [0, 0.7]): before the first pick one patient (never the giraffe) hides: ducked behind
+  the bench's back (her frame cropped to the top of her head, `cropTo`, depth behind the bench) or under it (only her feet,
+  in front). Her problem cards hide with her. Mom: vo-hide; a tap on what peeks out (`hider.at`) = `found()`: she pops out
+  giggling onto her seat, vo-found-you, then the visit as before. A tap elsewhere: the others giggle, empty space is a miss.
+  Phase `hide` has Mom's hint and help like the rest. `window.__clinicHide = 'back' | 'under' | false` forces it.
+- **The germ behind the tongue** (hard, any mouth close-up with a germ station, i.e. Ruby's teeth): `care-tongue` lies over
+  the lower middle teeth (`TONGUE_AT` at 0.85, `UNDER_TONGUE`: nothing else goes on those teeth, a dodging germ avoids them); one
+  germ waits behind it (`Thing.tongue`, `waiting`). A tap on the tongue or any tool rubbed over it moves it down with a
+  giggle and the germ shows. When only that germ is left Mom says vo-tongue; her hint and help go to the tongue first.
+- **The blink** (both levels, the eye drops only): a bottle coming at the eye faster than `blinkSpeed` (units/ms x k)
+  shuts it (`lens-eye-lid`, tinted to her skin) for `blinkMs`, `blinks` [1, 2] a station, never while Mom helps; vo-hold-still
+  once a visit. No drop counts while it is shut (a drop landing on the lid is lost, nothing else).
+- **Tickles and faces** (both levels): the sponge (and the care rooms' towel: `TICKLERS`, `tickleTummy()` is public for
+  them) over her tummy makes her giggle and wriggle (`tickleGapMs`); a tool coming up to her face (no close-up open) makes
+  her look at it wide-eyed (`arriving`); every station but a problem's last ends with `react('love')`.
+- Art `assets-src/images-b-clinic/tools/gen_clinic5c.py` (2 SVGs, baked). Voice: 4 lines (`make_vo.py mom-a`), not heard by
+  a human. Harness: `__clinicPlay` taps the hider (`wrong`: an empty spot first); `shown.hide/found/blinks/tongue/tickles/loves`.
+- **Needs a real child:** does she find the hider (ears over the bench)? Is the blink funny or annoying (then `blinks` [0, 1]
+  or a higher `blinkSpeed`)? Does she think of moving the tongue before Mom's clue?
 ### 0000000000000000000000000000000. The clinic, round 5, part 1 (sixteen patients, each with her own problem)
 The owner: "double the patients, each with a different treatment, one of them the teeth". Spec: `/mnt/project-files/research/clinic-spec-5.md`
 (this is its PR 1; PR 2 = the care rooms, PR 3 = more challenge). Branch `claude/project-thread-nh10lu`.

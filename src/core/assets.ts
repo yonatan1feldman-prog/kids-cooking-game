@@ -773,6 +773,9 @@ export const IMAGES = {
   'tool-honey': { size: [240, 240] },
   'tool-aloe': { size: [240, 240] },
   'tool-hat': { size: [240, 240] },
+  // round 5, more challenge (gen_clinic5c.py): the tongue a germ hides behind, the eye's lid for the blink
+  'care-tongue': { size: [240, 180], raster: ZOOM_RASTER },
+  'lens-eye-lid': { size: [520, 520], raster: ZOOM_RASTER },
   'sick-throat': { size: [200, 200] },
   'sick-sunburn': { size: [200, 200] },
 } as const satisfies Record<string, { size: readonly [number, number]; raster?: number }>;
@@ -1086,6 +1089,7 @@ RECIPE_ASSETS.clinic = {
     'lens-skin', 'lens-hand', 'clinic-sting', 'clinic-bite', 'clinic-gnat', 'clinic-mud', 'clinic-foam', 'tool-sponge',
     'tool-bugspray', 'sick-sting', 'sick-bites', 'sick-dirty', 'clinic-done',
     'lens-throat', 'clinic-tickle', 'clinic-burn', 'tool-honey', 'tool-aloe', 'tool-hat', 'sick-throat', 'sick-sunburn',
+    'care-tongue', 'lens-eye-lid',
     ...IMAGE_KEYS.filter((k) => k.startsWith('kid-') || k.startsWith('animal-')),
     ...IMAGE_KEYS.filter((k) => /^guest-(turtle|penguin|giraffe)-/.test(k)),
   ],
@@ -1106,6 +1110,7 @@ RECIPE_ASSETS.clinic = {
     'vo-tool-bugspray', 'vo-rinse-foam', 'vo-bugs-bye', 'vo-all-clean', 'vo-clinic-fixfirst', 'vo-clinic-fixed', 'vo-bug-hop',
     'vo-hi-cat', 'vo-hi-panda', 'vo-hi-bunny', 'vo-hi-puppy', 'vo-hi-ruby', 'vo-hi-noah', 'vo-hi-zoe', 'vo-hi-max',
     'vo-sick-throat', 'vo-sick-sunburn', 'vo-tool-honey', 'vo-tool-aloe', 'vo-tool-hat', 'vo-tickles',
+    'vo-hide', 'vo-found-you', 'vo-tongue', 'vo-hold-still',
   ],
 };
 /** A guest's own layers: loaded when the sharing starts (all three, the two not invited are freed at once). */
