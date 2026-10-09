@@ -1294,7 +1294,9 @@ export class FarmScene extends MiniGame {
         const i = this.bottles.findIndex((q) => q.level < 1);
         if (i < 0) return null;
         const q = this.bottles[i];
-        const tg = { x: q.img.x + 110 * k * 0.0 + 130 * this.heldScale('milk-bucket', 'thing') * 0.75, y: q.img.y - 180 * q.img.scale };
+        // the finger that puts the held bucket's mouth (see `mouth`, `pickUp`) over the bottle's middle; dragPlan adds 50 x k
+        const hs = b.s * 1.1;
+        const tg = { x: q.img.x + 110 * hs, y: q.img.y - 200 * q.img.scale + 80 * hs };
         const plan = this.dragPlan(null, b.spot, [tg], 'milk-bucket-full', 'thing', T.pourMs * (1 - q.level) + 400);
         plan.keys![0] = { ...plan.keys![0], x: b.spot.x, y: b.spot.y + 50 * k };
         return plan;
