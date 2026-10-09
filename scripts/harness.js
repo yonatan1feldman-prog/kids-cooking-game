@@ -1409,7 +1409,7 @@ window.__mini = async (id, level = 1, opts = {}) => {
   await __run(800);
   await B.recipeAssets(game, id);
   game.scene.getScenes(true).forEach((s) => s.scene.stop());
-  const name = { market: 'Market', dishes: 'Dishes', garden: 'Garden', art: 'Art', clinic: 'Clinic' }[id];
+  const name = { market: 'Market', dishes: 'Dishes', garden: 'Garden', art: 'Art', clinic: 'Clinic', farm: 'Farm' }[id];
   game.scene.start(name);
   await __run(opts.wait ?? 3000);
   return game.scene.getScene(name);
@@ -1698,6 +1698,43 @@ window.__clinicPlay = async (opts = {}) => {
       }
       __touch('end', 1, ...fingerFor(m.target() ?? { x: start[0], y: start[1] }));
       await __run(gap);
+    } else if (ph === 'care' && m.care) {
+      // round 5, part 2: the care room next door; its plan() says the next gesture (a tool's `at` is its working point)
+      const c = m.care;
+      const pl = c.plan();
+      if (!pl) { await __run(300); continue; }
+      const name = m.shown.careTask;
+      log.push('care ' + m.shown.care + ' ' + name + ' ' + pl.kind);
+      if (pl.kind === 'tap') { if (opts.mid) await opts.mid(log[log.length - 1]); __tap(pl.at.x, pl.at.y); await __run(gap * 1.5); continue; }
+      if (pl.kind === 'drag') {
+        __touch('start', 1, pl.from.x, pl.from.y);
+        for (let q = 1; q <= 10; q++) { __touch('move', 1, pl.from.x + (pl.to.x - pl.from.x) * q / 10, pl.from.y + (pl.to.y - pl.from.y) * q / 10); await __run(40); }
+        if (opts.mid) await opts.mid(log[log.length - 1]);
+        __touch('end', 1, pl.to.x, pl.to.y);
+        await __run(gap);
+        continue;
+      }
+      __touch('start', 1, pl.from.x, pl.from.y);
+      await __run(100);
+      for (let q = 1; q <= 6; q++) { __touch('move', 1, ...fingerFor({ x: pl.from.x + (pl.at.x - pl.from.x) * q / 6, y: pl.from.y + (pl.at.y - pl.from.y) * q / 6 })); await __run(30); }
+      for (let j = 0; j < 160 && m.shown.careTask === name && m.shown.phase === 'care' && m.care === c; j++) {
+        const now = c.plan();
+        if (!now || now.kind === 'tap' || now.kind === 'drag') break;
+        if (j === 2 && opts.mid) await opts.mid(log[log.length - 1]);
+        const g = now.at;
+        if (now.kind === 'rub') {
+          for (let a = 0; a < Math.PI * 2; a += 0.5) __touch('move', 1, ...fingerFor({ x: g.x + Math.cos(a) * now.r, y: g.y + Math.sin(a) * now.r * 0.7 }));
+          await __run(60);
+        } else if (now.kind === 'twirl') {
+          for (let a = 0; a < Math.PI * 2; a += 0.3) __touch('move', 1, ...fingerFor({ x: g.x + Math.cos(a * now.dir) * now.r, y: g.y + Math.sin(a * now.dir) * now.r * 0.8 }));
+          await __run(80);
+        } else {
+          for (let q = 0; q < 3; q++) __touch('move', 1, ...fingerFor({ x: g.x + (q % 2 ? 3 : -3), y: g.y }));
+          await __run(250);
+        }
+      }
+      __touch('end', 1, pl.from.x, pl.from.y);
+      await __run(gap);
     } else await __run(300);
     if (game.scene.isActive('Title')) break;
   }
@@ -1714,5 +1751,75 @@ window.__clinicVerify = async (level, opts = {}) => {
   const vc = __voCheck(__voLog);
   __fast(false);
   return { level, opts, secs: Math.round((__voice.now() - t0) / 1000), title: game.scene.isActive('Title'), log: r.log, shown: r.shown,
+    helps: __voLog.filter((e) => e.key === 'vo-help').length, problems: vc.problems, keys: __voLog.map((e) => e.key).join(' ') };
+};
+
+// ---- The farm: __farmPlay({wrong, none, gap, mid}) plays a whole visit like a child, following the scene's own plan()
+// (pick an animal, a chore card, then each stage: a tap, or a drag along the plan's keys at its pace). `wrong`: once each,
+// a spare tool, a card that has to wait (hard), the food the animal does not want (hard). __farmVerify(level, opts): the
+// same on the virtual clock with the simulated voice, from the farm's start to the home screen. window.__farmPlan = ['cow', 'pig'].
+window.__farmPlay = async (opts = {}) => {
+  const m = game.scene.getScene('Farm');
+  const log = [];
+  const gap = opts.gap ?? 700;
+  const did = {};
+  for (let i = 0; i < (opts.maxSteps ?? 3000) && m.scene.isActive(); i++) {
+    const ph = m.shown.phase;
+    if (opts.none || m.helping || !['pick', 'chore', 'work'].includes(ph)) { await __run(300); continue; }
+    if (opts.wrong && ph === 'work' && !did.tool) {
+      const d = m.tray.find((q) => q.decoy && !q.away);
+      if (d) { did.tool = 1; __tap(d.home.x, d.home.y); log.push('wrong tool ' + d.key); await __run(gap); continue; }
+    }
+    if (opts.wrong && ph === 'chore' && m.level === 2 && !did.card) {
+      const j = m.cur.chores.findIndex((c, q) => !m.cur.done[q] && !m.available(q));
+      if (j >= 0) { did.card = 1; __tap(m.cards[j].at.x, m.cards[j].at.y); log.push('wrong card ' + m.cur.chores[j]); await __run(gap * 2); continue; }
+    }
+    if (opts.wrong && ph === 'work' && m.level === 2 && !did.food && ['feed', 'pigfeed'].includes(m.shown.stage)) {
+      const want = m.cur.view.wishing[0];
+      const o = want && m.tray.find((q) => q.role === 'source' && q.key !== want);
+      if (o) {
+        did.food = 1; log.push('wrong food ' + o.key);
+        const mo = m.cur.view.mouthAt;
+        __tap(o.home.x, o.home.y); await __run(gap * 2); void mo; continue;
+      }
+    }
+    const p = m.plan();
+    if (!p) { await __run(300); continue; }
+    if (opts.mid) await opts.mid(ph + ':' + (m.shown.stage || ''));
+    if (opts.trace) console.log('FARM', ph, m.shown.stage, m.shown.animal, JSON.stringify(p).slice(0, 80));
+    if (p.tap) {
+      __tap(p.tap.x, p.tap.y); log.push(ph + ' tap ' + (ph === 'work' ? m.shown.stage : ''));
+      await __run(ph === 'work' ? Math.max(250, gap / 2) : gap * 2);
+      continue;
+    }
+    const keys = p.keys;
+    log.push(ph + ' drag ' + m.shown.stage);
+    __touch('start', 1, keys[0].x, keys[0].y);
+    for (let j = 1; j < keys.length; j++) {
+      const a = keys[j - 1], b = keys[j];
+      const steps = Math.max(1, Math.ceil((b.t - a.t) / 50));
+      for (let q = 1; q <= steps; q++) {
+        __touch('move', 1, a.x + ((b.x - a.x) * q) / steps, a.y + ((b.y - a.y) * q) / steps);
+        __tick(Math.max(0, (b.t - a.t) / steps - 16));
+      }
+      if (j === Math.floor(keys.length / 2) && opts.midDrag) await opts.midDrag(m.shown.stage);
+    }
+    __touch('end', 1, keys[keys.length - 1].x, keys[keys.length - 1].y);
+    await __run(gap);
+    if (game.scene.isActive('Home')) break;
+  }
+  return { log, shown: m.shown, home: game.scene.isActive('Home') };
+};
+window.__farmVerify = async (level, opts = {}) => {
+  for (let i = 0; i < 60 && !__voice.allLoaded; i++) await new Promise((r) => setTimeout(r, 250));
+  game.loop.raf.stop(); __voSim(true); if (!opts.render) __fast(true);
+  await __mini('farm', level, { first: !!opts.first, wait: 200 });
+  __voLog.length = 0;
+  const t0 = __voice.now();
+  const r = await __farmPlay(opts);
+  for (let i = 0; i < 40 && !game.scene.isActive('Home'); i++) await __run(500);
+  const vc = __voCheck(__voLog);
+  __fast(false);
+  return { level, opts: Object.keys(opts), secs: Math.round((__voice.now() - t0) / 1000), home: game.scene.isActive('Home'), log: r.log, shown: r.shown,
     helps: __voLog.filter((e) => e.key === 'vo-help').length, problems: vc.problems, keys: __voLog.map((e) => e.key).join(' ') };
 };

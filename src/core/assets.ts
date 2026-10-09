@@ -9,6 +9,8 @@
  * Placeholders are drawn at the same size.
  */
 /** The guests' layers are made at this fraction of their native size (they are never shown bigger). */
+import { FARM_IMAGES, FARM_SFX, FARM_VOICE } from './farmAssets';
+
 export const GUEST_RASTER = 0.75;
 
 /** The clinic's close-ups (and what is drawn in them) are shown up to 1.7x their 520 frame: rasterized that big. */
@@ -778,6 +780,43 @@ export const IMAGES = {
   'lens-eye-lid': { size: [520, 520], raster: ZOOM_RASTER },
   'sick-throat': { size: [200, 200] },
   'sick-sunburn': { size: [200, 200] },
+  // the clinic, round 5, part 2 (gen_clinic5.py part B): the care room next door and each care's props
+  'bg-clinic-care': { size: [2400, 1080] },
+  'care-bottle-back': { size: [260, 380] },
+  'care-bottle-fill': { size: [260, 380] },
+  'care-bottle-front': { size: [260, 380] },
+  'care-jar-strawberry': { size: [240, 240] },
+  'care-jar-banana': { size: [240, 240] },
+  'care-jar-blueberry': { size: [240, 240] },
+  'care-tub-back': { size: [1000, 520] },
+  'care-tub-front': { size: [1000, 520] },
+  'tool-shower': { size: [240, 240] },
+  'tool-towel': { size: [240, 240] },
+  'care-towel-head': { size: [320, 200] },
+  'care-duck': { size: [140, 120] },
+  'tool-roll': { size: [240, 240] },
+  'care-wrap': { size: [360, 110], raster: ZOOM_RASTER },
+  'care-heart': { size: [120, 120], raster: ZOOM_RASTER },
+  'tool-polisher': { size: [240, 240] },
+  'care-paste': { size: [240, 240] },
+  'care-chart': { size: [520, 640] },
+  'care-shape-star': { size: [200, 200] },
+  'care-shape-heart': { size: [200, 200] },
+  'care-shape-moon': { size: [200, 200] },
+  'care-shape-circle': { size: [200, 200] },
+  'care-shape-triangle': { size: [200, 200] },
+  'care-shape-house': { size: [200, 200] },
+  'care-glasses': { size: [240, 120] },
+  'care-bed-back': { size: [1000, 560] },
+  'care-bed-front': { size: [1000, 560] },
+  'care-blanket': { size: [720, 340] },
+  'care-lamp-on': { size: [240, 380] },
+  'care-lamp-off': { size: [240, 380] },
+  'care-apple': { size: [160, 160] },
+  'care-banana': { size: [160, 160] },
+  'care-berry': { size: [160, 160] },
+  // the farm (core/farmAssets.ts)
+  ...FARM_IMAGES,
 } as const satisfies Record<string, { size: readonly [number, number]; raster?: number }>;
 
 /** Texture size of an image: its native size, times its `raster` factor if it is shown bigger than native. */
@@ -830,7 +869,7 @@ export const SCENERY_KEYS: readonly ImageKey[] = [
 export const CORE_IMAGES: readonly ImageKey[] = [
   'bg-kitchen-landscape', ...KITCHEN_KEYS, ...SCENERY_KEYS, 'logo-cooking-with-mom', 'star', 'btn-play', 'world-card-kitchen', 'world-card-clinic', 'btn-home', 'btn-done', 'hand-hint',
   'card-pizza', 'card-salad', 'card-cookies', 'card-smoothie', 'card-pancakes', 'card-soup', 'card-cake',
-  'card-skewers', 'card-garden', 'card-market', 'card-dishes', 'card-art',
+  'card-skewers', 'card-garden', 'card-market', 'card-dishes', 'card-art', 'card-farm',
   'character-body', 'character-eyes-open', 'character-eyes-blink', 'character-eyes-surprised', 'character-eyes-happy',
   'character-mouth-closed', 'character-mouth-open', 'character-mouth-chew',
   'mom-arm-right', 'mom-body', 'mom-head', 'mom-hair', 'mom-eyes-open', 'mom-eyes-blink', 'mom-eyes-happy',
@@ -1089,7 +1128,9 @@ RECIPE_ASSETS.clinic = {
     'lens-skin', 'lens-hand', 'clinic-sting', 'clinic-bite', 'clinic-gnat', 'clinic-mud', 'clinic-foam', 'tool-sponge',
     'tool-bugspray', 'sick-sting', 'sick-bites', 'sick-dirty', 'clinic-done',
     'lens-throat', 'clinic-tickle', 'clinic-burn', 'tool-honey', 'tool-aloe', 'tool-hat', 'sick-throat', 'sick-sunburn',
-    'care-tongue', 'lens-eye-lid',
+    'lens-eye-lid', // (care-tongue is among the care- keys below)
+    // round 5, part 2: the care rooms next door
+    ...IMAGE_KEYS.filter((k) => k.startsWith('care-')), 'bg-clinic-care', 'tool-shower', 'tool-towel', 'tool-roll', 'tool-polisher',
     ...IMAGE_KEYS.filter((k) => k.startsWith('kid-') || k.startsWith('animal-')),
     ...IMAGE_KEYS.filter((k) => /^guest-(turtle|penguin|giraffe)-/.test(k)),
   ],
@@ -1111,6 +1152,25 @@ RECIPE_ASSETS.clinic = {
     'vo-hi-cat', 'vo-hi-panda', 'vo-hi-bunny', 'vo-hi-puppy', 'vo-hi-ruby', 'vo-hi-noah', 'vo-hi-zoe', 'vo-hi-max',
     'vo-sick-throat', 'vo-sick-sunburn', 'vo-tool-honey', 'vo-tool-aloe', 'vo-tool-hat', 'vo-tickles',
     'vo-hide', 'vo-found-you', 'vo-tongue', 'vo-hold-still',
+    // round 5, part 2: the care rooms next door
+    'vo-care-go', 'vo-care-remember', 'vo-care-right', 'vo-care-medicine', 'vo-care-flavor', 'vo-care-shake', 'vo-care-spoon',
+    'vo-care-bath', 'vo-care-duck', 'vo-care-rinse', 'vo-care-towel', 'vo-care-wrap', 'vo-care-heart', 'vo-care-paste',
+    'vo-care-polish', 'vo-care-shiny', 'vo-care-eyes', 'vo-care-chart', 'vo-care-glasses', 'vo-care-rest', 'vo-care-lamp',
+    'vo-care-wake', 'vo-care-order', 'vo-then', 'vo-follow-arrows', 'name-strawberry', 'name-banana', 'name-blueberry',
+    'name-apple', 'name-star', 'name-heart', 'name-moon', 'name-circle', 'name-triangle', 'name-house', 'name-pink', 'name-blue',
+    'name-green', 'shake', 'splash', 'wrap',
+  ],
+};
+/** The farm (FarmScene, research/farm-spec.md): loaded on its card like the garden. Shared lines and effects it plays are
+ * listed here too (a listed sound is not core). The tooth brush and the close-up's rim are the clinic's. */
+RECIPE_ASSETS.farm = {
+  images: [
+    ...(Object.keys(FARM_IMAGES) as ImageKey[]).filter((k) => k !== 'card-farm'), 'tool-toothbrush', 'lens-ring', 'bubble',
+    'water-drop',
+  ],
+  sounds: [
+    ...FARM_SFX, ...FARM_VOICE.filter((k) => k !== 'vo-pick-farm'), 'name-carrot', 'name-corn', 'name-red', 'name-blue',
+    'name-yellow', 'name-white', 'brush', 'sticky', 'sparkle', 'spray', 'slurp', 'egg-crack', ...OUTSIDE_SONG,
   ],
 };
 /** A guest's own layers: loaded when the sharing starts (all three, the two not invited are freed at once). */
@@ -1144,6 +1204,10 @@ export const SOUND_KEYS = [
   'heartbeat', 'cough', 'gurgle', 'spray', 'sticky', 'brush', 'wheeze', 'honk', 'jingle', 'zing',
   // the clinic, round 3: a germ popping, a drop landing, the x-ray's hum, a star filling a tooth
   'eek', 'drip', 'scan', 'sparkle',
+  // the clinic, round 5: the care rooms (medicine shaken in its bottle, bath water, a bandage going round)
+  'shake', 'splash', 'wrap',
+  // the farm (core/farmAssets.ts)
+  ...FARM_SFX,
 ] as const;
 export type SoundKey = (typeof SOUND_KEYS)[number];
 
@@ -1392,6 +1456,19 @@ export const ART = {
       sponge: { x: 120, y: 122 }, bugspray: { x: 52, y: 40 },
       // round 5 (gen_clinic5.py)
       honey: { x: 84, y: 77 }, aloe: { x: 68, y: 46 }, hat: { x: 120, y: 120 },
+      // round 5, part 2: the care rooms' tools (gen_clinic5.py TOOL_TIP5B)
+      shower: { x: 84, y: 84 }, towel: { x: 120, y: 130 }, roll: { x: 120, y: 120 }, polisher: { x: 66, y: 66 },
+    },
+    /**
+     * The care rooms (gen_clinic5.py part B): the medicine's box in care-bottle-fill (x0, top when full, x1, bottom), the
+     * tub's rim in care-tub-* (1000x520), the mattress's top in care-bed-* (1000x560), the eye chart's shapes (520x640:
+     * name, centre, size).
+     */
+    care: {
+      bottleLiq: { x0: 52, top: 150, x1: 208, bottom: 352 },
+      tubRim: 236,
+      bedSeat: 300,
+      chart: [['star', 260, 150, 1.0], ['heart', 170, 330, 0.7], ['moon', 350, 330, 0.7], ['circle', 140, 500, 0.5], ['triangle', 260, 500, 0.5], ['house', 380, 500, 0.5]] as readonly (readonly [string, number, number, number])[],
     },
     /** lens-eye-ball (520): the pupil; lens-ear: the ear's hole. */
     eye: { x: 260, y: 262 },

@@ -21,11 +21,12 @@ import { assetsReady, recipeAssets, releaseRecipe } from './BootScene';
  * recipe the home screen stays quiet (the finale already said goodbye). Idle 5 s: her hand taps the card.
  */
 /** The games on the home screen that are not recipes (each its own scene, its assets under RECIPE_ASSETS[id]). */
-const PLAY: { id: string; card: 'card-garden' | 'card-market' | 'card-dishes' | 'card-art'; line: 'vo-pick-garden' | 'vo-pick-market' | 'vo-pick-dishes' | 'vo-pick-art'; scene: string }[] = [
+const PLAY: { id: string; card: 'card-garden' | 'card-market' | 'card-dishes' | 'card-art' | 'card-farm'; line: 'vo-pick-garden' | 'vo-pick-market' | 'vo-pick-dishes' | 'vo-pick-art' | 'vo-pick-farm'; scene: string }[] = [
   { id: 'garden', card: 'card-garden', line: 'vo-pick-garden', scene: 'Garden' },
   { id: 'market', card: 'card-market', line: 'vo-pick-market', scene: 'Market' },
   { id: 'dishes', card: 'card-dishes', line: 'vo-pick-dishes', scene: 'Dishes' },
   { id: 'art', card: 'card-art', line: 'vo-pick-art', scene: 'Art' },
+  { id: 'farm', card: 'card-farm', line: 'vo-pick-farm', scene: 'Farm' },
 ];
 
 export interface HomeData {
