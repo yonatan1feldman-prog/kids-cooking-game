@@ -1415,8 +1415,9 @@ window.__marketPlay = async (opts = {}) => {
 window.__dishesPlay = async (opts = {}) => {
   const m = game.scene.getScene('Dishes');
   const log = [];
+  m.__fingerTried = m.__wetTried = m.__pileTried = m.__pipaTried = false;
   let wrongDone = false;
-  for (let i = 0; i < 2400 && m.scene.isActive(); i++) {
+  for (let i = 0; i < (opts.max ?? 2400) && m.scene.isActive(); i++) {
     const ph = m.shown.phase;
     if (opts.none || m.helping) { await __run(500); continue; }
     if (ph === 'take') {
@@ -1427,10 +1428,40 @@ window.__dishesPlay = async (opts = {}) => {
       await __run(opts.gap ?? 1200);
     } else if (ph === 'scrub') {
       const d = m.cur; const pts = [];
-      for (let a = 0; a < Math.PI * 2 * 5; a += 0.5) pts.push([d.box.x + Math.cos(a) * 80, d.box.y + Math.sin(a) * 60]);
-      await __drag(pts);
-      log.push('scrub ' + m.shown.scrub);
+      const spot = d.scrub >= m.need() ? m.spotsLeft(d)[0] : null;
+      if (spot) {
+        // the food is off, a stubborn spot stays: the sponge onto it (opts.wrong: the finger first, then the sponge)
+        const s = m.spotAt(d, spot);
+        if (opts.wrong && !m.__fingerTried) { m.__fingerTried = true; for (let a = 0; a < Math.PI * 2 * 8; a += 0.5) pts.push([s.x + Math.cos(a) * 30, s.y + Math.sin(a) * 25]); await __drag(pts); log.push('spot-finger'); }
+        else { pts.push([m.sponge.x, m.sponge.y]); for (let a = 0; a < Math.PI * 2 * 4; a += 0.5) pts.push([s.x + Math.cos(a) * 30, s.y + Math.sin(a) * 25]); await __drag(pts); log.push('spot-sponge'); }
+      } else {
+        for (let a = 0; a < Math.PI * 2 * 5; a += 0.5) pts.push([d.box.x + Math.cos(a) * 80, d.box.y + Math.sin(a) * 60]);
+        await __drag(pts);
+        log.push('scrub ' + m.shown.scrub);
+      }
       await __run(opts.gap ?? 600);
+    } else if (ph === 'dry') {
+      const d = m.cur;
+      if (opts.wrong && !m.__wetTried) { m.__wetTried = true; const to = m.place(d.colour, d.kind); await __drag([[d.box.x, d.box.y], [(d.box.x + to.x) / 2, (d.box.y + to.y) / 2], [to.x, to.y]]); log.push('wet'); }
+      else if (m.rest.where === 'sink') {
+        if (opts.drag) { const t = m.towel; const pts = [[t.x, t.y + 120 * m.towelScale]]; for (let a = 0; a < Math.PI * 2 * 5; a += 0.5) pts.push([d.box.x + Math.cos(a) * 70, d.box.y + Math.sin(a) * 50]); await __drag(pts); log.push('towel-rub'); }
+        else { __tap(d.box.x, d.box.y); log.push('to-towel'); }
+      } else { const pts = []; for (let a = 0; a < Math.PI * 2 * 5; a += 0.5) pts.push([d.box.x + Math.cos(a) * 60, d.box.y + Math.sin(a) * 45]); await __drag(pts); log.push('dry ' + m.shown.dry); }
+      await __run(opts.gap ?? 700);
+    } else if (ph === 'stack') {
+      let d = m.nextPlate();
+      if (opts.wrong && !m.__pileTried) { m.__pileTried = true; const o = m.plates().filter((q) => q.state === 'rack' && q !== d); if (o.length) { d = o[0]; log.push('pile-wrong'); } }
+      const to = m.pileSpot(m.pile.length);
+      await __drag([[d.box.x, d.box.y], [(d.box.x + to.x) / 2, (d.box.y + to.y) / 2], [to.x, to.y]]);
+      log.push('pile ' + d.size);
+      await __run(opts.gap ?? 1200);
+    } else if (ph === 'pipa') {
+      let d = m.wish;
+      if (opts.wrong && !m.__pipaTried) { m.__pipaTried = true; const o = m.takeable().filter((q) => q !== d); if (o.length) { d = o[0]; log.push('pipa-wrong'); } }
+      const to = m.pipa.mouthAt;
+      await __drag([[d.box.x, d.box.y], [(d.box.x + to.x) / 2, (d.box.y + to.y) / 2], [to.x, to.y]]);
+      log.push('pipa ' + d.colour + '-' + d.kind);
+      await __run(opts.gap ?? 1500);
     } else if (ph === 'rack') {
       const d = m.cur;
       let to = m.place(d.colour, d.kind);

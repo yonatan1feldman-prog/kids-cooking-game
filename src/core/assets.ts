@@ -495,6 +495,8 @@ export const IMAGES = {
   'dish-sponge': { size: [240, 150] },
   /** The drying rack: a column per colour (blue, yellow, pink), a hook on top (cups), a slot of dowels below (plates). */
   'dish-rack': { size: [960, 720] },
+  /** The tea towel hanging from its peg (the peg at the top centre); a rinsed dish is dried on it (challenge round). */
+  'dishes-towel': { size: [220, 320] },
   /** Level 2 (garden round 2): a weed standing in a hole (the soil line at ART.garden.weedTop, its root below), the
    *  puddle of too much water, and the bunny (facing left, sitting on its feet at the bottom) with its wish. */
   'garden-weed': { size: [200, 320] },
@@ -934,7 +936,7 @@ RECIPE_ASSETS.market = {
 RECIPE_ASSETS.dishes = {
   images: [
     ...WASH, 'dish-plate-blue', 'dish-plate-yellow', 'dish-plate-pink', 'dish-cup-blue', 'dish-cup-yellow', 'dish-cup-pink',
-    'dish-mess', 'dish-sponge', 'dish-rack', 'water-drop',
+    'dish-mess', 'dish-sponge', 'dish-rack', 'water-drop', 'dishes-towel',
   ],
   sounds: [
     'vo-dishes-start', 'vo-dishes-scrub', 'vo-dishes-clean', 'vo-dishes-rack', 'vo-dishes-rack-2', 'vo-dishes-colour',

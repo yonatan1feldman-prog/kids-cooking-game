@@ -346,6 +346,26 @@ def market_slate():
 
 ITEMS.update({"market-coin": market_coin, "market-purse": market_purse, "market-slate": market_slate})
 
+# ================================================================ challenge round: the tea towel (washing up dries a dish on it)
+TOWEL = "#F4F0E6"; TOWEL_D = "#D9CFBC"; TOWEL_RED = "#E0503A"; TOWEL_RED_D = "#B83A28"
+
+
+def dishes_towel():
+    """220x320: a striped tea towel hanging from a little wooden peg (the peg at the top centre, (110, 22))."""
+    p = "dtw-"
+    peg = P(wr(78, 6, 64, 30, 10, 1, 601), WALNUT) + P(wr(84, 10, 52, 10, 5, 1, 602), WALNUT_L, ' opacity="0.8"')
+    cloth = P("M40,40 Q110,26 180,40 L190,300 Q150,314 110,306 Q70,314 30,300Z", TOWEL_D)
+    cloth += P("M46,44 Q110,32 174,44 L182,292 Q148,304 110,298 Q72,304 38,292Z", TOWEL)
+    stripes = ""
+    for i, y in enumerate((96, 120, 236, 260)):
+        stripes += P(f"M{44 - i % 2},{y} Q110,{y - 8} {176 + i % 2},{y} L{177 + i % 2},{y + 14} Q110,{y + 6} {43 - i % 2},{y + 14}Z", TOWEL_RED if i % 2 == 0 else TOWEL_RED_D, ' opacity="0.9"')
+    fold = P("M70,50 Q78,170 66,290 L78,292 Q90,170 82,48Z", TOWEL_D, ' opacity="0.6"') + P("M140,48 Q132,170 146,292 L156,290 Q144,170 152,50Z", WHITE, ' opacity="0.5"')
+    s = G(cloth, p + "cut") + G(stripes + fold, p + "sh") + G(peg, p + "sh")
+    return doc(p, 220, 320, s, "rough", seed=603, sh=(4, 3.5, .3), cut={"rim": 2.6, "rough": 4})
+
+
+ITEMS.update({"dishes-towel": dishes_towel})
+
 
 def save(name, s):
     path = os.path.join(OUTDIR, name + ".svg")

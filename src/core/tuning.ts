@@ -283,8 +283,18 @@ export const TUNING = {
    * Washing up (DishesScene, research/minigames-spec.md). `dishes`: how many at level 1 / 2. `scrub`: finger travel on a
    * dish (world units x k) to wash it clean at level 1 / 2; a bubble every `bubbleEvery`. `reach`: a dish let go this
    * near its place on the rack goes there (or, near a wrong one, back to the sink).
+   * Challenge round (research/challenge-spec.md, both levels unless said): `dry` the towel's travel on a rinsed dish
+   * before it may go on the rack (a drop flies off every `dropEvery`). One dish in `spotEvery` has `spots` stubborn spots
+   * (easy / hard) the finger cannot wash (after `spotFinger` of finger rubbing on one Mom says "Try the sponge!"); the
+   * sponge takes one off after `spotRub` on it. Hard: the plates come in `sizes` sizes (`sizeScale`), and once the rack
+   * is full she stacks them by the empty stack's place, the biggest first; then Pipa wants one dish from the rack (a dish
+   * let go within `pipaReach` of her mouth goes to her).
    */
-  dishes: { dishes: [4, 6], scrub: [1500, 2200], bubbleEvery: 90, reach: 150, helpMs: 1100, scrubMs: 2200 },
+  dishes: {
+    dishes: [4, 6], scrub: [1500, 2200], bubbleEvery: 90, reach: 150, helpMs: 1100, scrubMs: 2200,
+    dry: [600, 900], dropEvery: 110, dryMs: 1800, spotEvery: 3, spots: [1, 2], spotFinger: 500, spotRub: 260,
+    sizes: [1, 3], sizeScale: [1, 0.85, 0.7], pipaReach: 260,
+  },
   /**
    * The art corner (ArtScene, research/drawing-stages-spec.md). Distances are world units x k, [level 1, level 2] where two.
    * `brushR` the crayon's radius; a sparkle every `sparkleEvery` of stroke; `grid` coverage cells across the sheet.
