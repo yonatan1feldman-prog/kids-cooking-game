@@ -513,6 +513,15 @@ export const IMAGES = {
   'garden-bird-up': { size: [170, 140] },
   'garden-bird-down': { size: [170, 140] },
   'garden-butterfly': { size: [200, 160] },
+  /** Challenge round (PR B): unripe fruit (the ripe ones' frames), a second basket for sorting (level 2; the same shape,
+   *  blue; `-front` over what is in it), the caterpillar hiding under a leaf (facing left) and the jar it goes into
+   *  (its mouth at ART.garden.jarMouth). */
+  'garden-tomato-green': { size: [140, 150] },
+  'garden-strawberry-green': { size: [130, 150] },
+  'garden-basket-2': { size: [440, 320] },
+  'garden-basket-2-front': { size: [440, 320] },
+  'garden-caterpillar': { size: [220, 120] },
+  'garden-jar': { size: [220, 260] },
   /** Market round 2 (paying): a coin, Mom's purse, the price slate (the price is drawn in code on ART.market.slateFace). */
   'market-coin': { size: [110, 110] },
   'market-purse': { size: [260, 230] },
@@ -899,7 +908,8 @@ RECIPE_ASSETS.garden = {
     'watering-can', 'garden-sun', 'garden-cloud', 'garden-snail', 'garden-leaf', 'garden-basket', 'garden-basket-front',
     'water-drop', 'garden-weed', 'garden-puddle', 'garden-bunny', 'garden-scarecrow', 'garden-hat-red', 'garden-hat-blue',
     'garden-hat-yellow', 'garden-shirt-red', 'garden-shirt-blue', 'garden-shirt-yellow', 'garden-bird-up', 'garden-bird-down',
-    'garden-butterfly',
+    'garden-butterfly', 'garden-tomato-green', 'garden-strawberry-green', 'garden-basket-2', 'garden-basket-2-front',
+    'garden-caterpillar', 'garden-jar',
   ],
   sounds: [
     'vo-garden-seeds', 'vo-garden-plant', 'vo-garden-water', 'vo-garden-sprout', 'vo-garden-cloud', 'vo-garden-sun',
@@ -1242,6 +1252,8 @@ export const ART = {
     scareHat: { x: 190, y: 104 },
     scareShirt: { x: 190, y: 386 },
     hatBrim: { x: 120, y: 128 },
+    /** garden-jar (220x260): the middle of its open mouth. */
+    jarMouth: { x: 110, y: 66 },
   },
   /** The market's paying (assets-src/images-b-minigames/tools/gen_minigames.py): market-slate's chalk face. */
   market: {
