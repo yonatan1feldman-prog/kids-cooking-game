@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import manifest from 'virtual:asset-manifest';
 import { RECIPE_SOUNDS } from './assets';
+import type { FarmVoiceKey } from './farmAssets';
 
 /**
  * Every sound, on the one Web Audio context Phaser already made (game.sound.context).
@@ -132,6 +133,7 @@ export type VoiceKey =
   | 'vo-hi-lily' | 'vo-hi-leo' | 'vo-hi-mia' | 'vo-hi-sam' | 'vo-sick-sting' | 'vo-sick-bites' | 'vo-sick-dirty'
   | 'vo-tool-sponge' | 'vo-tool-bugspray' | 'vo-rinse-foam' | 'vo-bugs-bye' | 'vo-all-clean' | 'vo-clinic-fixfirst'
   | 'vo-clinic-fixed' | 'vo-bug-hop' | 'vo-level-easy' | 'vo-level-hard'
+  | FarmVoiceKey
   | CountKey | TempKey | NameKey;
 
 /** Mom counting (count-1..10) and saying the oven temperature (temp-50..250). */
