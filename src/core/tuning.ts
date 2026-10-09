@@ -270,7 +270,7 @@ export const TUNING = {
    */
   garden: {
     waterMs: 2200, sproutAt: 0.35, cloudPush: 260, cloudTap: 90, pull: 0.75, perPlant: 3, carrotsPerPlant: 2, reach: 230, helpMs: 1100,
-    hard: { waterMs: 3000, weedPull: 0.7, puddleMs: 700, drainMs: 1400, clouds: 2, bunnyFoods: 3 },
+    hard: { waterMs: 3000, weedPull: 0.7, puddleMs: 700, drainMs: 1400, clouds: 2, bunnyFoods: 3, seeds: [2, 1] as readonly [number, number], caterpillar: true, leaves: 2, emptyTaps: 3 },
     /**
      * Garden round 3 (both levels; each visit is drawn at random). `rainChance`: a rainy day (the rain cloud waters the
      * mounds while she moves it over them, then she pushes it off the sun; a rainbow), else the watering can. Then one of
@@ -280,31 +280,61 @@ export const TUNING = {
      * butterfly let go (or dragged) this near a flower visits it.
      */
     rainChance: 0.5, scarecrowChance: 0.5, birds: 3, sunTaps: 3, bflyReach: 150,
+    /**
+     * Challenge round (research/challenge-spec.md, both levels). `unripe` [easy, hard]: fruit per plant still green (a
+     * carrot: a small top) at picking; one dragged to a basket floats back ("Not ripe yet!", a miss); a tap on the sun
+     * ripens them all (`ripenMs`). `pipaCount`: Pipa's bubble wants this many of the fruit (by visit: first, second,
+     * then on), counted into the basket; only where Pipa is on screen. Level 2 (`hard`): `seeds` = seeds in the first and
+     * the second packet (two kinds, two baskets to sort into at picking); `caterpillar`: after the sun a caterpillar hides
+     * under one of `leaves` leaves per plant (a miss every `emptyTaps` empty leaves); she carries it to the jar.
+     */
+    unripe: [1, 2] as readonly [number, number], ripenMs: 1000, pipaCount: [2, 3, 4] as readonly number[],
   },
   /**
-   * The market (MarketScene, research/minigames-spec.md). `listItems`: pictures on each list at level 1 / 2 (level 2: one
-   * of them twice, `pair`); `rounds` lists (the second is Pipa's). Level 2's paper list folds `foldAfterMs` after it
+   * The market (MarketScene, research/minigames-spec.md). `listItems`: pictures on each list at level 1 / 2 by visit (level
+   * 2: one of them twice, `pair`); `rounds` lists (the second is Pipa's). Level 2's paper list folds `foldAfterMs` after it
    * shows and a tap opens it for `peekMs`. `slot`: the narrowest a crate may be (world units x k; 3-5 in a row), `itemH`
    * the tallest a good is drawn. `tapMove`: a press that moves less than this is a tap (the good goes in by itself);
    * `reach`: a good let go this near the basket goes in.
    */
   market: {
-    listItems: [3, 4], pair: true, rounds: 2, foldAfterMs: 4200, peekMs: 3000, slot: 215, itemH: 180, tapMove: 40, reach: 220, helpMs: 1100,
+    listItems: [[3, 3, 4], [4]], pair: true, pairEasyFrom: 2, rounds: 2, foldAfterMs: 4200, peekMs: 3000, slot: 215, itemH: 180, tapMove: 40, reach: 220, helpMs: 1100,
     /**
      * Market round 2 (every visit, in a shuffled order between the two lists, then paying). `guestWants`: what the visitor
      * at the stall wishes for at level 1 / 2. `mixed`: things in the mixed-up box (2 rows of 3) and how many do not belong
      * at level 1 / 2 (level 2's look alike: a strawberry among tomatoes). `price`: the coins to pay at level 1 / 2 (from,
-     * to); level 1 fills a chalk circle per coin from Mom's purse, level 2 shows the price as dice dots and she picks the
-     * pile of coins with as many (the other piles have one less and one more). `countMs`: Mom counting a pile, per coin.
+     * to); level 1 fills a chalk circle per coin from Mom's purse, level 2 shows the price as dice dots and circles for a
+     * big coin (2) and a small one (1) under the slate (see below).
      */
-    guestWants: [1, 2], mixed: { items: 6, odd: [1, 2] }, price: [[2, 4], [3, 6]], countMs: 520,
+    guestWants: [1, 2], mixed: { items: 6, odd: [1, 2] }, price: [[2, 4], [4, 7]],
+    /**
+     * More challenge (research/challenge-spec.md, section 3). `listItems` is per visit now (`[easy by visit, hard by visit]`,
+     * the last value holds for later visits); on easy Pipa's list has one pair from visit `pairEasyFrom` (0-based: the
+     * third visit). Hard (`pair`): one thing twice on both lists, as before. `weigh` (both levels, a part in the shuffled
+     * middle): how many of one good balance the scale, (from, to) per level; each one tips the beam by `weighTilt`
+     * degrees x (1 / n) from `weighTilt` down to level; at the number it is level and waits `weighSettleMs` for one too
+     * many (it tips the other way, the extra slides back, a miss) before the part ends. `catNeed`: on hard one of the two
+     * lists is a kind (green, grows on a tree, round) and needs this many things of it. Hard paying (`price` [4, 7]): big
+     * coins worth 2 and small ones worth 1 onto circles of their size: floor((n - 1) / 2) big circles, the rest small.
+     */
+    weigh: [[2, 3], [3, 5]], weighTilt: 12, weighSettleMs: 1600, catNeed: 2,
   },
   /**
    * Washing up (DishesScene, research/minigames-spec.md). `dishes`: how many at level 1 / 2. `scrub`: finger travel on a
    * dish (world units x k) to wash it clean at level 1 / 2; a bubble every `bubbleEvery`. `reach`: a dish let go this
    * near its place on the rack goes there (or, near a wrong one, back to the sink).
+   * Challenge round (research/challenge-spec.md, both levels unless said): `dry` the towel's travel on a rinsed dish
+   * before it may go on the rack (a drop flies off every `dropEvery`). One dish in `spotEvery` has `spots` stubborn spots
+   * (easy / hard) the finger cannot wash (after `spotFinger` of finger rubbing on one Mom says "Try the sponge!"); the
+   * sponge takes one off after `spotRub` on it. Hard: the plates come in `sizes` sizes (`sizeScale`), and once the rack
+   * is full she stacks them by the empty stack's place, the biggest first; then Pipa wants one dish from the rack (a dish
+   * let go within `pipaReach` of her mouth goes to her).
    */
-  dishes: { dishes: [4, 6], scrub: [1500, 2200], bubbleEvery: 90, reach: 150, helpMs: 1100, scrubMs: 2200 },
+  dishes: {
+    dishes: [4, 6], scrub: [1500, 2200], bubbleEvery: 90, reach: 150, helpMs: 1100, scrubMs: 2200,
+    dry: [600, 900], dropEvery: 110, dryMs: 1800, spotEvery: 3, spots: [1, 2], spotFinger: 500, spotRub: 260,
+    sizes: [1, 3], sizeScale: [1, 0.85, 0.7], pipaReach: 260,
+  },
   /**
    * The art corner (ArtScene, research/drawing-stages-spec.md). Distances are world units x k, [level 1, level 2] where two.
    * `brushR` the crayon's radius; a sparkle every `sparkleEvery` of stroke; `grid` coverage cells across the sheet.
@@ -314,12 +344,19 @@ export const TUNING = {
    * paint spreading. Mirror: `mirrorInk` of the shape covered before the done button. Steam: `steamClear` of the glass
    * clear (level 1), a thing is found when `findClear` of its box is clear, wiped glass fogs over again after `refogMs`
    * (level 2). Idle: free drawing (mirror) waits `freeHintMs` / `freeHelpMs`. `aliveMs`: the picture coming alive.
+   * Challenge round (research/challenge-spec.md): `traceDir` the trace follows its arrows (level 2): ink glows and lights
+   * only moving within `traceAngle` degrees of the arrows' way, from the lit front (at most `traceGap` checkpoints
+   * ahead); `traceWrong` of travel the other way in one stroke is a wrong stroke (three: Mom's hand shows the way).
+   * Dots on level 2: Mom says the number; the right dot glows after `dotsGlowAfter` misses. Stamps: `stampTouch` a
+   * stamp's touch radius, `stampScale` its size in the column (x k, at most), `stampMs` its press.
    */
   art: {
     brushR: 22, brushShare: 0.024, sparkleEvery: 160, grid: 24,
     traceBand: [0.09, 0.06], traceMin: [70, 55], checkpoints: 24, traceDone: [0.75, 0.85], partDone: 0.5,
     dotTouch: 160, dotR: [32, 44], fillMs: 450, mirrorInk: [0.25, 0.35], steamClear: 0.6, findClear: 0.4, refogMs: 9000,
     freeHintMs: 15000, freeHelpMs: 15000, aliveMs: 2500, helpMs: 1300,
+    traceDir: [false, true], traceAngle: 50, traceGap: 1, traceWrong: 90, dotsGlowAfter: 3,
+    stampTouch: 120, stampScale: 0.9, stampMs: 420,
   },
   /**
    * The clinic (ClinicScene; round 3, research/clinic-doctor-games.md). Distances are world units x k, [little, big] where

@@ -672,7 +672,44 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 000000000000000000000000000000. Challenge round B (the garden, the market, washing up, the art corner)
+The owner: "a little more challenge in every game". Spec: `/mnt/project-files/research/challenge-spec.md` sections 2-5
+(part A, the recipes, is its own PR). Easy keeps today's game plus one gentle task; hard gets the real additions.
+Screenshots: `/mnt/project-files/research/screens-challenge-b/`. 30 new Mom lines (`make_vo.py mom-a`), not heard by a human.
+- **Washing up** (`DishesScene`, `TUNING.dishes`): the finger scrubs the food too, but one dish in `spotEvery` has
+  `spots` stubborn spots only the sponge takes off (after `spotFinger` of finger rubbing: "Try the sponge!", once a visit).
+  A rinsed dish is dried before the rack (`dishes-towel` right of the sink): a tap moves it to the towel and she rubs it,
+  or she drags the towel over it (`dry`); a wet one taken to the rack comes back ("Let's dry it first!", a miss). Hard:
+  the plates come in three sizes (`sizeScale`); once the rack is full she stacks them where the dirty stack was, the
+  biggest first ("The biggest one first!", a smaller one wobbles back); then (where Pipa is on screen) Pipa's bubble
+  asks for one dish, said as vo-pipa-wants + colour + name-cup / name-plate; a wrong one goes back and Mom says it again.
+- **The market** (`MarketScene`, `TUNING.market`): a balance scale is a third shuffled middle part (both levels;
+  `market-scale-base/-beam/-pan`, `ART.market.scale`): Mom's card on one pan shows a good and n pips (`weigh`), each good
+  on the other pan tips the beam toward level and Mom counts; one too many: "Oops, too heavy!", it slides back. The lists
+  grow by visit (`listItems` per visit, `pairEasyFrom`). Hard: one list is a kind card (`market-cat-green/-tree/-round`,
+  GOODS `kinds`, `catNeed` slots; "We need something green!", a wrong kind: "Hmm, is that green?"); hard paying is big
+  coins (worth 2, `market-coin-big`) and small ones onto big and small circles under the pip price (`price` [4, 7]);
+  a coin on the wrong size slides back.
+- **The garden** (`GardenScene`, `TUNING.garden`): `unripe` fruit per plant start green (a small pale carrot top); a green
+  one at the basket floats back ("Not ripe yet!"), a tap on the sun ripens them all (`ripenMs`). Pipa's bubble asks for N
+  of the fruit at picking (`pipaCount` by visit), Mom counts them in. Hard: two seed packets (`hard.seeds`, the packet
+  decides each hole), two baskets with badges drawn in code (`garden-basket-2`, `-front`; the wrong one: "Find the basket
+  for the..." + name), and a caterpillar hidden under one of the leaves after the sun (`hard.leaves`, `emptyTaps`), dragged
+  to `garden-jar` and carried off happily. With a carrot in a hard bed the visitor is always the scarecrow.
+- **The art corner** (`ArtScene`, `core/artPictures.ts`, `TUNING.art`): each kind's picture follows the visit count
+  (`cooking.runs.art-<kind>`), two more pictures per kind; mirror (`MIRROR`) and steam (`STEAM`, a mirrored second garden)
+  are data too. A sixth kind `stamps` (`art-pick-stamps`, `art-stamp-*`; the wall is 3 + 3): easy presses the picked stamp
+  onto the nearest outline of its shape (`STAMP_SCENES`); hard copies Mom's pattern card (drawn on the sheet,
+  `STAMP_PATTERNS`) onto a row of six circles, an off-pattern stamp stays but the card's item hops ("What comes next?").
+  Hard trace follows arrows from a green start dot (`traceDir`, `traceAngle`, `traceGap`, wrong-way strokes are misses,
+  "Follow the arrows!" once); hard dots are found by ear ("Find..." + count-N; the dot glows after `dotsGlowAfter` misses).
+- **Harness:** `__verify('dishes' | 'market', level, { wrong | none | drag | first })`, `__gardenRun` (+ `window.__gardenWrong`,
+  `__gardenVisit`), `__artVerify(kind, level, { visit, wrong, none, first })`; `wrong` makes one mistake in each new task.
+- **Needs a real child:** does she find the sponge for a spot and the towel; does "biggest first" frustrate (then
+  `dishes.sizes` [1, 1]); does she read the pips on the scale's card; is a potato "round" to her; does she tap the sun after
+  "Not ripe yet!"; does she find the caterpillar; does she follow the trace arrows (else raise `traceAngle`); does she hear
+  "Find... four!" over the music.
 ### 00000000000000000000000000000. Challenge round A (a little more challenge in all eight recipes)
 The owner: "check how to add a little more challenge to all the games". Spec: `/mnt/project-files/research/challenge-spec.md`
 (PR A = the recipes; PR B = garden, market, washing up, art corner). Branch `claude/project-thread-cla4gn`.

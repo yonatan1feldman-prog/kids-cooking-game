@@ -39,6 +39,11 @@
   "w": 300,
   "h": 300
  },
+ "art-pick-stamps": {
+  "sha1": "0c93ce1c9b579b2f004460b70ae35682e73c0107",
+  "w": 300,
+  "h": 300
+ },
  "art-pick-steam": {
   "sha1": "87c98880544e8dedcb67b179141fa21349ac42aa",
   "w": 300,
@@ -87,6 +92,26 @@
  "art-pot-yellow": {
   "sha1": "9e984767fa0e1ecb51e19e7633c39be329636a0b",
   "w": 220,
+  "h": 240
+ },
+ "art-stamp-bird": {
+  "sha1": "4713a393af4e8ae4ac2e28c848ceb255851ea0ce",
+  "w": 240,
+  "h": 240
+ },
+ "art-stamp-cloud": {
+  "sha1": "baf41aee15e83dc2baa048649160f5afbccf94be",
+  "w": 240,
+  "h": 240
+ },
+ "art-stamp-flower": {
+  "sha1": "516bf263163f90ef12b1137723a032e6be707c59",
+  "w": 240,
+  "h": 240
+ },
+ "art-stamp-sun": {
+  "sha1": "d0bc4087edd2f574ba6d5b54d5ec3c50f2208b45",
+  "w": 240,
   "h": 240
  },
  "art-window-frame": {
@@ -694,6 +719,11 @@
   "w": 240,
   "h": 150
  },
+ "dishes-towel": {
+  "sha1": "989f44958f37bdffcc557f4724ca1c6bcb2db952",
+  "w": 220,
+  "h": 320
+ },
  "dough-ball": {
   "sha1": "42282b854d76724b0efe3b1bec911f7ff23060b8",
   "w": 360,
@@ -859,6 +889,16 @@
   "w": 440,
   "h": 320
  },
+ "garden-basket-2": {
+  "sha1": "ea984640d3cc2d6871186c3f2289374fdb5ccfb3",
+  "w": 440,
+  "h": 320
+ },
+ "garden-basket-2-front": {
+  "sha1": "a03507516876bae49330f50c757a0cbe930b8c8c",
+  "w": 440,
+  "h": 320
+ },
  "garden-basket-front": {
   "sha1": "0405006d98ab571b22491f1e9f9aaffb8dc7563d",
   "w": 440,
@@ -899,6 +939,11 @@
   "w": 180,
   "h": 420
  },
+ "garden-caterpillar": {
+  "sha1": "5fcfabc9c013d9125e9c197fb5a3c481f41355ad",
+  "w": 220,
+  "h": 120
+ },
  "garden-cloud": {
   "sha1": "29afb8e0d1e1f97b7c42c01b07c3cfdab7b538e9",
   "w": 580,
@@ -928,6 +973,11 @@
   "sha1": "906088193a1423ccc9faf905db1abeb5eb08ba4c",
   "w": 180,
   "h": 80
+ },
+ "garden-jar": {
+  "sha1": "8a3909965b6e635d98a954c2c9eda11bb02c3fc9",
+  "w": 220,
+  "h": 260
  },
  "garden-leaf": {
   "sha1": "80e3668f285acc253c0b939599a455d9b9e9c05b",
@@ -984,6 +1034,11 @@
   "w": 130,
   "h": 150
  },
+ "garden-strawberry-green": {
+  "sha1": "6f294c23bca341e710f734a3d5ac79e7d48b3d96",
+  "w": 130,
+  "h": 150
+ },
  "garden-sun": {
   "sha1": "a79caf94349550cc413435915bb990a8f2a5cd09",
   "w": 300,
@@ -991,6 +1046,11 @@
  },
  "garden-tomato": {
   "sha1": "327294169209f124e2eebd1e47303e359dc28125",
+  "w": 140,
+  "h": 150
+ },
+ "garden-tomato-green": {
+  "sha1": "7b2c8eeb92d9a436a503464e6581f91e3c5f68ec",
   "w": 140,
   "h": 150
  },
@@ -1699,10 +1759,30 @@
   "w": 1600,
   "h": 260
  },
+ "market-cat-green": {
+  "sha1": "c12dbdeae94415a96f98fc7f85469d7e202b8960",
+  "w": 600,
+  "h": 320
+ },
+ "market-cat-round": {
+  "sha1": "e6fb76abfeefbf7603210fc0a1d41a9057cbf5c6",
+  "w": 600,
+  "h": 320
+ },
+ "market-cat-tree": {
+  "sha1": "653229a05833aff21bc5b5caf3336628c2b3b6e0",
+  "w": 600,
+  "h": 320
+ },
  "market-coin": {
   "sha1": "be7f3ed7c7d064076706ee9745251ca1320f2bec",
   "w": 110,
   "h": 110
+ },
+ "market-coin-big": {
+  "sha1": "519dceded05bdbf6a3872cab03379362cde663f2",
+  "w": 150,
+  "h": 150
  },
  "market-counter": {
   "sha1": "38481a7a1c2652fe15265a7447d73ef77e2da2d2",
@@ -1728,6 +1808,21 @@
   "sha1": "46b7b2cc6faabe091bd7819549deff94ef2b8e55",
   "w": 260,
   "h": 230
+ },
+ "market-scale-base": {
+  "sha1": "edaa1334a6cd0ad12532375cc080828462eedb3c",
+  "w": 400,
+  "h": 440
+ },
+ "market-scale-beam": {
+  "sha1": "8dd68c72fe40245720160cc36873ce7b03a70144",
+  "w": 560,
+  "h": 60
+ },
+ "market-scale-pan": {
+  "sha1": "7b3e8727cb316cdd07ab9e0eb1f32f4f4805af59",
+  "w": 260,
+  "h": 220
  },
  "market-shelf": {
   "sha1": "4daf315dcf61fefedf6b8da928a93d0ba3308de4",
