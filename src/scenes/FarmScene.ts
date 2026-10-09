@@ -1183,8 +1183,14 @@ export class FarmScene extends MiniGame {
       stage: 'milk',
       slots: [],
       press: (at) => {
-        const i = [0, 1].find((j) => this.near(at, teat(j), Math.max(130 * k, 90 * view.scale)));
-        if (i === undefined || count >= n) return false;
+        // the teats sit close together (on 4:3 their touch areas overlap): a touch that reaches the one that is due counts
+        // for it; otherwise the nearer one
+        const reach = Math.max(130 * k, 90 * view.scale);
+        const hits = [0, 1].filter((j) => this.near(at, teat(j), reach));
+        if (!hits.length || count >= n) return false;
+        const d = (j: number) => Phaser.Math.Distance.BetweenPoints(at, teat(j));
+        const due = this.level === 2 ? next : count % 2;
+        const i = hits.includes(due) ? due : hits.sort((a, b) => d(a) - d(b))[0];
         if (this.level === 2 && i !== next) {
           boing(this, glows[next], 0.3);
           sfx(this, 'tap', { volume: 0.5 });
