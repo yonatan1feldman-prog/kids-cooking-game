@@ -34,6 +34,11 @@ export interface WashParams {
    * instead of growing bubbles on it. Without `rubLine` nothing is said part-way.
    */
   target?: 'hands' | 'basket';
+  /**
+   * The recipe challenges (PR A), hands only: a soap bar on the sink's rim. Rubbing makes bubbles only after a tap on it
+   * (Mom: "Soap first!"); before, the hands only wiggle (a miss). Off with `TUNING.wash.soap: false`.
+   */
+  soap?: ImageKey | boolean;
 }
 
 /**
@@ -352,6 +357,25 @@ export interface ChopParams {
  * its back and front layers) for as long as she holds it there, until `pourMs` of pouring is done. The contents go
  * into the topping's bin (left for decorating). Counts: TUNING.open, TUNING.pour.
  */
+/**
+ * One thing poured with `sources`: what a step before left (`handoff`), or a new one standing there (no `handoff`: the
+ * hard level's cookies, pancakes and cake pour their flour, sugar, milk and butter in one step, each with what its own
+ * step had: its mouth, tint, sound, pouring time, or `dropIn`). `name`: Mom's name for it (the pour order).
+ */
+export interface PourSource {
+  handoff?: string;
+  image: ImageKey;
+  piece: ImageKey | 'fx-dot';
+  tilt?: number;
+  name?: VoiceKey;
+  mouth?: { x: number; y: number };
+  pieceTint?: number;
+  pieceSize?: number;
+  pourSound?: SoundKey;
+  pourMs?: number;
+  dropIn?: BowlExtra;
+}
+
 export interface OpenPourParams {
   /** 'open': nothing to open (an oil bottle), only the pouring; also for pouring several things in (`sources`). */
   kind: 'can' | 'jar' | 'open';
@@ -392,7 +416,13 @@ export interface OpenPourParams {
    * waiting (`run.handoff` keys; `'chosen'` = the bins of what she chose, their `topping` as the piece). Each is dragged
    * over the bowl and pours for `pourMs`.
    */
-  sources?: ({ handoff: string; image: ImageKey; piece: ImageKey; tilt?: number } | 'chosen')[];
+  sources?: (PourSource | 'chosen')[];
+  /**
+   * The recipe challenges (PR A), hard: Mom says which one goes in first (`line` + its name) and the sources go in in
+   * their listed order; another one only hops and Mom says `wrong` + the right one's name (a miss); after each one
+   * `next` + the next one's name. Set by `levelStep` (recipes/bigChef.ts) on every pour of two or more things.
+   */
+  order?: { line: VoiceKey; wrong: VoiceKey; next: VoiceKey };
   /**
    * Pour the kept big bowl itself (the blender jar, with `keep`) into `count` glasses standing on its left: she drags the
    * jar over a glass, it tips (`tilt`) and a stream (`piece`, `pieceTint`) fills that glass from the bottom up (`full`
@@ -470,6 +500,12 @@ export interface DecorateParams {
    * whole tray the photo's (MADE_KEY).
    */
   onto?: 'dish' | 'cookies';
+  /**
+   * The recipe challenges (PR A), hard: Mom's picture to copy (a small card beside her: two or three of the things in a
+   * simple arrangement, `MODELS` in DecorateStep). Anything she makes is fine; when hers has them in about their places
+   * the card sparkles and Mom says "Just like mine!". It takes the place of Pipa's wish.
+   */
+  model?: boolean;
 }
 
 /**
@@ -581,6 +617,11 @@ export interface TempPanel {
   min: number;
   max: number;
   target: number;
+  /**
+   * The recipe challenges (PR A), hard: Mom picked `target` for this run; after `line` ("Let's set the oven to...") she
+   * says its number (temp-<target>), and again with her hint.
+   */
+  sayTarget?: boolean;
   /** "Let's set the oven", "A bit hotter!", "Oh, that's too hot!", "That's just right!". Values: temp-<value>. */
   line: VoiceKey;
   more: VoiceKey;
@@ -711,5 +752,5 @@ export interface Recipe {
    * `before` (the pancakes and the cake: find the wooden spoon before stirring the batter). The rest of the big-chef
    * level is the same for every recipe (recipes/bigChef.ts).
    */
-  bigExtra?: { before: StepType; step: StepDef }[];
+  bigExtra?: { before: StepType; step: StepDef; /** before the nth (0-based) step of that type (default the first) */ nth?: number }[];
 }

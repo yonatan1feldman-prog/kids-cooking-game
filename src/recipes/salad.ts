@@ -3,6 +3,7 @@ import type { ImageKey } from '../core/assets';
 import type { FruitName, VegName } from '../core/vegArt';
 import type { Recipe, StepDef } from './types';
 import { pizza } from './pizza';
+import { FIND_SERVERS } from './bigChef';
 
 /**
  * The vegetable salad: the second recipe, pure data on the step types the pizza uses (README-salad.md for the art).
@@ -113,7 +114,7 @@ export const salad: Recipe = {
         ...TUNING.open,
         pourMs: TUNING.salad.transfer.ms,
         keep: { fills: ['salad-heap-1', 'salad-heap-2', 'salad-heap-3'] },
-        sources: [{ handoff: 'bin:lettuce', image: 'lettuce-tear-3', piece: 'piece-lettuce' }, 'chosen'],
+        sources: [{ handoff: 'bin:lettuce', image: 'lettuce-tear-3', piece: 'piece-lettuce', name: 'name-lettuce' }, 'chosen'],
       },
     },
     {
@@ -198,4 +199,6 @@ export const salad: Recipe = {
       },
     },
   ],
+  // The recipe challenges (PR A), hard: find the salad servers before mixing.
+  bigExtra: [{ before: 'stir', step: FIND_SERVERS }],
 };
