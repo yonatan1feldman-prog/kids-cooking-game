@@ -232,7 +232,7 @@ src/scenes/
   MiniGame                 the frame the market and washing up share: home button, Mom, Pipa, demo / hint / help, one finger
   MarketScene / DishesScene  the market (shopping from a list) and washing up (scrub, rack by colour)
   ArtScene                 the art corner: the easel wall and five ways to draw (trace, dots, colour, mirror, steam)
-  ClinicScene              the clinic, the second world (waiting room, 4 animals and 4 children, two problems each, stations of small targets in big close-ups, stickers, photo; 14 ailments)
+  ClinicScene              the clinic, the second world (waiting room, 8 animals and 8 children, each with her own first problem and a second one, stations of small targets in big close-ups, stickers, photo; 16 ailments)
 ```
 
 ## Recipes are data
@@ -672,7 +672,28 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 0000000000000000000000000000000. The clinic, round 5, part 1 (sixteen patients, each with her own problem)
+The owner: "double the patients, each with a different treatment, one of them the teeth". Spec: `/mnt/project-files/research/clinic-spec-5.md`
+(this is its PR 1; PR 2 = the care rooms, PR 3 = more challenge). Branch `claude/project-thread-nh10lu`.
+- **Eight new patients** (`core/clinic.ts`): animals Mittens the cat, Bao the panda, Clover the bunny, Biscuit the puppy
+  (`animal(id, o)`, art `assets-src/images-b-clinic/tools/gen_animals.py`, `animal-<id>-*` on Pipa's 600x700 frame, its
+  body points printed as `POINTS`) and children Ruby (braids, a lolly in her pocket), Noah (glasses, sleeves), Zoe (puffs),
+  Max (buzz cut, a gap in his grin), more `KIDS` in `gen_kids.py` (the old four are unchanged). Each says hello with
+  `vo-hi-<id>`.
+- **Signature problem:** every patient has `signature` (always her first problem; no two in one visit share one) and a
+  `care` (`CareId`: medicine, bath, bandage, polish, eyes, rest), a field only, kept for PR 2's care rooms. Ruby is the
+  dental patient: `tooth` is in her pool only (`ALL_BUT_TEETH` for everyone else). `planVisit` adds `m - 1` more problems
+  from the patient's pool, not used by anyone in the visit. Who comes: `pickPatients` (the least recently seen first,
+  localStorage `cooking.clinic.seen`, at least one child), so all sixteen come round.
+- **Two ailments** (16 now): `throat` (the light finds the smiling tickles in the throat close-up `lens-throat`, the spray
+  sends them off as bubbles, a spoon of honey, a warm drink; hard: the thermometer first) and `sunburn` (aloe on each pink
+  patch, `burnPlaces()`: nose, cheeks, below the face; the ice pack on the forehead; a sun hat she keeps on, like the
+  plaster). Art `gen_clinic5.py` (tickle, burn, honey, aloe, hat, two cards). Each new patient has her own dance.
+- **Voice:** 14 lines (`make_vo.py mom-a`), not heard by a human (the cloud could not fetch Vosk for the speech check).
+- **Checked (cloud, virtual clock, simulated voice):** visits covering all eight new patients, throat and sunburn at both
+  levels at 20:9 and 4:3, a wrong tool, no-touch runs, random plans; screenshots `/mnt/project-files/research/screens-clinic5/`.
+- **Needs a real child:** do the tickles read as friendly? Is the hat noticed? Do the new patients read as who they are?
 ### 000000000000000000000000000000. Challenge round B (the garden, the market, washing up, the art corner)
 The owner: "a little more challenge in every game". Spec: `/mnt/project-files/research/challenge-spec.md` sections 2-5
 (part A, the recipes, is its own PR). Easy keeps today's game plus one gentle task; hard gets the real additions.

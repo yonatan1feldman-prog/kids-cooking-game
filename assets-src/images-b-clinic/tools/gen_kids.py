@@ -7,6 +7,9 @@
 # - Leo (6): deep brown skin, short black curls, a yellow T-shirt with a star; brave and cheerful.
 # - Mia (3): black bob with a red bow, a lilac dress with a white collar; the smallest (a bigger head for her size).
 # - Sam (4): messy blond hair, a green striped T-shirt, brown shorts; giggly.
+# Round 5 (research/clinic-spec-5.md): Ruby (5, long brown braids, a yellow dress, a lollipop in her pocket: the dentist's
+# patient), Noah (6, straight black hair, round glasses, a blue sweater), Zoe (4, two afro puffs with ribbons, an orange top),
+# Max (5, a buzz cut, a plaid shirt, a gap where a baby tooth fell out).
 # Run: python tools/gen_kids.py   (writes kid-<name>-*.svg into images-b-clinic/; then copy them into
 # public/assets/images and bake the WebPs). The frame points the game uses are printed at the end (core/clinic.ts).
 import math, os, sys
@@ -30,6 +33,15 @@ KIDS = {
                 bottom="#B99CE3", skirt=True, sock="#FFE3EC", shoe="#E86A8A", lash=True, freckles=False, hy=262, body=.86),
     "sam": dict(skin="#EBB892", hair="#E8C163", style="messy", shirt="#7CC47A", stripe="#FFFDF7", bottom="#9C6B45",
                 skirt=False, sock="#FFFDF7", shoe="#4C8FD0", lash=False, freckles=False, hy=240, body=1.0),
+    # the clinic, round 5 (research/clinic-spec-5.md): four more children, each with a look of her own
+    "ruby": dict(skin="#C98E62", hair="#6B3A1E", style="braids", tie="#F06A8A", shirt="#F6C445", bottom="#F6C445", skirt=True,
+                 lolly=True, sock="#FFFDF7", shoe="#E2533F", lash=True, freckles=False, hy=240, body=1.0),
+    "noah": dict(skin="#F2CDA8", hair="#1C1714", style="straight", shirt="#4C8FD0", sleeves=True, rib="#3A72B0", bottom="#6E6258",
+                 skirt=False, sock="#FFFDF7", shoe="#E2533F", glasses="#C8572A", lash=False, freckles=False, hy=240, body=1.0),
+    "zoe": dict(skin="#6E4128", hair="#1E1410", style="puffs", tie="#F6C445", shirt="#F4773C", bottom="#4FA8A6", skirt=True,
+                sock="#FFFDF7", shoe="#B99CE3", lash=True, freckles=False, hy=240, body=1.0),
+    "max": dict(skin="#E0A878", hair="#8A5A2E", style="buzz", shirt="#E2533F", plaid="#FBE3C4", bottom="#4F7FC0", skirt=False,
+                sock="#FFFDF7", shoe="#5DB043", gap=True, lash=False, freckles=False, hy=240, body=1.0),
 }
 
 
@@ -86,6 +98,15 @@ def lower_body(c, p):
     if c.get("stripe"):
         pat = "".join(f'<rect x="170" y="{y}" width="260" height="13" fill="{c["stripe"]}"/>' for y in range(424, 560, 30))
         L.append(clip + G(pat, None, f' clip-path="url(#{p}tc)" opacity="0.85"'))
+    if c.get("plaid"):
+        pat = "".join(f'<rect x="170" y="{y}" width="260" height="12" fill="{c["plaid"]}"/>' for y in range(420, 560, 34))
+        pat += "".join(f'<rect x="{x}" y="400" width="12" height="170" fill="{c["plaid"]}"/>' for x in range(190, 420, 34))
+        L.append(clip + G(pat, None, f' clip-path="url(#{p}tc)" opacity="0.55"'))
+    if c.get("rib"):
+        L.append(stroke("M190,548 Q300,566 410,548", c["rib"], 10, ' opacity="0.8"'))
+    if c.get("lolly"):   # a lollipop peeking out of her dress's pocket
+        L.append(G(stroke("M318,520 L330,462", WHITE, 7) + C(332, 448, 24, "#F06A8A") + stroke("M332,448 m-14,0 a14,14 0 1 1 14,14 a8,8 0 1 1 -8,-8", WHITE, 5, ' opacity="0.9"'), sh))
+        L.append(G(P(wrect(290, 500, 60, 42, 10, 1, 77), mix(c["shirt"], "#FFFFFF", .25)) + stroke("M294,506 L346,506", mix(c["shirt"], "#3A2216", .25), 4), sh))
     if c.get("star"):
         pts = []
         for i in range(10):
@@ -101,7 +122,7 @@ def lower_body(c, p):
     for sgn, seed in ((-1, 7), (1, 8)):
         sx = 300 + sgn * 98
         pts = [(sx, 448), (sx + sgn * 14, 486), (sx + sgn * 8, 526), (sx - sgn * 8, 556)]
-        L.append(G(P(taper(pts, [42, 40, 38, 34]), c["skin"]), sh))
+        L.append(G(P(taper(pts, [42, 40, 38, 34]), c["shirt"] if c.get("sleeves") else c["skin"]), sh))
         L.append(G(P(wob(sx + sgn * 2, 450, 40, 34, .05, seed, 18, sgn * 20), c["shirt"]) + P(wob(sx + sgn * 6, 470, 34, 8, .08, seed + 9, 14, sgn * 20), c["shirt_d"], ' opacity="0.55"'), sh))
         L.append(G(P(wob(sx - sgn * 14, 562, 26, 22, .06, seed + 20), c["skin"]) + P(wob(sx - sgn * 22, 558, 8, 12, .1, seed + 30, 12), c["skin_l"], ' opacity="0.5"'), sh))
     inner = "".join(L)
@@ -122,6 +143,19 @@ def head(c, p):
             x = 300 + sgn * 176
             L.append(G(P(wob(x, hy + 58, 44, 70, .06, seed, 22, sgn * -16), c["hair"]) + P(wob(x - sgn * 4, hy + 40, 16, 40, .1, seed + 2, 14, sgn * -16), c["hair_l"], ' opacity="0.7"')
                        + "".join(stroke(f"M{n(x - 18 + i * 12)},{hy + 10} Q{n(x - 22 + i * 12 + sgn * 6)},{hy + 70} {n(x - 14 + i * 12)},{hy + 120}", c["hair_d"], 3, ' opacity="0.4"') for i in range(4)), cut))
+    if c["style"] == "braids":
+        for sgn, seed in ((-1, 43), (1, 44)):
+            x = 300 + sgn * 158
+            seg = "".join(P(wob(x + sgn * i * 3, hy + 40 + i * 34, 27 - i, 22, .06, seed + i, 16), c["hair"] if i % 2 == 0 else c["hair_m"]) for i in range(5))
+            seg += "".join(stroke(f"M{n(x + sgn * i * 3 - 16)},{hy + 30 + i * 34} Q{n(x + sgn * i * 3)},{hy + 46 + i * 34} {n(x + sgn * i * 3 + 16)},{hy + 30 + i * 34}", c["hair_d"], 3, ' opacity="0.5"') for i in range(5))
+            tip = x + sgn * 15
+            seg += C(tip, hy + 196, 12, c["tie"]) + P(wob(tip, hy + 222, 16, 18, .1, seed + 9, 14), c["hair"])
+            L.append(G(seg, cut))
+    if c["style"] == "puffs":
+        for sgn in (-1, 1):
+            x = 300 + sgn * 128
+            spots = [(x, hy - 150, 46), (x - 30, hy - 128, 36), (x + 30, hy - 128, 36), (x - 22, hy - 176, 34), (x + 22, hy - 176, 34), (x, hy - 112, 32)]
+            L.append(curl_mass(c, spots, p, 970 + sgn, "cut"))
     L.append(G(P(f"M272,{hy + 120} L328,{hy + 120} L330,{hy + 172} Q300,{hy + 184} 270,{hy + 172}Z", c["skin_d"]), sh))   # the neck
     for sgn, seed in ((-1, 3), (1, 4)):
         x = 300 + sgn * 150
@@ -168,6 +202,40 @@ def hair_front(c, p):
                  (178, hy - 84, 28), (422, hy - 84, 28), (160, hy - 48, 24), (440, hy - 48, 24), (276, hy - 96, 26),
                  (324, hy - 96, 26), (232, hy - 84, 24), (368, hy - 84, 24)]
         L.append(curl_mass(c, spots, p, 960, "cut"))
+    elif c["style"] == "braids":
+        outer = top(168, 372, 158, 156)
+        fringe = [(452, hy - 10), (430, hy - 60), (384, hy - 92), (330, hy - 104), (300, hy - 96), (270, hy - 104), (216, hy - 92), (170, hy - 60), (148, hy - 10)]
+        L.append(G(P(smooth(outer + fringe), h), cut))
+        L.append(stroke(f"M300,{hy - 156} L300,{hy - 98}", hd, 4, ' opacity="0.5"'))
+        L.append(P(f"M196,{hy - 104} Q250,{hy - 140} 290,{hy - 140} Q248,{hy - 124} 210,{hy - 92}Z", hl, ' opacity="0.7"'))
+    elif c["style"] == "straight":
+        outer = top(170, 370, 160, 158)
+        fringe = [(456, hy - 4), (446, hy - 50), (412, hy - 76), (360, hy - 70), (310, hy - 58), (262, hy - 52), (214, hy - 40), (172, hy - 20), (146, hy + 8)]
+        L.append(G(P(smooth(outer + fringe), h), cut))
+        L.append("".join(stroke(f"M{x},{hy - 50} Q{x + 18},{hy - 90} {x + 34},{hy - 118}", hd, 4, ' opacity="0.5"') for x in (226, 276, 326, 372)))
+        L.append(P(f"M196,{hy - 108} Q250,{hy - 142} 330,{hy - 140} Q258,{hy - 128} 204,{hy - 96}Z", hl, ' opacity="0.6"'))
+    elif c["style"] == "puffs":
+        outer = top(176, 364, 154, 150)
+        line = [(446, hy - 34), (408, hy - 76), (356, hy - 94), (300, hy - 98), (244, hy - 94), (192, hy - 76), (154, hy - 34)]
+        L.append(G(P(smooth(outer + line), h), cut))
+        L.append("".join(C(x, y + hy, 5, c["hair_m"], ' opacity="0.7"') for x, y in ((240, -118), (280, -128), (320, -128), (360, -118), (300, -112), (262, -108), (338, -108))))
+        for sgn in (-1, 1):
+            x = 300 + sgn * 118
+            L.append(G(P(f"M{x},{hy - 104} Q{x - 34},{hy - 132} {x - 40},{hy - 96} Q{x - 20},{hy - 84} {x},{hy - 104}Z", c["tie"])
+                       + P(f"M{x},{hy - 104} Q{x + 34},{hy - 132} {x + 40},{hy - 96} Q{x + 20},{hy - 84} {x},{hy - 104}Z", c["tie"]) + C(x, hy - 104, 9, mix(c["tie"], "#3A2216", .2)), sh))
+    elif c["style"] == "buzz":
+        outer = top(176, 364, 154, 150)
+        line = [(448, hy - 44), (412, hy - 88), (356, hy - 104), (300, hy - 108), (244, hy - 104), (188, hy - 88), (152, hy - 44)]
+        L.append(G(P(smooth(outer + line), h, ' opacity="0.95"'), sh))
+        import random as _r
+        rr = _r.Random(91)
+        dots = []
+        while len(dots) < 70:
+            x, y = 300 + rr.uniform(-140, 140), hy - rr.uniform(50, 145)
+            if ((x - 300) / 146) ** 2 + ((y - hy) / 142) ** 2 < 1 and y < hy - 100 + abs(x - 300) * .4:
+                dots.append((x, y))
+        L.append("".join(C(x, y, 2.6, hd, ' opacity="0.45"') for x, y in dots))
+        L.append(P(f"M206,{hy - 112} Q256,{hy - 140} 320,{hy - 140} Q258,{hy - 128} 216,{hy - 102}Z", hl, ' opacity="0.6"'))
     else:  # messy: a jagged fringe
         outer = top(172, 368, 158, 154)
         fringe = [(450, hy - 20), (430, hy - 50), (404, hy - 58), (388, hy - 40), (366, hy - 76), (340, hy - 62), (312, hy - 84), (288, hy - 60), (262, hy - 80), (236, hy - 56), (212, hy - 70), (186, hy - 44), (152, hy - 18)]
@@ -192,7 +260,15 @@ def mouth_layer(name, kind):
     p = f"kd{name[:2]}-m{kind[0]}-"
     my = c["hy"] + 98
     teeth = "#FFFBF2"
-    if kind == "open":
+    if c.get("gap") and kind in ("open", "closed"):
+        # a big grin with a gap where a baby tooth fell out
+        h = 40 if kind == "open" else 26
+        d = f"M258,{my - 16} Q300,{my - 6} 342,{my - 16} Q352,{my - 16} 348,{my - 4} Q336,{my + h} 300,{my + h + 2} Q264,{my + h} 252,{my - 4} Q248,{my - 16} 258,{my - 16}Z"
+        inner = (f'<clipPath id="{p}c"><path d="{d}"/></clipPath>'
+                 + G(P(d, c["mouth"]) + G(E(300, my + h + 4, 32, 18, "#EE7A70")
+                                          + P(f"M262,{my - 14} Q300,{my - 4} 338,{my - 14} L336,{my + 4} Q300,{my + 12} 264,{my + 4}Z", teeth)
+                                          + f'<rect x="286" y="{my - 14}" width="14" height="26" fill="{c["mouth"]}"/>', None, f' clip-path="url(#{p}c)"'), p + "sh"))
+    elif kind == "open":
         d = f"M262,{my - 16} Q300,{my - 8} 338,{my - 16} Q348,{my - 16} 345,{my - 4} Q336,{my + 38} 300,{my + 40} Q264,{my + 38} 255,{my - 4} Q252,{my - 16} 262,{my - 16}Z"
         inner = (f'<clipPath id="{p}c"><path d="{d}"/></clipPath>'
                  + G(P(d, c["mouth"]) + G(E(300, my + 40, 32, 20, "#EE7A70")
@@ -227,6 +303,10 @@ def main():
         save(f"kid-{name}-body", body_layer(name))
         for kind in ("open", "blink", "happy", "surprised"):
             d, b = guest_eyes(eye_geo(c), kind, "k" + name)
+            if c.get("glasses"):
+                y, g = c["hy"] + 22, c["glasses"]
+                b += "".join(C(x, y, 46, "none", f' stroke="{g}" stroke-width="7"') + P(f"M{x - 30},{y - 22} Q{x - 16},{y - 36} {x},{y - 38}", "none", ' stroke="#FFFFFF" stroke-width="5" opacity="0.6" stroke-linecap="round"') for x in (244, 356))
+                b += stroke(f"M290,{y - 6} Q300,{y - 14} 310,{y - 6}", g, 7) + stroke(f"M198,{y - 6} L160,{y - 14}", g, 7) + stroke(f"M402,{y - 6} L440,{y - 14}", g, 7)
             save(f"kid-{name}-eyes-{kind}", svg(W, H, d, b))
         for kind in ("closed", "open", "chew"):
             save(f"kid-{name}-mouth-{kind}", mouth_layer(name, kind))

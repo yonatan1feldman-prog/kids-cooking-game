@@ -1,4 +1,164 @@
 {
+ "animal-bunny-body": {
+  "sha1": "edb25a25080639ed4ff31582a077c8ac355b5dc1",
+  "w": 450,
+  "h": 525
+ },
+ "animal-bunny-eyes-blink": {
+  "sha1": "126a3b65f0e9ddf1bec0229b4a9a0b6d78370e33",
+  "w": 450,
+  "h": 525
+ },
+ "animal-bunny-eyes-happy": {
+  "sha1": "b116dcd8dfedfb7ad0ef7060e68049cf70c6bb1d",
+  "w": 450,
+  "h": 525
+ },
+ "animal-bunny-eyes-open": {
+  "sha1": "74ace6af36e8e3127a317639fdd1c3c673d85339",
+  "w": 450,
+  "h": 525
+ },
+ "animal-bunny-eyes-surprised": {
+  "sha1": "48ec41b30980d8db990a4422c34bf3c718ec5e57",
+  "w": 450,
+  "h": 525
+ },
+ "animal-bunny-mouth-chew": {
+  "sha1": "96c463945654b3b7b057f3834ee4562d13136128",
+  "w": 450,
+  "h": 525
+ },
+ "animal-bunny-mouth-closed": {
+  "sha1": "b6bc14e2bacbea2fe7ae5724b1c99ad8b81bdfa2",
+  "w": 450,
+  "h": 525
+ },
+ "animal-bunny-mouth-open": {
+  "sha1": "66f6b1ba4b7e5fa32b05d1eb38f1eea5c2421baa",
+  "w": 450,
+  "h": 525
+ },
+ "animal-cat-body": {
+  "sha1": "cedfa511b2b31a575eabdb3fef3a77e8034afd81",
+  "w": 450,
+  "h": 525
+ },
+ "animal-cat-eyes-blink": {
+  "sha1": "2bcfbf36beb84108cc9e304123dc62097d6d4d02",
+  "w": 450,
+  "h": 525
+ },
+ "animal-cat-eyes-happy": {
+  "sha1": "f39752b18716a1ee9ebcc4e3df571745592ef024",
+  "w": 450,
+  "h": 525
+ },
+ "animal-cat-eyes-open": {
+  "sha1": "7ceae242f763310fbd935c02d76dc3b8396524d2",
+  "w": 450,
+  "h": 525
+ },
+ "animal-cat-eyes-surprised": {
+  "sha1": "a38da483db54bb0c031e35d73ca385a9c8bd58d9",
+  "w": 450,
+  "h": 525
+ },
+ "animal-cat-mouth-chew": {
+  "sha1": "21df5887c1eaa6046775e5bc993cdc8d93075c0a",
+  "w": 450,
+  "h": 525
+ },
+ "animal-cat-mouth-closed": {
+  "sha1": "02a563a8bd034cd8b0f101b7f2883d839c5daf4d",
+  "w": 450,
+  "h": 525
+ },
+ "animal-cat-mouth-open": {
+  "sha1": "8dd27be98bc2e35e4cf97fe34ecbe1ada081a4d5",
+  "w": 450,
+  "h": 525
+ },
+ "animal-panda-body": {
+  "sha1": "c5896d5db1dc05a3b0bbac081d5de742dc8bed0e",
+  "w": 450,
+  "h": 525
+ },
+ "animal-panda-eyes-blink": {
+  "sha1": "e0777e046e53d435cada3a46a83351a9badf5137",
+  "w": 450,
+  "h": 525
+ },
+ "animal-panda-eyes-happy": {
+  "sha1": "4247380fb45d36b48fdb5dc3f255b2abc130b8c9",
+  "w": 450,
+  "h": 525
+ },
+ "animal-panda-eyes-open": {
+  "sha1": "b8423dd4c332ac3f5f522372e1cdbe4ec918bdaa",
+  "w": 450,
+  "h": 525
+ },
+ "animal-panda-eyes-surprised": {
+  "sha1": "af648e4d73c739ff9bb8adec7c41862398d79a24",
+  "w": 450,
+  "h": 525
+ },
+ "animal-panda-mouth-chew": {
+  "sha1": "981ac0b8bd7a46b79262d50b05349cac5e0e7e34",
+  "w": 450,
+  "h": 525
+ },
+ "animal-panda-mouth-closed": {
+  "sha1": "ff9a560f4a1a5aa5d47d085c268b54cb9d843ecd",
+  "w": 450,
+  "h": 525
+ },
+ "animal-panda-mouth-open": {
+  "sha1": "5034028028fd36b25bf27287957e2e49e28b5775",
+  "w": 450,
+  "h": 525
+ },
+ "animal-puppy-body": {
+  "sha1": "39884feba7033d9f0e758c77c4ca473e48e624a9",
+  "w": 450,
+  "h": 525
+ },
+ "animal-puppy-eyes-blink": {
+  "sha1": "1d153b24f2fc110d30b52240dce0bcfc1af23224",
+  "w": 450,
+  "h": 525
+ },
+ "animal-puppy-eyes-happy": {
+  "sha1": "e4d3fed6b68449395bba6252f0e9fb38233bdcbe",
+  "w": 450,
+  "h": 525
+ },
+ "animal-puppy-eyes-open": {
+  "sha1": "09164699e0f3fd9207f8cd560c0a2ac6d62ddd0e",
+  "w": 450,
+  "h": 525
+ },
+ "animal-puppy-eyes-surprised": {
+  "sha1": "7ef4e924bf404e49493256e53fa0327a6e5aec63",
+  "w": 450,
+  "h": 525
+ },
+ "animal-puppy-mouth-chew": {
+  "sha1": "9b71ca76062d29d5c4a0d7b801be31d9c80a34d2",
+  "w": 450,
+  "h": 525
+ },
+ "animal-puppy-mouth-closed": {
+  "sha1": "dc54b3b15d9f55f58457e9c74877b4c364085ff5",
+  "w": 450,
+  "h": 525
+ },
+ "animal-puppy-mouth-open": {
+  "sha1": "38dc096ff0e07c683262365647ec7a26d610689d",
+  "w": 450,
+  "h": 525
+ },
  "art-easel": {
   "sha1": "fc864a238bf8d38ffcca29b313cc006a6f644e9a",
   "w": 1000,
@@ -509,6 +669,11 @@
   "w": 120,
   "h": 110
  },
+ "clinic-burn": {
+  "sha1": "04890a0ccb969150d717c56f98924dff6b39c47b",
+  "w": 120,
+  "h": 80
+ },
  "clinic-chart": {
   "sha1": "c0d38afd281fe91436f23e3aedfa6a02440756c7",
   "w": 300,
@@ -588,6 +753,11 @@
   "sha1": "eae4b763dcf8801c7f070a5ee797b7e213510ec9",
   "w": 60,
   "h": 80
+ },
+ "clinic-tickle": {
+  "sha1": "7afe618f3b5b0c4b1f176acebbaca1b4aa9399cd",
+  "w": 170,
+  "h": 170
  },
  "clinic-toy": {
   "sha1": "b1305ac15fce65b1250c888fee52a549391cd113",
@@ -1389,6 +1559,46 @@
   "w": 450,
   "h": 525
  },
+ "kid-max-body": {
+  "sha1": "030b2f6f05ea8ea6807a0bf1b2eb93e03e62c1c7",
+  "w": 450,
+  "h": 525
+ },
+ "kid-max-eyes-blink": {
+  "sha1": "038f218b65967837797be921ff600d96b27b00f3",
+  "w": 450,
+  "h": 525
+ },
+ "kid-max-eyes-happy": {
+  "sha1": "bea786ec6c2ca0eac668da8e4b72f8ac4fcdc14b",
+  "w": 450,
+  "h": 525
+ },
+ "kid-max-eyes-open": {
+  "sha1": "9bed677a7aa245a22290fd64a6c5d41357357059",
+  "w": 450,
+  "h": 525
+ },
+ "kid-max-eyes-surprised": {
+  "sha1": "2637745a38e67d41f22a4dec47d0fa9342522bec",
+  "w": 450,
+  "h": 525
+ },
+ "kid-max-mouth-chew": {
+  "sha1": "f57f3f888d43b21db47f0d15ab88c67cc81f9316",
+  "w": 450,
+  "h": 525
+ },
+ "kid-max-mouth-closed": {
+  "sha1": "4b9cb106a7802e684ed0a7db957a11ec8e687fda",
+  "w": 450,
+  "h": 525
+ },
+ "kid-max-mouth-open": {
+  "sha1": "1cae31d69a700204e08bc96c6a775db7a443b91f",
+  "w": 450,
+  "h": 525
+ },
  "kid-mia-body": {
   "sha1": "bfadd3088a5ae00536dd776d5418e88c3691ebe4",
   "w": 450,
@@ -1429,6 +1639,86 @@
   "w": 450,
   "h": 525
  },
+ "kid-noah-body": {
+  "sha1": "51a890c449f57eb5563d1d7604cfcc839172debc",
+  "w": 450,
+  "h": 525
+ },
+ "kid-noah-eyes-blink": {
+  "sha1": "7d7332c13a6c71274c82ae606ebc7a367d31bf21",
+  "w": 450,
+  "h": 525
+ },
+ "kid-noah-eyes-happy": {
+  "sha1": "54a68fa4b032c69dcf38baebc95efaba4ab93e52",
+  "w": 450,
+  "h": 525
+ },
+ "kid-noah-eyes-open": {
+  "sha1": "a2d6a1ff31ecaa7267a4bf4f6071e3870e2c4bd3",
+  "w": 450,
+  "h": 525
+ },
+ "kid-noah-eyes-surprised": {
+  "sha1": "9296b65a145f7c8a7aa2ac761f1fdaf77cfbe12d",
+  "w": 450,
+  "h": 525
+ },
+ "kid-noah-mouth-chew": {
+  "sha1": "2693cca0a7f1622c6d23c088a7cf55a42f77c26c",
+  "w": 450,
+  "h": 525
+ },
+ "kid-noah-mouth-closed": {
+  "sha1": "60d6495b0abec1395e425cc44de76a5880db0070",
+  "w": 450,
+  "h": 525
+ },
+ "kid-noah-mouth-open": {
+  "sha1": "e8f09368ec90093d4d316552769f49b9bb346f0e",
+  "w": 450,
+  "h": 525
+ },
+ "kid-ruby-body": {
+  "sha1": "d7b5ea2037b20ad1e2d16a529dc1f2a8af2535a6",
+  "w": 450,
+  "h": 525
+ },
+ "kid-ruby-eyes-blink": {
+  "sha1": "fa4d93f3dabbcc7583adc21777582a900a866808",
+  "w": 450,
+  "h": 525
+ },
+ "kid-ruby-eyes-happy": {
+  "sha1": "2844387391d65de932f0db7a3831309c5a5f894a",
+  "w": 450,
+  "h": 525
+ },
+ "kid-ruby-eyes-open": {
+  "sha1": "f3132611a50e981673f9a0f8ff85c7b4f18c500b",
+  "w": 450,
+  "h": 525
+ },
+ "kid-ruby-eyes-surprised": {
+  "sha1": "68988277011e35e586d46d31dcae77fab7758804",
+  "w": 450,
+  "h": 525
+ },
+ "kid-ruby-mouth-chew": {
+  "sha1": "5d560dd0e8a7516e6692d2667adca5ea4b5e41cd",
+  "w": 450,
+  "h": 525
+ },
+ "kid-ruby-mouth-closed": {
+  "sha1": "cb62c27c14e63641b46690a92af306648ec8367a",
+  "w": 450,
+  "h": 525
+ },
+ "kid-ruby-mouth-open": {
+  "sha1": "35a8406fe3d48ded44ea86ff9f4271b0bab8a8f7",
+  "w": 450,
+  "h": 525
+ },
  "kid-sam-body": {
   "sha1": "9eb1ca63c227baa438afd594f8884f84e6dd806a",
   "w": 450,
@@ -1466,6 +1756,46 @@
  },
  "kid-sam-mouth-open": {
   "sha1": "6195f6c0e6a17d1f9dcca020d4216b1b030511b4",
+  "w": 450,
+  "h": 525
+ },
+ "kid-zoe-body": {
+  "sha1": "d5c563f35c2bdfad8e4457873dbc2e13dce21d0b",
+  "w": 450,
+  "h": 525
+ },
+ "kid-zoe-eyes-blink": {
+  "sha1": "3561eccbc24ec9ce85a32600c7f613e97ffa95fe",
+  "w": 450,
+  "h": 525
+ },
+ "kid-zoe-eyes-happy": {
+  "sha1": "2868fc6336f21ca2179b1f6c0988f453d0e6245f",
+  "w": 450,
+  "h": 525
+ },
+ "kid-zoe-eyes-open": {
+  "sha1": "9ea3cba58fedcdcc28d12f0ffedc5b6482d6d333",
+  "w": 450,
+  "h": 525
+ },
+ "kid-zoe-eyes-surprised": {
+  "sha1": "dec12ffbb452b056933d3ae3a3c2d0d040bef428",
+  "w": 450,
+  "h": 525
+ },
+ "kid-zoe-mouth-chew": {
+  "sha1": "8b2221dda3b0979b4e30179a1140df7ba0c2bfbf",
+  "w": 450,
+  "h": 525
+ },
+ "kid-zoe-mouth-closed": {
+  "sha1": "1ca06145a0f3d1fb99e66e1c9cc627eb86849ecf",
+  "w": 450,
+  "h": 525
+ },
+ "kid-zoe-mouth-open": {
+  "sha1": "f56d4f83b1cdf122d26c9bbb0a3e48d71db60dc3",
   "w": 450,
   "h": 525
  },
@@ -1716,6 +2046,11 @@
  },
  "lens-skin": {
   "sha1": "ea97b7507dfa5aa91defff07eae5fb8f738a455f",
+  "w": 884,
+  "h": 884
+ },
+ "lens-throat": {
+  "sha1": "043e8cf5ca0c2b8f55e7cabb3a7d84b6216338fc",
   "w": 884,
   "h": 884
  },
@@ -2404,6 +2739,16 @@
   "w": 200,
   "h": 200
  },
+ "sick-sunburn": {
+  "sha1": "938ee0f28a83096ba58aeacbecb59d14887f4fc4",
+  "w": 200,
+  "h": 200
+ },
+ "sick-throat": {
+  "sha1": "837da8ecb8117ded9f20a0bc0b25d2b58f0e02b0",
+  "w": 200,
+  "h": 200
+ },
  "sick-tooth": {
   "sha1": "9f199a3c3f42f19f803f894eb4ebb9af0ad9ddc5",
   "w": 200,
@@ -2539,6 +2884,11 @@
   "w": 400,
   "h": 280
  },
+ "tool-aloe": {
+  "sha1": "14317f23fe0b69350d63acd0b11a3f24cbd007c0",
+  "w": 240,
+  "h": 240
+ },
  "tool-bugspray": {
   "sha1": "53ef0e5f145879c0ae3fa18ba83bb02991a89791",
   "w": 240,
@@ -2571,6 +2921,16 @@
  },
  "tool-filler": {
   "sha1": "489e56f782c44136e7280a414b6155a81c4085f2",
+  "w": 240,
+  "h": 240
+ },
+ "tool-hat": {
+  "sha1": "6ed0d3ebf71e77003b4c21fc4691cf21642a9251",
+  "w": 240,
+  "h": 240
+ },
+ "tool-honey": {
+  "sha1": "4241a605a1f604645362b863112c4f756a86902d",
   "w": 240,
   "h": 240
  },

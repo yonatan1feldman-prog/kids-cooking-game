@@ -472,6 +472,22 @@ MOM_LINES = {
     "vo-bug-hop": "Hee hee! It hopped away!",
     "vo-level-easy": "Easy!",
     "vo-level-hard": "Hard!",
+    # The clinic, round 5 (added 2026-10-09; Voice A only: python make_vo.py mom-a <names>; research/clinic-spec-5.md):
+    # eight more patients, the scratchy throat, the sunburn
+    "vo-hi-cat": "Hello, Mittens! Come in, kitty.",
+    "vo-hi-panda": "Hello, Bao! Come in, little panda.",
+    "vo-hi-bunny": "Hi, Clover! Hop on in.",
+    "vo-hi-puppy": "Hello, Biscuit! Come in, puppy.",
+    "vo-hi-ruby": "Hello, Ruby! Come in.",
+    "vo-hi-noah": "Hi, Noah! Come on in.",
+    "vo-hi-zoe": "Hello, Zoe! In you come.",
+    "vo-hi-max": "Hi, Max! Come on in.",
+    "vo-sick-throat": "Ooh, a scratchy throat. Say aah!",
+    "vo-sick-sunburn": "Too much sun! Let's cool you down.",
+    "vo-tool-honey": "A spoon of honey. Sweet!",
+    "vo-tool-aloe": "Cool aloe gel on every red spot.",
+    "vo-tool-hat": "A sun hat for next time!",
+    "vo-tickles": "Look, little tickles! Spray them away.",
     # More challenge in the games that are not cooking (added 2026-10-09; Voice A only: python make_vo.py mom-a <names>):
     # the garden, the market, washing up, the art corner (research/challenge-spec.md, PR B)
     "vo-not-ripe": "Not ripe yet! Let the sun help it.",
