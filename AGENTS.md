@@ -827,8 +827,11 @@ The owner: "she got bored after a while; add drawing stages, each a different ki
 - **Way in:** a card after the dishes (`card-art`, core; HomeScene `PLAY`), the album one cell on (13 cells). It loads
   `RECIPE_ASSETS.art` (with the art song) and starts `Art`: the easel wall with five picking cards (3 + 2). A finished
   picture goes back to the wall (`scene.restart({ back: true })`), never to the next one by itself; home = two taps.
-- **The scene (`scenes/ArtScene.ts`, on `MiniGame`):** the sheet (1000x800 sheet units, `toWorld`) on `art-easel`
-  between the pot column and Mom's face / Pipa / her pointing arm; every layer is a 2D canvas texture (`layer()`),
+- **The scene (`scenes/ArtScene.ts`, on `MiniGame`):** the sheet (1000x800 sheet units, `toWorld`) on a wooden
+  board drawn in code, as big as it fits (`layout()`, the owner asked for a bigger picture: `art-easel` is no longer
+  shown): from the screen's top, right of the pot column, left of Mom's face / Pipa / her pointing arm; Mom and Pipa
+  step right when a picture starts (her face stays on screen), and on 4:3 the sheet sits above her arm and reaches to
+  her face; the crayon grows with the sheet (`brushShare`); Mom's model (colour, level 2) goes right of it or under it; every layer is a 2D canvas texture (`layer()`),
   strokes are round crayon lines with a glow (`crayon()`), coverage a 24x19 grid. The pictures are data in
   `core/artPictures.ts` (outlines, dots, colour areas as SVG paths with Mom's colours, the butterfly, the hidden things).
   First visit of each kind (`cooking.runs.art-<kind>`): Mom's demo; hint after 8 s (15 s in the open-ended mirror),
