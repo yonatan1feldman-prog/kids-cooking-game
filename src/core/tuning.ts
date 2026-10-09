@@ -374,6 +374,27 @@ export const TUNING = {
     findR: 95, wheezeR: 70, hearR: 330, pull: 170, magnetR: 150, magnetPull: 240, decoys: [1, 2], dodge: 0.5, helpMs: 1100,
     zoomMax: 1.6, problems: [2, 2],
   },
+  /**
+   * The care rooms next door (round 5, part 2; scenes/ClinicCare.ts): the third thing for every patient, in her own room
+   * (core/care.ts). [easy, hard]. Distances are world units x k. `slideMs` the screen's slide to the room.
+   */
+  care: {
+    slideMs: 520,
+    // medicine: taps on the bottle to shake it, spoons of it (Mom counts on hard), the pour
+    shakes: [3, 3], spoons: [1, 2], pourMs: 1100,
+    // bath: bubbles made (one per `foamEvery` of rubbing), the shower takes one off every `rinseMs` held over her,
+    // the towel's rubbing on her head
+    foam: [7, 9], foamEvery: 150, rinseMs: 320, towel: [800, 1000],
+    // bandage: turns of the roll round the limb (Mom counts), how far from its centre the finger may go round;
+    // hard: the arrows' way only, `wrongTurn` radians the other way wobble it once
+    turns: [4, 6], turnR: [40, 330], wrongTurn: 1.4,
+    // polish: teeth to polish, rubbing each
+    teeth: [4, 8], polish: [260, 320],
+    // the eye chart: rounds, shapes on the tray
+    rounds: [3, 3], shapes: [3, 4],
+    // rest: the blanket pulled up (share of the way), the nap after the lamp, snacks fed
+    blanket: 0.85, napMs: 2400, snacks: [2, 2],
+  },
   help: { pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150, chopEveryMs: 950, openMs: 1500, tempEveryMs: 1100, peelEveryMs: 900, candleEveryMs: 700, threadEveryMs: 700 },
 } as const;
 

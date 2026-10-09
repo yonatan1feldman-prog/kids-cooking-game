@@ -1692,6 +1692,43 @@ window.__clinicPlay = async (opts = {}) => {
       }
       __touch('end', 1, ...fingerFor(m.target() ?? { x: start[0], y: start[1] }));
       await __run(gap);
+    } else if (ph === 'care' && m.care) {
+      // round 5, part 2: the care room next door; its plan() says the next gesture (a tool's `at` is its working point)
+      const c = m.care;
+      const pl = c.plan();
+      if (!pl) { await __run(300); continue; }
+      const name = m.shown.careTask;
+      log.push('care ' + m.shown.care + ' ' + name + ' ' + pl.kind);
+      if (pl.kind === 'tap') { if (opts.mid) await opts.mid(log[log.length - 1]); __tap(pl.at.x, pl.at.y); await __run(gap * 1.5); continue; }
+      if (pl.kind === 'drag') {
+        __touch('start', 1, pl.from.x, pl.from.y);
+        for (let q = 1; q <= 10; q++) { __touch('move', 1, pl.from.x + (pl.to.x - pl.from.x) * q / 10, pl.from.y + (pl.to.y - pl.from.y) * q / 10); await __run(40); }
+        if (opts.mid) await opts.mid(log[log.length - 1]);
+        __touch('end', 1, pl.to.x, pl.to.y);
+        await __run(gap);
+        continue;
+      }
+      __touch('start', 1, pl.from.x, pl.from.y);
+      await __run(100);
+      for (let q = 1; q <= 6; q++) { __touch('move', 1, ...fingerFor({ x: pl.from.x + (pl.at.x - pl.from.x) * q / 6, y: pl.from.y + (pl.at.y - pl.from.y) * q / 6 })); await __run(30); }
+      for (let j = 0; j < 160 && m.shown.careTask === name && m.shown.phase === 'care' && m.care === c; j++) {
+        const now = c.plan();
+        if (!now || now.kind === 'tap' || now.kind === 'drag') break;
+        if (j === 2 && opts.mid) await opts.mid(log[log.length - 1]);
+        const g = now.at;
+        if (now.kind === 'rub') {
+          for (let a = 0; a < Math.PI * 2; a += 0.5) __touch('move', 1, ...fingerFor({ x: g.x + Math.cos(a) * now.r, y: g.y + Math.sin(a) * now.r * 0.7 }));
+          await __run(60);
+        } else if (now.kind === 'twirl') {
+          for (let a = 0; a < Math.PI * 2; a += 0.3) __touch('move', 1, ...fingerFor({ x: g.x + Math.cos(a * now.dir) * now.r, y: g.y + Math.sin(a * now.dir) * now.r * 0.8 }));
+          await __run(80);
+        } else {
+          for (let q = 0; q < 3; q++) __touch('move', 1, ...fingerFor({ x: g.x + (q % 2 ? 3 : -3), y: g.y }));
+          await __run(250);
+        }
+      }
+      __touch('end', 1, pl.from.x, pl.from.y);
+      await __run(gap);
     } else await __run(300);
     if (game.scene.isActive('Title')) break;
   }
