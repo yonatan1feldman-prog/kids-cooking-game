@@ -8,7 +8,8 @@ import { addBackground, getLayout, inNoTouchZone, keepLayoutOnResize, ORIENTATIO
 import { cutGrid, helpOrder, makePieceTextures, nextGrid, puzzleFinished, puzzlesDone, type PieceShape } from '../core/puzzle';
 import { sfx } from '../core/sfx';
 import { getStage } from '../core/stage';
-import { AUTO_AFTER_HINT_MS, DEMO_MAX_MS, HINT_AFTER_MS, TUNING } from '../core/tuning';
+import { DEMO_MAX_MS, HELP_MAX_MS, helpAtMs, hintAfterMs, TUNING } from '../core/tuning';
+import { isBigChef } from '../core/level';
 import { iconButton, otherPointerDown } from '../core/ui';
 import { RECIPES } from '../recipes';
 import { Character } from '../steps/Character';
@@ -34,8 +35,8 @@ const PREFIX = 'puzzle-piece';
  * The puzzle (research/puzzle-spec.md): a photo from the memory book, cut into jigsaw pieces at runtime. The whole
  * picture shows first, then it comes apart and the pieces settle beside the board, where the picture stays faint
  * under the piece outlines. She drags a piece near its place and it clicks in; anywhere else it floats gently back
- * (a quiet miss, three in a row show the hint). Mom's hand shows a piece's way after HINT_AFTER_MS, and after
- * AUTO_AFTER_HINT_MS more she puts one piece in herself and gives the puzzle back. All in: the picture is whole
+ * (a quiet miss, three in a row show the hint). Mom's hand shows a piece's way after the hint wait (`hintAfterMs`), and
+ * AUTO_AFTER_HINT_MS later she puts one piece in herself and gives the puzzle back. All in: the picture is whole
  * again, stars, Mom's line, and back to the book. 4 pieces the first time, then 6, 9 and 12 (TUNING.puzzle).
  *
  * One finger owns a piece until it is lifted; no rotation, no timer, no score, nothing to lose (the wellbeing rules).
@@ -54,6 +55,11 @@ export class PuzzleScene extends Phaser.Scene {
   private helping = false;
   private demoOn = false;
   private idle = 0;
+  /** The piece Mom is putting in, and how long that has run (the safety net places it after HELP_MAX_MS). */
+  private helpPiece: Piece | null = null;
+  private helpMs = 0;
+  /** Mom has helped and no finger has touched the screen since: her next help comes sooner (`helpAtMs`). */
+  private quiet = false;
   private hintOn = false;
   private misses = 0;
   private boardBox = { x0: 0, y0: 0, x1: 0, y1: 0 };
@@ -76,6 +82,9 @@ export class PuzzleScene extends Phaser.Scene {
     this.owner = this.held = null;
     this.ready = this.done = this.helping = this.demoOn = this.hintOn = this.leaving = false;
     this.idle = this.misses = 0;
+    this.helpPiece = null;
+    this.helpMs = 0;
+    this.quiet = false;
     this.mine = [];
     this.mom = this.pipa = null;
     this.shown = { ready: false, done: false, cols: 0, rows: 0, n: 0, placed: 0, tray: 0, helped: 0, missed: 0 };
@@ -320,6 +329,8 @@ export class PuzzleScene extends Phaser.Scene {
     if (!p || this.helping) return;
     this.stopHint();
     this.helping = true;
+    this.helpPiece = p;
+    this.helpMs = 0;
     this.shown.helped++;
     if (p.img.input) p.img.input.enabled = false;
     voice.say('vo-help', { ttlMs: 2500, valid: () => this.scene.isActive() && !this.done });
@@ -333,13 +344,18 @@ export class PuzzleScene extends Phaser.Scene {
       delay: 250,
       duration: TUNING.puzzle.helpMs,
       ease: 'Sine.easeInOut',
-      onComplete: () => {
-        this.hand.stop();
-        this.helping = false;
-        this.idle = 0;
-        this.place(p);
-      },
+      onComplete: () => this.helpDone(p),
     });
+  }
+
+  private helpDone(p: Piece) {
+    if (this.helpPiece !== p) return;
+    this.hand.stop();
+    this.helping = false;
+    this.helpPiece = null;
+    this.idle = 0;
+    this.quiet = true;
+    if (!p.placed) this.place(p);
   }
 
   /** Any touch: a demo or a hint gives way at once (the touch still counts for what it lands on). */
@@ -347,7 +363,10 @@ export class PuzzleScene extends Phaser.Scene {
     if (this.demoOn || (this.hintOn && !this.owner)) {
       if (!otherPointerDown(this, p)) this.stopHint();
     }
-    if (!otherPointerDown(this, p)) this.idle = 0;
+    if (!otherPointerDown(this, p)) {
+      this.idle = 0;
+      this.quiet = false;
+    }
   }
 
   private onDown(p: Phaser.Input.Pointer, obj: Phaser.GameObjects.GameObject) {
@@ -472,9 +491,13 @@ export class PuzzleScene extends Phaser.Scene {
       this.mom?.lookAt(at.x, at.y);
       this.pipa?.lookAt(at.x, at.y);
     }
+    // Safety net (as in MiniGame): a piece Mom is putting in lands after HELP_MAX_MS whatever happened to its motion
+    // (a rotation or a paused scene cutting it short), or the puzzle would wait for it forever.
+    if (this.helping && this.helpPiece && (this.helpMs += delta) > HELP_MAX_MS) this.helpDone(this.helpPiece);
     if (!this.ready || this.done || this.helping || this.demoOn || this.owner) return;
     this.idle += delta;
-    if (!this.hintOn && this.idle >= HINT_AFTER_MS) this.showWay(true);
-    if (this.idle >= HINT_AFTER_MS + AUTO_AFTER_HINT_MS) this.help();
+    const hint = hintAfterMs(isBigChef(), this.quiet);
+    if (!this.hintOn && this.idle >= hint) this.showWay(true);
+    if (this.idle >= helpAtMs(hint, this.quiet)) this.help();
   }
 }

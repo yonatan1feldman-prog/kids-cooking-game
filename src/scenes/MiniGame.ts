@@ -5,7 +5,7 @@ import { confetti, tickles, touchRipples } from '../core/juice';
 import { getLayout, inNoTouchZone, keepLayoutOnResize, ORIENTATION_PAUSE, type Layout } from '../core/layout';
 import { getLevel, type Level } from '../core/level';
 import { getStage, type Stage } from '../core/stage';
-import { AUTO_AFTER_HINT_MS, DEMO_MAX_MS, HINT_AFTER_MS } from '../core/tuning';
+import { AUTO_AFTER_HINT_MS, DEMO_MAX_MS, HELP_MAX_MS, helpAtMs, hintAfterMs } from '../core/tuning';
 import { iconButton, otherPointerDown } from '../core/ui';
 import { RECIPES } from '../recipes';
 import { Character } from '../steps/Character';
@@ -13,9 +13,6 @@ import { Mom } from '../steps/Mom';
 import { assetsReady } from './BootScene';
 
 export type P = { x: number; y: number };
-
-/** The longest one piece of Mom's help may take before the turn is given back anyway. */
-const HELP_MAX_MS = 15000;
 
 /** How many times this game has been played on this device (only to show Mom's demos the first time; never shown). */
 export function visits(id: string): number {
@@ -27,6 +24,20 @@ export function visits(id: string): number {
   } catch {
     return 1;
   }
+}
+
+/** The index of the point nearest to `at` within `r`, or -1 (a tap on crowded cards picks the one under the finger). */
+export function nearestIn(points: P[], at: P, r: number): number {
+  let best = -1;
+  let bd = r;
+  points.forEach((q, i) => {
+    const d = Math.hypot(at.x - q.x, at.y - q.y);
+    if (d <= bd) {
+      bd = d;
+      best = i;
+    }
+  });
+  return best;
 }
 
 /** The difficulty the mini-games play at: the game's own level (`core/level.ts`); `window.__level` (the test harness) overrides it. */
@@ -60,6 +71,8 @@ export abstract class MiniGame extends Phaser.Scene {
   private demoOn = false;
   private hintOn = false;
   private idle = 0;
+  /** Mom has helped and no finger has touched the screen since: her next help comes sooner (`helpAtMs`). */
+  private quiet = false;
   private misses = 0;
   /** How long Mom's current help piece has been running (a safety net: it always gives the turn back). */
   private helpMs = 0;
@@ -93,7 +106,7 @@ export abstract class MiniGame extends Phaser.Scene {
   protected tick(_delta: number): void {}
   /** Ms without progress before the hint, and further ms before Mom's help (free drawing waits longer). */
   protected hintAfter(): number {
-    return HINT_AFTER_MS;
+    return hintAfterMs(this.level === 2, this.quiet);
   }
   protected helpAfter(): number {
     return AUTO_AFTER_HINT_MS;
@@ -103,6 +116,7 @@ export abstract class MiniGame extends Phaser.Scene {
     this.phase = 'intro';
     this.leaving = this.helping = this.demoOn = this.hintOn = false;
     this.idle = this.misses = this.helpMs = 0;
+    this.quiet = false;
     this.owner = null;
     this.mom = this.pipa = null;
     this.shown = { phase: 'intro', helped: 0, missed: 0, done: false };
@@ -163,8 +177,9 @@ export abstract class MiniGame extends Phaser.Scene {
 
   // ---------------------------------------------------------------- helpers
 
-  protected say(key: VoiceKey, opts: { ttlMs?: number; done?: () => void; group?: string; sequence?: boolean } = {}) {
-    voice.say(key, { ttlMs: 4000, ...opts, valid: () => this.scene.isActive() && !this.leaving });
+  protected say(key: VoiceKey, opts: { ttlMs?: number; done?: () => void; group?: string; sequence?: boolean; valid?: () => boolean } = {}) {
+    const still = opts.valid;
+    voice.say(key, { ttlMs: 4000, ...opts, valid: () => this.scene.isActive() && !this.leaving && (!still || still()) });
   }
 
   protected leave(from: 'recipe' | 'finale') {
@@ -295,6 +310,7 @@ export abstract class MiniGame extends Phaser.Scene {
     this.hand.stop();
     this.helping = false;
     this.idle = 0;
+    this.quiet = true;
   }
 
   // ---------------------------------------------------------------- touch
@@ -304,6 +320,7 @@ export abstract class MiniGame extends Phaser.Scene {
     // Any touch ends a demo or a hint (the touch still counts for what it lands on).
     if (this.demoOn || (this.hintOn && !this.owner)) this.stopHint();
     this.idle = 0;
+    this.quiet = false;
     if (this.owner || this.helping || this.leaving) return;
     if (inNoTouchZone(this, p.x, p.y)) return;
     if (this.near({ x: p.worldX, y: p.worldY }, this.S.home, 130 * this.L.k)) return;
@@ -328,6 +345,6 @@ export abstract class MiniGame extends Phaser.Scene {
     if (!this.waiting.includes(this.phase) || this.helping || this.demoOn || this.owner || this.leaving) return;
     this.idle += delta;
     if (!this.hintOn && this.idle >= this.hintAfter()) this.showWay(true);
-    if (this.idle >= this.hintAfter() + this.helpAfter()) this.help();
+    if (this.idle >= helpAtMs(this.hintAfter(), this.quiet, this.helpAfter())) this.help();
   }
 }

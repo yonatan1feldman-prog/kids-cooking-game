@@ -201,7 +201,7 @@ export class DecorateStep extends Step<DecorateParams> {
       parts.push(img);
     }
     const at = this.modelSpot(R + 18 * k);
-    const card = this.own(this.scene.add.container(at.x, at.y, parts).setDepth(6).setScale(0));
+    const card = this.own(this.scene.add.container(at.x, at.y, parts).setDepth(25).setScale(0));
     this.model = { items, card, done: false };
     this.scene.tweens.add({ targets: card, scale: 1, duration: 380, ease: 'Back.easeOut', delay: 250 });
     this.scene.time.delayedCall(250, () => sfx(this.scene, 'pop', { volume: 0.5 }));

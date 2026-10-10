@@ -963,7 +963,8 @@ export class ClinicCare {
         boing(self.sc, f, 0.2);
         self.bubble(f.x, f.y);
         sfx(self.sc, 'pop', { minGapMs: 100, volume: 0.4 });
-        self.h.poke();
+        // (a miss, like every search: three in a row bring Mom's hint at once, instead of keeping it away)
+        self.h.miss();
         return true;
       },
       way: () => (under ? tapMotion({ x: under.x, y: under.y }, self.k) : null),

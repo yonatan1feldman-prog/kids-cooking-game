@@ -11,7 +11,7 @@ import { sfx } from '../core/sfx';
 import type { Spot } from '../core/stage';
 import type { CharacterDef } from '../recipes/types';
 import { Character } from '../steps/Character';
-import { MiniGame, type P } from './MiniGame';
+import { MiniGame, nearestIn, type P } from './MiniGame';
 
 /** The animals' frame (800x700, feet at y 684, facing left). */
 const FW = 800;
@@ -227,7 +227,7 @@ export class FarmScene extends MiniGame {
     this.add.image(L.W / 2, L.H, 'bg-farm').setOrigin(0.5, 1).setScale(bg).setDepth(-100);
     // the fence across the whole farm, its foot on the grass: the animals peek over it
     const fenceFoot = L.H - (1080 - 880) * bg;
-    this.add.image(L.W / 2, fenceFoot, 'farm-fence').setOrigin(0.5, 1).setScale(bg).setDepth(4);
+    this.add.image(L.W / 2, fenceFoot, 'farm-fence').setOrigin(0.5, 1).setScale(bg).setDepth(3.95); // (just under Mom, 4: she stands in front of it whatever the order they were added in)
     const fenceTop = fenceFoot - 240 * bg;
 
     const petLeft = S.pet ? S.pet.x - 270 * S.pet.scale : Infinity;
@@ -1719,6 +1719,8 @@ export class FarmScene extends MiniGame {
           this.tweens.add({ targets: held.img, angle: 360, duration: 360 });
           h.egg = held.img;
           this.say('vo-hens-colour', { ttlMs: 3000 });
+          // (and the colour itself, so a child who does not see the difference hears which basket)
+          this.say(h.eggColour === 'white' ? 'name-white' : 'name-brown', { ttlMs: 6000, group: 'name' });
           this.miss();
           return true;
         }
@@ -2358,7 +2360,8 @@ export class FarmScene extends MiniGame {
         return;
       }
       case 'chore': {
-        const i = this.cards.findIndex((c) => this.near(at, c.at, 125 * k));
+        // (the nearest card within reach, not the first: on 4:3 the cards sit close together)
+        const i = nearestIn(this.cards.map((c) => c.at), at, 125 * k);
         if (i >= 0) return this.tapCard(i);
         const view = this.cur?.view;
         if (view?.hit(at.x, at.y)) view.tickle();

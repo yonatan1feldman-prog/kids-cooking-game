@@ -8,7 +8,7 @@ import { getLayout, inNoTouchZone, keepLayoutOnResize, ORIENTATION_PAUSE, type L
 import { sfx } from '../core/sfx';
 import { getLevel } from '../core/level';
 import { getStage } from '../core/stage';
-import { AUTO_AFTER_HINT_MS, DEMO_MAX_MS, HINT_AFTER_MS, TUNING } from '../core/tuning';
+import { DEMO_MAX_MS, HELP_MAX_MS, helpAtMs, hintAfterMs, TUNING } from '../core/tuning';
 import { iconButton, otherPointerDown } from '../core/ui';
 import { RECIPES } from '../recipes';
 import { Character } from '../steps/Character';
@@ -161,7 +161,7 @@ function gardenRuns(): number {
  *
  * Like every step: one finger owns what it holds until it is lifted; nothing is timed and nothing can go wrong (a
  * thing let go anywhere else goes gently back, three in a row show the hint); the first time Mom's hand shows each
- * part once, after HINT_AFTER_MS her hand shows it again, and after AUTO_AFTER_HINT_MS more she does one piece herself
+ * part once, after the hint wait (`hintAfterMs`) her hand shows it again, and after AUTO_AFTER_HINT_MS more she does one piece herself
  * ("Let me help you!") and gives it back. Every motion answers her (the cloud and the snail come as the next part).
  */
 export class GardenScene extends Phaser.Scene {
@@ -181,6 +181,10 @@ export class GardenScene extends Phaser.Scene {
   private hintOn = false;
   private helping = false;
   private idle = 0;
+  /** How long Mom's current help has run (the safety net gives the turn back after HELP_MAX_MS). */
+  private helpMs = 0;
+  /** Mom has helped and no finger has touched the screen since: her next help comes sooner (`helpAtMs`). */
+  private quiet = false;
   private misses = 0;
   private leaving = false;
   private owner: Phaser.Input.Pointer | null = null;
@@ -239,6 +243,8 @@ export class GardenScene extends Phaser.Scene {
     this.phase = 'intro';
     this.demoOn = this.hintOn = this.helping = this.leaving = false;
     this.idle = this.misses = this.picked = this.dropT = 0;
+    this.helpMs = 0;
+    this.quiet = false;
     this.owner = null;
     this.held = null;
     this.mom = this.pipa = null;
@@ -2229,6 +2235,12 @@ export class GardenScene extends Phaser.Scene {
   /** "Let me help you!": Mom's hand does one piece of the current part, then it is hers again. */
   private help() {
     if (this.helping) return;
+    this.helpPiece();
+    // (no piece to help with right now: the idle clock starts again, so the hint does not come back at once)
+    if (!this.helping) this.idle = 0;
+  }
+
+  private helpPiece() {
     const L = this.L;
     const k = L.k;
     const phase = this.phase;
@@ -2236,10 +2248,12 @@ export class GardenScene extends Phaser.Scene {
       this.hand.stop();
       this.helping = false;
       this.idle = 0;
+      this.quiet = true;
     };
     const go = (fn: () => void) => {
       this.stopHint();
       this.helping = true;
+      this.helpMs = 0;
       this.shown.helped++;
       voice.say('vo-help', { ttlMs: 2500, valid: () => this.scene.isActive() && !this.leaving });
       fn();
@@ -2461,6 +2475,7 @@ export class GardenScene extends Phaser.Scene {
     // Any touch ends a demo or a hint (the touch still counts for what it lands on).
     if (this.demoOn || (this.hintOn && !this.owner)) this.stopHint();
     this.idle = 0;
+    this.quiet = false;
     if (this.owner || this.helping || this.leaving) return;
     if (inNoTouchZone(this, p.x, p.y)) return;
     const S = getStage(this.L);
@@ -2871,10 +2886,18 @@ export class GardenScene extends Phaser.Scene {
       this.mom?.lookAt(at.x, at.y);
       this.pipa?.lookAt(at.x, at.y);
     }
+    // Safety net (as in MiniGame): Mom's help gives the turn back after HELP_MAX_MS whatever happened to its motion
+    // (a rotation or a paused scene cutting it short), or the idle clock would wait for it forever.
+    if (this.helping && (this.helpMs += delta) > HELP_MAX_MS) {
+      this.hand.stop();
+      this.helping = false;
+      this.idle = 0;
+    }
     const active = ['seeds', 'weeds', 'plant', 'scare', 'water', 'rain', 'cloud', 'sun', 'bfly', 'cater', 'snail', 'bunny', 'pick'].includes(this.phase);
     if (!active || this.helping || this.demoOn || this.owner) return;
     this.idle += delta;
-    if (!this.hintOn && this.idle >= HINT_AFTER_MS) this.showWay(true);
-    if (this.idle >= HINT_AFTER_MS + AUTO_AFTER_HINT_MS) this.help();
+    const hint = hintAfterMs(this.hard, this.quiet);
+    if (!this.hintOn && this.idle >= hint) this.showWay(true);
+    if (this.idle >= helpAtMs(hint, this.quiet)) this.help();
   }
 }
