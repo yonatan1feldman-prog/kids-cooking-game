@@ -1535,10 +1535,10 @@ export class ClinicScene extends MiniGame {
     sfx(this, 'squeak', { minGapMs: 0, volume: 0.3, rate: 1.4 });
     if (!this.stillSaid) {
       this.stillSaid = true;
-      // (a longer wait than most lines: Mom is often still talking when the first blink comes; it is said as long as
-      // the eye drops are still being given)
-      const zoom = z;
-      this.say('vo-hold-still', { ttlMs: 8000, valid: () => this.zoom === zoom && this.station?.act === 'drops' });
+      // (a longer wait than most lines: Mom is often still talking when the first blink comes, and a quick child has
+      // given the last drop by the time she has finished; it is said while this patient is still being treated)
+      const cur = this.cur;
+      this.say('vo-hold-still', { ttlMs: 8000, valid: () => this.cur === cur });
     }
   }
 
