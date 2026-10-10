@@ -335,9 +335,10 @@ export class FlipStep extends Step<FlipParams> {
         cake.setDepth(3 + n * 0.01);
         this.stack.push(cake);
         sfx(this.scene, 'pop', { volume: 0.5 });
-        voice.say(countKey(n), { group: 'count', sequence: true, ttlMs: 5000 });
+        // (behind "Whee! Golden brown!": a count waits its turn, it is never dropped)
+        voice.say(countKey(n), { group: 'count', sequence: true, ttlMs: 12000 });
         if (n < p.count) {
-          voice.say(p.moreLine, { ttlMs: 5000 });
+          voice.say(p.moreLine, { ttlMs: 8000 });
           this.next();
         } else this.finish();
       },

@@ -399,7 +399,13 @@ export const TUNING = {
     // rest: the blanket pulled up (share of the way), the nap after the lamp, snacks fed
     blanket: 0.85, napMs: 2400, snacks: [2, 2],
   },
-  help: { pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150, chopEveryMs: 950, openMs: 1500, tempEveryMs: 1100, peelEveryMs: 900, candleEveryMs: 700, threadEveryMs: 700 },
+  /**
+   * Mom's help. `againMs`: once she has helped and the child has not touched the screen since, the next help comes
+   * after this much idle (the hint `againHintMs` before it) instead of the hint + help times; any touch resets it.
+   * `netMs`: a help that has not handed the step back or finished it by then hands it back by itself (never stuck).
+   * The rest: the pace of her own presses, rubs and strokes.
+   */
+  help: { againMs: 12000, againHintMs: 4000, netMs: 30000, pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150, chopEveryMs: 950, openMs: 1500, tempEveryMs: 1100, peelEveryMs: 900, candleEveryMs: 700, threadEveryMs: 700 },
 } as const;
 
 /** How a cut is made on the current level (`cut`, with `big.cut` on the big-chef level). */
