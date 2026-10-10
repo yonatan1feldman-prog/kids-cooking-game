@@ -60,7 +60,8 @@ export default defineConfig({
         ignoreURLParametersMatching: [/^utm_/, /^fbclid$/, /^v$/],
         runtimeCaching: [
           {
-            urlPattern: ({ url }) => url.pathname.startsWith(`${BASE}assets/`) && url.searchParams.has('v'),
+            // (a regex, not a function: the function would be copied into sw.js without BASE)
+            urlPattern: new RegExp(`${BASE}assets/.*[?&]v=`),
             handler: 'CacheFirst',
             options: {
               cacheName: 'world-assets',

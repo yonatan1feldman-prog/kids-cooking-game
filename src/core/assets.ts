@@ -128,8 +128,6 @@ export const IMAGES = {
   'btn-home': { size: [240, 240] },
   'btn-done': { size: [240, 240] },
   'card-pizza': { size: [400, 520] },
-  /** The title's logo (lettering is part of the art, the only words ever drawn; the child doesn't need to read it). */
-  'logo-cooking-with-mom': { size: [900, 400] },
   /** One topping bin in the decorating step (the topping is drawn on top of it). */
   'topping-bin': { size: [240, 240] },
 
@@ -856,7 +854,7 @@ export const SCENERY_KEYS: readonly ImageKey[] = [
 ];
 
 export const CORE_IMAGES: readonly ImageKey[] = [
-  'bg-kitchen-landscape', ...KITCHEN_KEYS, ...SCENERY_KEYS, 'logo-cooking-with-mom', 'star', 'world-card-kitchen', 'world-card-clinic', 'btn-home', 'btn-done',
+  'bg-kitchen-landscape', ...KITCHEN_KEYS, ...SCENERY_KEYS, 'star', 'world-card-kitchen', 'world-card-clinic', 'btn-home', 'btn-done',
   'card-pizza', 'card-salad', 'card-cookies', 'card-smoothie', 'card-pancakes', 'card-soup', 'card-cake',
   'card-skewers', 'card-garden', 'card-market', 'card-dishes', 'card-art', 'card-farm',
   'character-body', 'character-eyes-open', 'character-eyes-blink', 'character-eyes-surprised', 'character-eyes-happy',
