@@ -16,7 +16,12 @@ const worldFiles = [...new Set(Object.values(worldOnlyFiles(process.cwd())).flat
 export default defineConfig({
   base: BASE,
   server: { host: true, port: 5173 },
-  build: { chunkSizeWarningLimit: 2000 },
+  build: {
+    chunkSizeWarningLimit: 2000,
+    // Phaser in its own file: it is the same in every version, so after a deploy the phone keeps it (its name only
+    // changes when Phaser does) and downloads only the game's own code again.
+    rollupOptions: { output: { manualChunks: (id) => (id.includes('node_modules/phaser/') ? 'phaser' : undefined) } },
+  },
   plugins: [
     assetManifest(),
     VitePWA({

@@ -23,6 +23,8 @@
       await __run(100);
       await new Promise((r) => setTimeout(r, 50));
     }
+    // (since the polish round the home screen waits for its own art, loaded in real time after the title: wait for all of it)
+    for (let i = 0; i < 400 && !window.__loadTiming?.all; i++) await new Promise((r) => setTimeout(r, 50));
     window.__S = g.getBoundingClientRect().width / game.scale.width;
     game.scene.getScenes(true).forEach((s) => s.scene.stop());
     await __run(50);
