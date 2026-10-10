@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import manifest from 'virtual:asset-manifest';
 import { refreshAlbumCount } from '../core/album';
 import { refreshWallDrawing, WALL_DRAWING } from '../core/artWall';
-import { CORE_IMAGES, FX_DOT, KITCHEN_KEYS, FX_SOFT, IMAGES, RECIPE_ASSETS, textureSize, unlistedImages, type ImageKey } from '../core/assets';
+import { CORE_IMAGES, FX_DOT, KITCHEN_KEYS, FX_SOFT, IMAGES, RECIPE_ASSETS, SCENERY_KEYS, textureSize, unlistedImages, type ImageKey } from '../core/assets';
 import { loadRecipeSounds, loadSounds, releaseSounds } from '../core/audio';
 import { ensurePlaceholders, makeFxTextures, makeUiTextures } from '../core/placeholders';
 import { SUNBEAM_KEY } from '../core/scenery';
@@ -11,15 +11,33 @@ import { loadSvgTexture, loadWebpTexture } from '../core/svgRaster';
 /** Asset paths in the manifest are relative to the site root; the game lives under BASE_URL. */
 const url = (p: string) => import.meta.env.BASE_URL + p;
 
-/** What the title and home screens show: loaded first, so the title appears quickly (with its play button). */
-const EARLY: ImageKey[] = ['bg-kitchen-landscape', ...KITCHEN_KEYS, 'world-card-kitchen', 'world-card-clinic', 'star', ...CORE_IMAGES.filter((k) => k.startsWith('card-'))];
-/** Loaded right after: the title's logo, Mom, Pipa and Mom's pointing hand. They fade in on the title when ready. */
+/**
+ * Load groups (polish round, the loading time): each screen waits only for what it draws.
+ * - EARLY: what the title draws at once (the background, the two game cards, the star; the level stars are drawn in
+ *   code). The title starts the moment these are in.
+ * - TITLE_ART: Mom, Pipa, the logo and Mom's pointing hand. They fade in on the title when ready.
+ * - HOME_ART: the living kitchen's pieces (they join the background as each comes in), the home screen's cards and
+ *   the home button. The home screen waits for this group only.
+ * - PLAY_ART: the rest of what every recipe and game needs (Mom's demo hands, the buttons). A card tap waits for this
+ *   group (`assetsReady`), then loads the recipe's own art.
+ * - SCENERY: the window's garden, the cat, the clock, the sill (core/scenery.ts): each joins when it is in; nothing waits.
+ * Everything goes through one queue, at most `PARALLEL` at a time, in this order (a recipe's own art goes before the
+ * scenery), so the title keeps drawing and answering her taps while the pictures go to the GPU a few at a time.
+ */
+const EARLY: ImageKey[] = ['bg-kitchen-landscape', 'world-card-kitchen', 'world-card-clinic', 'star'];
 const TITLE_ART: ImageKey[] = [
   'logo-cooking-with-mom',
   ...CORE_IMAGES.filter((k) => (k.startsWith('mom-') && !k.startsWith('mom-hand-')) || k.startsWith('character-')),
   'mom-hand-point',
 ];
+const HOME_ART: ImageKey[] = [...KITCHEN_KEYS, ...CORE_IMAGES.filter((k) => k.startsWith('card-')), 'btn-home'];
+const SCENERY: readonly ImageKey[] = SCENERY_KEYS;
+const PLAY_ART: ImageKey[] = CORE_IMAGES.filter((k) => ![...EARLY, ...TITLE_ART, ...HOME_ART, ...SCENERY].includes(k));
+const PRIORITY = { early: 50, title: 40, home: 30, play: 20, recipe: 15, scenery: 5 } as const;
+const PARALLEL = 6;
 
+let homeArt: Promise<void> | null = null;
+let playArt: Promise<void> | null = null;
 let everything: Promise<void> | null = null;
 
 // Pre-rendered WebP where it matches the current SVG (fast), else the SVG rasterized here (slow filters).
@@ -28,9 +46,66 @@ const load = async (textures: Phaser.Textures.TextureManager, k: ImageKey) =>
   loadSvgTexture(textures, k, url(manifest.images[k]), textureSize(k));
 const exists = (k: ImageKey) => !!manifest.images[k];
 
+/** The image queue: at most PARALLEL loads at a time, the highest priority first (in the order asked within one). */
+const queue: { k: ImageKey; prio: number; seq: number; run: () => void }[] = [];
+const inFlight = new Map<ImageKey, Promise<void>>();
+let running = 0;
+let seq = 0;
+function fetchImage(textures: Phaser.Textures.TextureManager, k: ImageKey, prio: number): Promise<void> {
+  const known = inFlight.get(k);
+  if (known) {
+    // Asked again with more hurry (a recipe needs a picture the scenery queued): it moves up.
+    const q = queue.find((j) => j.k === k);
+    if (q && q.prio < prio) q.prio = prio;
+    return known;
+  }
+  const p = new Promise<void>((resolve) => {
+    queue.push({
+      k,
+      prio,
+      seq: seq++,
+      run: () =>
+        load(textures, k)
+          .then(
+            () => undefined,
+            (err) => console.warn('[assets] image loading error', k, err),
+          )
+          .finally(() => {
+            running--;
+            inFlight.delete(k);
+            resolve();
+            pump();
+          }),
+    });
+  });
+  inFlight.set(k, p);
+  pump();
+  return p;
+}
+function pump() {
+  while (running < PARALLEL && queue.length) {
+    let best = 0;
+    for (let i = 1; i < queue.length; i++) {
+      const a = queue[i];
+      const b = queue[best];
+      if (a.prio > b.prio || (a.prio === b.prio && a.seq < b.seq)) best = i;
+    }
+    const job = queue.splice(best, 1)[0];
+    running++;
+    job.run();
+  }
+}
+/** Loads `keys` (those on disk and not loaded yet) through the queue. */
+const fetchAll = (textures: Phaser.Textures.TextureManager, keys: readonly ImageKey[], prio: number) =>
+  Promise.all(keys.filter((k) => exists(k) && !textures.exists(k)).map((k) => fetchImage(textures, k, prio))).then(() => undefined);
+
 /** The recipe whose images and sounds are loaded (or loading) now, with its promise and load time. */
 let current: { id: string; ready: Promise<void>; done?: boolean } | null = null;
-const timing: { images?: number; total?: number; all?: number; recipe?: Record<string, number> } = { recipe: {} };
+/**
+ * Load times, ms (for the console and the test harness, `window.__loadTiming`): `images` / `total` = the title's own
+ * images since boot / since the page started; `title`, `home`, `play`, `all` = each group in, since the page started.
+ */
+const timing: { images?: number; total?: number; title?: number; home?: number; play?: number; all?: number; recipe?: Record<string, number> } = { recipe: {} };
 
 /**
  * Loads a recipe's own images and sounds (RECIPE_ASSETS in the contract) after the core; resolves when they are in
@@ -41,14 +116,12 @@ export function recipeAssets(game: Phaser.Game, id: string): Promise<void> {
   releaseRecipe(game);
   const own = RECIPE_ASSETS[id] ?? { images: [], sounds: [] };
   const me: { id: string; ready: Promise<void>; done?: boolean } = { id, ready: Promise.resolve() };
+  const t0 = performance.now();
+  // Its sounds start at once (they don't compete with the pictures for the GPU); its pictures queue right behind
+  // what every game needs (`assetsReady`), ahead of the window's scenery.
+  const sounds = loadRecipeSounds(own.sounds);
   me.ready = assetsReady().then(async () => {
-    const t0 = performance.now();
-    await Promise.all([
-      Promise.all(own.images.filter((k) => exists(k) && !game.textures.exists(k)).map((k) => load(game.textures, k))).catch((err) =>
-        console.warn('[assets] image loading error', err),
-      ),
-      loadRecipeSounds(own.sounds),
-    ]);
+    await Promise.all([fetchAll(game.textures, own.images, PRIORITY.recipe), sounds]);
     if (current !== me) return; // released while loading (never in play: home can't be left mid-load)
     const drawn = ensurePlaceholders(game, own.images);
     if (drawn.length) console.info(`[assets] placeholders in use (${drawn.length}): ${drawn.join(', ')}`);
@@ -98,8 +171,21 @@ export function titleArtReady(): Promise<void> {
 let titleArtIn = false;
 export const titleArtLoaded = () => titleArtIn;
 
-/** Resolves once every core image (and the placeholders for missing ones) is ready. Home waits on it before a recipe. */
+/** Resolves once the home screen's cards and button are ready (or stood in for). */
+export function homeArtReady(): Promise<void> {
+  return homeArt ?? Promise.resolve();
+}
+
+/**
+ * Resolves once everything a recipe or game needs from the core is ready: Mom, Pipa, the demo hands, the buttons (and
+ * placeholders for missing ones). A card tap waits on it; the window's scenery may still be coming in.
+ */
 export function assetsReady(): Promise<void> {
+  return playArt ?? Promise.resolve();
+}
+
+/** Resolves once every core image is in, the scenery too (nothing has to wait for it). */
+export function allCoreReady(): Promise<void> {
   return everything ?? Promise.resolve();
 }
 
@@ -125,29 +211,36 @@ export class BootScene extends Phaser.Scene {
     void refreshWallDrawing(this.game);
 
     const textures = this.textures;
-    const loadOne = (k: ImageKey) => load(textures, k);
     warnUnloaded(textures);
     const unlisted = unlistedImages();
     if (unlisted.length) console.warn(`[assets] in no recipe and not core (RECIPE_ASSETS): ${unlisted.join(', ')}`);
+    // Sounds start now, the title's few first (the hello line, the game names): they are fetched and decoded beside the
+    // pictures, off the main thread, so the first tap is heard even right after an install or an update.
+    loadSounds(this.game, (key) => url(key));
 
     const t0 = performance.now();
-    const early = Promise.all(EARLY.filter(exists).map(loadOne)).catch((err) => console.warn('[assets] image loading error', err));
-    titleArt = early
-      .then(() => Promise.all(TITLE_ART.filter(exists).map(loadOne)))
-      .catch((err) => console.warn('[assets] image loading error', err))
-      .then(() => {
-        ensurePlaceholders(this.game, TITLE_ART.filter((k) => k !== 'logo-cooking-with-mom'));
-        titleArtIn = true;
-      });
-    const rest = titleArt.then(() => Promise.all(CORE_IMAGES.filter((k) => exists(k) && !EARLY.includes(k) && !TITLE_ART.includes(k)).map(loadOne)));
-    everything = rest
-      .catch((err) => console.warn('[assets] image loading error', err))
-      .then(() => {
-        const drawn = ensurePlaceholders(this.game, CORE_IMAGES);
-        if (drawn.length) console.info(`[assets] placeholders in use (${drawn.length}): ${drawn.join(', ')}`);
-        timing.all = Math.round(performance.now() - t0);
-        console.info(`[assets] core images ready ${timing.all} ms after boot`);
-      });
+    const since = () => Math.round(performance.now());
+    const early = fetchAll(textures, EARLY, PRIORITY.early);
+    titleArt = fetchAll(textures, TITLE_ART, PRIORITY.title).then(() => {
+      ensurePlaceholders(this.game, TITLE_ART.filter((k) => k !== 'logo-cooking-with-mom'));
+      titleArtIn = true;
+      timing.title = since();
+    });
+    homeArt = fetchAll(textures, HOME_ART, PRIORITY.home).then(() => {
+      ensurePlaceholders(this.game, HOME_ART);
+      timing.home = since();
+    });
+    playArt = Promise.all([titleArt, homeArt, fetchAll(textures, PLAY_ART, PRIORITY.play)]).then(() => {
+      ensurePlaceholders(this.game, PLAY_ART);
+      timing.play = since();
+      console.info(`[assets] ready to play ${timing.play} ms after page start`);
+    });
+    everything = Promise.all([playArt, fetchAll(textures, SCENERY, PRIORITY.scenery)]).then(() => {
+      const drawn = ensurePlaceholders(this.game, CORE_IMAGES);
+      if (drawn.length) console.info(`[assets] placeholders in use (${drawn.length}): ${drawn.join(', ')}`);
+      timing.all = since();
+      console.info(`[assets] core images ready ${timing.all} ms after page start`);
+    });
     (window as unknown as { __loadTiming: typeof timing }).__loadTiming = timing;
 
     early.then(() => {
@@ -159,7 +252,6 @@ export class BootScene extends Phaser.Scene {
       timing.images = Math.round(t1 - t0);
       timing.total = Math.round(t1);
       console.info(`[assets] title images ready in ${timing.images} ms, title at ${timing.total} ms after page start`);
-      loadSounds(this.game, (key) => url(key));
       this.scene.start('Title');
     });
   }
@@ -171,9 +263,7 @@ export class BootScene extends Phaser.Scene {
  */
 export async function loadImages(game: Phaser.Game, keys: readonly ImageKey[]): Promise<void> {
   await assetsReady();
-  await Promise.all(keys.filter((k) => exists(k) && !game.textures.exists(k)).map((k) => load(game.textures, k))).catch((err) =>
-    console.warn('[assets] image loading error', err),
-  );
+  await fetchAll(game.textures, keys, PRIORITY.recipe);
   ensurePlaceholders(game, keys);
 }
 
