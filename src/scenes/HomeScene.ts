@@ -11,6 +11,7 @@ import { iconButton } from '../core/ui';
 import { RECIPES } from '../recipes';
 import { Character } from '../steps/Character';
 import { Mom } from '../steps/Mom';
+import { worldReady } from '../core/worldCache';
 import { homeArtReady, recipeAssets, releaseRecipe, titleArtReady } from './BootScene';
 
 /**
@@ -133,10 +134,24 @@ export class HomeScene extends Phaser.Scene {
           stars(this, card.x, card.y, 14, 70 * L.k);
           voice.say(g.line, { ttlMs: 3000 });
           mom?.wave();
-          const spin = this.time.delayedCall(250, () => loading(card.x, card.y + card.displayHeight * 0.1));
-          Promise.all([recipeAssets(this.game, g.id), new Promise((r) => this.time.delayedCall(350, r))]).then(() => {
-            spin.remove();
-            if (this.scene.isActive()) this.scene.start(g.scene);
+          let shown: Phaser.GameObjects.GameObject[] = [];
+          const spin = this.time.delayedCall(250, () => (shown = loading(card.x, card.y + card.displayHeight * 0.1)));
+          const delay = new Promise((r) => this.time.delayedCall(350, r));
+          // The farm's files are not in the install (core/worldCache.ts): if they can't be had (offline before the
+          // first visit), the spinner goes, the card wobbles a little and the home screen stays as it was.
+          worldReady(g.id).then((ok) => {
+            if (!ok) {
+              spin.remove();
+              if (!this.scene.isActive()) return;
+              shown.forEach((o) => o.destroy());
+              going = false;
+              this.tweens.add({ targets: card, angle: { from: -3, to: 3 }, duration: 90, yoyo: true, repeat: 2, onComplete: () => card.setAngle(0) });
+              return;
+            }
+            Promise.all([recipeAssets(this.game, g.id), delay]).then(() => {
+              spin.remove();
+              if (this.scene.isActive()) this.scene.start(g.scene);
+            });
           });
         }, { hitPad: 30, scale: S.cardScale(cells) });
         this.tweens.add({ targets: card, alpha: { from: 0, to: 1 }, duration: 400 });

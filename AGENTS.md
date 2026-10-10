@@ -177,7 +177,7 @@ vite.config.ts             base path /kids-cooking-game/, dev server (--host), P
 .github/workflows/deploy.yml  builds and publishes to GitHub Pages on every push to master
 README.md, ASSET-LICENSES.md  public description and the asset licenses (the repo is public)
 plugins/asset-manifest.ts  virtual:asset-manifest = the asset files that exist on disk
-scripts/make-icons.mjs     regenerates the temporary PWA icons (public/icons)
+scripts/make-icons.mjs     renders the PWA icons (public/icons) from gen_title_worlds.py --icons (Playwright's Chromium)
 scripts/harness.js         test harness for the automated Chrome (see "Testing notes")
 scripts/bake-webp.js       pre-renders the SVGs to WebP, run inside the game page (see "Pre-rendered art")
 public/assets/images/      SVG art (the source, from the art agent) + webp/ (pre-rendered, committed)
@@ -503,11 +503,12 @@ fallback if the capture fails.
 - **Pre-rendered art (WebP).** The style-B SVGs use filters (paper texture, torn edges) that took ~2.6 s to rasterize
   at load (desktop Chrome; a phone is slower). `scripts/bake-webp.js` runs inside the game page on the dev server and
   renders each SVG exactly like the game does, at its texture size (native x `raster`), to `images/webp/<key>.webp`
-  (lossless when that is under 64 KB, else lossy 0.92), recording the SVG's sha1 in `images/webp/sources.json`.
+  (lossless only when that is under 8 KB, else lossy 0.95, or 0.85 when the lossless file would be over 64 KB; a file
+  whose mean pixel difference is over 4/255 goes one step up), recording the SVG's sha1 in `images/webp/sources.json`.
   The build uses a WebP only if that sha1 matches the SVG on disk; otherwise it warns and the game rasterizes the SVG.
   **After changing or adding an SVG, re-run the bake** (open the dev page, then in the JS tool:
   `eval(await (await fetch('scripts/bake-webp.js')).text()); await __bakeWebp(); await __compareWebp();`),
-  check the pixel diff (small items about 0.1/255, large lossy ones mean at most 3.5/255), commit `images/webp/`.
+  check the pixel diff (lossless items about 0.1/255, lossy ones mean at most 4/255, 1.6 on average since the polish round), commit `images/webp/`.
   Nothing in the build or in GitHub Actions runs the bake (no extra tool or dependency). SVGs with a valid WebP are
   not precached by the service worker.
 - The browser console lists which placeholders and silent sounds are in use (`[assets]` lines).
@@ -1046,7 +1047,7 @@ research: `/mnt/project-files/research/music-spec.md`. Branch `claude/music-2-tx
   `--preview DIR` writes one mp3 per song (the party layer comes in mid-way). Songs: `kitchen` (C, 128 BPM, ukulele
   island strum, xylophone tune), `outside` (G, 124, ukulele with chucks, whistle tune, claps), `art` (F, 120, marimba,
   glockenspiel, softer). Each: 32 bars A A' B A, about 60 s, gapless (2 bars rendered past the end and folded onto the
-  head). Stems of one length: `base` (stereo, always on), `tune` (mono, the melody), `party` (mono: kick, claps,
+  head). Stems of one length: `base` (mono since the polish round, loudness-matched, always on; libvorbis q2), `tune` (mono, the melody), `party` (mono: kick, claps,
   tambourine, an offbeat counter-melody, a fill every 8 bars) and `up` (a one-bar rising glockenspiel run, the
   stinger). Full mix -20 LUFS, base + tune -22, true peak about -6 dBTP. To change a tune: its bars in `SONGS`.
 - **The mixer** (`music` in core/audio.ts, tunables `MUSIC`, tempos `SONGS`): the three stems start on one context time
@@ -1680,6 +1681,12 @@ Screenshots of every step (Mom's demo and the child mid-gesture) at 20:9 and 4:3
   Home after 900 ms (the title no longer rebuilds on the fullscreen resize after the tap: `canRelayout`); home:
   vo-what-make; the 5 s pointing-hand hint on title and home (`screenHint`); the safe update (see "Deployment");
   the manifest name; `.gitattributes`.
+- **The clinic and the farm are not precached** (polish round, P19): their own files (the ones no core list, recipe or
+  other game lists; `worldOnlyFiles` in plugins/asset-manifest.ts) are left out of the precache (`globIgnores`) and get
+  `?v=<md5>` in the build's manifest; the service worker keeps them in the runtime cache `world-assets` (cache-first, a
+  changed file is a new URL). Before going in, `worldReady(id)` (core/worldCache.ts) fetches what is not cached yet while
+  the spinner turns; if a file can't be had (offline before the first visit) the title / home screen stays and the card
+  wobbles. The install is 28.9 MB (878 files) instead of 55.3 MB; the first clinic visit downloads ~13 MB, the farm ~9.
 - **Precache revisions:** before this round every art and sound file under `assets/` had `revision: null`
   (vite-plugin-pwa treats `assets/` as hashed), so a changed sound or WebP with the same name would never have reached
   an installed app. Now only Vite's hashed chunks skip the revision (`dontCacheBustURLsMatching`). 203 files, 9.3 MB.

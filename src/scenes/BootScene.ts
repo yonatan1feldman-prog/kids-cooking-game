@@ -15,7 +15,7 @@ const url = (p: string) => import.meta.env.BASE_URL + p;
  * Load groups (polish round, the loading time): each screen waits only for what it draws.
  * - EARLY: what the title draws at once (the background, the two game cards, the star; the level stars are drawn in
  *   code). The title starts the moment these are in.
- * - TITLE_ART: Mom, Pipa, the logo and Mom's pointing hand. They fade in on the title when ready.
+ * - TITLE_ART: Mom, Pipa and Mom's pointing hand. They fade in on the title when ready.
  * - HOME_ART: the living kitchen's pieces (they join the background as each comes in), the home screen's cards and
  *   the home button. The home screen waits for this group only.
  * - PLAY_ART: the rest of what every recipe and game needs (Mom's demo hands, the buttons). A card tap waits for this
@@ -26,7 +26,6 @@ const url = (p: string) => import.meta.env.BASE_URL + p;
  */
 const EARLY: ImageKey[] = ['bg-kitchen-landscape', 'world-card-kitchen', 'world-card-clinic', 'star'];
 const TITLE_ART: ImageKey[] = [
-  'logo-cooking-with-mom',
   ...CORE_IMAGES.filter((k) => (k.startsWith('mom-') && !k.startsWith('mom-hand-')) || k.startsWith('character-')),
   'mom-hand-point',
 ];
@@ -222,7 +221,7 @@ export class BootScene extends Phaser.Scene {
     const since = () => Math.round(performance.now());
     const early = fetchAll(textures, EARLY, PRIORITY.early);
     titleArt = fetchAll(textures, TITLE_ART, PRIORITY.title).then(() => {
-      ensurePlaceholders(this.game, TITLE_ART.filter((k) => k !== 'logo-cooking-with-mom'));
+      ensurePlaceholders(this.game, TITLE_ART);
       titleArtIn = true;
       timing.title = since();
     });
