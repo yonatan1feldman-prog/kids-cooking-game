@@ -15,7 +15,6 @@ import { Step } from './Step';
  * every stroke paints. The crust rim stays visible around the sauce.
  */
 export class SpreadStep extends Step<SpreadParams> {
-  protected stepLine = 'vo-sauce' as const;
   private cells: { x: number; y: number; covered: boolean }[] = [];
   private covered = 0;
   private painting = false;
@@ -26,6 +25,7 @@ export class SpreadStep extends Step<SpreadParams> {
   private finishing = false;
 
   start() {
+    this.stepLine = this.params.line ?? 'vo-sauce';
     const L = this.layout;
     const R = this.dish.R;
     this.paintR = R * 0.68;

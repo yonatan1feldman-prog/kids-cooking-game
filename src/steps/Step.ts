@@ -54,6 +54,8 @@ export interface StepContext {
     runNo: number;
     /** What Pipa wished for in this run (topping / placed image keys): a piece holding one of them is her favourite. */
     wishes: string[];
+    /** Mom has helped and she has not touched the screen since: the next help comes sooner (`TUNING.help.againMs`). */
+    untouched?: boolean;
   };
 }
 
@@ -145,6 +147,10 @@ export abstract class Step<P> {
    * The demo plays once; any touch ends it at once (the touch still counts, it is not swallowed).
    */
   intro(withDemo: boolean) {
+    // Any touch (not in the no-touch strips) puts Mom's help back on its usual pace.
+    this.listen(Phaser.Input.Events.POINTER_DOWN, (p: Phaser.Input.Pointer) => {
+      if (!inNoTouchZone(this.scene, p.x, p.y)) this.ctx.run.untouched = false;
+    });
     const m = withDemo ? this.demo() : null;
     const stillHere = () => !this.finished;
     if (!m) return this.sayStepLine(stillHere);
@@ -158,7 +164,7 @@ export abstract class Step<P> {
       // Only the run's first demo is introduced ("Watch me first!") and followed by "Now you try!".
       this.demoTalk = !this.ctx.run.demoTalkDone;
       this.ctx.run.demoTalkDone = true;
-      if (this.demoTalk) voice.say('vo-watch-me', { valid: () => this.demoing });
+      if (this.demoTalk) voice.say('vo-watch-me', { valid: () => this.demoing, ttlMs: 4000 });
       this.sayStepLine(stillHere, 3500);
       const mm = this.demo() ?? m;
       const keys = mm.keys;
@@ -198,8 +204,19 @@ export abstract class Step<P> {
   /** Mom helps: she says so, and the step's own help animation (with her hand) finishes it. */
   private help() {
     voice.say('vo-help', { ttlMs: 3000 });
+    this.ctx.run.untouched = true;
+    // Never stuck: should her help not hand the step back or finish it (a tween that never ends), it does so itself.
+    this.helpNet?.remove();
+    this.helpNet = this.scene.time.delayedCall(TUNING.help.netMs, () => {
+      if (!this.auto || this.finished) return;
+      console.warn('[step] Mom\'s help did not hand the step back: resuming');
+      this.hand.stop();
+      this.resumeAfterAuto();
+    });
     this.autoFinish();
   }
+
+  private helpNet?: Phaser.Time.TimerEvent;
 
   /** True once the step is finishing itself; ignore input then. */
   protected get isAuto() {
@@ -211,11 +228,14 @@ export abstract class Step<P> {
     // A finger resting on the screen is not "stuck": hold the hint back.
     if (this.owner && !this.hinting) return;
     this.idleMs += delta;
-    if (!this.hinting && this.idleMs >= this.hintAfterMs) {
+    // No touch at all since Mom's last help: she is watching, not trying; the next help comes sooner.
+    const again = this.ctx.run.untouched ? TUNING.help.againMs : Infinity;
+    const hintAt = Math.min(this.hintAfterMs, again - TUNING.help.againHintMs);
+    if (!this.hinting && this.idleMs >= hintAt) {
       this.hinting = true;
       this.showHint();
     }
-    if (this.idleMs >= this.hintAfterMs + this.autoAfterHintMs) {
+    if (this.idleMs >= Math.min(this.hintAfterMs + this.autoAfterHintMs, again)) {
       this.auto = true;
       this.hinting = false;
       this.hand.stop();
@@ -284,6 +304,8 @@ export abstract class Step<P> {
 
   /** For multi-phase steps: after an automatic phase, hand control back to the child. */
   protected resumeAfterAuto() {
+    this.helpNet?.remove();
+    this.helpNet = undefined;
     this.auto = false;
     this.hinting = false;
     this.idleMs = 0;
@@ -413,6 +435,7 @@ export abstract class Step<P> {
     this.finished = true;
     this.idleOn = false;
     this.owner = null;
+    this.helpNet?.remove();
     this.hand.stop();
     for (const l of this.listeners) this.scene.input.off(l.event, l.fn);
     this.listeners = [];

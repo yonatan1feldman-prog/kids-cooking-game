@@ -157,7 +157,8 @@ export class RecipeScene extends Phaser.Scene {
     stars(this, dish.x, dish.y, 10, 80 * layout.k);
     confetti(this, dish.x, dish.y, 22, 48 * layout.k);
     boing(this, this.ctx.board, 0.06);
-    voice.praise({ ttlMs: 3000 });
+    // (after Mom's help it waits behind "Let me help you!" and the step line)
+    voice.praise({ ttlMs: 6000 });
     music.party();
     mom.cheer();
     character.cheer();
