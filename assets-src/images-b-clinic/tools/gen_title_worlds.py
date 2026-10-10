@@ -60,8 +60,29 @@ def card(kind):
 
 ITEMS = {"world-card-kitchen": lambda: card("kitchen"), "world-card-clinic": lambda: card("clinic")}
 
+
+def icon(maskable):
+    """The PWA icon (polish round): the kitchen card's pot on its paper disc, on the card's cream, full bleed (512).
+    The maskable one keeps the disc inside the 80% safe circle (Android cuts it to its own shape)."""
+    p = "ic" + ("m" if maskable else "a") + "-"
+    s = rect(0, 0, 512, 512, CREAM)
+    s += G(picture("kitchen", 256, 262, 1.78 if maskable else 2.2), p + "sh")
+    return doc(p, 512, 512, s, "default", seed=731)
+
+
+# Not game art: scripts/make-icons.mjs renders these to public/icons (they stay out of public/assets/images).
+ICONS = {"icon-any": lambda: icon(False), "icon-maskable": lambda: icon(True)}
+
 if __name__ == "__main__":
     only = sys.argv[1:]
+    if only == ["--icons"]:
+        out = os.path.normpath(os.path.join(HERE, "..", "icons"))
+        os.makedirs(out, exist_ok=True)
+        for k, fn in ICONS.items():
+            with open(os.path.join(out, k + ".svg"), "w", encoding="utf8") as f:
+                f.write(fn())
+            print(k)
+        sys.exit(0)
     for k, fn in ITEMS.items():
         if not only or k in only:
             gc.save(k, fn())
