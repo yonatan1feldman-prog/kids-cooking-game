@@ -15,6 +15,7 @@ import { RECIPES } from '../recipes';
 import { Character } from '../steps/Character';
 import { Mom } from '../steps/Mom';
 import { recipeAssets, releaseRecipe, titleArtLoaded, titleArtReady } from './BootScene';
+import { worldReady } from '../core/worldCache';
 
 /** Mom says hello only on the very first tap of a session (coming back to the title from a world, she just smiles). */
 let greeted = false;
@@ -162,16 +163,32 @@ export class TitleScene extends Phaser.Scene {
       return;
     }
     // The clinic: its art and sounds load (a small spinner over the button if it takes a
-    // moment), then in.
+    // moment), then in. Its files are not in the install (core/worldCache.ts): if they can't be had (offline before
+    // the first visit), the spinner goes, the card gives a little wobble and the title stays as it was.
+    const shown: Phaser.GameObjects.GameObject[] = [];
     const spin = this.time.delayedCall(250, () => {
       const r = 46 * k;
-      this.add.circle(x, y, r * 1.5, 0xfff6e6, 0.92).setDepth(50);
+      shown.push(this.add.circle(x, y, r * 1.5, 0xfff6e6, 0.92).setDepth(50));
       const arc = this.add.arc(x, y, r, 0, 270, false).setStrokeStyle(12 * k, 0xff8c42).setClosePath(false).setDepth(51);
+      shown.push(arc);
       this.tweens.add({ targets: arc, angle: 360, duration: 900, repeat: -1 });
     });
-    Promise.all([recipeAssets(this.game, 'clinic'), new Promise((r) => this.time.delayedCall(900, r))]).then(() => {
-      spin.remove();
-      if (this.scene.isActive()) this.scene.start('Clinic');
+    const delay = new Promise((r) => this.time.delayedCall(900, r));
+    worldReady('clinic').then((ok) => {
+      if (!ok) {
+        spin.remove();
+        if (!this.scene.isActive()) return;
+        shown.forEach((o) => o.destroy());
+        this.leaving = false;
+        music.play('kitchen');
+        const card = this.children.list.find((o) => (o as Phaser.GameObjects.Image).texture?.key === 'world-card-clinic');
+        if (card) this.tweens.add({ targets: card, angle: { from: -3, to: 3 }, duration: 90, yoyo: true, repeat: 2, onComplete: () => (card as Phaser.GameObjects.Image).setAngle(0) });
+        return;
+      }
+      Promise.all([recipeAssets(this.game, 'clinic'), delay]).then(() => {
+        spin.remove();
+        if (this.scene.isActive()) this.scene.start('Clinic');
+      });
     });
   }
 }

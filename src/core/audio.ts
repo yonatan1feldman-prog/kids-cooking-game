@@ -50,7 +50,7 @@ const isMusic = (k: string) => k.startsWith('music-');
 
 /** Voice-line keys (public/assets/sounds/voice). */
 export type VoiceKey =
-  | 'vo-welcome' | 'vo-pick-pizza' | 'vo-watch-me' | 'vo-your-turn' | 'vo-roll' | 'vo-sauce' | 'vo-cheese' | 'vo-toppings'
+  | 'vo-pick-pizza' | 'vo-watch-me' | 'vo-your-turn' | 'vo-roll' | 'vo-sauce' | 'vo-cheese' | 'vo-toppings'
   | 'vo-done-hint' | 'vo-oven' | 'vo-baking' | 'vo-ready' | 'vo-feed' | 'vo-help' | 'vo-finale' | 'vo-bye'
   | 'vo-praise-1' | 'vo-praise-2' | 'vo-praise-3' | 'vo-praise-4' | 'vo-praise-5' | 'vo-praise-6' | 'vo-praise-7'
   | 'vo-hello' | 'vo-what-make' | 'vo-wash' | 'vo-wash-rub' | 'vo-wash-done' | 'vo-knead' | 'vo-crush' | 'vo-stir' | 'vo-grate'
@@ -101,22 +101,22 @@ export type VoiceKey =
   | 'vo-garden-weeds' | 'vo-garden-enough' | 'vo-garden-cloud-2' | 'vo-garden-bunny' | 'vo-garden-bunny-this' | 'vo-garden-bunny-yum'
   // market and garden, round 3: a visitor at the stall, a mixed-up box, paying; rain, the scarecrow, the butterfly, the sun
   | 'vo-market-guest' | 'vo-market-guest-yum' | 'vo-market-mixed' | 'vo-market-mixed-yes' | 'vo-market-mixed-more'
-  | 'vo-market-pay' | 'vo-market-pay-dots' | 'vo-market-count' | 'vo-market-paid' | 'vo-garden-rain' | 'vo-garden-rainbow'
+  | 'vo-market-pay' | 'vo-market-pay-dots' | 'vo-market-paid' | 'vo-garden-rain' | 'vo-garden-rainbow'
   | 'vo-garden-birds' | 'vo-garden-hat' | 'vo-garden-shirt' | 'vo-garden-scare-copy' | 'vo-garden-scare-look' | 'vo-garden-shoo'
   | 'vo-garden-butterfly' | 'vo-garden-butterfly-done' | 'vo-garden-sun-tap'
   // gameplay round 4: find the tool, Pipa's order, stir with the arrow
   | 'vo-find-grater' | 'vo-find-pin' | 'vo-find-spoon' | 'vo-pipa-order' | 'vo-then' | 'vo-first-this' | 'vo-stir-arrow'
   | 'vo-other-way'
   // gameplay round 5: the chef hats on the title (the level), Pipa's longer order, remembering her wish
-  | 'vo-little-chef' | 'vo-big-chef' | 'vo-pipa-order-3' | 'vo-remember' | 'vo-and'
+  | 'vo-pipa-order-3' | 'vo-remember' | 'vo-and'
   // the art corner: five kinds of drawing
   | 'vo-pick-art' | 'vo-art-what' | 'vo-trace' | 'vo-trace-done' | 'vo-dots' | 'vo-dots-done' | 'vo-colour' | 'vo-colour-copy'
   | 'vo-colour-mom' | 'vo-colour-done' | 'vo-mirror' | 'vo-mirror-done' | 'vo-mirror-plate' | 'vo-steam' | 'vo-steam-find'
   | 'vo-steam-done'
   // the clinic (Mom the nurse)
-  | 'vo-pick-clinic' | 'vo-clinic-hello' | 'vo-clinic-next' | 'vo-hi-turtle' | 'vo-hi-penguin' | 'vo-hi-giraffe' | 'vo-hi-pipa'
-  | 'vo-sick-fever' | 'vo-sick-cough' | 'vo-sick-tummy' | 'vo-sick-tooth' | 'vo-sick-knee' | 'vo-sick-paw' | 'vo-clinic-what'
-  | 'vo-clinic-look' | 'vo-clinic-plan' | 'vo-clinic-first' | 'vo-clinic-notyet' | 'vo-tool-thermometer' | 'vo-thermo-hot'
+  | 'vo-clinic-hello' | 'vo-clinic-next' | 'vo-hi-turtle' | 'vo-hi-penguin' | 'vo-hi-giraffe' | 'vo-hi-pipa'
+  | 'vo-sick-fever' | 'vo-sick-cough' | 'vo-sick-tummy' | 'vo-sick-tooth' | 'vo-sick-knee' | 'vo-sick-paw'
+  | 'vo-clinic-first' | 'vo-clinic-notyet' | 'vo-tool-thermometer' | 'vo-thermo-hot'
   | 'vo-thermo-ok' | 'vo-tool-cloth' | 'vo-tool-syrup' | 'vo-tool-stethoscope' | 'vo-stetho-find' | 'vo-stetho-heart'
   | 'vo-tool-cup' | 'vo-tool-rinse' | 'vo-tool-hotbottle' | 'vo-say-aah' | 'vo-tool-toothbrush' | 'vo-tool-spray'
   | 'vo-tool-cream' | 'vo-tool-plaster' | 'vo-tool-tweezers' | 'vo-tool-magnifier' | 'vo-found-it' | 'vo-clinic-better'
@@ -157,7 +157,7 @@ export type VoiceKey =
 export type CountKey = `count-${1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10}`;
 export type TempKey = `temp-${50 | 100 | 150 | 200 | 250}`;
 /** Mom naming what she picked (the choose step: a new name may cut the name playing, never another line). */
-export type NameKey = `name-${'tomato' | 'mushroom' | 'pepper' | 'onion' | 'corn' | 'olives' | 'cucumber' | 'carrot' | 'lemon' | 'lettuce' | 'star' | 'heart' | 'circle' | 'flower' | 'banana' | 'strawberry' | 'mango' | 'kiwi' | 'potato' | 'zucchini' | 'pink' | 'white' | 'blue' | 'yellow' | 'chocolate' | 'grater' | 'rolling-pin' | 'spoon' | 'whisk' | 'spatula' | 'sun' | 'egg' | 'fish' | 'ball' | 'rainbow' | 'house' | 'tree' | 'boat' | 'butterfly' | 'crown' | 'bird' | 'cat' | 'red' | 'green' | 'purple' | 'orange' | 'cup' | 'plate' | 'kite' | 'ice-cream' | 'balloon' | 'snail' | 'cloud' | 'flour' | 'sugar' | 'milk' | 'butter' | 'servers' | 'stick' | 'blueberry' | 'moon' | 'triangle'}`;
+export type NameKey = `name-${'tomato' | 'mushroom' | 'pepper' | 'onion' | 'corn' | 'olives' | 'cucumber' | 'carrot' | 'lettuce' | 'star' | 'heart' | 'circle' | 'flower' | 'banana' | 'strawberry' | 'mango' | 'kiwi' | 'potato' | 'zucchini' | 'pink' | 'white' | 'blue' | 'yellow' | 'chocolate' | 'grater' | 'rolling-pin' | 'spoon' | 'whisk' | 'spatula' | 'sun' | 'egg' | 'fish' | 'ball' | 'rainbow' | 'house' | 'tree' | 'boat' | 'butterfly' | 'crown' | 'bird' | 'cat' | 'red' | 'green' | 'purple' | 'orange' | 'cup' | 'plate' | 'kite' | 'ice-cream' | 'balloon' | 'cloud' | 'flour' | 'sugar' | 'milk' | 'butter' | 'servers' | 'stick' | 'blueberry' | 'moon' | 'triangle'}`;
 export const countKey = (n: number): CountKey => `count-${Math.max(1, Math.min(10, Math.round(n)))}` as CountKey;
 
 const PRAISE: VoiceKey[] = ['vo-praise-1', 'vo-praise-2', 'vo-praise-3', 'vo-praise-4', 'vo-praise-5', 'vo-praise-6', 'vo-praise-7'];
