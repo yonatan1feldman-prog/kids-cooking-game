@@ -171,8 +171,21 @@ const ctx = () => (game?.sound as Phaser.Sound.WebAudioSoundManager | undefined)
 // ---------------------------------------------------------------- loading
 
 /**
- * Fetches and decodes every sound in the asset manifest, in the background (the title does not wait).
- * Effects go into game.cache.audio for Phaser; voice, music and loops are kept here.
+ * The sounds the title and the home screen need first, decoded before any other: the taps, Mom's hello, the two
+ * games' names, the level names, "What shall we make today?" and every card's pick line. Then the kitchen's song (it
+ * starts with the first tap), then the other voice lines, the effects and the other music.
+ */
+const FIRST_SOUNDS: readonly string[] = [
+  'tap', 'pop', 'vo-hello', 'vo-world-cooking', 'vo-world-doctor', 'vo-level-easy', 'vo-level-hard', 'vo-what-make',
+  'star', 'cheer-jingle',
+];
+/** How many sounds are fetched and decoded at a time (decoding runs off the main thread). */
+const DECODE_PARALLEL = 3;
+
+/**
+ * Fetches and decodes every core sound in the asset manifest, in the background (nothing waits for it), from the
+ * Boot scene on. Effects go into game.cache.audio for Phaser; voice, music and loops are kept here.
+ * A recipe's own sounds wait for its card.
  */
 export function loadSounds(g: Phaser.Game, url: (path: string) => string) {
   game = g;
@@ -180,36 +193,56 @@ export function loadSounds(g: Phaser.Game, url: (path: string) => string) {
   const sm = g.sound as Phaser.Sound.WebAudioSoundManager;
   sm.pauseOnBlur = false; // the page lifecycle is handled here (holdAudio), not by window blur
   if (!ctx()) return;
-  // Voice first (the hello line comes right after the play tap), then effects, then the long music files.
-  // A voice line is any file in voice/ (vo-*, and count-* / temp-* for part B). A recipe's own sounds wait for its card.
-  const order = (k: string) => (isVoice(k) ? 0 : isMusic(k) ? 2 : 1);
-  const keys = Object.keys(manifest.sounds).filter((k) => !RECIPE_SOUNDS.has(k)).sort((a, b) => order(a) - order(b));
+  // A voice line is any file in voice/ (vo-*, and count-* / temp-* for part B).
+  const rank = (k: string) => {
+    const first = FIRST_SOUNDS.indexOf(k);
+    if (first >= 0) return first;
+    if (k.startsWith('vo-pick-')) return FIRST_SOUNDS.length;
+    if (k.startsWith('music-kitchen-')) return 100 + (k.endsWith('-up') ? 1 : 0);
+    return isVoice(k) ? 200 : isMusic(k) ? 400 : 300;
+  };
+  const keys = Object.keys(manifest.sounds).filter((k) => !RECIPE_SOUNDS.has(k)).sort((a, b) => rank(a) - rank(b));
   decodeAll(keys).then(() => (soundsLoaded = true));
 }
 
 let soundUrl: (path: string) => string = (p) => p;
 const isVoice = (k: string) => manifest.sounds[k].some((p) => p.includes('/voice/'));
+/** Sounds asked to be decoded and not in yet (a voice line asked for in the meantime waits for its file, `Voice.play`). */
+const decoding = new Set<string>();
 
-/** Fetches and decodes `keys` one after another (the ones on disk and not decoded yet); a missing one stays silent. */
+/** Fetches and decodes `keys` (the ones on disk and not decoded yet), a few at a time, in order; a missing one stays silent. */
 async function decodeAll(keys: readonly string[]) {
   const c = ctx();
   const missing: string[] = [];
-  for (const key of keys) {
-    if (buffers.has(key)) continue;
+  const todo = keys.filter((key) => {
+    if (buffers.has(key) || decoding.has(key)) return false;
     if (!manifest.sounds[key] || !c || !game) {
       missing.push(key);
-      continue;
+      return false;
     }
-    try {
-      const res = await fetch(soundUrl(manifest.sounds[key][0]));
-      const buf = await c.decodeAudioData(await res.arrayBuffer());
-      buffers.set(key, buf);
-      if (!isVoice(key) && !isMusic(key) && !LOOPS.includes(key)) game.cache.audio.add(key, buf);
-      if (isMusic(key)) music.onLoaded();
-    } catch {
-      missing.push(key);
+    decoding.add(key);
+    return true;
+  });
+  let i = 0;
+  const worker = async () => {
+    while (i < todo.length) {
+      const key = todo[i++];
+      try {
+        const res = await fetch(soundUrl(manifest.sounds[key][0]));
+        const buf = await c!.decodeAudioData(await res.arrayBuffer());
+        if (decoding.has(key)) {
+          buffers.set(key, buf);
+          if (!isVoice(key) && !isMusic(key) && !LOOPS.includes(key)) game!.cache.audio.add(key, buf);
+          if (isMusic(key)) music.onLoaded();
+        }
+      } catch {
+        missing.push(key);
+      }
+      decoding.delete(key);
+      voice.arrived(key);
     }
-  }
+  };
+  await Promise.all(Array.from({ length: Math.min(DECODE_PARALLEL, todo.length) }, worker));
   if (missing.length) console.info(`[assets] silent sounds: ${missing.join(', ')}`);
 }
 
@@ -220,6 +253,7 @@ export const loadRecipeSounds = (keys: readonly string[]) => decodeAll(keys);
 export function releaseSounds(keys: readonly string[]) {
   for (const key of keys) {
     buffers.delete(key);
+    decoding.delete(key); // (one still decoding is dropped when it comes in)
     if (game?.cache.audio.exists(key)) game.cache.audio.remove(key);
   }
 }
@@ -582,6 +616,11 @@ class Voice {
   private sim = false;
   private simHooked = false;
   private queue: Pending[] = [];
+  /**
+   * A line whose file is still being decoded (right after an install or an update, a quick first tap): it waits for
+   * its file, up to its time-to-live, in the place of the line playing (the others queue behind it), then plays.
+   */
+  private held: Pending | null = null;
   private analyser: AnalyserNode | null = null;
   private data: Uint8Array<ArrayBuffer> | null = null;
   /** Praise lines still to come in this round: a shuffled deck, every line once before any comes back. */
@@ -591,7 +630,7 @@ class Voice {
   readonly log: VoiceLogEntry[] = [];
 
   get speaking() {
-    return !!this.cur;
+    return !!this.cur || !!this.held;
   }
 
   /** The key of the line playing now, if any. */
@@ -628,7 +667,7 @@ class Voice {
   say(key: VoiceKey, opts: SayOpts = {}) {
     if (!game || audioHeld()) return opts.done?.();
     const p: Pending = { ...opts, key, at: this.now() };
-    if (this.cur && opts.queue === false) {
+    if ((this.cur || this.held) && opts.queue === false) {
       this.queue = [];
       this.cut(key);
     }
@@ -639,10 +678,18 @@ class Voice {
       if (playingSame || !opts.sequence) this.queue = this.queue.filter((q) => (q.group === opts.group ? (q.done?.(), false) : true));
       if (playingSame) this.cut(key);
     }
-    if (this.cur) {
+    if (this.cur || this.held) {
       this.queue.push(p);
       return;
     }
+    this.play(p);
+  }
+
+  /** A sound file has been decoded (or failed): the line waiting for it plays now (or is dropped). */
+  arrived(key: string) {
+    const p = this.held;
+    if (p?.key !== key) return;
+    this.held = null;
     this.play(p);
   }
 
@@ -692,6 +739,9 @@ class Voice {
   }
 
   private cut(by = 'stop') {
+    const held = this.held;
+    this.held = null;
+    held?.done?.();
     const c = ctx();
     const cur = this.cur;
     if (!cur) return;
@@ -720,10 +770,21 @@ class Voice {
       unloadedTold.add(p.key);
       console.warn(`[assets] voice not loaded: ${p.key} (add it to this recipe's RECIPE_ASSETS sounds)`);
     }
+    const left = (p.ttlMs ?? 2500) - (this.now() - p.at);
+    if (c && !buf && decoding.has(p.key) && left > 0 && (!p.valid || p.valid())) {
+      this.held = p;
+      setTimeout(() => {
+        if (this.held !== p) return;
+        this.held = null;
+        p.done?.();
+        if (!this.cur && !this.held) this.next();
+      }, left);
+      return;
+    }
     if (!c || !buf || (p.valid && !p.valid())) {
       p.done?.();
       // (a done may have started its own line already: never a second one beside it)
-      if (!this.cur) this.next();
+      if (!this.cur && !this.held) this.next();
       return;
     }
     const entry: VoiceLogEntry = { key: p.key, start: this.now(), group: p.group };
@@ -734,7 +795,7 @@ class Voice {
       entry.end = this.now();
       p.done?.();
       // (a done that says its own line starts it at once; the queue waits behind it, or two lines would play together)
-      if (!this.cur) this.next();
+      if (!this.cur && !this.held) this.next();
       if (!this.cur) music.duck(false);
     };
     const endAt = entry.start + buf.duration * 1000;
@@ -767,7 +828,7 @@ class Voice {
   }
 
   private next(): void {
-    while (this.queue.length && !this.cur) {
+    while (this.queue.length && !this.cur && !this.held) {
       const p = this.queue.shift()!;
       const expired = this.now() - p.at > (p.ttlMs ?? 2500);
       if (expired || (p.valid && !p.valid())) {
