@@ -4,10 +4,10 @@ import { IMAGES, type ImageKey } from '../core/assets';
 import { voice } from '../core/audio';
 import { boing } from '../core/fx';
 import { sfx } from '../core/sfx';
-import { addBackground, getLayout, keepLayoutOnResize } from '../core/layout';
+import { addBackground, getLayout, inNoTouchZone, keepLayoutOnResize } from '../core/layout';
 import { ALBUM_ARROW, makeAlbumTextures } from '../core/placeholders';
 import { getStage } from '../core/stage';
-import { iconButton } from '../core/ui';
+import { iconButton, otherPointerDown } from '../core/ui';
 import { RECIPES } from '../recipes';
 import { Character } from '../steps/Character';
 import { Mom } from '../steps/Mom';
@@ -195,8 +195,8 @@ export class AlbumScene extends Phaser.Scene {
         sfx(this, 'whoosh', { volume: 0.5 });
         void this.showPage(L, S);
       };
-      const left = iconButton(this, L, ALBUM_ARROW, A.x0 + arrowW / 2, y, () => turn(-1), { scale: 0.85 * L.k, hitPad: 40 });
-      const right = iconButton(this, L, ALBUM_ARROW, A.x1 - arrowW / 2, y, () => turn(1), { scale: 0.85 * L.k, hitPad: 40 }).setFlipX(true);
+      const left = iconButton(this, L, ALBUM_ARROW, A.x0 + arrowW / 2, y, () => turn(-1), { scale: 0.85 * L.k, hitPad: 40 }).setDepth(50);
+      const right = iconButton(this, L, ALBUM_ARROW, A.x1 - arrowW / 2, y, () => turn(1), { scale: 0.85 * L.k, hitPad: 40 }).setFlipX(true).setDepth(50);
       this.tiles.push(left, right);
     }
     this.shown = { page: this.page, pages, count: this.photos.length, recipes: mine.map((p) => p.recipe), big: null };
@@ -216,7 +216,10 @@ export class AlbumScene extends Phaser.Scene {
     out.push(frame);
     // The whole frame is the touch area (small fingers aim at the picture, not at its edges).
     frame.setInteractive(new Phaser.Geom.Circle(fw / 2, fh / 2, Math.max(fw, fh) / 2), Phaser.Geom.Circle.Contains);
-    frame.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, () => {
+    // (the first finger owns it, as with every button: a resting palm or a second finger never enlarges a photo, and
+    // nothing starts in the no-touch strips)
+    frame.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, (ptr: Phaser.Input.Pointer) => {
+      if (inNoTouchZone(this, ptr.x, ptr.y) || otherPointerDown(this, ptr)) return;
       boing(this, frame, 0.07);
       onTap();
     });

@@ -126,7 +126,7 @@ export class TitleScene extends Phaser.Scene {
           voice.say(level === 2 ? 'vo-level-hard' : 'vo-level-easy', { group: 'level', ttlMs: 2500 });
           this.mom?.happy();
         },
-        { fireOn: 'up', hitPad: 12, scale: S.levelScale },
+        { fireOn: 'up', hitPad: 30, scale: S.levelScale },
       );
       hat.setAlpha(0);
       this.tweens.add({ targets: hat, alpha: getLevel() === level ? 1 : 0.8, duration: 400 });

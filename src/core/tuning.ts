@@ -20,6 +20,9 @@ export const HINT_AFTER_MS = 8000;
 export const SCREEN_HINT_MS = 5000;
 /** Further ms of no progress before Mom helps ("Let me help you!", and her hand does it). 20 s since the gameplay round. */
 export const AUTO_AFTER_HINT_MS = 20000;
+/** The longest one piece of Mom's help may take before the turn is given back anyway (a safety net: a rotation or a
+ * paused scene can cut her motion short, and the child must never be left waiting for it). */
+export const HELP_MAX_MS = 15000;
 /** A demo never runs longer than this. */
 export const DEMO_MAX_MS = 2500;
 /** Before a demo, Mom finishes the line she is saying, waiting at most this long. */
@@ -421,4 +424,19 @@ export function grown(step: number, runNo: number) {
 /** Where the stirring arrows turn round on the current level (shares of the stirring). */
 export function stirFlips(): readonly number[] {
   return isBigChef() ? TUNING.big.stirFlips : [TUNING.stirArrow.flipAt];
+}
+
+/** Ms of no progress before Mom's hint in the games and scenes (the same as in the recipes): a little longer on the hard level. */
+export function hintAfterMs(hard: boolean, quiet = false): number {
+  const ms = hard ? TUNING.big.hintAfterMs : HINT_AFTER_MS;
+  // (she has helped and no finger has touched the screen since: the hint comes sooner too, `TUNING.help.againHintMs`)
+  return quiet ? Math.min(ms, TUNING.help.againHintMs) : ms;
+}
+
+/**
+ * Ms of no progress before Mom's help: `hint` + `after`, or, when she has helped and no finger has touched the screen
+ * since (`quiet`), `TUNING.help.againMs` if that is sooner.
+ */
+export function helpAtMs(hint: number, quiet: boolean, after = AUTO_AFTER_HINT_MS): number {
+  return quiet ? Math.min(hint + after, TUNING.help.againMs) : hint + after;
 }

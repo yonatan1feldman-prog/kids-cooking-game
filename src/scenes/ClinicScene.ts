@@ -12,7 +12,7 @@ import { TUNING } from '../core/tuning';
 import { Character } from '../steps/Character';
 import type { CharacterDef } from '../recipes/types';
 import type { Spot } from '../core/stage';
-import { MiniGame, type P } from './MiniGame';
+import { MiniGame, nearestIn, type P } from './MiniGame';
 import { ClinicCare, type CareHost } from './ClinicCare';
 
 const T = TUNING.clinic;
@@ -1535,7 +1535,10 @@ export class ClinicScene extends MiniGame {
     sfx(this, 'squeak', { minGapMs: 0, volume: 0.3, rate: 1.4 });
     if (!this.stillSaid) {
       this.stillSaid = true;
-      this.say('vo-hold-still', { ttlMs: 3000 });
+      // (a longer wait than most lines: Mom is often still talking when the first blink comes; it is said as long as
+      // the eye drops are still being given)
+      const zoom = z;
+      this.say('vo-hold-still', { ttlMs: 8000, valid: () => this.zoom === zoom && this.station?.act === 'drops' });
     }
   }
 
@@ -2599,7 +2602,8 @@ export class ClinicScene extends MiniGame {
       }
       case 'problem': {
         // any problem not fixed yet (easy: Mom suggests one, but any is fine); a fixed one just wiggles
-        const i = this.problems.findIndex((q) => this.near(at, q.at, 125 * k));
+        // (the nearest card within reach, not the first: on 4:3 the cards sit close together)
+        const i = nearestIn(this.problems.map((q) => q.at), at, 125 * k);
         if (i < 0) {
           if (this.cur && this.hitPatient(this.cur, at)) this.showSign(this.cur);
           return;

@@ -608,7 +608,8 @@ export class OpenPourStep extends Step<OpenPourParams> {
       this.sources[0].mouth = { x: ART.smoothie.jarLip.x + (ok ? 100 : 0), y: ART.smoothie.jarLip.y - 20 };
       // The one picture is squarer than the bowl it replaces: keep it out of the palm strip (the cake's prep bowl).
       // (its entering tween was aimed at the old spot before this snapshot came back: it is finished here)
-      const maxY = this.layout.Y(985) - img.displayHeight / 2;
+      // (polish round: with its 45-unit touch margin, which must end above the palm strip too)
+      const maxY = this.layout.Y(990) - 45 * k - img.displayHeight / 2;
       if (img.y > maxY || this.sources[0].rest.y > maxY) {
         this.scene.tweens.killTweensOf(img);
         img.setY(maxY).setAlpha(1);
