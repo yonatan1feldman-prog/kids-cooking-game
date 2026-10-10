@@ -166,7 +166,7 @@ export const cake: Recipe = {
         line: 'vo-pick-frosting',
       },
     },
-    { type: 'spread', params: { source: 'frosting-tub-white', blob: 'frosting-blob', coverage: TUNING.spread.coverage, tintFrom: 'chosen' } },
+    { type: 'spread', params: { source: 'frosting-tub-white', blob: 'frosting-blob', coverage: TUNING.spread.coverage, tintFrom: 'chosen', line: 'vo-frost' } },
     {
       type: 'decorate',
       params: {

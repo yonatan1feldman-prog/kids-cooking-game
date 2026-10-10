@@ -215,6 +215,8 @@ export interface SpreadParams {
    * picked option of the `choose` step before this one), so one blob serves pink, white and chocolate.
    */
   tintFrom?: 'chosen';
+  /** What Mom says as the step begins (default vo-sauce, "Let's spread the sauce!"; the cake: vo-frost). */
+  line?: VoiceKey;
 }
 
 export interface SprinkleParams {
