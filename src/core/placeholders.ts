@@ -87,14 +87,6 @@ const DRAW: Partial<Record<ImageKey, Draw>> = {
       g.fillCircle(w / 2 + Math.cos(a) * r * 0.75, h / 2 + Math.sin(a) * r * 0.75, r * 0.55);
     }
   },
-  'cheese-shaker': (g, w, h) => {
-    g.fillStyle(0xbfc7d1).fillRoundedRect(w * 0.18, h * 0.02, w * 0.64, h * 0.24, 20);
-    g.fillStyle(0x555f6b);
-    for (let i = 0; i < 3; i++) g.fillCircle(w * (0.35 + i * 0.15), h * 0.14, w * 0.035);
-    g.fillStyle(0xe8f2ff, 0.9).fillRoundedRect(w * 0.12, h * 0.24, w * 0.76, h * 0.72, 30);
-    g.fillStyle(0xffd23f).fillRoundedRect(w * 0.18, h * 0.46, w * 0.64, h * 0.46, 24);
-    g.fillStyle(0xffffff, 0.5).fillRoundedRect(w * 0.2, h * 0.3, w * 0.1, h * 0.55, 10);
-  },
   'cheese-shred': (g, w, h) => {
     g.fillStyle(0xf2b705).fillRoundedRect(w * 0.1, h * 0.35, w * 0.8, h * 0.3, h * 0.12);
     g.fillStyle(0xffe066).fillRoundedRect(w * 0.14, h * 0.38, w * 0.72, h * 0.18, h * 0.08);
@@ -133,7 +125,7 @@ const DRAW: Partial<Record<ImageKey, Draw>> = {
     g.lineStyle(r * 0.2, 0x9c4dcc).strokeCircle(w / 2, h / 2, r * 0.85);
     g.lineStyle(r * 0.14, 0xd9a6f0).strokeCircle(w / 2, h / 2, r * 0.55);
   },
-  tray: (g, w, h) => {
+  'pizza-board': (g, w, h) => {
     const r = Math.min(w, h) * 0.47;
     g.fillStyle(0x5b3a29, 0.2).fillCircle(w / 2, h / 2 + 12, r);
     g.fillStyle(0xe3a869).fillCircle(w / 2, h / 2, r);
@@ -208,20 +200,10 @@ const DRAW: Partial<Record<ImageKey, Draw>> = {
     g.fillStyle(0xb8382b).fillEllipse(w / 2, h * 0.56, w * 0.1, h * 0.04);
     g.lineStyle(8, 0x5b3a29).strokeEllipse(w / 2, h * 0.56, w * 0.1, h * 0.04);
   },
-  'hand-hint': (g, w, h) => {
-    g.fillStyle(0xf3c9a8).fillRoundedRect(w * 0.14, h * 0.04, w * 0.22, h * 0.5, w * 0.1);
-    g.fillStyle(0xf3c9a8).fillEllipse(w * 0.5, h * 0.68, w * 0.76, h * 0.5);
-    g.lineStyle(8, 0x5b3a29).strokeRoundedRect(w * 0.14, h * 0.04, w * 0.22, h * 0.5, w * 0.1).strokeEllipse(w * 0.5, h * 0.68, w * 0.76, h * 0.5);
-  },
   star: (g, w, h) => {
     const r = Math.min(w, h) / 2;
     g.fillStyle(0xf5b000).fillPoints(starPoints(w / 2, h / 2 + r * 0.04, r * 0.98, r * 0.46), true);
     g.fillStyle(0xffe14d).fillPoints(starPoints(w / 2, h / 2, r * 0.88, r * 0.4), true);
-  },
-  'btn-play': (g, w, h) => {
-    roundButton(g, w, h, 0x2ecc71);
-    const r = Math.min(w, h) / 2;
-    g.fillStyle(0xffffff).fillTriangle(w / 2 - r * 0.28, h / 2 - r * 0.42, w / 2 - r * 0.28, h / 2 + r * 0.42, w / 2 + r * 0.45, h / 2);
   },
   'btn-home': (g, w, h) => {
     roundButton(g, w, h, 0x3498db);

@@ -159,11 +159,6 @@
   "w": 450,
   "h": 525
  },
- "art-easel": {
-  "sha1": "fc864a238bf8d38ffcca29b313cc006a6f644e9a",
-  "w": 1000,
-  "h": 1000
- },
  "art-find-bird": {
   "sha1": "38004751c9f8148ef38363b7e7f6e608f566b123",
   "w": 200,
@@ -424,11 +419,6 @@
   "w": 240,
   "h": 240
  },
- "btn-play": {
-  "sha1": "94dd13c2d996300c36f043fd9558701e89d8fb1d",
-  "w": 336,
-  "h": 336
- },
  "btn-temp-down": {
   "sha1": "71edd7e29870756d70ac95cda39ba20e6b782c58",
   "w": 240,
@@ -584,11 +574,6 @@
   "w": 400,
   "h": 520
  },
- "care-tongue": {
-  "sha1": "ea306f762e94f77e23d2b7460f332c4701741b10",
-  "w": 408,
-  "h": 306
- },
  "care-apple": {
   "sha1": "330b328ef36571b28ed5d8a4cef4fea1523106dc",
   "w": 160,
@@ -714,6 +699,11 @@
   "w": 200,
   "h": 200
  },
+ "care-tongue": {
+  "sha1": "ea306f762e94f77e23d2b7460f332c4701741b10",
+  "w": 408,
+  "h": 306
+ },
  "care-towel-head": {
   "sha1": "09dff7a7df93420cc32401847628d7f64ae17d6f",
   "w": 320,
@@ -799,11 +789,6 @@
   "w": 400,
   "h": 260
  },
- "cheese-shaker": {
-  "sha1": "b61cc07749439a07dfcba9fb3d94a39b3a750b3b",
-  "w": 260,
-  "h": 400
- },
  "cheese-shred": {
   "sha1": "06ed665d8bc1584ad58ee410521831095570efb1",
   "w": 80,
@@ -838,11 +823,6 @@
   "sha1": "04890a0ccb969150d717c56f98924dff6b39c47b",
   "w": 120,
   "h": 80
- },
- "clinic-chart": {
-  "sha1": "c0d38afd281fe91436f23e3aedfa6a02440756c7",
-  "w": 300,
-  "h": 380
  },
  "clinic-cheek": {
   "sha1": "8564a54c0290387ba1ed7751c3bd8fa3f4670929",
@@ -1894,11 +1874,6 @@
   "w": 450,
   "h": 525
  },
- "hand-hint": {
-  "sha1": "6b68a244d4079f2bf1f08f923612e6e87c72919c",
-  "w": 220,
-  "h": 280
- },
  "hay-bale": {
   "sha1": "be780a3ad85d573c3ea324d6c6d96ce1f64b57b3",
   "w": 240,
@@ -2576,11 +2551,6 @@
  },
  "lens-throat": {
   "sha1": "043e8cf5ca0c2b8f55e7cabb3a7d84b6216338fc",
-  "w": 884,
-  "h": 884
- },
- "lens-tummy": {
-  "sha1": "f6910ef1572978cc5b60de09b263c9236b4024b4",
   "w": 884,
   "h": 884
  },
@@ -3673,11 +3643,6 @@
   "sha1": "1a917c0851fdceda8b8ae50c8685f0526ac1e571",
   "w": 140,
   "h": 140
- },
- "tray": {
-  "sha1": "c08421194607fb7f6063afb679cc7dcb24b1a1da",
-  "w": 820,
-  "h": 830
  },
  "veg-carrot-inside": {
   "sha1": "e31760dd81d009536f01c60b36e14e36e200ce09",

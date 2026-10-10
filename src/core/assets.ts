@@ -68,7 +68,6 @@ export const IMAGES = {
   'rolling-pin': { size: [640, 200] },
   'sauce-bowl': { size: [340, 300] },
   'sauce-blob': { size: [200, 200] },
-  'cheese-shaker': { size: [260, 400] },
   'cheese-shred': { size: [80, 44] },
   'topping-tomato': { size: [140, 140] },
   'topping-olive': { size: [140, 140] },
@@ -76,8 +75,6 @@ export const IMAGES = {
   'topping-corn': { size: [140, 140] },
   'topping-pepper': { size: [140, 140] },
   'topping-onion': { size: [140, 140] },
-  /** The round pizza board under the dish (tray is an identical older copy). */
-  tray: { size: [820, 830] },
   'pizza-board': { size: [820, 830] },
   /** Oven layers share one 700x800 frame; oven-closed has a transparent window. */
   'oven-inside': { size: [700, 800] },
@@ -127,11 +124,7 @@ export const IMAGES = {
   'mom-hand-spread': { size: [400, 400] },
   'mom-hand-sprinkle': { size: [400, 400] },
   'mom-hand-grab': { size: [400, 400] },
-  /** Older single guiding hand (kept in the contract; Mom's demo hands replaced it on screen). */
-  'hand-hint': { size: [220, 280] },
   star: { size: [200, 200] },
-  /** Shown at 1.4x (the hero of the title screen), so it is rasterized at 1.4x too. */
-  'btn-play': { size: [240, 240], raster: 1.4 },
   'btn-home': { size: [240, 240] },
   'btn-done': { size: [240, 240] },
   'card-pizza': { size: [400, 520] },
@@ -544,8 +537,6 @@ export const IMAGES = {
   // ---- The art corner (research/drawing-stages-spec.md; assets-src/images-b-art, tools/gen_art.py). The pictures she
   // traces, joins and colours are drawn in code (core/artPictures.ts). Anchors: ART.art.
   'card-art': { size: [400, 520] },
-  /** The easel: the sheet lies on its board at ART.art.sheet, the legs reach down past the counter. */
-  'art-easel': { size: [1000, 1000] },
   'photo-frame-art': { size: [700, 780] },
   'art-pick-trace': { size: [300, 300] },
   'art-pick-dots': { size: [300, 300] },
@@ -575,7 +566,7 @@ export const IMAGES = {
   'art-stamp-flower': { size: [240, 240] },
   'art-stamp-bird': { size: [240, 240] },
   // ---- The clinic world (research/clinic-spec.md; assets-src/images-b-clinic, tools/gen_clinic.py). Anchors: ART.clinic.
-  /** The title's two worlds: cook with Mom, or help the patients with Mom the nurse (shown at 1.4x like btn-play). */
+  /** The title's two worlds: cook with Mom, or help the patients with Mom the nurse (shown at 1.4x). */
   // the title's two games (clinic round 3): their lettering is the title art, like the logo's
   'world-card-kitchen': { size: [700, 760] },
   'world-card-clinic': { size: [700, 760] },
@@ -588,7 +579,6 @@ export const IMAGES = {
   'clinic-bed': { size: [900, 320] },
   'clinic-bench': { size: [1500, 420] },
   'clinic-slot': { size: [240, 240] },
-  'clinic-chart': { size: [300, 380] },
   'tool-thermometer': { size: [240, 240] },
   'tool-stethoscope': { size: [240, 240] },
   'tool-plaster': { size: [240, 240] },
@@ -606,7 +596,6 @@ export const IMAGES = {
   /** The close-ups (light grey, tinted to the patient in the game; the mouth is not tinted) and the magnifier's rim. */
   'lens-knee': { size: [520, 520], raster: ZOOM_RASTER },
   'lens-paw': { size: [520, 520], raster: ZOOM_RASTER },
-  'lens-tummy': { size: [520, 520], raster: ZOOM_RASTER },
   'lens-mouth': { size: [520, 520], raster: ZOOM_RASTER },
   'lens-ring': { size: [600, 600], raster: ZOOM_RASTER },
   // ---- The clinic, round 3 (research/clinic-doctor-games.md; images-b-clinic/tools/gen_clinic3.py): the eye, the ear and
@@ -867,7 +856,7 @@ export const SCENERY_KEYS: readonly ImageKey[] = [
 ];
 
 export const CORE_IMAGES: readonly ImageKey[] = [
-  'bg-kitchen-landscape', ...KITCHEN_KEYS, ...SCENERY_KEYS, 'logo-cooking-with-mom', 'star', 'btn-play', 'world-card-kitchen', 'world-card-clinic', 'btn-home', 'btn-done', 'hand-hint',
+  'bg-kitchen-landscape', ...KITCHEN_KEYS, ...SCENERY_KEYS, 'logo-cooking-with-mom', 'star', 'world-card-kitchen', 'world-card-clinic', 'btn-home', 'btn-done',
   'card-pizza', 'card-salad', 'card-cookies', 'card-smoothie', 'card-pancakes', 'card-soup', 'card-cake',
   'card-skewers', 'card-garden', 'card-market', 'card-dishes', 'card-art', 'card-farm',
   'character-body', 'character-eyes-open', 'character-eyes-blink', 'character-eyes-surprised', 'character-eyes-happy',
@@ -893,7 +882,7 @@ export const RECIPE_ASSETS: Record<string, { images: readonly ImageKey[]; sounds
   pizza: {
     images: [
       ...WASH, ...OVEN, ...PREP_BOWL, ...CHOP, ...cut('tomato', 'mushroom', 'pepper', 'onion'),
-      'dough-ball', 'dough-flat', 'rolling-pin', 'sauce-bowl', 'sauce-blob', 'cheese-shaker', 'cheese-shred', 'tray',
+      'dough-ball', 'dough-flat', 'rolling-pin', 'sauce-bowl', 'sauce-blob', 'cheese-shred',
       'pizza-board', 'pizza-slice', 'topping-tomato', 'topping-olive', 'topping-mushroom', 'topping-corn', 'topping-pepper',
       'topping-onion', 'dough-knead-1', 'dough-knead-2', 'dough-knead-3', 'sauce-stage-0', 'sauce-stage-1', 'sauce-stage-2',
       'sauce-stage-3', 'grater', 'cheese-block', 'cheese-pile-1', 'cheese-pile-2', 'cheese-pile-3', 'cheese-handful',
@@ -1076,7 +1065,7 @@ RECIPE_ASSETS.market = {
     'vo-market-list', 'vo-market-remember', 'vo-market-not', 'vo-market-pipa', 'vo-market-two', 'vo-market-done',
     'name-tomato', 'name-carrot', 'name-cucumber', 'name-onion', 'name-potato', 'name-mushroom', 'name-zucchini',
     'name-banana', 'name-kiwi', 'name-mango', 'name-strawberry', 'name-lettuce', 'vo-market-guest', 'vo-market-guest-yum',
-    'vo-market-mixed', 'vo-market-mixed-yes', 'vo-market-mixed-more', 'vo-market-pay', 'vo-market-pay-dots', 'vo-market-count',
+    'vo-market-mixed', 'vo-market-mixed-yes', 'vo-market-mixed-more', 'vo-market-pay', 'vo-market-pay-dots',
     'vo-market-paid', 'vo-weigh', 'vo-too-heavy', 'vo-need-green', 'vo-need-tree', 'vo-need-round', 'vo-is-green', 'vo-is-tree',
     'vo-is-round', 'vo-big-coin', 'vo-small-coin', ...OUTSIDE_SONG,
   ],
@@ -1095,7 +1084,7 @@ RECIPE_ASSETS.dishes = {
 /** The art corner (ArtScene): loaded on its card like a recipe. Names some recipe lists are listed here too. */
 RECIPE_ASSETS.art = {
   images: [
-    'art-easel', 'photo-frame-art', 'art-pick-trace', 'art-pick-dots', 'art-pick-colour', 'art-pick-mirror', 'art-pick-steam',
+    'photo-frame-art', 'art-pick-trace', 'art-pick-dots', 'art-pick-colour', 'art-pick-mirror', 'art-pick-steam',
     'art-pot-red', 'art-pot-yellow', 'art-pot-blue', 'art-pot-green', 'art-pot-pink', 'art-pot-purple', 'art-pot-orange',
     'art-pot-rainbow', 'art-window-view', 'art-window-frame', 'art-find-sun', 'art-find-bird', 'art-find-cat', 'art-find-rainbow',
     'art-pick-stamps', 'art-stamp-sun', 'art-stamp-cloud', 'art-stamp-flower', 'art-stamp-bird',
@@ -1106,7 +1095,7 @@ RECIPE_ASSETS.art = {
     'name-sun', 'name-egg', 'name-fish', 'name-ball', 'name-rainbow', 'name-house', 'name-tree', 'name-boat', 'name-butterfly',
     'name-crown', 'name-bird', 'name-cat', 'name-red', 'name-green', 'name-purple', 'name-orange', 'name-heart', 'name-star',
     'name-blue', 'name-yellow', 'name-pink', 'crayon', 'xylo', 'splosh', 'squeak', 'vo-art-stamps', 'vo-find-number',
-    'vo-follow-arrows', 'vo-next', 'name-kite', 'name-ice-cream', 'name-balloon', 'name-snail', 'name-cloud', 'name-flower',
+    'vo-follow-arrows', 'vo-next', 'name-kite', 'name-ice-cream', 'name-balloon', 'name-cloud', 'name-flower',
     'stamp', ...ART_SONG,
   ],
 };
@@ -1115,9 +1104,9 @@ RECIPE_ASSETS.art = {
 const CLINIC_SONG = ['music-clinic-base', 'music-clinic-tune', 'music-clinic-party', 'music-clinic-up'];
 RECIPE_ASSETS.clinic = {
   images: [
-    'mom-body-nurse', 'mom-cap-nurse', 'bg-clinic', 'bg-clinic-wait', 'clinic-bed', 'clinic-bench', 'clinic-slot', 'clinic-chart',
+    'mom-body-nurse', 'mom-cap-nurse', 'bg-clinic', 'bg-clinic-wait', 'clinic-bed', 'clinic-bench', 'clinic-slot',
     'tool-thermometer', 'tool-stethoscope', 'tool-plaster', 'tool-cream', 'tool-spray', 'tool-tweezers', 'tool-magnifier',
-    'tool-toothbrush', 'tool-cup', 'tool-syrup', 'tool-cloth', 'tool-hotbottle', 'lens-knee', 'lens-paw', 'lens-tummy',
+    'tool-toothbrush', 'tool-cup', 'tool-syrup', 'tool-cloth', 'tool-hotbottle', 'lens-knee', 'lens-paw',
     'lens-mouth', 'lens-ring', 'clinic-scrape', 'clinic-dust', 'clinic-splinter', 'clinic-cream', 'clinic-dirt', 'clinic-cheek',
     'clinic-sweat', 'clinic-bump', 'sticker-star', 'sticker-heart', 'sticker-smile', 'sick-fever', 'sick-cough', 'sick-tummy',
     'sick-tooth', 'sick-knee', 'sick-paw', 'photo-frame-clinic', 'bubble', 'water-drop',
@@ -1136,8 +1125,7 @@ RECIPE_ASSETS.clinic = {
   ],
   sounds: [
     'vo-clinic-hello', 'vo-clinic-next', 'vo-hi-turtle', 'vo-hi-penguin', 'vo-hi-giraffe', 'vo-hi-pipa', 'vo-sick-fever',
-    'vo-sick-cough', 'vo-sick-tummy', 'vo-sick-tooth', 'vo-sick-knee', 'vo-sick-paw', 'vo-clinic-what', 'vo-clinic-look',
-    'vo-clinic-plan', 'vo-clinic-first', 'vo-clinic-notyet', 'vo-tool-thermometer', 'vo-thermo-hot', 'vo-thermo-ok',
+    'vo-sick-cough', 'vo-sick-tummy', 'vo-sick-tooth', 'vo-sick-knee', 'vo-sick-paw', 'vo-clinic-first', 'vo-clinic-notyet', 'vo-tool-thermometer', 'vo-thermo-hot', 'vo-thermo-ok',
     'vo-tool-cloth', 'vo-tool-syrup', 'vo-tool-stethoscope', 'vo-stetho-find', 'vo-stetho-heart', 'vo-tool-cup', 'vo-tool-rinse',
     'vo-tool-hotbottle', 'vo-say-aah', 'vo-tool-toothbrush', 'vo-tool-spray', 'vo-tool-cream', 'vo-tool-plaster',
     'vo-tool-tweezers', 'vo-tool-magnifier', 'vo-found-it', 'vo-clinic-better', 'vo-sticker', 'vo-clinic-bye-patient',
@@ -1214,8 +1202,6 @@ export type SoundKey = (typeof SOUND_KEYS)[number];
 
 /** Art geometry the code relies on, in each image's own viewBox coordinates. */
 export const ART = {
-  /** Fingertip of hand-hint (the hand is tilted 12 degrees). */
-  handTip: { x: 53, y: 23 },
   /** Oven window hole in oven-closed, and where the pizza sits behind it. */
   ovenWindow: { x: 150, y: 320, w: 400, h: 290 },
   ovenPizza: { x: 350, y: 480, diameter: 320 },
@@ -1438,8 +1424,6 @@ export const ART = {
   },
   /** The art corner (assets-src/images-b-art/tools/gen_art.py prints it). */
   art: {
-    /** art-easel (1000x1000): where the sheet lies on the board (5:4). */
-    sheet: { x: 112, y: 100, w: 776, h: 620 },
     /** art-window-frame (800x640): the glass inside the frame (the fog covers it). */
     glass: { x: 44, y: 44, w: 712, h: 520 },
   },
@@ -1478,8 +1462,6 @@ export const ART = {
     teeth: [[155, 190], [222, 172], [298, 172], [365, 190], [165, 350], [228, 368], [292, 368], [355, 350]] as readonly (readonly [number, number])[],
     knee: { x: 320, y: 285 },
     paw: { x: 262, y: 340 },
-    /** clinic-chart (300x380): the centres of its four rows. */
-    chartRows: [[150, 104], [150, 175], [150, 246], [150, 316]] as readonly (readonly [number, number])[],
     /** clinic-bed (900x320): the cushion's top (where a patient sits); clinic-bench (1500x420): its seat. */
     bedSeat: 112,
     benchSeat: 252,
