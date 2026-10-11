@@ -2,7 +2,7 @@
 
 Four songs (the kitchen, outdoors, the art corner, the clinic), each 32 bars (A A' B A) that loop gaplessly, each as three synchronised stems the game mixes live
 (core/audio.ts `music`):
-  base   ukulele or marimba chords, bass, a light shaker or claps   always on      stereo
+  base   ukulele or marimba chords, bass, a light shaker or claps   always on      mono (polish round)
   tune   the melody (xylophone / whistle / glockenspiel)            on; out while Mom talks   mono
   party  kick, claps, tambourine, a counter-melody, fills           after each success, the whole finale   mono
 plus `-up`, a one-bar rising glockenspiel run in the song's key (the stinger when the party layer comes in).
@@ -26,6 +26,10 @@ ROOT = Path(__file__).resolve().parent.parent
 WORK = ROOT / "work" / "music-gen"
 FINAL = ROOT / "final" / "music"
 FFMPEG = "ffmpeg"
+# libvorbis quality of every stem. Polish round (research/polish-spec.md P18): q2 (was 3), and the base stem mono (it
+# was stereo: the width came from a few panned hits; the tune and party stems were mono already), so a song is about
+# 40 % smaller on disk and its base takes half the memory once decoded. The mono base is loudness-matched to the stereo one.
+OGG_Q = "2"
 
 # ---------------------------------------------------------------- notes
 
@@ -527,7 +531,7 @@ def seam(y, at=0):
 def ogg(src: Path, dst: Path, mono: bool):
     dst.parent.mkdir(parents=True, exist_ok=True)
     subprocess.run([FFMPEG, "-hide_banner", "-loglevel", "error", "-y", "-i", str(src)] + (["-ac", "1"] if mono else [])
-                   + ["-c:a", "libvorbis", "-q:a", "3", "-ar", str(SR), str(dst)], check=True)
+                   + ["-c:a", "libvorbis", "-q:a", OGG_Q, "-ar", str(SR), str(dst)], check=True)
 
 
 def build(name: str, preview: Path | None):
@@ -555,10 +559,13 @@ def build(name: str, preview: Path | None):
     bar17 = int(round(16 * 4 * 60 / song["bpm"] * SR))  # an ordinary downbeat (the B section's first) to compare with
     for k, y in (("base", st["base"]), ("tune", st["tune"]), ("party", st["party"]), ("full", full)):
         report[f"seam_{k}"] = {"join": seam(y), "bar17": seam(y, bar17)}
+    base_mono = st["base"].mean(axis=1)
+    base_mono *= 10 ** ((loudness(st["base"])[0] - loudness(base_mono)[0]) / 20)
+    files = dict(st, base=base_mono)
     for k in ("base", "tune", "party", "up"):
         wav = WORK / f"music-{name}-{k}.wav"
-        write_wav(wav, st[k])
-        ogg(wav, FINAL / f"music-{name}-{k}.ogg", mono=k in ("tune", "party"))
+        write_wav(wav, files[k])
+        ogg(wav, FINAL / f"music-{name}-{k}.ogg", mono=k in ("base", "tune", "party"))
         report[f"bytes_{k}"] = (FINAL / f"music-{name}-{k}.ogg").stat().st_size
     if preview:
         make_preview(name, song, st, preview)

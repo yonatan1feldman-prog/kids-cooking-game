@@ -2,7 +2,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import type { Plugin } from 'vite';
-import { IMAGES } from '../src/core/assets.ts';
+import { CORE_IMAGES, GUEST_LAYERS, IMAGES, RECIPE_ASSETS } from '../src/core/assets.ts';
 
 /**
  * Exposes `virtual:asset-manifest`: the list of asset files that actually exist
@@ -77,12 +77,44 @@ export function scanAssets(root: string) {
   return { images, webp, sounds, stale };
 }
 
+/**
+ * The worlds that are not precached (polish round, research/polish-spec.md P19): the service worker keeps their files in
+ * a runtime cache instead, filled on the first visit (so the install is ~20 MB lighter). Only the files no other part of
+ * the game lists (the clinic and the farm may share some): core art, the recipes' and the other games' files, the
+ * guests' layers stay precached.
+ */
+export const RUNTIME_WORLDS = ['clinic', 'farm'] as const;
+
+/** For each runtime world, the files (relative to BASE_URL, as in the manifest) only it uses. */
+export function worldOnlyFiles(root: string) {
+  const { images, webp, sounds } = scanAssets(root);
+  const elsewhere = new Set<string>([...CORE_IMAGES, ...GUEST_LAYERS]);
+  for (const [id, r] of Object.entries(RECIPE_ASSETS)) {
+    if ((RUNTIME_WORLDS as readonly string[]).includes(id)) continue;
+    for (const k of [...r.images, ...r.sounds]) elsewhere.add(k);
+  }
+  const out: Record<string, string[]> = {};
+  for (const id of RUNTIME_WORLDS) {
+    const own = RECIPE_ASSETS[id] ?? { images: [], sounds: [] };
+    const files = [
+      ...own.images.filter((k) => !elsewhere.has(k)).map((k) => webp[k] ?? images[k]),
+      ...own.sounds.filter((k) => !elsewhere.has(k)).flatMap((k) => sounds[k] ?? []),
+    ];
+    out[id] = [...new Set(files.filter(Boolean))];
+  }
+  return out;
+}
+
+const md5 = (file: string) => crypto.createHash('md5').update(fs.readFileSync(file)).digest('hex').slice(0, 8);
+
 export function assetManifest(): Plugin {
   let root = process.cwd();
+  let build = false;
   return {
     name: 'asset-manifest',
     configResolved(config) {
       root = config.root;
+      build = config.command === 'build';
     },
     resolveId(id) {
       return id === VIRTUAL_ID ? RESOLVED_ID : null;
@@ -91,7 +123,18 @@ export function assetManifest(): Plugin {
       if (id !== RESOLVED_ID) return null;
       const { images, webp, sounds, stale } = scanAssets(root);
       if (stale.length) this.warn(`pre-rendered WebP out of date (the SVG is used instead): ${stale.join(', ')}. Run scripts/bake-webp.js.`);
-      return `export default ${JSON.stringify({ images, webp, sounds })};`;
+      // In the build, the runtime-cached worlds' files carry their content hash (?v=), so a changed file is a new URL
+      // and the cache-first runtime cache never serves an old one. (Precached files have their own revisions.)
+      const world = worldOnlyFiles(root);
+      if (build) {
+        const ver = new Map<string, string>();
+        for (const f of Object.values(world).flat()) ver.set(f, `${f}?v=${md5(path.join(root, 'public', f))}`);
+        const v = (f: string) => ver.get(f) ?? f;
+        for (const m of [images, webp]) for (const k of Object.keys(m)) m[k] = v(m[k]);
+        for (const k of Object.keys(sounds)) sounds[k] = sounds[k].map(v);
+        for (const id of Object.keys(world)) world[id] = world[id].map(v);
+      }
+      return `export default ${JSON.stringify({ images, webp, sounds, world })};`;
     },
     configureServer(server) {
       const assetsDir = path.join(root, 'public', 'assets');

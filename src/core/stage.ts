@@ -321,7 +321,8 @@ export function getStage(L: Layout): Stage {
   const needShift = wantX + PET_OPAQUE_X1 * bs + 10 * k - momFace.x0;
   const feedMomShift = Math.max(0, Math.min(needShift, W - 8 * k - momFace.x1));
   const px = Math.min(wantX, momFace.x0 + feedMomShift - 10 * k - PET_OPAQUE_X1 * bs);
-  const feedTop = Y(984) - PET_FOOT * bs;
+  // (4:3, where she only comes for feeding: a little higher, so she stays out of the palm strip)
+  const feedTop = Y(pet ? 984 : 966) - PET_FOOT * bs;
   const feedPet = { x: px + bw / 2, y: feedTop + (PET_H / 2) * bs, scale: bs };
   const feedPetX0 = px + PET_OPAQUE_X0 * bs;
 
@@ -399,63 +400,61 @@ export function getStage(L: Layout): Stage {
   const CARD_H = 520;
   // (the clinic round: the home screen has a home button too, back to the title where the worlds are; no card
   // reaches its touch circle)
-  const cardArea = { x0: m + 40 * k, x1: Math.min(momFace.x0, petLeft) - 30 * k, y0: Y(80), y1: Y(1000) };
+  // (polish round: the bottom row's touch areas, 30 beyond the cards, end above the palm strip; the top row may go up
+  // close to the screen's top edge, the home button keeps its own corner)
+  const cardArea = { x0: m + 40 * k, x1: Math.min(momFace.x0, petLeft) - 30 * k, y0: Y(36), y1: Y(982) };
   // Mom's pointing hand and forearm (her drawn pose on the home screen) reach left of her face, low on 4:3: no card
   // may sit under them (the garden card pushed the album button into the last cell there, under her finger).
   const arm = { x0: momLeft + 37 * s - 20 * k, y0: momTop + 378 * s - 80 * s, y1: momTop + 560 * s };
-  type Grid = { cols: number; rows: number; x0: number; y0: number; x1: number; w: number; h: number; scale: number };
-  const gridOf = (n: number, rows: number, x1: number, x0 = cardArea.x0, y0 = cardArea.y0): Grid => {
-    const cols = n <= 3 ? n : Math.ceil(n / rows);
-    const r = Math.ceil(n / cols);
+  type Grid = { scale: number; cells: { x: number; y: number }[] };
+  // A grid over the whole room: a cell whose card would reach the home button's touch circle or Mom's hand is left
+  // empty, so only the top row gives up its first cell to the home button (polish round: before, every row started
+  // right of it and the cards were 192 units wide, under the 200 rule). The cards go in row by row; a last row that is
+  // not full is centred when nothing in it was left empty.
+  const gridOf = (n: number, rows: number, cols: number): Grid | null => {
+    const { x0, x1, y0, y1 } = cardArea;
     const w = (x1 - x0) / cols;
-    const h = (cardArea.y1 - y0) / r;
-    return { cols, rows: r, x0, y0, x1, w, h, scale: Math.min(1.2 * k, (w - 40 * k) / CARD_W, (h - 40 * k) / CARD_H) };
-  };
-  const cellAt = (g: Grid, i: number, n: number) => {
-    const row = Math.floor(i / g.cols);
-    // (a shorter last row is centred)
-    const inRow = row === g.rows - 1 ? n - row * g.cols : g.cols;
-    const x0 = (g.x0 + g.x1) / 2 - (inRow * g.w) / 2;
-    return { x: x0 + g.w * ((i % g.cols) + 0.5), y: g.y0 + g.h * (row + 0.5) };
-  };
-  const clearOfArm = (g: Grid, n: number) => {
-    for (let i = 0; i < n; i++) {
-      const c = cellAt(g, i, n);
-      const hw = (CARD_W / 2) * g.scale, hh = (CARD_H / 2) * g.scale;
-      if (c.x + hw > arm.x0 && c.y + hh > arm.y0 && c.y - hh < arm.y1) return false;
-      // (nor over the home button's touch circle)
-      const nx = Phaser.Math.Clamp(home.x, c.x - hw, c.x + hw);
-      const ny = Phaser.Math.Clamp(home.y, c.y - hh, c.y + hh);
-      if (Math.hypot(nx - home.x, ny - home.y) < homeR + 10 * k) return false;
+    const h = (y1 - y0) / rows;
+    const scale = Math.min(1.2 * k, (w - 30 * k) / CARD_W, (h - 30 * k) / CARD_H);
+    const hw = (CARD_W / 2) * scale, hh = (CARD_H / 2) * scale;
+    const free = (x: number, y: number) => {
+      if (x + hw > arm.x0 && y + hh > arm.y0 && y - hh < arm.y1) return false;
+      const nx = Phaser.Math.Clamp(home.x, x - hw, x + hw);
+      const ny = Phaser.Math.Clamp(home.y, y - hh, y + hh);
+      return Math.hypot(nx - home.x, ny - home.y) >= homeR + 10 * k;
+    };
+    const cells: { x: number; y: number }[] = [];
+    for (let r = 0; r < rows && cells.length < n; r++) {
+      const y = y0 + h * (r + 0.5);
+      const row: number[] = [];
+      for (let c = 0; c < cols; c++) if (free(x0 + w * (c + 0.5), y)) row.push(x0 + w * (c + 0.5));
+      const used = Math.min(row.length, n - cells.length);
+      if (used < row.length && row.length === cols) {
+        const left = (x0 + x1) / 2 - (used * w) / 2;
+        for (let j = 0; j < used; j++) cells.push({ x: left + w * (j + 0.5), y });
+      } else for (let j = 0; j < used; j++) cells.push({ x: row[j], y });
     }
-    return true;
+    return cells.length === n ? { scale, cells } : null;
   };
-  // Two rows (one up to 3 cards) or, from 7 cards, three, whichever gives bigger cards clear of her hand.
+  // One row (up to 3 cards), two or three rows, whichever gives the biggest cards clear of her hand and the home button.
   const grids = new Map<number, Grid>();
   const grid = (n: number): Grid => {
     let g = grids.get(n);
     if (g) return g;
-    // (for each, the widest grid whose cards all stay clear, narrowing it step by step down to the hand's edge)
-    // (the grid starts right of the home button, or under it, whichever gives bigger cards)
-    const fit = (rows: number, x0: number, y0: number) => {
-      for (let x1 = cardArea.x1; x1 > arm.x0; x1 -= 10 * k) {
-        const t = gridOf(n, rows, x1, x0, y0);
-        if (clearOfArm(t, n)) return t;
+    const all: Grid[] = [];
+    for (let rows = n <= 3 ? 1 : 2; rows <= (n > 6 ? 3 : 2); rows++) {
+      const c0 = Math.ceil(n / rows);
+      for (let cols = c0; cols <= c0 + 2; cols++) {
+        const t = gridOf(n, rows, cols);
+        if (t) all.push(t);
       }
-      return gridOf(n, rows, Math.min(cardArea.x1, arm.x0), x0, y0);
-    };
-    const starts = [
-      [home.x + homeR + 10 * k, cardArea.y0],
-      [cardArea.x0, home.y + homeR + 10 * k],
-    ];
-    g = starts
-      .flatMap(([x0, y0]) => [fit(2, x0, y0), ...(n > 6 ? [fit(3, x0, y0)] : [])])
-      .sort((a, b) => b.scale - a.scale)[0];
+    }
+    g = all.sort((a, b) => b.scale - a.scale)[0] ?? gridOf(n, 3, Math.ceil(n / 3) + 3)!;
     grids.set(n, g);
     return g;
   };
   const cardScale = (n: number) => grid(n).scale;
-  const card = (i: number, n: number) => (n === 1 ? { x: L.cx, y: L.cy } : cellAt(grid(n), i, n));
+  const card = (i: number, n: number) => (n === 1 ? { x: L.cx, y: L.cy } : grid(n).cells[i]);
 
   // The memory book: the cards' room, but starting right of the home button (it stays on screen there).
   const albumArea = { x0: home.x + homeR + 30 * k, x1: cardArea.x1, y0: Y(60), y1: Y(1000) };
@@ -500,8 +499,10 @@ export function getStage(L: Layout): Stage {
   const levelR = 120 * levelScale;
   const titleLeft = m + 20 * k;
   const titleRight = Math.min(pet ? petLeft : Infinity, momFace.x0, arm.x0) - 20 * k;
-  const hatY = Y(986) - levelR - 14 * k;
-  const cardTop = Y(48);
+  // (polish round: the hats' touch circles, 30 beyond them, end above the palm strip; the cards' torn frames no longer
+  // touch the screen's top edge)
+  const hatY = Y(986) - levelR - 30 * k;
+  const cardTop = Y(88);
   const cardBottom = hatY - levelR - 26 * k;
   const worldGap = 44 * k;
   const worldScale = Math.min(k, (cardBottom - cardTop) / WORLD_CARD.h, (titleRight - titleLeft - worldGap) / (2 * WORLD_CARD.w));
@@ -510,8 +511,9 @@ export function getStage(L: Layout): Stage {
   const titleY = (cardTop + cardBottom) / 2;
   const kitchenX = titleX - worldGap / 2 - cardW / 2;
   const clinicX = titleX + worldGap / 2 + cardW / 2;
-  const littleX = titleX - levelR - 14 * k;
-  const bigX = titleX + levelR + 14 * k;
+  // (far enough apart that their touch circles never meet)
+  const littleX = titleX - levelR - 34 * k;
+  const bigX = titleX + levelR + 34 * k;
 
   return {
     play: { x: kitchenX, y: titleY },
@@ -525,7 +527,8 @@ export function getStage(L: Layout): Stage {
     homeScale,
     dishHome,
     side: { x: sideX, y: dishHome.y },
-    pinRest: { x: sideX, y: dishHome.y },
+    // (40 lower than the dish's centre: the upright pin's touch area stays clear of the home button's, polish round)
+    pinRest: { x: sideX, y: dishHome.y + 40 * k },
     pinRestAngle: 90,
     bowl: { x: sideX, y: dishHome.y },
     shaker: { x: sideX, y: dishHome.y },

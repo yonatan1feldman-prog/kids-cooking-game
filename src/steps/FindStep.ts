@@ -6,6 +6,7 @@ import { tapMotion, type HandMotion } from '../core/hand';
 import { opaqueBounds } from '../core/placeholders';
 import { sfx } from '../core/sfx';
 import type { FindParams } from '../recipes/types';
+import type { PrepBowl } from './PrepBowl';
 import { Step } from './Step';
 
 interface Tool {
@@ -31,12 +32,19 @@ export class FindStep extends Step<FindParams> {
   private tools: Tool[] = [];
   private done = false;
   private k = 1;
+  private keptParts: Phaser.GameObjects.Image[] = [];
 
   start() {
     this.stepLine = this.params.line;
     const S = this.ctx.stage;
     this.k = this.layout.k;
     this.workspace('aside');
+    // A big bowl kept for a later step (the salad's, the blender's jar: the hard level's finds before mixing or the
+    // milk) steps back while the tools stand in the middle, and comes back as the found one goes to work.
+    const kept = this.ctx.run.handoff.get('prep-bowl');
+    const bowl = kept?.active ? (kept.getData('prep-bowl') as PrepBowl | undefined) : undefined;
+    this.keptParts = bowl?.parts ?? [];
+    if (this.keptParts.length) this.scene.tweens.add({ targets: this.keptParts, alpha: 0, duration: 300 });
     const opts = Phaser.Utils.Array.Shuffle([...this.params.options]);
     const n = opts.length;
     const bs = S.choiceScale(n);
@@ -104,6 +112,7 @@ export class FindStep extends Step<FindParams> {
     this.scene.time.delayedCall(1300, () => {
       if (this.aborted) return;
       this.scene.tweens.add({ targets: [t.item, glow], scale: '*=1.2', alpha: 0, duration: 350 });
+      if (this.keptParts.length) this.scene.tweens.add({ targets: this.keptParts.filter((o) => o.active), alpha: 1, duration: 350 });
       this.scene.time.delayedCall(380, () => this.complete());
     });
   }

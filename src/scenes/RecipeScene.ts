@@ -134,8 +134,8 @@ export class RecipeScene extends Phaser.Scene {
   }
 
   private runStep(i: number) {
-    // Each step as the chosen level plays it (level 1: as written).
-    this.steps[i] = levelStep(this.steps[i], (key) => this.textures.exists(key));
+    // Each step as the chosen level plays it (level 1: as written, the counts grown with the runs).
+    this.steps[i] = levelStep(this.steps[i], (key) => this.textures.exists(key), { recipeId: this.recipe.id, runNo: this.ctx.run.runNo, chosen: this.ctx.run.chosen });
     this.stepDef = this.steps[i];
     this.step = createStep(this.steps[i], this.ctx, () => this.stepDone(i));
     this.step.start();
@@ -157,7 +157,8 @@ export class RecipeScene extends Phaser.Scene {
     stars(this, dish.x, dish.y, 10, 80 * layout.k);
     confetti(this, dish.x, dish.y, 22, 48 * layout.k);
     boing(this, this.ctx.board, 0.06);
-    voice.praise({ ttlMs: 3000 });
+    // (after Mom's help it waits behind "Let me help you!" and the step line)
+    voice.praise({ ttlMs: 6000 });
     music.party();
     mom.cheer();
     character.cheer();

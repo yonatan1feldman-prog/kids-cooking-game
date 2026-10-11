@@ -4,8 +4,9 @@
 - **What:** a text-free, English-speaking cooking game for a 5-year-old (Android phone, landscape): she cooks with
   Mom, Pipa the hedgehog watches and eats. Phaser 4 + Vite + TypeScript PWA, deployed to GitHub Pages from `master`.
   Eight recipes: pizza, salad, cookies, smoothie, pancakes, vegetable soup, birthday cake and fruit skewers (`src/recipes/<name>.ts`),
-  cards in a grid on the home screen, then three cards for games that are not cooking (the garden `scenes/GardenScene.ts`,
-  the market `MarketScene.ts`, washing up `DishesScene.ts`; the last two share `scenes/MiniGame.ts`), with the memory
+  cards in a grid on the home screen, then cards for games that are not cooking (the garden `scenes/GardenScene.ts`,
+  the market `MarketScene.ts`, washing up `DishesScene.ts`, the art corner `ArtScene.ts`, the farm `FarmScene.ts`, data in
+  `core/farm.ts`; all but the garden share `scenes/MiniGame.ts`), with the memory
   book's button in one more cell once there is a photo in it. The title offers two games as two big cards, "Cooking
   with Mom" (the home screen above) and "Doctor with Mom" (the clinic with Mom the nurse, `scenes/ClinicScene.ts`, data
   in `core/clinic.ts`); both games' home buttons go back to the title.
@@ -24,7 +25,7 @@
   - new recipe or step type: "Recipes are data", "Asset contract", Handoff notes 00000 (cookies), 0000 (salad) and 000 (part B).
   - layout / positions: "Landscape layout", Handoff notes 2; tuning after watching her play: `core/tuning.ts` only.
   - voice or sound: "Asset contract" (levels), "Recipes are data" (voice lines per event, the queue rules).
-  - the difficulty level (little chef / big chef): Handoff notes, gameplay round 5 (`core/level.ts`, `recipes/bigChef.ts`).
+  - the difficulty level (easy / hard; in code still little chef / big chef): Handoff notes, gameplay round 5 and the clinic round 4 (`core/level.ts`, `recipes/bigChef.ts`).
   - testing: "Testing notes for agents", Handoff notes 1 (harness) and 5 (Phaser pitfalls).
   - working in the cloud, art or voice sources: "Cloud workflow".
   - deploying: "Deployment" (every push needs the owner's explicit approval for that round).
@@ -176,7 +177,7 @@ vite.config.ts             base path /kids-cooking-game/, dev server (--host), P
 .github/workflows/deploy.yml  builds and publishes to GitHub Pages on every push to master
 README.md, ASSET-LICENSES.md  public description and the asset licenses (the repo is public)
 plugins/asset-manifest.ts  virtual:asset-manifest = the asset files that exist on disk
-scripts/make-icons.mjs     regenerates the temporary PWA icons (public/icons)
+scripts/make-icons.mjs     renders the PWA icons (public/icons) from gen_title_worlds.py --icons (Playwright's Chromium)
 scripts/harness.js         test harness for the automated Chrome (see "Testing notes")
 scripts/bake-webp.js       pre-renders the SVGs to WebP, run inside the game page (see "Pre-rendered art")
 public/assets/images/      SVG art (the source, from the art agent) + webp/ (pre-rendered, committed)
@@ -233,7 +234,8 @@ src/scenes/
   MiniGame                 the frame the market and washing up share: home button, Mom, Pipa, demo / hint / help, one finger
   MarketScene / DishesScene  the market (shopping from a list) and washing up (scrub, rack by colour)
   ArtScene                 the art corner: the easel wall and five ways to draw (trace, dots, colour, mirror, steam)
-  ClinicScene              the clinic, the second world (waiting room, the patient big, stations of small targets in big close-ups, stickers, photo; 11 ailments)
+  ClinicScene              the clinic, the second world (waiting room, 8 animals and 8 children, each with her own first problem and a second one, stations of small targets in big close-ups, then her own care room next door, stickers, photo; 16 ailments)
+  ClinicCare               the six care rooms the clinic slides to after a patient's problems (data in core/care.ts)
 ```
 
 ## Recipes are data
@@ -502,11 +504,12 @@ fallback if the capture fails.
 - **Pre-rendered art (WebP).** The style-B SVGs use filters (paper texture, torn edges) that took ~2.6 s to rasterize
   at load (desktop Chrome; a phone is slower). `scripts/bake-webp.js` runs inside the game page on the dev server and
   renders each SVG exactly like the game does, at its texture size (native x `raster`), to `images/webp/<key>.webp`
-  (lossless when that is under 64 KB, else lossy 0.92), recording the SVG's sha1 in `images/webp/sources.json`.
+  (lossless only when that is under 8 KB, else lossy 0.95, or 0.85 when the lossless file would be over 64 KB; a file
+  whose mean pixel difference is over 4/255 goes one step up), recording the SVG's sha1 in `images/webp/sources.json`.
   The build uses a WebP only if that sha1 matches the SVG on disk; otherwise it warns and the game rasterizes the SVG.
   **After changing or adding an SVG, re-run the bake** (open the dev page, then in the JS tool:
   `eval(await (await fetch('scripts/bake-webp.js')).text()); await __bakeWebp(); await __compareWebp();`),
-  check the pixel diff (small items about 0.1/255, large lossy ones mean at most 3.5/255), commit `images/webp/`.
+  check the pixel diff (lossless items about 0.1/255, lossy ones mean at most 4/255, 1.6 on average since the polish round), commit `images/webp/`.
   Nothing in the build or in GitHub Actions runs the bake (no extra tool or dependency). SVGs with a valid WebP are
   not precached by the service worker.
 - The browser console lists which placeholders and silent sounds are in use (`[assets]` lines).
@@ -673,7 +676,220 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; the clinic round 5 (part 3, more challenge), the clinic round 5 (part 2, the care rooms), the farm, the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 0000000000000000000000000000000000. The clinic, round 5, part 3 (more challenge, mostly on hard)
+Spec `/mnt/project-files/research/clinic-spec-5.md` section 5, brief `research/clinic-5-briefs.md` (PR 3). Branch
+`claude/clinic-5-challenge-1fjxiw`. All in `ClinicScene.ts` (station code, the waiting room) and `TUNING.clinic`.
+- **Hide and seek** (hard, `hideChance` [0, 0.7]): before the first pick one patient (never the giraffe) hides: ducked behind
+  the bench's back (her frame cropped to the top of her head, `cropTo`, depth behind the bench) or under it (only her feet,
+  in front). Her problem cards hide with her. Mom: vo-hide; a tap on what peeks out (`hider.at`) = `found()`: she pops out
+  giggling onto her seat, vo-found-you, then the visit as before. A tap elsewhere: the others giggle, empty space is a miss.
+  Phase `hide` has Mom's hint and help like the rest. `window.__clinicHide = 'back' | 'under' | false` forces it.
+- **The germ behind the tongue** (hard, any mouth close-up with a germ station, i.e. Ruby's teeth): `care-tongue` lies over
+  the lower middle teeth (`TONGUE_AT` at 0.85, `UNDER_TONGUE`: nothing else goes on those teeth, a dodging germ avoids them); one
+  germ waits behind it (`Thing.tongue`, `waiting`). A tap on the tongue or any tool rubbed over it moves it down with a
+  giggle and the germ shows. When only that germ is left Mom says vo-tongue; her hint and help go to the tongue first.
+- **The blink** (both levels, the eye drops only): a bottle coming at the eye faster than `blinkSpeed` (units/ms x k)
+  shuts it (`lens-eye-lid`, tinted to her skin) for `blinkMs`, `blinks` [1, 2] a station, never while Mom helps; vo-hold-still
+  once a visit. No drop counts while it is shut (a drop landing on the lid is lost, nothing else).
+- **Tickles and faces** (both levels): the sponge (and the care rooms' towel: `TICKLERS`, `tickleTummy()` is public for
+  them) over her tummy makes her giggle and wriggle (`tickleGapMs`); a tool coming up to her face (no close-up open) makes
+  her look at it wide-eyed (`arriving`); every station but a problem's last ends with `react('love')`.
+- Art `assets-src/images-b-clinic/tools/gen_clinic5c.py` (2 SVGs, baked). Voice: 4 lines (`make_vo.py mom-a`), not heard by
+  a human. Harness: `__clinicPlay` taps the hider (`wrong`: an empty spot first); `shown.hide/found/blinks/tongue/tickles/loves`.
+- **Needs a real child:** does she find the hider (ears over the bench)? Is the blink funny or annoying (then `blinks` [0, 1]
+  or a higher `blinkSpeed`)? Does she think of moving the tongue before Mom's clue?
+### 000000000000000000000000000000000. The clinic, round 5, part 2 (the care rooms next door)
+The owner: "another treatment for every patient, like in the original, so that you move to another screen". Spec:
+`/mnt/project-files/research/clinic-spec-5.md` section 4. Branch `claude/clinic-5-care-rooms-0a3236`.
+- **The slide:** after her last problem (`problemDone` -> `startCare`): stars, "Now, let's go next door!", and the screen
+  slides sideways (`slideTo`, `TUNING.care.slideMs` 520): the treatment room's pictures move out left, the care room's
+  (`careRoom`, built at +W) come in from the right, the patient walks along to her place in it. Then the room's parts; at
+  its end `better()` as before (All better, dance, sticker, back to the bench: a door, `leaveCare` drops the room).
+- **Six rooms** (`core/care.ts` data, `scenes/ClinicCare.ts` runs them; `Patient.care` decides, never random): medicine
+  (tap a flavour jar, it pours into the bottle; shake it by tapping it; a spoonful to her mouth, hard: two, and the flavour
+  Mom names), bath (the sponge makes foam on her; hard: find the duck under the bubbles; the shower rinses the foam; the
+  towel rubs her head dry, it stays as a turban until the room ends), bandage (the roll goes round the close-up of where
+  she was hurt, `bandageView`; hard: more turns and only clockwise along the arrows; a heart sticker on top), polish (pick
+  a toothpaste colour; the polisher shines each tooth in the mouth close-up, 4 / all 8; rinse cup), eyes (the chart: find
+  the card of the shape glowing on the chart, three rounds; hard: four cards and the same shape at another size, the
+  size must match too; pick new glasses, they stay on), rest (pull
+  the blanket up, tap the lamp off, she naps, morning; a snack to her mouth, hard: two in the order of her wish bubble).
+- **Hard only, on entering:** "Do you remember what was wrong?": two ailment cards, hers and another; the other wiggles
+  (a miss), hers: "Yes, that's right!".
+- **The frame:** ClinicScene lends the room a `CareHost` (layout, patient, Mom's voice and hand, MiniGame's begin /
+  poke / miss / hintNow / helped / own) and delegates phase `care` (`way`, `helpOnce`, `down`, `move` / `up` while it
+  holds, `tick`, `lookTarget`). Every part has Mom's demo the first visit, the hint after 8 s, help 20 s later (one piece);
+  easy: the thing to use glows and hops. A tool may be taken from the tray or by touching her (it jumps to the finger).
+  `PatientView` is exported and gained `doze(on)`.
+- **Art:** `gen_clinic5.py` part B (34 SVGs: `bg-clinic-care`, `care-*`, `tool-shower/-towel/-roll/-polisher`; anchors
+  printed at the end = `ART.clinic.care` and the four tips). **Sound:** 23 `vo-care-*` lines and name-blueberry / -moon /
+  -triangle (`make_vo.py mom-a`), shake / splash / wrap (`make_clinic_sfx.py`); not heard by a human. `care-tongue` is PR 3's.
+- **Harness:** `__clinicPlay` plays phase `care` from `m.care.plan()` (tap, drag, rub, hold, twirl; a tool's `at` is its
+  working point). `shown.care` / `careTask` name the room and part.
+- **Needs a real child:** is the slide clear ("next door")? Shaking by tapping; the bandage's circles (hard: clockwise
+  only); does she find the duck; is the nap too long (`napMs`); is a visit with three rooms too long (then
+  `TUNING.clinic.problems` [1, 1] on easy).
+### 00000000000000000000000000000000. The farm (caring for farm animals, in the cooking world)
+The owner: "another mini-game of caring for farm animals: feeding a horse, milking a cow, shearing a sheep; check for a
+good one online and take ideas from it; in the cooking-with-Mom area". Research and spec: `/mnt/project-files/research/farm-spec.md`
+(Dirty Farm's chores per animal and the pig back in her mud, Fiete's day on the farm and the produce in a cart, Sago's
+feeding by hand). Branch `claude/project-thread-y324z5`.
+- **Way in:** a card after the art corner (`card-farm`, core; HomeScene `PLAY`), the album one cell on. `RECIPE_ASSETS.farm`
+  (with the outdoors song), scene `Farm` (`scenes/FarmScene.ts` on `MiniGame`). Its whole asset contract is in
+  `core/farmAssets.ts` (images with their anchors `ART_FARM`, effects, voice keys); assets.ts and audio.ts only spread it in.
+- **The visit:** three animals of five (hard: four; `planVisit`, `window.__farmPlan = ['cow', 'pig']`) peek over the fence;
+  a tap brings one to the middle. Its chores are cards above it (`layCards`, as the clinic's problems): easy, the next one
+  glows and Mom says it; hard, "What shall we do first?" and what has to come first hops back (`Chore.after`). A chore is
+  stages (`CHORES[id].stages[level]`), each a `Job` in the scene (its tray slots, its touches, its `plan()`). A tool follows
+  the finger by its working point (`ART_FARM.tip`), food is a copy from its slot (tap: it flies there; drag: let go near).
+  - horse: feed carrots and apples to his mouth (hard: his wish bubble, remembered, `rememberWish`); brush (dust puffs, the
+    coat shines: `horse-shine`; hard: three zones in turn); hard: brush his teeth in a close-up (`horse-teeth`, smudges).
+  - cow: hay to the trough (hard: two, then the bell on her collar); milk: hard, the bucket under her first; tap the teats
+    (hard: the glowing one, in turn), each squeeze squirts and the bucket fills; hard: pour it into two bottles (hold over each).
+  - sheep: shear each fleece band (`fleece-4-*` / `fleece-6-*`; hard: only strokes down along the arrows, up is neutral,
+    sideways wobbles her); wind the wool into a ball by circling it (hard: the arrows' way, turning round half-way,
+    `vo-other-way`); hard: a ribbon like Mom's picture.
+  - hens: sprinkle grain with the scoop over the yard, each grain pecked; tap each hen, she stands, her egg goes to the
+    basket (hard: two baskets by colour, a shy hen, then a chick hatches in the basket and goes back to its mommy).
+  - pig: sponge the mud off, soap her bubbly (a share of her body, `foam`), tap the pump to rinse, feed her at the trough
+    (hard: her wish). Then she runs straight back into the puddle.
+  Every animal gives something to the cart (two milk bottles, the yarn ball, the egg basket; the horse gives Pipa a ride)
+  and says thank you with a little dance, then goes back to the fence. Finale: the cart rolls to the middle, "Look at
+  everything we got from our farm!", a photo (`photo-frame-farm`, `keepPhoto('farm')`), a scarf for Pipa from the wool
+  (or a sip of the milk), bye, Home. Counts: `FARM_TUNING` in `core/farm.ts` (`[easy, hard]`).
+- **Help:** Mom's demo, hint and help all come from the scene's `plan()` (a tap, or a drag along keys): the hint plays it
+  with a see-through prop, the help drives the very same touch handlers with a virtual finger (`helpOnce`).
+- **Art:** `assets-src/images-b-farm/tools/gen_farm.py` (90 SVGs; the animals are 800x700 layers, feet at 684, at
+  raster 0.75). **Sound:** `audio-src/scripts/make_farm_sfx.py` (moo, neigh, baa, cluck, peep, oink, milk-squirt,
+  clip-buzz, cow-bell, splash-mud), 51 Mom lines (`make_vo.py mom-a`, "The farm"), not heard by a human.
+- **Harness:** `__mini('farm', level)`, `__farmPlay({ wrong, none, gap, mid, midDrag })`, `__farmVerify(level, opts)`.
+- **Checked (cloud, virtual clock, simulated voice; `__farmVerify`):** easy at 20:9 (horse, cow, sheep, demos), hard at 20:9
+  (horse, cow, pig, sheep) and at 4:3 (hens, pig, sheep, cow; a wrong card, tool and food), no touch on hard (Mom helped
+  67 times, all four animals, home), rotation while food is carried (dropped, finished), the photo kept in the book
+  (with rendering on), the home grid at 4:3 and 20:9; screenshots in `/mnt/project-files/research/screens-farm/`.
+  Found and fixed: on 4:3 the cow's two teats' touch areas overlap (a touch that reaches the due one counts for it);
+  Mom's pour hint missed the bottles and grabbed the bucket inside the palm strip.
+- **Not done (the spec's PR 2):** the farm's milk and eggs in the kitchen (the sill, Mom's "Milk from our cow!").
+- **Needs a real child:** squeezing the teats (taps), shearing down along the arrows (hard), carrying an egg to the
+  basket, circling the yarn ball, is the pig's splash funny.
+### 0000000000000000000000000000000. The clinic, round 5, part 1 (sixteen patients, each with her own problem)
+The owner: "double the patients, each with a different treatment, one of them the teeth". Spec: `/mnt/project-files/research/clinic-spec-5.md`
+(this is its PR 1; PR 2 = the care rooms, PR 3 = more challenge). Branch `claude/project-thread-nh10lu`.
+- **Eight new patients** (`core/clinic.ts`): animals Mittens the cat, Bao the panda, Clover the bunny, Biscuit the puppy
+  (`animal(id, o)`, art `assets-src/images-b-clinic/tools/gen_animals.py`, `animal-<id>-*` on Pipa's 600x700 frame, its
+  body points printed as `POINTS`) and children Ruby (braids, a lolly in her pocket), Noah (glasses, sleeves), Zoe (puffs),
+  Max (buzz cut, a gap in his grin), more `KIDS` in `gen_kids.py` (the old four are unchanged). Each says hello with
+  `vo-hi-<id>`.
+- **Signature problem:** every patient has `signature` (always her first problem; no two in one visit share one) and a
+  `care` (`CareId`: medicine, bath, bandage, polish, eyes, rest), a field only, kept for PR 2's care rooms. Ruby is the
+  dental patient: `tooth` is in her pool only (`ALL_BUT_TEETH` for everyone else). `planVisit` adds `m - 1` more problems
+  from the patient's pool, not used by anyone in the visit. Who comes: `pickPatients` (the least recently seen first,
+  localStorage `cooking.clinic.seen`, at least one child), so all sixteen come round.
+- **Two ailments** (16 now): `throat` (the light finds the smiling tickles in the throat close-up `lens-throat`, the spray
+  sends them off as bubbles, a spoon of honey, a warm drink; hard: the thermometer first) and `sunburn` (aloe on each pink
+  patch, `burnPlaces()`: nose, cheeks, below the face; the ice pack on the forehead; a sun hat she keeps on, like the
+  plaster). Art `gen_clinic5.py` (tickle, burn, honey, aloe, hat, two cards). Each new patient has her own dance.
+- **Voice:** 14 lines (`make_vo.py mom-a`), not heard by a human (the cloud could not fetch Vosk for the speech check).
+- **Checked (cloud, virtual clock, simulated voice):** visits covering all eight new patients, throat and sunburn at both
+  levels at 20:9 and 4:3, a wrong tool, no-touch runs, random plans; screenshots `/mnt/project-files/research/screens-clinic5/`.
+- **Needs a real child:** do the tickles read as friendly? Is the hat noticed? Do the new patients read as who they are?
+### 000000000000000000000000000000. Challenge round B (the garden, the market, washing up, the art corner)
+The owner: "a little more challenge in every game". Spec: `/mnt/project-files/research/challenge-spec.md` sections 2-5
+(part A, the recipes, is its own PR). Easy keeps today's game plus one gentle task; hard gets the real additions.
+Screenshots: `/mnt/project-files/research/screens-challenge-b/`. 30 new Mom lines (`make_vo.py mom-a`), not heard by a human.
+- **Washing up** (`DishesScene`, `TUNING.dishes`): the finger scrubs the food too, but one dish in `spotEvery` has
+  `spots` stubborn spots only the sponge takes off (after `spotFinger` of finger rubbing: "Try the sponge!", once a visit).
+  A rinsed dish is dried before the rack (`dishes-towel` right of the sink): a tap moves it to the towel and she rubs it,
+  or she drags the towel over it (`dry`); a wet one taken to the rack comes back ("Let's dry it first!", a miss). Hard:
+  the plates come in three sizes (`sizeScale`); once the rack is full she stacks them where the dirty stack was, the
+  biggest first ("The biggest one first!", a smaller one wobbles back); then (where Pipa is on screen) Pipa's bubble
+  asks for one dish, said as vo-pipa-wants + colour + name-cup / name-plate; a wrong one goes back and Mom says it again.
+- **The market** (`MarketScene`, `TUNING.market`): a balance scale is a third shuffled middle part (both levels;
+  `market-scale-base/-beam/-pan`, `ART.market.scale`): Mom's card on one pan shows a good and n pips (`weigh`), each good
+  on the other pan tips the beam toward level and Mom counts; one too many: "Oops, too heavy!", it slides back. The lists
+  grow by visit (`listItems` per visit, `pairEasyFrom`). Hard: one list is a kind card (`market-cat-green/-tree/-round`,
+  GOODS `kinds`, `catNeed` slots; "We need something green!", a wrong kind: "Hmm, is that green?"); hard paying is big
+  coins (worth 2, `market-coin-big`) and small ones onto big and small circles under the pip price (`price` [4, 7]);
+  a coin on the wrong size slides back.
+- **The garden** (`GardenScene`, `TUNING.garden`): `unripe` fruit per plant start green (a small pale carrot top); a green
+  one at the basket floats back ("Not ripe yet!"), a tap on the sun ripens them all (`ripenMs`). Pipa's bubble asks for N
+  of the fruit at picking (`pipaCount` by visit), Mom counts them in. Hard: two seed packets (`hard.seeds`, the packet
+  decides each hole), two baskets with badges drawn in code (`garden-basket-2`, `-front`; the wrong one: "Find the basket
+  for the..." + name), and a caterpillar hidden under one of the leaves after the sun (`hard.leaves`, `emptyTaps`), dragged
+  to `garden-jar` and carried off happily. With a carrot in a hard bed the visitor is always the scarecrow.
+- **The art corner** (`ArtScene`, `core/artPictures.ts`, `TUNING.art`): each kind's picture follows the visit count
+  (`cooking.runs.art-<kind>`), two more pictures per kind; mirror (`MIRROR`) and steam (`STEAM`, a mirrored second garden)
+  are data too. A sixth kind `stamps` (`art-pick-stamps`, `art-stamp-*`; the wall is 3 + 3): easy presses the picked stamp
+  onto the nearest outline of its shape (`STAMP_SCENES`); hard copies Mom's pattern card (drawn on the sheet,
+  `STAMP_PATTERNS`) onto a row of six circles, an off-pattern stamp stays but the card's item hops ("What comes next?").
+  Hard trace follows arrows from a green start dot (`traceDir`, `traceAngle`, `traceGap`, wrong-way strokes are misses,
+  "Follow the arrows!" once); hard dots are found by ear ("Find..." + count-N; the dot glows after `dotsGlowAfter` misses).
+- **Harness:** `__verify('dishes' | 'market', level, { wrong | none | drag | first })`, `__gardenRun` (+ `window.__gardenWrong`,
+  `__gardenVisit`), `__artVerify(kind, level, { visit, wrong, none, first })`; `wrong` makes one mistake in each new task.
+- **Needs a real child:** does she find the sponge for a spot and the towel; does "biggest first" frustrate (then
+  `dishes.sizes` [1, 1]); does she read the pips on the scale's card; is a potato "round" to her; does she tap the sun after
+  "Not ripe yet!"; does she find the caterpillar; does she follow the trace arrows (else raise `traceAngle`); does she hear
+  "Find... four!" over the music.
+### 00000000000000000000000000000. Challenge round A (a little more challenge in all eight recipes)
+The owner: "check how to add a little more challenge to all the games". Spec: `/mnt/project-files/research/challenge-spec.md`
+(PR A = the recipes; PR B = garden, market, washing up, art corner). Branch `claude/project-thread-cla4gn`.
+- **Easy (level 1):** washing hands needs the soap first (`soap-bar`, `WashParams.soap`, pizza.ts's wash, so every
+  recipe): rubbing before it wiggles the hands (a miss, "Soap first!" once); a tap on the soap hops it onto the hands
+  with foam. Counts grow a little with the runs on both levels (`TUNING.grow`, `grown()`, applied in `bigChef.ts`
+  `grownStep`: from the 2nd and 4th run +1 cut, +1 press per stage, +10 sprinkles or +1 salt shake).
+- **Hard (level 2), all in `recipes/bigChef.ts` and `TUNING.big`:** the hint waits 11 s (`big.hintAfterMs`); spread
+  coverage 0.88; **what goes in first:** consecutive named pours into the kept bowl (flour, sugar, milk, butter, the
+  lettuce) are joined into one `open-pour` with `sources` (`joinPours`), and every pour of 2+ things gets `order`: Mom
+  "Let's start with the..." + name, the wrong one hops ("Hmm, not that one yet. First, the..."), after each "and then"
+  + the next; **Mom picks the oven temperature** (`big.ovenTargets`, `panel.sayTarget`: "Let's set the oven to..." +
+  temp-N, said again in the hint); **Mom's picture card** in decorating (`DecorateParams.model`, replaces Pipa's
+  two-kind wish): a paper card beside the dish (or above the bins on 4:3) with two kinds in a face / row / ring
+  (`runNo % 3`); copying it (within `big.model.near` x R; on cookies one cookie holding them) = "Just like mine!",
+  stars, Pipa loves it; anything else is fine too; **find the tool** also in the salad (servers before mixing), the
+  skewers (the stick before threading) and the smoothie (the spoon before the milk; `bigExtra` gained `nth`). A kept
+  prep bowl fades while the tools are shown (FindStep).
+- **Found and fixed:** the cake's decorating showed only the frosting tub she had chosen (decorate took every `run.chosen`;
+  now only chosen options with a `prep`, so the cake gets its sprinkles, candy, berries and chips again); Mom's help
+  at the soap stopped her own hand, so the rubbing never came (`useSoap` keeps the hand while she helps).
+- Voice: 14 lines (`make_vo.py mom-a`), not heard by a human. Art: `soap-bar` (`gen_prep_a.py`).
+- **Harness:** `__gesture` taps the soap, copies the model (`window.__copyModel`), tries a wrong pour once
+  (`window.__pourWrong`); `__start` knows the title's `world-card-kitchen`.
+- **Needs a real child:** does she find the soap? Does she copy Mom's card or ignore it (both fine)? Does "what goes in
+  first" read on the phone (the names only, no pictures)?
+### 0000000000000000000000000000. The clinic, round 4 (closer to "Doctor Games for kids": children, two problems each; easy / hard)
+The owner: "the clinic is not good enough; research again, as close to the original as possible, more patients, at least 3
+children"; then "the levels must also hold for the clinic, called an easy level and a hard level, not little chef / big
+chef". Research: `/mnt/project-files/research/clinic-research-2.md`. Branch `claude/clinic-4-newokw`.
+- **Four children** (`core/clinic.ts` `KIDS`, `kid()`): Lily (ginger pigtails, freckles), Leo (dark skin, curls), Mia (3,
+  a bob with a red bow, smaller: `body` 0.86) and Sam (blond, striped shirt); 8 patients now. Layers like Pipa's on the
+  600x700 frame (`kid-<name>-body / eyes-* / mouth-*`, `GUEST_RASTER`), drawn by `assets-src/images-b-clinic/tools/gen_kids.py`
+  (it prints the frame points: forehead, cheeks, nose, chest, knees, hands). `isKid()`; a kid's `foot` is her knee and
+  `hand` the splinter's place (close-up `lens-hand`). Every visit has at least one child (`planVisit`).
+- **Two problems a patient** (`TUNING.clinic.problems`, like the original's 2-3 mini-games per patient): in the treatment
+  room her problems' cards float beside her head (`layProblems`); a tap on one starts it (`startProblem`). Easy: the next
+  one glows and hops and Mom says it; hard: "What shall we fix first?" and she chooses. A fixed one comes back faded with a
+  star badge (`clinic-done`; a tap only wiggles it) and "That's better! Now, what else?"; all fixed: "All better!", dance,
+  sticker. Each problem's own signs go when it is fixed (`Visitor.signs` per ailment). `planVisit(n, m)` gives each one a
+  close-up ailment first where it can, never the same ailment twice in a visit. `window.__clinicPlan = [['lily', 'tooth',
+  'sting'], ...]`.
+- **Three ailments from the original** (14 now): `sting` (tweezers pull each sting out of the skin close-up, cream on each
+  bump; hard: the ice pack too), `bites` (the bug spray sends each smiling gnat off, cream on each bite; hard: a gnat hops
+  once, `vo-bug-hop`), `dirty` (the sponge foams each mud splat on her body, the water spray rinses the foam). New
+  `Station.on`: targets that wait under others (the bites under the gnats, the foam where the mud was) and show as those go.
+  Art: `gen_clinic4.py` (lens-skin, lens-hand, sting, bite, gnat, mud, foam, sponge, bug spray, three cards, the badge).
+- **Easy / hard** (the owner): the title's level buttons are one star (easy, level 1) and three stars (hard, level 2),
+  drawn in code (`makeLevelTextures`, `LEVEL_ICON` = `level-easy` / `level-hard`); Mom says "Easy!" / "Hard!"
+  (vo-level-easy / -hard). The internal names stay (`isBigChef`, `bigChef.ts`, comments saying little / big chef mean
+  easy / hard). The clinic's hard level: she chooses the problem and the tool, more targets, a germ or a gnat hops once,
+  hidden things fully hidden, an extra station in several ailments.
+- **Voice:** 17 Mom lines (`make_vo.py mom-a`), not heard by a human.
+- **Checked (cloud, virtual clock, simulated voice):** full visits easy at 20:9, hard at 4:3 (random plan, a wrong tool) and
+  at 20:9, no touch at 4:3 (Mom helped 26 times to the title): every problem fixed, no voice overlap, no console errors;
+  screenshots in `/mnt/project-files/research/screens-clinic4/`. Harness: `__clinicPlay` taps a problem (easy the glowing
+  one, hard the last one open).
+- **Needs a real child:** does she find the problem cards and tap one? Is a visit of six problems too long (then
+  `problems: [1, 2]`)? Do the children read as children on the phone?
 ### 000000000000000000000000000. The clinic, round 3 (rebuilt in the style of "Doctor Games for kids")
 The owner did not like the clinic's gameplay and pointed at Yateland's "Doctor Games for kids". Research:
 `/mnt/project-files/research/clinic-doctor-games.md`. Branch `claude/clinic-3-2fdtp7`. The waiting room, the sticker, the
@@ -795,8 +1011,11 @@ The owner: "she got bored after a while; add drawing stages, each a different ki
 - **Way in:** a card after the dishes (`card-art`, core; HomeScene `PLAY`), the album one cell on (13 cells). It loads
   `RECIPE_ASSETS.art` (with the art song) and starts `Art`: the easel wall with five picking cards (3 + 2). A finished
   picture goes back to the wall (`scene.restart({ back: true })`), never to the next one by itself; home = two taps.
-- **The scene (`scenes/ArtScene.ts`, on `MiniGame`):** the sheet (1000x800 sheet units, `toWorld`) on `art-easel`
-  between the pot column and Mom's face / Pipa / her pointing arm; every layer is a 2D canvas texture (`layer()`),
+- **The scene (`scenes/ArtScene.ts`, on `MiniGame`):** the sheet (1000x800 sheet units, `toWorld`) on a wooden
+  board drawn in code, as big as it fits (`layout()`, the owner asked for a bigger picture: `art-easel` is no longer
+  shown): from the screen's top, right of the pot column, left of Mom's face / Pipa / her pointing arm; Mom and Pipa
+  step right when a picture starts (her face stays on screen), and on 4:3 the sheet sits above her arm and reaches to
+  her face; the crayon grows with the sheet (`brushShare`); Mom's model (colour, level 2) goes right of it or under it; every layer is a 2D canvas texture (`layer()`),
   strokes are round crayon lines with a glow (`crayon()`), coverage a 24x19 grid. The pictures are data in
   `core/artPictures.ts` (outlines, dots, colour areas as SVG paths with Mom's colours, the butterfly, the hidden things).
   First visit of each kind (`cooking.runs.art-<kind>`): Mom's demo; hint after 8 s (15 s in the open-ended mirror),
@@ -829,7 +1048,7 @@ research: `/mnt/project-files/research/music-spec.md`. Branch `claude/music-2-tx
   `--preview DIR` writes one mp3 per song (the party layer comes in mid-way). Songs: `kitchen` (C, 128 BPM, ukulele
   island strum, xylophone tune), `outside` (G, 124, ukulele with chucks, whistle tune, claps), `art` (F, 120, marimba,
   glockenspiel, softer). Each: 32 bars A A' B A, about 60 s, gapless (2 bars rendered past the end and folded onto the
-  head). Stems of one length: `base` (stereo, always on), `tune` (mono, the melody), `party` (mono: kick, claps,
+  head). Stems of one length: `base` (mono since the polish round, loudness-matched, always on; libvorbis q2), `tune` (mono, the melody), `party` (mono: kick, claps,
   tambourine, an offbeat counter-melody, a fill every 8 bars) and `up` (a one-bar rising glockenspiel run, the
   stinger). Full mix -20 LUFS, base + tune -22, true peak about -6 dBTP. To change a tune: its bars in `SONGS`.
 - **The mixer** (`music` in core/audio.ts, tunables `MUSIC`, tempos `SONGS`): the three stems start on one context time
@@ -1471,6 +1690,12 @@ Screenshots of every step (Mom's demo and the child mid-gesture) at 20:9 and 4:3
   Home after 900 ms (the title no longer rebuilds on the fullscreen resize after the tap: `canRelayout`); home:
   vo-what-make; the 5 s pointing-hand hint on title and home (`screenHint`); the safe update (see "Deployment");
   the manifest name; `.gitattributes`.
+- **The clinic and the farm are not precached** (polish round, P19): their own files (the ones no core list, recipe or
+  other game lists; `worldOnlyFiles` in plugins/asset-manifest.ts) are left out of the precache (`globIgnores`) and get
+  `?v=<md5>` in the build's manifest; the service worker keeps them in the runtime cache `world-assets` (cache-first, a
+  changed file is a new URL). Before going in, `worldReady(id)` (core/worldCache.ts) fetches what is not cached yet while
+  the spinner turns; if a file can't be had (offline before the first visit) the title / home screen stays and the card
+  wobbles. The install is 28.9 MB (878 files) instead of 55.3 MB; the first clinic visit downloads ~13 MB, the farm ~9.
 - **Precache revisions:** before this round every art and sound file under `assets/` had `revision: null`
   (vite-plugin-pwa treats `assets/` as hashed), so a changed sound or WebP with the same name would never have reached
   an installed app. Now only Vite's hashed chunks skip the revision (`dontCacheBustURLsMatching`). 203 files, 9.3 MB.

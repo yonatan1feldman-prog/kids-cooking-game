@@ -143,7 +143,6 @@ full notes), copied unchanged; the sneeze is generated.
 
 | File | Text |
 |---|---|
-| vo-welcome | Let's cook together! |
 | vo-pick-pizza | Let's make a pizza! |
 | vo-watch-me | Watch me first! |
 | vo-your-turn | Now, you try! |
@@ -199,9 +198,9 @@ name-corn, vo-oil and vo-into-bowl got the sound agent's small fixes, see its `f
 | vo-serve · vo-bowl-mom · vo-fresh · vo-bowl-pipa | Let's serve the salad! · Some for me? Thank you! · Mmm, so fresh and crunchy! · Some for Pipa! |
 | vo-photo-salad · vo-finale-salad | Let's take a picture of your salad! · We made a salad together! |
 | name-cucumber · name-tomato · name-pepper · name-carrot · name-onion | Cucumber! · Tomato! · Pepper! · Carrot! · Onion! |
-| name-mushroom · name-corn · name-olives · name-lettuce · name-lemon | Mushroom! · Corn! · Olives! · Lettuce! · Lemon! |
+| name-mushroom · name-corn · name-olives · name-lettuce | Mushroom! · Corn! · Olives! · Lettuce! |
 
-name-lettuce and name-lemon are delivered but not said yet.
+name-lettuce is delivered but not said yet.
 
 Added in round 7, the cookies (same engine, voice, speed and processing; vo-egg, vo-flour and vo-butter got a tighter
 trim, five lines the same gentle limiter, name-heart was regenerated; see the sound agent's `final/LICENSES.md`):
@@ -294,11 +293,11 @@ Same engine, voice and processing as every line above.
 | vo-pull-out · vo-cut-slices | Now pull it out, nice and slow! · Let's cut it into slices! |
 | vo-puzzle · vo-puzzle-done | Let's make a puzzle from your picture! · You put it all together! |
 | vo-puzzle-pick · vo-puzzle-new | Which picture shall we make? · Let's make a puzzle! |
-| name-puppy · name-kitten · name-bunny · name-ducklings · name-horse · name-beach | A puppy! · A kitten! · A bunny! · Little ducklings! · A horse! · The beach! |
-| name-snowman · name-fire-truck · name-train · name-cake · name-balloon · name-a-rainbow | A snowman! · A fire truck! · A train! · A birthday cake! · A hot-air balloon! · A rainbow! |
+| name-puppy · name-kitten · name-bunny · name-ducklings · name-a-horse · name-beach | A puppy! · A kitten! · A bunny! · Little ducklings! · A horse! · The beach! |
+| name-snowman · name-fire-truck · name-train · name-cake · name-a-balloon · name-a-rainbow | A snowman! · A fire truck! · A train! · A birthday cake! · A hot-air balloon! · A rainbow! |
 | vo-find-grater · vo-find-pin · vo-find-spoon · name-grater · name-rolling-pin · name-spoon · name-whisk · name-spatula | Which one is the grater? Can you find it? · Which one is the rolling pin? Can you find it? · Which one is the wooden spoon? Can you find it? · Grater! · Rolling pin! · Spoon! · Whisk! · Spatula! |
 | vo-pipa-order · vo-then · vo-first-this · vo-stir-arrow · vo-other-way | Look! Pipa wants two things, in order. First... · and then... · Pipa wants this one first! · Stir round and round, the way the arrow goes! · Now stir the other way! |
-| vo-little-chef · vo-big-chef · vo-pipa-order-3 · vo-remember · vo-and | Little chef! · Big chef! · Look! Pipa wants three things, in order. First... · Can you remember what Pipa wants? · and... |
+| vo-pipa-order-3 · vo-remember · vo-and | Look! Pipa wants three things, in order. First... · Can you remember what Pipa wants? · and... |
 
 ### New in the garden round (a stage that is not cooking, 12 lines)
 
@@ -355,11 +354,11 @@ cough, gurgle, spray, sticky, brush and wheeze are own work, synthesised from no
 
 | Key | Line |
 |---|---|
-| vo-pick-clinic · vo-clinic-hello · vo-clinic-next | Let's go to our clinic! · Welcome to our clinic! Who shall we help first? · Who's next? |
+| vo-clinic-hello · vo-clinic-next | Welcome to our clinic! Who shall we help first? · Who's next? |
 | vo-hi-turtle · vo-hi-penguin · vo-hi-giraffe · vo-hi-pipa | Hello, Turtle! Come in. · Hello, Penguin! Come in. · Hello, Giraffe! You're so tall! · Pipa! Come in, little one. |
 | vo-sick-fever · vo-sick-cough · vo-sick-tummy | Oh dear, you feel hot! Let's check your temperature. · Oh, a little cough! Let's listen. · A tummy ache? Let's make it better. |
 | vo-sick-tooth · vo-sick-knee · vo-sick-paw | A sore tooth? Let's have a look. · Oops, a scraped knee! Let's clean it. · A splinter in your foot! Let's take it out. |
-| vo-clinic-what · vo-clinic-look · vo-clinic-plan · vo-clinic-first · vo-clinic-notyet | What's wrong? Look, and listen! · Hmm, look again! · Here's what we need. Can you remember? · Hmm, what comes first? · Not that one yet! |
+| vo-clinic-first · vo-clinic-notyet | Hmm, what comes first? · Not that one yet! |
 | vo-tool-thermometer · vo-thermo-hot · vo-thermo-ok | The thermometer! Hold it in the mouth. · A little bit hot! · Just right now! |
 | vo-tool-cloth · vo-tool-syrup · vo-tool-stethoscope · vo-stetho-find · vo-stetho-heart | A cool cloth for the head. · A spoon of yummy medicine! · Let's listen with the stethoscope. · Can you find the wheezy spot? · Thump, thump! A happy heart! |
 | vo-tool-cup · vo-tool-rinse · vo-tool-hotbottle · vo-say-aah · vo-tool-toothbrush | A sip of water. · Now rinse with water! · A warm bottle for the tummy. · Say, aah! · Brush, brush, brush! |
@@ -391,6 +390,140 @@ Same engine, voice and processing (seven lines soft-limited by `audio-src/script
 | vo-tummy-germs · vo-germs-gone · vo-clinic-which · vo-knee-dirt | Tummy germs! A drop of medicine on each one. · Bye bye, germs! · Which tool do we need now? · Let's wash all the dirt off. |
 | vo-world-cooking · vo-world-doctor (the title's two cards) | Cooking with Mom! · Doctor with Mom! |
 
+### New in the farm (caring for farm animals: 51 lines and 10 effects)
+
+Same engine, voice and processing as every line above (Kokoro af_heart, `make_vo.py mom-a`); no fix was needed. The
+effects moo, neigh, baa, cluck, peep, oink, milk-squirt, clip-buzz, cow-bell and splash-mud are own work, synthesised by
+`audio-src/scripts/make_farm_sfx.py` (numpy + scipy + ffmpeg; no samples), -18 LUFS.
+
+| Key | Line |
+|---|---|
+| vo-pick-farm | Let's visit the farm! |
+| vo-farm-hello | Welcome to our farm! Who shall we look after first? |
+| vo-farm-next | Who's next? |
+| vo-farm-what-first | What shall we do first? |
+| vo-farm-first-hmm | Hmm, what comes first? |
+| vo-farm-not-that | Not that one! Which tool do we need? |
+| vo-farm-more | Well done! What else? |
+| vo-horse-feed | The horse is hungry! Give him a carrot or an apple. |
+| vo-horse-wants | Hmm, the horse wants... |
+| vo-horse-brush | Let's brush his coat, nice and shiny! |
+| vo-horse-teeth | Open wide, Horse! Let's brush your teeth. |
+| vo-horse-ride | Horses give rides! Up you go, Pipa! |
+| vo-cow-hay | The cow is hungry! Give her some hay. |
+| vo-cow-bell | Put the bell on her collar! |
+| vo-cow-bucket | Put the bucket under the cow. |
+| vo-cow-milk | Now let's milk her! Squeeze, squeeze! |
+| vo-cow-other | Now the other one! |
+| vo-cow-pour | Pour the milk into the bottles! |
+| vo-sheep-shear | The sheep is so fluffy! Let's give her a haircut. |
+| vo-sheep-tickles | That tickles! |
+| vo-sheep-arrows | Follow the arrows! |
+| vo-sheep-wind | Now wind the wool into a ball! Round and round. |
+| vo-sheep-ribbon | Pick a ribbon for the sheep! |
+| vo-sheep-ribbon-copy | Can you pick the same colour as Mom's picture? |
+| vo-hens-grain | The hens are hungry! Sprinkle some grain. |
+| vo-hens-eggs | Tap a hen and see what's underneath! |
+| vo-hens-basket | Carefully! Put the egg in the basket. |
+| vo-hens-colour | Find the basket with the same colour! |
+| vo-hens-chick | Peep peep! A chick! Bring it to its mommy. |
+| vo-hen-shy | Hee hee! She's a little shy. Tap her again! |
+| vo-pig-muddy | Oh, Pig! You're all muddy. Let's scrub you clean. |
+| vo-pig-soap | Now the soap! Bubbles everywhere! |
+| vo-pig-rinse | Tap the pump to rinse! |
+| vo-pig-feed | Pig is hungry too! |
+| vo-pig-wants | Hmm, Pig wants... |
+| vo-pig-back | Oh, Pig! You love your mud! |
+| vo-farm-thanks-horse | Thank you, Horse! |
+| vo-farm-thanks-cow | Thank you, Cow! |
+| vo-farm-thanks-sheep | Thank you, Sheep! |
+| vo-farm-thanks-hens | Thank you, hens! |
+| vo-farm-thanks-pig | Thank you, Pig! |
+| vo-farm-done | Look at everything we got from our farm! |
+| vo-farm-day | What a lovely day on the farm! |
+| vo-farm-scarf | A warm scarf for Pipa, from our sheep's wool! |
+| name-horse | Horse! |
+| name-cow | Cow! |
+| name-sheep | Sheep! |
+| name-hens | Hens! |
+| name-pig | Pig! |
+| name-apple | Apple! |
+| name-brown | Brown! |
+
+### New in the challenge round for the garden, the market, washing up and the art corner (30 lines)
+
+Same engine, voice and processing as every line above; no fix was needed.
+
+| Key | Line |
+|---|---|
+| vo-not-ripe · vo-one-more-seed · vo-sort-basket | Not ripe yet! Let the sun help it. · And one more! · Find the basket for the... |
+| vo-find-caterpillar · vo-caterpillar-found · vo-caterpillar-bye | Someone is nibbling our leaves! Can you find the little caterpillar? · There you are! Into the jar you go. · Off you go, little one! |
+| vo-weigh · vo-too-heavy · vo-big-coin · vo-small-coin | Let's weigh them! We need... · Oops, too heavy! · That one is for a big coin! · That one is for a small coin! |
+| vo-need-green · vo-need-tree · vo-need-round | We need something green! · We need a fruit that grows on a tree! · We need something round! |
+| vo-is-green · vo-is-tree · vo-is-round | Hmm, is that green? · Hmm, does that grow on a tree? · Hmm, is that round? |
+| vo-dry · vo-dry-first · vo-try-sponge · vo-biggest-first | Now dry it with the towel! · Let's dry it first! · Try the sponge! · The biggest one first! |
+| vo-art-stamps · vo-find-number · vo-follow-arrows | Let's stamp a picture! · Find... · Follow the arrows! |
+| name-cup · name-plate · name-kite · name-ice-cream · name-balloon · name-cloud | Cup! · Plate! · Kite! · Ice cream! · Balloon! · Cloud! |
+
+### New in the clinic, round 4 (four children, two problems a patient, a bee sting, bug bites, mud; the easy / hard level; 17 lines)
+
+Same engine, voice and processing as every line above; no fix was needed.
+
+| Key | Line |
+|---|---|
+| vo-hi-lily · vo-hi-leo · vo-hi-mia · vo-hi-sam | Hello, Lily! Come in. · Hi, Leo! Come on in. · Hello, little Mia! Come in, sweetie. · Hi, Sam! In you come. |
+| vo-sick-sting · vo-sick-bites · vo-sick-dirty | Ouch, a bee sting! Let's make it better. · Oh, itchy bug bites! · Oh my, you're all muddy! Let's wash you clean. |
+| vo-tool-sponge · vo-tool-bugspray · vo-rinse-foam · vo-bugs-bye · vo-all-clean | Scrub, scrub, scrub with the sponge! · Spray the little bugs away! · Now rinse off the bubbles! · Bye bye, little bugs! · All clean! |
+| vo-clinic-fixfirst · vo-clinic-fixed · vo-bug-hop | What shall we fix first? · That's better! Now, what else? · Hee hee! It hopped away! |
+| vo-level-easy · vo-level-hard (the title's level buttons) | Easy! · Hard! |
+
+### New in the clinic, round 5 (eight more patients, a scratchy throat, a sunburn; 14 lines)
+
+Same engine, voice and processing as every line above; no fix was needed.
+
+| Key | Line |
+|---|---|
+| vo-hi-cat · vo-hi-panda · vo-hi-bunny · vo-hi-puppy | Hello, Mittens! Come in, kitty. · Hello, Bao! Come in, little panda. · Hi, Clover! Hop on in. · Hello, Biscuit! Come in, puppy. |
+| vo-hi-ruby · vo-hi-noah · vo-hi-zoe · vo-hi-max | Hello, Ruby! Come in. · Hi, Noah! Come on in. · Hello, Zoe! In you come. · Hi, Max! Come on in. |
+| vo-sick-throat · vo-sick-sunburn · vo-tickles | Ooh, a scratchy throat. Say aah! · Too much sun! Let's cool you down. · Look, little tickles! Spray them away. |
+| vo-tool-honey · vo-tool-aloe · vo-tool-hat | A spoon of honey. Sweet! · Cool aloe gel on every red spot. · A sun hat for next time! |
+
+### New in the clinic, round 5, part 2 (the care rooms next door; 23 lines, 3 names, 3 effects)
+
+Same engine, voice and processing as every line above; no fix was needed. The effects shake (a bottle's rattle), splash
+(bath water) and wrap (a bandage's soft swish) are own work, synthesised by `audio-src/scripts/make_clinic_sfx.py`.
+
+| Key | Line |
+|---|---|
+| vo-care-go · vo-care-remember · vo-care-right | Now, let's go next door! · Do you remember what was wrong? · Yes, that's right! |
+| vo-care-medicine · vo-care-flavor · vo-care-shake · vo-care-spoon | Let's make your medicine! Pick a flavor. · Let's make it... · Now shake it! Shake, shake, shake! · A spoonful of medicine. Open wide! |
+| vo-care-bath · vo-care-duck · vo-care-rinse · vo-care-towel | Bath time! Make lots of bubbles. · Where's the ducky? · Now rinse off with the shower! · And now the towel. Rub, rub, rub! |
+| vo-care-wrap · vo-care-heart | Round and round, nice and snug. · And a heart on top! |
+| vo-care-paste · vo-care-polish · vo-care-shiny | Pick a toothpaste! · Polish every tooth until it shines! · Shiny new smile! |
+| vo-care-eyes · vo-care-chart · vo-care-glasses | Let's check your eyes! Find the same one. · Which one is this? · Pick some new glasses! |
+| vo-care-rest · vo-care-lamp · vo-care-wake · vo-care-order | Time for a little rest. Pull up the blanket! · Now turn off the lamp. · Good morning! Time for a snack. · Two snacks, in order. First... |
+| name-blueberry · name-moon · name-triangle | Blueberry! · Moon! · Triangle! |
+
+### New in the clinic, round 5, more challenge (hide and seek, the germ behind the tongue, the blink; 4 lines)
+
+Same engine, voice and processing as every line above; no fix was needed. The tongue (`care-tongue`) and the eye's lid
+(`lens-eye-lid`) are drawn by `assets-src/images-b-clinic/tools/gen_clinic5c.py` (our own, like the rest of the clinic's art).
+
+| Key | Line |
+|---|---|
+| vo-hide · vo-found-you | Oh! Someone is hiding! Can you find them? · Peekaboo! Found you! |
+| vo-tongue · vo-hold-still | One more germ is hiding behind the tongue! · Oops, a blink! Hold it still. |
+
+### New in the recipe challenges, PR A (soap first, the pour order, Mom's oven number, Mom's picture, find the tool; 14 lines)
+
+Same engine, voice and processing as every line above; no fix was needed (-18.0 to -18.9 LUFS).
+
+| Key | Line |
+|---|---|
+| vo-soap · vo-pour-first · vo-this-first · vo-temp-set | Soap first! Rub it on your hands. · Let's start with the... · Hmm, not that one yet. First, the... · Let's set the oven to... |
+| vo-like-mine · vo-same-as-mine · vo-find-servers · vo-find-stick | Look at my picture! Can you make one like mine? · Just like mine! · Where are the salad servers? Can you find them? · Which one is the skewer stick? Can you find it? |
+| name-flour · name-sugar · name-milk · name-butter · name-servers · name-stick | Flour! · Sugar! · Milk! · Butter! · Salad servers! · Skewer stick! |
+
 ### New in the guests round (who comes to eat, 13 lines)
 
 Same engine, voice and processing as every line above.
@@ -412,7 +545,7 @@ butterfly names are the art corner's.
 |---|---|
 | vo-market-guest · vo-market-guest-yum · vo-market-mixed | What would she like? Look in her bubble! · Mmm! Just what she wanted. Thank you! · Oops! Something got mixed up in this box. Can you find it? |
 | vo-market-mixed-yes · vo-market-mixed-more · vo-market-pay | Yes! Back to its own box! · There's one more! Look closely. · Time to pay! One coin for every circle. |
-| vo-market-pay-dots · vo-market-count · vo-market-paid | Time to pay! Find the coins that match the dots. · Let's count them! · All paid! Thank you! |
+| vo-market-pay-dots · vo-market-paid | Time to pay! Find the coins that match the dots. · All paid! Thank you! |
 | vo-garden-rain · vo-garden-rainbow · vo-garden-birds | It's a rainy day! Move the rain cloud over the seeds. · Look! A rainbow! · The birds want our seeds! Let's dress the scarecrow. |
 | vo-garden-hat · vo-garden-shirt · vo-garden-scare-copy | Pick a hat! · Now a shirt! · Can you dress him just like Mom's picture? |
 | vo-garden-scare-look · vo-garden-shoo · vo-garden-butterfly | Look at Mom's picture again. · Shoo, birds! Our seeds are safe. · A butterfly! Help it visit every flower. |
@@ -449,5 +582,5 @@ layers like Pipa's, the giraffe's neck and the three invitation badges) are draw
 `assets-src/images-b/tools/gen_kitchen_sky.py`, and the 21 files of visual round 5 (the garden, the cat, the clock, the
 child's drawing, the sill's things, the bunting) from `gen_kitchen_view.py` beside it. The 30 garden-stage files (the garden background, the raised
 bed, holes, seeds and packets, the plants, fruit and carrots, the watering can, sun, cloud, snail, leaf, basket and the
-garden card) are drawn by `assets-src/images-b-garden/tools/gen_garden.py` on the same kit. The 18 files of the two mini-games (the market's background, awning, shelf, counter, poles, crates and list, the dishes, the food on them, the sponge, the drying rack and the two cards) are drawn by `assets-src/images-b-minigames/tools/gen_minigames.py` on the same kit, and so are the market's coin, purse and chalk slate (round 3); the garden's scarecrow, its three hats and three shirts, the two bird frames and the butterfly (round 3) by `gen_garden.py`. The 22 files of the art corner (the easel, the five picking cards, the paint pots, the steamy window's view and frame, the things hidden behind the steam, the art card and photo frame) are drawn by `assets-src/images-b-art/tools/gen_art.py` on the same kit. The 52 files of the clinic (the waiting room and the treatment room, the bed, the bench, the tray slot and the chart, fourteen tools, the close-ups and the magnifier's rim, what shows a patient is not well, an itchy spot and a swallowed bell, three stickers, nine ailment cards, the title's two world buttons and the clinic's photo frame) are drawn by `assets-src/images-b-clinic/tools/gen_clinic.py` on the same kit, and the 23 of its round 3 (the eye, ear and x-ray close-ups, three germs, a tooth's hole and its star, food bits, a speck, ear wax, a ladybird, seven more tools and two ailment cards) by `gen_clinic3.py` beside it, and the title's two game cards (`world-card-kitchen`, `world-card-clinic`) by `gen_title_worlds.py` (the logo's letters from `images-b-prep/tools/gen_prep_c.py`), and Mom's nurse dress and cap (`mom-body-nurse`, `mom-cap-nurse`) by `assets-src/images-b/tools/gen_mom.py`; the pictures she draws, traces, joins and colours are drawn in code (`src/core/artPictures.ts`). The puzzle's twelve own pictures (`public/assets/puzzle`: animals, nature, vehicles, a birthday cake, a balloon) are painted procedurally by `assets-src/images-b-puzzle/tools/gen_pictures.py` (own code, SVG brush strokes and gradients) and rendered to WebP by `render.mjs` in the same folder; no photos or third-party images. No third-party art, fonts or images.
+garden card) are drawn by `assets-src/images-b-garden/tools/gen_garden.py` on the same kit. The 18 files of the two mini-games (the market's background, awning, shelf, counter, poles, crates and list, the dishes, the food on them, the sponge, the drying rack and the two cards) are drawn by `assets-src/images-b-minigames/tools/gen_minigames.py` on the same kit, and so are the market's coin, purse and chalk slate (round 3); the garden's scarecrow, its three hats and three shirts, the two bird frames and the butterfly (round 3) by `gen_garden.py`. The 21 files of the art corner (the five picking cards, the paint pots, the steamy window's view and frame, the things hidden behind the steam, the art card and photo frame) are drawn by `assets-src/images-b-art/tools/gen_art.py` on the same kit. The 50 files of the clinic (the waiting room and the treatment room, the bed, the bench, the tray slot, fourteen tools, the close-ups and the magnifier's rim, what shows a patient is not well, an itchy spot and a swallowed bell, three stickers, nine ailment cards, the title's two world buttons and the clinic's photo frame) are drawn by `assets-src/images-b-clinic/tools/gen_clinic.py` on the same kit, and the 23 of its round 3 (the eye, ear and x-ray close-ups, three germs, a tooth's hole and its star, food bits, a speck, ear wax, a ladybird, seven more tools and two ailment cards) by `gen_clinic3.py` beside it, and the 13 of its round 4 (the skin and hand close-ups, a sting, a bite, a gnat, mud, foam, the sponge, the bug spray, three ailment cards and the fixed badge) by `gen_clinic4.py`, and the eight children Lily, Leo, Mia, Sam and (round 5) Ruby, Noah, Zoe and Max (eight layers each) by `gen_kids.py` (Pipa's eyes and mouths from `images-b-guests/tools/gen_guests.py`), and the four animals of round 5 (Mittens the cat, Bao the panda, Clover the bunny, Biscuit the puppy, eight layers each) by `gen_animals.py` on the same kit, and the 8 files of its round 5 (the throat close-up, a tickle, a sunburn glow, the honey spoon, the aloe, the sun hat and two ailment cards) by `gen_clinic5.py`, and the 34 of its round 5, part 2 (the care room's wall, the medicine bottle and three flavour jars, the bath tub, shower, towels and duck, the bandage roll, its wrap and heart, the polisher and toothpaste, the eye chart, its six shapes and the glasses, the bed, blanket, lamp and three snacks) by the same file's part B, and the title's two game cards (`world-card-kitchen`, `world-card-clinic`) by `gen_title_worlds.py` (the logo's letters from `images-b-prep/tools/gen_prep_c.py`), and Mom's nurse dress and cap (`mom-body-nurse`, `mom-cap-nurse`) by `assets-src/images-b/tools/gen_mom.py`, and the soap bar of the recipe challenges (`soap-bar`) by `assets-src/images-b-prep/tools/gen_prep_a.py`. The 90 files of the farm (its backdrop and fence, the horse, cow, sheep and pig in eight layers each, the hens, nests, eggs, chick and basket, the tools, food, trough, pump, bucket, bottles, wool, ribbons, the cart, Pipa's scarf, the card and the photo frame) are drawn by `assets-src/images-b-farm/tools/gen_farm.py` on the same kit (Pipa's eyes and mouths from `gen_pippa.py`, the guests' mouths from `gen_guests.py`); the pictures she draws, traces, joins and colours are drawn in code (`src/core/artPictures.ts`). The puzzle's twelve own pictures (`public/assets/puzzle`: animals, nature, vehicles, a birthday cake, a balloon) are painted procedurally by `assets-src/images-b-puzzle/tools/gen_pictures.py` (own code, SVG brush strokes and gradients) and rendered to WebP by `render.mjs` in the same folder; no photos or third-party images. No third-party art, fonts or images. The challenge round added, on the same kit: the tea towel, the market's scale (base, beam, pan), the big coin and three kind cards (`gen_minigames.py`); the green tomato and strawberry, the second basket, the caterpillar and its jar (`gen_garden.py`); the stamps card and four stamps (`gen_art.py`). No third-party art, fonts or images. The PWA icons (`public/icons`, polish round: the kitchen card's pot on its paper disc) are drawn by `gen_title_worlds.py --icons` and rendered to PNG by `scripts/make-icons.mjs`.
 `images/webp/` holds WebP renderings of those same SVGs, made by `scripts/bake-webp.js`.

@@ -297,14 +297,14 @@ export const PICTURES: readonly { id: string; name: VoiceKey }[] = [
   { id: 'kitten', name: 'name-kitten' },
   { id: 'bunny', name: 'name-bunny' },
   { id: 'ducklings', name: 'name-ducklings' },
-  { id: 'horse', name: 'name-horse' },
+  { id: 'horse', name: 'name-a-horse' },
   { id: 'rainbow', name: 'name-a-rainbow' },
   { id: 'seaside', name: 'name-beach' },
   { id: 'snowy-tree', name: 'name-snowman' },
   { id: 'fire-truck', name: 'name-fire-truck' },
   { id: 'train', name: 'name-train' },
   { id: 'birthday-cake', name: 'name-cake' },
-  { id: 'balloon', name: 'name-balloon' },
+  { id: 'balloon', name: 'name-a-balloon' },
 ];
 
 /** A picture's file (relative to the site's base). */

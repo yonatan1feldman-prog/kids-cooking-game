@@ -61,14 +61,29 @@ export function addKitchenPieces(scene: Phaser.Scene, bg: Phaser.GameObjects.Ima
   const s = bg.scaleX;
   const toWorld = (bx: number, by: number) => ({ x: bg.x + (bx - 1200) * s, y: bg.y + (by - 1080) * s });
   const out: Placed[] = [];
-  for (const piece of KITCHEN_PIECES) {
-    if (!scene.textures.exists(piece.key)) continue;
+  const place = (piece: Piece) => {
     const img = scene.add.image(0, 0, piece.key);
     const w = img.frame.realWidth;
     const h = img.frame.realHeight;
     const at = toWorld(piece.pivot[0], piece.pivot[1]);
     img.setOrigin((piece.pivot[0] - piece.box[0]) / w, (piece.pivot[1] - piece.box[1]) / h).setPosition(at.x, at.y).setScale(s).setDepth(-99);
     out.push({ piece, img, mid: toWorld(piece.box[0] + w / 2, piece.box[1] + h / 2) });
+    return img;
+  };
+  for (const piece of KITCHEN_PIECES) {
+    if (scene.textures.exists(piece.key)) {
+      place(piece);
+      continue;
+    }
+    // On the title the pieces may still be loading (it waits only for what it draws): each joins, softly, when it is in.
+    const event = Phaser.Textures.Events.ADD_KEY + piece.key;
+    const join = () => {
+      if (!bg.scene) return;
+      const img = place(piece).setAlpha(0);
+      scene.tweens.add({ targets: img, alpha: 1, duration: 300 });
+    };
+    scene.textures.once(event, join);
+    scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => scene.textures.off(event, join));
   }
   return out;
 }

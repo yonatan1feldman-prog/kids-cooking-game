@@ -231,6 +231,8 @@ export class BakeStep extends Step<BakeParams> {
     });
     this.showHeat(false);
     voice.say(P.line, { valid: () => this.phase === 'temp', ttlMs: 5000 });
+    // (hard: Mom picked this run's number; she says it, the needle goes where she heard)
+    if (P.sayTarget) voice.say(`temp-${P.target}` as TempKey, { valid: () => this.phase === 'temp', ttlMs: 6500 });
     this.scene.time.delayedCall(700, () => this.phase === 'temp' && this.setIdle(true));
   }
 
@@ -721,9 +723,12 @@ export class BakeStep extends Step<BakeParams> {
 
   /** The idle hint on the panel: "A bit hotter!" below the target, then the hand on the right button. */
   protected showHint() {
-    if (this.phase === 'temp' && this.params.panel && this.temp < this.params.panel.target) {
-      voice.say(this.params.panel.more, { valid: () => this.phase === 'temp', ttlMs: 2500 });
+    const P = this.params.panel;
+    if (this.phase === 'temp' && P && this.temp < P.target) {
+      voice.say(P.more, { valid: () => this.phase === 'temp', ttlMs: 2500 });
     }
+    // (hard: the number she is looking for, again)
+    if (this.phase === 'temp' && P?.sayTarget && this.temp !== P.target) voice.say(`temp-${P.target}` as TempKey, { valid: () => this.phase === 'temp', ttlMs: 4000 });
     super.showHint();
   }
 

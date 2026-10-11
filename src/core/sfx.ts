@@ -18,8 +18,20 @@ const KEY_GAIN: Partial<Record<SoundKey, number>> = {
   // the soup: peel is about 5 dB quieter in its file (the munch / tear convention), so it plays at 1.0
   peel: 1 / LEVEL.sfx,
   // the cake: a soft breath out, played at the normal effect level (MIXING.md: -18 LUFS, gain 0.65)
+  // the polish round (measured RMS against pop's): these were 4-10 dB under the rest. Their files peak near full
+  // scale, so they go up to 1.0 at most (+3 to +4 dB).
+  'can-open': 1 / LEVEL.sfx,
+  'cookie-crunch': 1.4,
+  stamp: 1.4,
+  'oven-ding': 1.4,
+  // soft tones whose files peak at -12 to -14 dBFS: +6 dB, still well under full scale (CEIL)
+  peep: 2,
+  squeak: 2,
+  zing: 2,
 };
-const gainOf = (key: SoundKey, rel = 1) => Math.min(1, rel * LEVEL.sfx * (KEY_GAIN[key] ?? 1));
+/** The most a key may play at: 1 (full scale) unless its file leaves headroom (its peak, measured with ffmpeg). */
+const CEIL: Partial<Record<SoundKey, number>> = { peep: 2, squeak: 2, zing: 2 };
+const gainOf = (key: SoundKey, rel = 1) => Math.min(CEIL[key] ?? 1, rel * LEVEL.sfx * (KEY_GAIN[key] ?? 1));
 
 const lastPlayed = new Map<string, number>();
 const unloadedTold = new Set<string>();

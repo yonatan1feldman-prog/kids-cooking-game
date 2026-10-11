@@ -9,10 +9,19 @@
 // The dev server's /__bake endpoint (plugins/asset-manifest.ts) writes the files and webp/sources.json
 // (the sha1 of each source SVG). The build only copies the committed WebP files: it never runs this.
 (() => {
-  // Small art is stored lossless (lossy errors show most on small, sharp items); art whose lossless file
-  // would be over LOSSLESS_MAX (the background, boards, oven, characters' bodies) is lossy at QUALITY.
-  const QUALITY = 0.92;
-  const LOSSLESS_MAX = 64 * 1024;
+  // Only tiny art is stored lossless (LOSSLESS_MAX: lossy errors show most on small, sharp items, and there lossless is
+  // already small). Everything else is lossy (the colour in 4:2:0, the alpha kept lossless by Chrome's encoder), at
+  // QUALITY_MID while its lossless file would be under BIG, else at QUALITY (the background, boards, oven, characters'
+  // bodies). If a lossy file comes out bigger than the lossless one, the lossless one is kept.
+  // (Round 11: 64 KB lossless / 0.92 before; checked with __compareWebp, mean at most 3.5/255.)
+  const LOSSLESS_MAX = 8 * 1024;
+  const BIG = 64 * 1024;
+  const QUALITY_MID = 0.95;
+  const QUALITY = 0.85;
+  // A lossy file whose mean pixel difference is over MAX_MEAN (0-255, see __compareWebp) is encoded again one step up
+  // (QUALITY -> QUALITY_MID -> lossless). The paper grain alone gives 2-5, invisible on the phone; this only catches
+  // outliers (the thin cut-face strips lose their edges' colour in 4:2:0).
+  const MAX_MEAN = 4;
 
   // Same steps as src/core/svgRaster.ts: native box, aspect kept, drawn once onto a canvas.
   const rasterize = async (key, w, h) => {
@@ -39,6 +48,8 @@
     }
   };
 
+  window.__rasterize = rasterize;
+
   const list = async () => (await fetch('/__bake/list')).json();
 
   window.__bakeWebp = async (only) => {
@@ -48,7 +59,11 @@
       const c = await rasterize(key, w, h);
       const encode = (q) => new Promise((r) => c.toBlob(r, 'image/webp', q));
       let blob = await encode(1); // quality 1 = lossless in Chrome
-      if (blob.size > LOSSLESS_MAX) blob = await encode(QUALITY);
+      if (blob.size > LOSSLESS_MAX) {
+        let lossy = await encode(blob.size > BIG ? QUALITY : QUALITY_MID);
+        if (blob.size > BIG && (await __diffBlob(c, lossy)).mean > MAX_MEAN) lossy = await encode(QUALITY_MID);
+        if (lossy.size < blob.size && (await __diffBlob(c, lossy)).mean <= MAX_MEAN) blob = lossy;
+      }
       const q = new URLSearchParams({ key, sha1, w: String(c.width), h: String(c.height) });
       const res = await fetch(`/__bake/put?${q}`, { method: 'POST', body: blob });
       out.push(`${key} ${c.width}x${c.height} ${Math.round(blob.size / 1024)}KB ${res.ok ? '' : 'FAILED'}`);
@@ -58,31 +73,42 @@
 
   const pixels = (c) => c.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, c.width, c.height).data;
 
+  /** Mean and 99th percentile of the pixel difference (0-255) between a canvas and an image of the same size: colour
+   * compared premultiplied by alpha (fully transparent pixels have no meaningful colour). */
+  const diff = (a, img) => {
+    const b = document.createElement('canvas');
+    b.width = a.width; b.height = a.height;
+    b.getContext('2d').drawImage(img, 0, 0);
+    const pa = pixels(a), pb = pixels(b);
+    const hist = new Uint32Array(256);
+    let sum = 0, n = 0;
+    for (let i = 0; i < pa.length; i += 4) {
+      const aa = pa[i + 3] / 255, ab = pb[i + 3] / 255;
+      let d = Math.abs(pa[i + 3] - pb[i + 3]);
+      for (let j = 0; j < 3; j++) d = Math.max(d, Math.abs(pa[i + j] * aa - pb[i + j] * ab));
+      const di = Math.min(255, Math.round(d));
+      hist[di]++; sum += di; n++;
+    }
+    let acc = 0, p99 = 0;
+    for (let v = 0; v < 256; v++) { acc += hist[v]; if (acc >= n * 0.99) { p99 = v; break; } }
+    return { mean: +(sum / n).toFixed(2), p99 };
+  };
+  const loadImg = (src) => new Promise((ok, bad) => { const img = new Image(); img.onload = () => ok(img); img.onerror = bad; img.src = src; });
+  /** A canvas against a WebP blob (the bake's own check, before writing it). */
+  window.__diffBlob = async (c, blob) => {
+    const url = URL.createObjectURL(blob);
+    try { return diff(c, await loadImg(url)); } finally { URL.revokeObjectURL(url); }
+  };
+
   /** Pixel difference between each SVG (rasterized now) and its committed WebP: mean and 99th percentile, 0-255. */
-  window.__compareWebp = async () => {
+  window.__compareWebp = async (only) => {
     const out = {};
     for (const { key, w, h } of await list()) {
+      if (only && !only.includes(key)) continue;
       const a = await rasterize(key, w, h);
-      const img = new Image();
-      await new Promise((ok, bad) => { img.onload = ok; img.onerror = bad; img.src = `assets/images/webp/${key}.webp?${Date.now()}`; });
-      const b = document.createElement('canvas');
-      b.width = a.width; b.height = a.height;
-      b.getContext('2d').drawImage(img, 0, 0);
+      const img = await loadImg(`assets/images/webp/${key}.webp?${Date.now()}`);
       if (img.naturalWidth !== a.width || img.naturalHeight !== a.height) { out[key] = 'SIZE MISMATCH'; continue; }
-      const pa = pixels(a), pb = pixels(b);
-      // Colour compared premultiplied by alpha (fully transparent pixels have no meaningful colour).
-      const hist = new Uint32Array(256);
-      let sum = 0, n = 0;
-      for (let i = 0; i < pa.length; i += 4) {
-        const aa = pa[i + 3] / 255, ab = pb[i + 3] / 255;
-        let d = Math.abs(pa[i + 3] - pb[i + 3]);
-        for (let j = 0; j < 3; j++) d = Math.max(d, Math.abs(pa[i + j] * aa - pb[i + j] * ab));
-        const di = Math.min(255, Math.round(d));
-        hist[di]++; sum += di; n++;
-      }
-      let acc = 0, p99 = 0;
-      for (let v = 0; v < 256; v++) { acc += hist[v]; if (acc >= n * 0.99) { p99 = v; break; } }
-      out[key] = { mean: +(sum / n).toFixed(2), p99 };
+      out[key] = diff(a, img);
     }
     return out;
   };

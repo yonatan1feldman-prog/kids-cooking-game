@@ -9,6 +9,8 @@
  * Placeholders are drawn at the same size.
  */
 /** The guests' layers are made at this fraction of their native size (they are never shown bigger). */
+import { FARM_IMAGES, FARM_SFX, FARM_VOICE } from './farmAssets';
+
 export const GUEST_RASTER = 0.75;
 
 /** The clinic's close-ups (and what is drawn in them) are shown up to 1.7x their 520 frame: rasterized that big. */
@@ -66,7 +68,6 @@ export const IMAGES = {
   'rolling-pin': { size: [640, 200] },
   'sauce-bowl': { size: [340, 300] },
   'sauce-blob': { size: [200, 200] },
-  'cheese-shaker': { size: [260, 400] },
   'cheese-shred': { size: [80, 44] },
   'topping-tomato': { size: [140, 140] },
   'topping-olive': { size: [140, 140] },
@@ -74,8 +75,6 @@ export const IMAGES = {
   'topping-corn': { size: [140, 140] },
   'topping-pepper': { size: [140, 140] },
   'topping-onion': { size: [140, 140] },
-  /** The round pizza board under the dish (tray is an identical older copy). */
-  tray: { size: [820, 830] },
   'pizza-board': { size: [820, 830] },
   /** Oven layers share one 700x800 frame; oven-closed has a transparent window. */
   'oven-inside': { size: [700, 800] },
@@ -125,16 +124,10 @@ export const IMAGES = {
   'mom-hand-spread': { size: [400, 400] },
   'mom-hand-sprinkle': { size: [400, 400] },
   'mom-hand-grab': { size: [400, 400] },
-  /** Older single guiding hand (kept in the contract; Mom's demo hands replaced it on screen). */
-  'hand-hint': { size: [220, 280] },
   star: { size: [200, 200] },
-  /** Shown at 1.4x (the hero of the title screen), so it is rasterized at 1.4x too. */
-  'btn-play': { size: [240, 240], raster: 1.4 },
   'btn-home': { size: [240, 240] },
   'btn-done': { size: [240, 240] },
   'card-pizza': { size: [400, 520] },
-  /** The title's logo (lettering is part of the art, the only words ever drawn; the child doesn't need to read it). */
-  'logo-cooking-with-mom': { size: [900, 400] },
   /** One topping bin in the decorating step (the topping is drawn on top of it). */
   'topping-bin': { size: [240, 240] },
 
@@ -145,6 +138,8 @@ export const IMAGES = {
   'water-stream': { size: [240, 420] },
   'kid-hands': { size: [600, 420] },
   bubble: { size: [240, 240] },
+  /** The recipe challenges (PR A): the soap bar on the sink's rim, tapped before rubbing (soap first). */
+  'soap-bar': { size: [240, 160] },
   /** Knead: the dough from shaggy to smooth, same frame as dough-ball (base y 266). The dent under a press. */
   'dough-knead-1': { size: [360, 300] },
   'dough-knead-2': { size: [360, 300] },
@@ -495,6 +490,8 @@ export const IMAGES = {
   'dish-sponge': { size: [240, 150] },
   /** The drying rack: a column per colour (blue, yellow, pink), a hook on top (cups), a slot of dowels below (plates). */
   'dish-rack': { size: [960, 720] },
+  /** The tea towel hanging from its peg (the peg at the top centre); a rinsed dish is dried on it (challenge round). */
+  'dishes-towel': { size: [220, 320] },
   /** Level 2 (garden round 2): a weed standing in a hole (the soil line at ART.garden.weedTop, its root below), the
    *  puddle of too much water, and the bunny (facing left, sitting on its feet at the bottom) with its wish. */
   'garden-weed': { size: [200, 320] },
@@ -513,15 +510,31 @@ export const IMAGES = {
   'garden-bird-up': { size: [170, 140] },
   'garden-bird-down': { size: [170, 140] },
   'garden-butterfly': { size: [200, 160] },
+  /** Challenge round (PR B): unripe fruit (the ripe ones' frames), a second basket for sorting (level 2; the same shape,
+   *  blue; `-front` over what is in it), the caterpillar hiding under a leaf (facing left) and the jar it goes into
+   *  (its mouth at ART.garden.jarMouth). */
+  'garden-tomato-green': { size: [140, 150] },
+  'garden-strawberry-green': { size: [130, 150] },
+  'garden-basket-2': { size: [440, 320] },
+  'garden-basket-2-front': { size: [440, 320] },
+  'garden-caterpillar': { size: [220, 120] },
+  'garden-jar': { size: [220, 260] },
   /** Market round 2 (paying): a coin, Mom's purse, the price slate (the price is drawn in code on ART.market.slateFace). */
   'market-coin': { size: [110, 110] },
   'market-purse': { size: [260, 230] },
   'market-slate': { size: [380, 300] },
+  /** Market, more challenge (research/challenge-spec.md M-E1, M-H1, M-H2; gen_minigames.py): the balance scale in three
+   * parts (anchors ART.market.scale), the big coin (worth two), the three category cards (slots on ART.market.catSlots). */
+  'market-scale-base': { size: [400, 440] },
+  'market-scale-beam': { size: [560, 60] },
+  'market-scale-pan': { size: [260, 220] },
+  'market-coin-big': { size: [150, 150] },
+  'market-cat-green': { size: [600, 320] },
+  'market-cat-tree': { size: [600, 320] },
+  'market-cat-round': { size: [600, 320] },
   // ---- The art corner (research/drawing-stages-spec.md; assets-src/images-b-art, tools/gen_art.py). The pictures she
   // traces, joins and colours are drawn in code (core/artPictures.ts). Anchors: ART.art.
   'card-art': { size: [400, 520] },
-  /** The easel: the sheet lies on its board at ART.art.sheet, the legs reach down past the counter. */
-  'art-easel': { size: [1000, 1000] },
   'photo-frame-art': { size: [700, 780] },
   'art-pick-trace': { size: [300, 300] },
   'art-pick-dots': { size: [300, 300] },
@@ -544,8 +557,14 @@ export const IMAGES = {
   'art-find-bird': { size: [200, 160] },
   'art-find-cat': { size: [260, 220] },
   'art-find-rainbow': { size: [360, 210] },
+  // the sixth kind, stamps (challenge round): its card and the four stamps (their prints are drawn in code, STAMP in artPictures.ts)
+  'art-pick-stamps': { size: [300, 300] },
+  'art-stamp-sun': { size: [240, 240] },
+  'art-stamp-cloud': { size: [240, 240] },
+  'art-stamp-flower': { size: [240, 240] },
+  'art-stamp-bird': { size: [240, 240] },
   // ---- The clinic world (research/clinic-spec.md; assets-src/images-b-clinic, tools/gen_clinic.py). Anchors: ART.clinic.
-  /** The title's two worlds: cook with Mom, or help the patients with Mom the nurse (shown at 1.4x like btn-play). */
+  /** The title's two worlds: cook with Mom, or help the patients with Mom the nurse (shown at 1.4x). */
   // the title's two games (clinic round 3): their lettering is the title art, like the logo's
   'world-card-kitchen': { size: [700, 760] },
   'world-card-clinic': { size: [700, 760] },
@@ -558,7 +577,6 @@ export const IMAGES = {
   'clinic-bed': { size: [900, 320] },
   'clinic-bench': { size: [1500, 420] },
   'clinic-slot': { size: [240, 240] },
-  'clinic-chart': { size: [300, 380] },
   'tool-thermometer': { size: [240, 240] },
   'tool-stethoscope': { size: [240, 240] },
   'tool-plaster': { size: [240, 240] },
@@ -576,7 +594,6 @@ export const IMAGES = {
   /** The close-ups (light grey, tinted to the patient in the game; the mouth is not tinted) and the magnifier's rim. */
   'lens-knee': { size: [520, 520], raster: ZOOM_RASTER },
   'lens-paw': { size: [520, 520], raster: ZOOM_RASTER },
-  'lens-tummy': { size: [520, 520], raster: ZOOM_RASTER },
   'lens-mouth': { size: [520, 520], raster: ZOOM_RASTER },
   'lens-ring': { size: [600, 600], raster: ZOOM_RASTER },
   // ---- The clinic, round 3 (research/clinic-doctor-games.md; images-b-clinic/tools/gen_clinic3.py): the eye, the ear and
@@ -604,6 +621,52 @@ export const IMAGES = {
   'tool-xray': { size: [240, 240] },
   'sick-eye': { size: [200, 200] },
   'sick-ear': { size: [200, 200] },
+  // the clinic, round 4 (gen_kids.py, gen_clinic4.py): four children, the skin and hand close-ups, sting, bites, mud
+  'kid-lily-body': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-lily-eyes-open': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-lily-eyes-blink': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-lily-eyes-happy': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-lily-eyes-surprised': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-lily-mouth-closed': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-lily-mouth-open': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-lily-mouth-chew': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-leo-body': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-leo-eyes-open': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-leo-eyes-blink': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-leo-eyes-happy': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-leo-eyes-surprised': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-leo-mouth-closed': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-leo-mouth-open': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-leo-mouth-chew': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-mia-body': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-mia-eyes-open': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-mia-eyes-blink': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-mia-eyes-happy': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-mia-eyes-surprised': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-mia-mouth-closed': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-mia-mouth-open': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-mia-mouth-chew': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-sam-body': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-sam-eyes-open': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-sam-eyes-blink': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-sam-eyes-happy': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-sam-eyes-surprised': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-sam-mouth-closed': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-sam-mouth-open': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-sam-mouth-chew': { size: [600, 700], raster: GUEST_RASTER },
+  'lens-skin': { size: [520, 520], raster: ZOOM_RASTER },
+  'lens-hand': { size: [520, 520], raster: ZOOM_RASTER },
+  'clinic-sting': { size: [110, 100], raster: ZOOM_RASTER },
+  'clinic-bite': { size: [90, 80], raster: ZOOM_RASTER },
+  'clinic-gnat': { size: [120, 110], raster: ZOOM_RASTER },
+  'clinic-mud': { size: [110, 100], raster: ZOOM_RASTER },
+  'clinic-foam': { size: [110, 100], raster: ZOOM_RASTER },
+  'tool-sponge': { size: [240, 240] },
+  'tool-bugspray': { size: [240, 240] },
+  'sick-sting': { size: [200, 200] },
+  'sick-bites': { size: [200, 200] },
+  'sick-dirty': { size: [200, 200] },
+  'clinic-done': { size: [120, 120] },
   'clinic-scrape': { size: [200, 140], raster: ZOOM_RASTER },
   'clinic-dust': { size: [220, 160], raster: ZOOM_RASTER },
   'clinic-splinter': { size: [160, 70], raster: ZOOM_RASTER },
@@ -627,6 +690,120 @@ export const IMAGES = {
   'sick-cold': { size: [200, 200] },
   'sick-toy': { size: [200, 200] },
   'photo-frame-clinic': { size: [700, 780] },
+  // the clinic, round 5 (research/clinic-spec-5.md; gen_kids.py, gen_animals.py, gen_clinic5.py): four more children,
+  // four more animals, the scratchy throat (its close-up, the tickles, the honey) and the sunburn (the aloe, the sun hat)
+  'kid-ruby-body': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-ruby-eyes-open': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-ruby-eyes-blink': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-ruby-eyes-happy': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-ruby-eyes-surprised': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-ruby-mouth-closed': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-ruby-mouth-open': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-ruby-mouth-chew': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-noah-body': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-noah-eyes-open': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-noah-eyes-blink': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-noah-eyes-happy': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-noah-eyes-surprised': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-noah-mouth-closed': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-noah-mouth-open': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-noah-mouth-chew': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-zoe-body': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-zoe-eyes-open': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-zoe-eyes-blink': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-zoe-eyes-happy': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-zoe-eyes-surprised': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-zoe-mouth-closed': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-zoe-mouth-open': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-zoe-mouth-chew': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-max-body': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-max-eyes-open': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-max-eyes-blink': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-max-eyes-happy': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-max-eyes-surprised': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-max-mouth-closed': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-max-mouth-open': { size: [600, 700], raster: GUEST_RASTER },
+  'kid-max-mouth-chew': { size: [600, 700], raster: GUEST_RASTER },
+  'animal-cat-body': { size: [600, 700], raster: GUEST_RASTER },
+  'animal-cat-eyes-open': { size: [600, 700], raster: GUEST_RASTER },
+  'animal-cat-eyes-blink': { size: [600, 700], raster: GUEST_RASTER },
+  'animal-cat-eyes-happy': { size: [600, 700], raster: GUEST_RASTER },
+  'animal-cat-eyes-surprised': { size: [600, 700], raster: GUEST_RASTER },
+  'animal-cat-mouth-closed': { size: [600, 700], raster: GUEST_RASTER },
+  'animal-cat-mouth-open': { size: [600, 700], raster: GUEST_RASTER },
+  'animal-cat-mouth-chew': { size: [600, 700], raster: GUEST_RASTER },
+  'animal-panda-body': { size: [600, 700], raster: GUEST_RASTER },
+  'animal-panda-eyes-open': { size: [600, 700], raster: GUEST_RASTER },
+  'animal-panda-eyes-blink': { size: [600, 700], raster: GUEST_RASTER },
+  'animal-panda-eyes-happy': { size: [600, 700], raster: GUEST_RASTER },
+  'animal-panda-eyes-surprised': { size: [600, 700], raster: GUEST_RASTER },
+  'animal-panda-mouth-closed': { size: [600, 700], raster: GUEST_RASTER },
+  'animal-panda-mouth-open': { size: [600, 700], raster: GUEST_RASTER },
+  'animal-panda-mouth-chew': { size: [600, 700], raster: GUEST_RASTER },
+  'animal-bunny-body': { size: [600, 700], raster: GUEST_RASTER },
+  'animal-bunny-eyes-open': { size: [600, 700], raster: GUEST_RASTER },
+  'animal-bunny-eyes-blink': { size: [600, 700], raster: GUEST_RASTER },
+  'animal-bunny-eyes-happy': { size: [600, 700], raster: GUEST_RASTER },
+  'animal-bunny-eyes-surprised': { size: [600, 700], raster: GUEST_RASTER },
+  'animal-bunny-mouth-closed': { size: [600, 700], raster: GUEST_RASTER },
+  'animal-bunny-mouth-open': { size: [600, 700], raster: GUEST_RASTER },
+  'animal-bunny-mouth-chew': { size: [600, 700], raster: GUEST_RASTER },
+  'animal-puppy-body': { size: [600, 700], raster: GUEST_RASTER },
+  'animal-puppy-eyes-open': { size: [600, 700], raster: GUEST_RASTER },
+  'animal-puppy-eyes-blink': { size: [600, 700], raster: GUEST_RASTER },
+  'animal-puppy-eyes-happy': { size: [600, 700], raster: GUEST_RASTER },
+  'animal-puppy-eyes-surprised': { size: [600, 700], raster: GUEST_RASTER },
+  'animal-puppy-mouth-closed': { size: [600, 700], raster: GUEST_RASTER },
+  'animal-puppy-mouth-open': { size: [600, 700], raster: GUEST_RASTER },
+  'animal-puppy-mouth-chew': { size: [600, 700], raster: GUEST_RASTER },
+  'lens-throat': { size: [520, 520], raster: ZOOM_RASTER },
+  'clinic-tickle': { size: [100, 100], raster: ZOOM_RASTER },
+  'clinic-burn': { size: [120, 80] },
+  'tool-honey': { size: [240, 240] },
+  'tool-aloe': { size: [240, 240] },
+  'tool-hat': { size: [240, 240] },
+  // round 5, more challenge (gen_clinic5c.py): the tongue a germ hides behind, the eye's lid for the blink
+  'care-tongue': { size: [240, 180], raster: ZOOM_RASTER },
+  'lens-eye-lid': { size: [520, 520], raster: ZOOM_RASTER },
+  'sick-throat': { size: [200, 200] },
+  'sick-sunburn': { size: [200, 200] },
+  // the clinic, round 5, part 2 (gen_clinic5.py part B): the care room next door and each care's props
+  'bg-clinic-care': { size: [2400, 1080] },
+  'care-bottle-back': { size: [260, 380] },
+  'care-bottle-fill': { size: [260, 380] },
+  'care-bottle-front': { size: [260, 380] },
+  'care-jar-strawberry': { size: [240, 240] },
+  'care-jar-banana': { size: [240, 240] },
+  'care-jar-blueberry': { size: [240, 240] },
+  'care-tub-back': { size: [1000, 520] },
+  'care-tub-front': { size: [1000, 520] },
+  'tool-shower': { size: [240, 240] },
+  'tool-towel': { size: [240, 240] },
+  'care-towel-head': { size: [320, 200] },
+  'care-duck': { size: [140, 120] },
+  'tool-roll': { size: [240, 240] },
+  'care-wrap': { size: [360, 110], raster: ZOOM_RASTER },
+  'care-heart': { size: [120, 120], raster: ZOOM_RASTER },
+  'tool-polisher': { size: [240, 240] },
+  'care-paste': { size: [240, 240] },
+  'care-chart': { size: [520, 640] },
+  'care-shape-star': { size: [200, 200] },
+  'care-shape-heart': { size: [200, 200] },
+  'care-shape-moon': { size: [200, 200] },
+  'care-shape-circle': { size: [200, 200] },
+  'care-shape-triangle': { size: [200, 200] },
+  'care-shape-house': { size: [200, 200] },
+  'care-glasses': { size: [240, 120] },
+  'care-bed-back': { size: [1000, 560] },
+  'care-bed-front': { size: [1000, 560] },
+  'care-blanket': { size: [720, 340] },
+  'care-lamp-on': { size: [240, 380] },
+  'care-lamp-off': { size: [240, 380] },
+  'care-apple': { size: [160, 160] },
+  'care-banana': { size: [160, 160] },
+  'care-berry': { size: [160, 160] },
+  // the farm (core/farmAssets.ts)
+  ...FARM_IMAGES,
 } as const satisfies Record<string, { size: readonly [number, number]; raster?: number }>;
 
 /** Texture size of an image: its native size, times its `raster` factor if it is shown bigger than native. */
@@ -677,9 +854,9 @@ export const SCENERY_KEYS: readonly ImageKey[] = [
 ];
 
 export const CORE_IMAGES: readonly ImageKey[] = [
-  'bg-kitchen-landscape', ...KITCHEN_KEYS, ...SCENERY_KEYS, 'logo-cooking-with-mom', 'star', 'btn-play', 'world-card-kitchen', 'world-card-clinic', 'btn-home', 'btn-done', 'hand-hint',
+  'bg-kitchen-landscape', ...KITCHEN_KEYS, ...SCENERY_KEYS, 'star', 'world-card-kitchen', 'world-card-clinic', 'btn-home', 'btn-done',
   'card-pizza', 'card-salad', 'card-cookies', 'card-smoothie', 'card-pancakes', 'card-soup', 'card-cake',
-  'card-skewers', 'card-garden', 'card-market', 'card-dishes', 'card-art',
+  'card-skewers', 'card-garden', 'card-market', 'card-dishes', 'card-art', 'card-farm',
   'character-body', 'character-eyes-open', 'character-eyes-blink', 'character-eyes-surprised', 'character-eyes-happy',
   'character-mouth-closed', 'character-mouth-open', 'character-mouth-chew',
   'mom-arm-right', 'mom-body', 'mom-head', 'mom-hair', 'mom-eyes-open', 'mom-eyes-blink', 'mom-eyes-happy',
@@ -689,7 +866,7 @@ export const CORE_IMAGES: readonly ImageKey[] = [
   'mom-hand-point', 'mom-hand-roll', 'mom-hand-spread', 'mom-hand-sprinkle', 'mom-hand-grab', 'mom-hand-press',
   'mom-hand-knife', 'mom-hand-mitt',
 ];
-const WASH: ImageKey[] = ['sink-basin', 'faucet', 'water-stream', 'kid-hands', 'bubble'];
+const WASH: ImageKey[] = ['sink-basin', 'faucet', 'water-stream', 'kid-hands', 'bubble', 'soap-bar'];
 const OVEN: ImageKey[] = [
   'oven-inside', 'oven-closed', 'oven-open', 'oven-panel', 'oven-needle', 'oven-start-off', 'oven-start-on', 'temp-glow',
   'btn-temp-up', 'btn-temp-down', 'mitt-single', 'oven-mitts',
@@ -703,7 +880,7 @@ export const RECIPE_ASSETS: Record<string, { images: readonly ImageKey[]; sounds
   pizza: {
     images: [
       ...WASH, ...OVEN, ...PREP_BOWL, ...CHOP, ...cut('tomato', 'mushroom', 'pepper', 'onion'),
-      'dough-ball', 'dough-flat', 'rolling-pin', 'sauce-bowl', 'sauce-blob', 'cheese-shaker', 'cheese-shred', 'tray',
+      'dough-ball', 'dough-flat', 'rolling-pin', 'sauce-bowl', 'sauce-blob', 'cheese-shred',
       'pizza-board', 'pizza-slice', 'topping-tomato', 'topping-olive', 'topping-mushroom', 'topping-corn', 'topping-pepper',
       'topping-onion', 'dough-knead-1', 'dough-knead-2', 'dough-knead-3', 'sauce-stage-0', 'sauce-stage-1', 'sauce-stage-2',
       'sauce-stage-3', 'grater', 'cheese-block', 'cheese-pile-1', 'cheese-pile-2', 'cheese-pile-3', 'cheese-handful',
@@ -729,6 +906,8 @@ export const RECIPE_ASSETS: Record<string, { images: readonly ImageKey[]; sounds
       'vo-choose-veg', 'vo-finale-salad', 'vo-fresh', 'vo-into-bowl', 'vo-mix', 'vo-oil', 'vo-photo-salad', 'vo-salt',
       'vo-serve', 'vo-squeeze', 'vo-tear', 'vo-wash-veg', 'vo-wash-veg-done', 'vo-cut', 'vo-cut-careful', 'name-tomato',
       'name-onion',
+      // (the hard level's pour order names the lettuce)
+      'name-lettuce',
     ],
   },
   cookies: {
@@ -755,6 +934,8 @@ RECIPE_ASSETS.smoothie = {
     'colander-fruit', 'water-drop', 'blender-jar-back', 'blender-jar-front', 'jar-heap-1', 'jar-heap-2', 'jar-heap-3',
     'blend-stage-1', 'blend-stage-2', 'blend-stage-3', 'blender-base', 'blender-button-off', 'blender-button-on',
     'blender-lid', 'milk-carton', 'milk-drop', 'glass-empty', 'glass-full', 'photo-frame-smoothie',
+    // (the hard level's "find the tool" before the milk)
+    'spoon-wood',
   ],
   sounds: [
     'blender', 'lid-click', 'slurp', 'glass-pour', 'name-banana', 'name-strawberry', 'name-mango', 'name-kiwi',
@@ -853,7 +1034,8 @@ RECIPE_ASSETS.garden = {
     'watering-can', 'garden-sun', 'garden-cloud', 'garden-snail', 'garden-leaf', 'garden-basket', 'garden-basket-front',
     'water-drop', 'garden-weed', 'garden-puddle', 'garden-bunny', 'garden-scarecrow', 'garden-hat-red', 'garden-hat-blue',
     'garden-hat-yellow', 'garden-shirt-red', 'garden-shirt-blue', 'garden-shirt-yellow', 'garden-bird-up', 'garden-bird-down',
-    'garden-butterfly',
+    'garden-butterfly', 'garden-tomato-green', 'garden-strawberry-green', 'garden-basket-2', 'garden-basket-2-front',
+    'garden-caterpillar', 'garden-jar',
   ],
   sounds: [
     'vo-garden-seeds', 'vo-garden-plant', 'vo-garden-water', 'vo-garden-sprout', 'vo-garden-cloud', 'vo-garden-sun',
@@ -862,6 +1044,7 @@ RECIPE_ASSETS.garden = {
     'vo-garden-bunny', 'vo-garden-bunny-this', 'vo-garden-bunny-yum', 'vo-garden-rain', 'vo-garden-rainbow', 'vo-garden-birds',
     'vo-garden-hat', 'vo-garden-shirt', 'vo-garden-scare-copy', 'vo-garden-scare-look', 'vo-garden-shoo', 'vo-garden-butterfly',
     'vo-garden-butterfly-done', 'vo-garden-sun-tap', 'name-red', 'name-blue', 'name-yellow', 'name-rainbow', 'name-butterfly',
+    'vo-not-ripe', 'vo-one-more-seed', 'vo-sort-basket', 'vo-find-caterpillar', 'vo-caterpillar-found', 'vo-caterpillar-bye',
     ...OUTSIDE_SONG,
   ],
 };
@@ -873,39 +1056,45 @@ RECIPE_ASSETS.market = {
     'garden-basket', 'garden-basket-front', 'veg-tomato-whole', 'veg-carrot-whole', 'veg-cucumber-whole', 'veg-pepper-whole',
     'veg-onion-whole', 'veg-potato-whole', 'veg-mushroom-whole', 'veg-zucchini-whole', 'fruit-banana-whole',
     'fruit-kiwi-whole', 'fruit-mango-whole', 'fruit-strawberry-whole', 'lettuce-head', 'market-coin', 'market-purse',
-    'market-slate',
+    'market-slate', 'market-scale-base', 'market-scale-beam', 'market-scale-pan', 'market-coin-big', 'market-cat-green',
+    'market-cat-tree', 'market-cat-round',
   ],
   sounds: [
     'vo-market-list', 'vo-market-remember', 'vo-market-not', 'vo-market-pipa', 'vo-market-two', 'vo-market-done',
     'name-tomato', 'name-carrot', 'name-cucumber', 'name-onion', 'name-potato', 'name-mushroom', 'name-zucchini',
     'name-banana', 'name-kiwi', 'name-mango', 'name-strawberry', 'name-lettuce', 'vo-market-guest', 'vo-market-guest-yum',
-    'vo-market-mixed', 'vo-market-mixed-yes', 'vo-market-mixed-more', 'vo-market-pay', 'vo-market-pay-dots', 'vo-market-count',
-    'vo-market-paid', ...OUTSIDE_SONG,
+    'vo-market-mixed', 'vo-market-mixed-yes', 'vo-market-mixed-more', 'vo-market-pay', 'vo-market-pay-dots',
+    'vo-market-paid', 'vo-weigh', 'vo-too-heavy', 'vo-need-green', 'vo-need-tree', 'vo-need-round', 'vo-is-green', 'vo-is-tree',
+    'vo-is-round', 'vo-big-coin', 'vo-small-coin', ...OUTSIDE_SONG,
   ],
 };
 RECIPE_ASSETS.dishes = {
   images: [
     ...WASH, 'dish-plate-blue', 'dish-plate-yellow', 'dish-plate-pink', 'dish-cup-blue', 'dish-cup-yellow', 'dish-cup-pink',
-    'dish-mess', 'dish-sponge', 'dish-rack', 'water-drop',
+    'dish-mess', 'dish-sponge', 'dish-rack', 'water-drop', 'dishes-towel',
   ],
   sounds: [
     'vo-dishes-start', 'vo-dishes-scrub', 'vo-dishes-clean', 'vo-dishes-rack', 'vo-dishes-rack-2', 'vo-dishes-colour',
-    'vo-dishes-done', 'name-blue', 'name-yellow', 'name-pink',
+    'vo-dishes-done', 'name-blue', 'name-yellow', 'name-pink', 'vo-dry', 'vo-dry-first', 'vo-try-sponge', 'vo-biggest-first',
+    'name-cup', 'name-plate', 'squeak',
   ],
 };
 /** The art corner (ArtScene): loaded on its card like a recipe. Names some recipe lists are listed here too. */
 RECIPE_ASSETS.art = {
   images: [
-    'art-easel', 'photo-frame-art', 'art-pick-trace', 'art-pick-dots', 'art-pick-colour', 'art-pick-mirror', 'art-pick-steam',
+    'photo-frame-art', 'art-pick-trace', 'art-pick-dots', 'art-pick-colour', 'art-pick-mirror', 'art-pick-steam',
     'art-pot-red', 'art-pot-yellow', 'art-pot-blue', 'art-pot-green', 'art-pot-pink', 'art-pot-purple', 'art-pot-orange',
     'art-pot-rainbow', 'art-window-view', 'art-window-frame', 'art-find-sun', 'art-find-bird', 'art-find-cat', 'art-find-rainbow',
+    'art-pick-stamps', 'art-stamp-sun', 'art-stamp-cloud', 'art-stamp-flower', 'art-stamp-bird',
   ],
   sounds: [
     'vo-art-what', 'vo-trace', 'vo-trace-done', 'vo-dots', 'vo-dots-done', 'vo-colour', 'vo-colour-copy', 'vo-colour-mom',
     'vo-colour-done', 'vo-mirror', 'vo-mirror-done', 'vo-mirror-plate', 'vo-steam', 'vo-steam-find', 'vo-steam-done',
     'name-sun', 'name-egg', 'name-fish', 'name-ball', 'name-rainbow', 'name-house', 'name-tree', 'name-boat', 'name-butterfly',
     'name-crown', 'name-bird', 'name-cat', 'name-red', 'name-green', 'name-purple', 'name-orange', 'name-heart', 'name-star',
-    'name-blue', 'name-yellow', 'name-pink', 'crayon', 'xylo', 'splosh', 'squeak', ...ART_SONG,
+    'name-blue', 'name-yellow', 'name-pink', 'crayon', 'xylo', 'splosh', 'squeak', 'vo-art-stamps', 'vo-find-number',
+    'vo-follow-arrows', 'vo-next', 'name-kite', 'name-ice-cream', 'name-balloon', 'name-cloud', 'name-flower',
+    'stamp', ...ART_SONG,
   ],
 };
 /** The clinic (ClinicScene, the second world, chosen on the title): loaded on its button like a recipe. The patients are
@@ -913,9 +1102,9 @@ RECIPE_ASSETS.art = {
 const CLINIC_SONG = ['music-clinic-base', 'music-clinic-tune', 'music-clinic-party', 'music-clinic-up'];
 RECIPE_ASSETS.clinic = {
   images: [
-    'mom-body-nurse', 'mom-cap-nurse', 'bg-clinic', 'bg-clinic-wait', 'clinic-bed', 'clinic-bench', 'clinic-slot', 'clinic-chart',
+    'mom-body-nurse', 'mom-cap-nurse', 'bg-clinic', 'bg-clinic-wait', 'clinic-bed', 'clinic-bench', 'clinic-slot',
     'tool-thermometer', 'tool-stethoscope', 'tool-plaster', 'tool-cream', 'tool-spray', 'tool-tweezers', 'tool-magnifier',
-    'tool-toothbrush', 'tool-cup', 'tool-syrup', 'tool-cloth', 'tool-hotbottle', 'lens-knee', 'lens-paw', 'lens-tummy',
+    'tool-toothbrush', 'tool-cup', 'tool-syrup', 'tool-cloth', 'tool-hotbottle', 'lens-knee', 'lens-paw',
     'lens-mouth', 'lens-ring', 'clinic-scrape', 'clinic-dust', 'clinic-splinter', 'clinic-cream', 'clinic-dirt', 'clinic-cheek',
     'clinic-sweat', 'clinic-bump', 'sticker-star', 'sticker-heart', 'sticker-smile', 'sick-fever', 'sick-cough', 'sick-tummy',
     'sick-tooth', 'sick-knee', 'sick-paw', 'photo-frame-clinic', 'bubble', 'water-drop',
@@ -923,12 +1112,18 @@ RECIPE_ASSETS.clinic = {
     'lens-eye', 'lens-eye-ball', 'clinic-eye-red', 'lens-ear', 'lens-xray', 'germ-a', 'germ-b', 'germ-c', 'tooth-hole',
     'tooth-star', 'food-bit', 'eye-speck', 'ear-wax', 'ear-bug', 'tool-filler', 'tool-cotton', 'tool-eyedrops', 'tool-swab',
     'tool-light', 'tool-icepack', 'tool-xray', 'sick-eye', 'sick-ear',
+    'lens-skin', 'lens-hand', 'clinic-sting', 'clinic-bite', 'clinic-gnat', 'clinic-mud', 'clinic-foam', 'tool-sponge',
+    'tool-bugspray', 'sick-sting', 'sick-bites', 'sick-dirty', 'clinic-done',
+    'lens-throat', 'clinic-tickle', 'clinic-burn', 'tool-honey', 'tool-aloe', 'tool-hat', 'sick-throat', 'sick-sunburn',
+    'lens-eye-lid', // (care-tongue is among the care- keys below)
+    // round 5, part 2: the care rooms next door
+    ...IMAGE_KEYS.filter((k) => k.startsWith('care-')), 'bg-clinic-care', 'tool-shower', 'tool-towel', 'tool-roll', 'tool-polisher',
+    ...IMAGE_KEYS.filter((k) => k.startsWith('kid-') || k.startsWith('animal-')),
     ...IMAGE_KEYS.filter((k) => /^guest-(turtle|penguin|giraffe)-/.test(k)),
   ],
   sounds: [
     'vo-clinic-hello', 'vo-clinic-next', 'vo-hi-turtle', 'vo-hi-penguin', 'vo-hi-giraffe', 'vo-hi-pipa', 'vo-sick-fever',
-    'vo-sick-cough', 'vo-sick-tummy', 'vo-sick-tooth', 'vo-sick-knee', 'vo-sick-paw', 'vo-clinic-what', 'vo-clinic-look',
-    'vo-clinic-plan', 'vo-clinic-first', 'vo-clinic-notyet', 'vo-tool-thermometer', 'vo-thermo-hot', 'vo-thermo-ok',
+    'vo-sick-cough', 'vo-sick-tummy', 'vo-sick-tooth', 'vo-sick-knee', 'vo-sick-paw', 'vo-clinic-first', 'vo-clinic-notyet', 'vo-tool-thermometer', 'vo-thermo-hot', 'vo-thermo-ok',
     'vo-tool-cloth', 'vo-tool-syrup', 'vo-tool-stethoscope', 'vo-stetho-find', 'vo-stetho-heart', 'vo-tool-cup', 'vo-tool-rinse',
     'vo-tool-hotbottle', 'vo-say-aah', 'vo-tool-toothbrush', 'vo-tool-spray', 'vo-tool-cream', 'vo-tool-plaster',
     'vo-tool-tweezers', 'vo-tool-magnifier', 'vo-found-it', 'vo-clinic-better', 'vo-sticker', 'vo-clinic-bye-patient',
@@ -938,6 +1133,31 @@ RECIPE_ASSETS.clinic = {
     'vo-sick-eye', 'vo-sick-ear', 'vo-tooth-food', 'vo-germs', 'vo-germ-run', 'vo-tool-filler', 'vo-tool-cotton', 'vo-eye-speck',
     'vo-tool-eyedrops', 'vo-tool-light', 'vo-ear-bug', 'vo-bug-bye', 'vo-tool-swab', 'vo-tool-icepack', 'vo-tool-xray',
     'vo-tummy-germs', 'vo-germs-gone', 'vo-clinic-which', 'vo-knee-dirt', 'eek', 'drip', 'scan', 'sparkle', 'squeak',
+    'vo-hi-lily', 'vo-hi-leo', 'vo-hi-mia', 'vo-hi-sam', 'vo-sick-sting', 'vo-sick-bites', 'vo-sick-dirty', 'vo-tool-sponge',
+    'vo-tool-bugspray', 'vo-rinse-foam', 'vo-bugs-bye', 'vo-all-clean', 'vo-clinic-fixfirst', 'vo-clinic-fixed', 'vo-bug-hop',
+    'vo-hi-cat', 'vo-hi-panda', 'vo-hi-bunny', 'vo-hi-puppy', 'vo-hi-ruby', 'vo-hi-noah', 'vo-hi-zoe', 'vo-hi-max',
+    'vo-sick-throat', 'vo-sick-sunburn', 'vo-tool-honey', 'vo-tool-aloe', 'vo-tool-hat', 'vo-tickles',
+    'vo-hide', 'vo-found-you', 'vo-tongue', 'vo-hold-still',
+    // round 5, part 2: the care rooms next door
+    'vo-care-go', 'vo-care-remember', 'vo-care-right', 'vo-care-medicine', 'vo-care-flavor', 'vo-care-shake', 'vo-care-spoon',
+    'vo-care-bath', 'vo-care-duck', 'vo-care-rinse', 'vo-care-towel', 'vo-care-wrap', 'vo-care-heart', 'vo-care-paste',
+    'vo-care-polish', 'vo-care-shiny', 'vo-care-eyes', 'vo-care-chart', 'vo-care-glasses', 'vo-care-rest', 'vo-care-lamp',
+    'vo-care-wake', 'vo-care-order', 'vo-follow-arrows', 'name-strawberry', 'name-banana', 'name-blueberry',
+    'name-apple', 'name-star', 'name-heart', 'name-moon', 'name-circle', 'name-triangle', 'name-house', 'name-pink', 'name-blue',
+    'name-green', 'shake', 'splash', 'wrap',
+    // (not 'vo-then': it is core, Pipa's order and the pours in every recipe say it too; a listed sound is not core)
+  ],
+};
+/** The farm (FarmScene, research/farm-spec.md): loaded on its card like the garden. Shared lines and effects it plays are
+ * listed here too (a listed sound is not core). The tooth brush and the close-up's rim are the clinic's. */
+RECIPE_ASSETS.farm = {
+  images: [
+    ...(Object.keys(FARM_IMAGES) as ImageKey[]).filter((k) => k !== 'card-farm'), 'tool-toothbrush', 'lens-ring', 'bubble',
+    'water-drop',
+  ],
+  sounds: [
+    ...FARM_SFX, ...FARM_VOICE.filter((k) => k !== 'vo-pick-farm'), 'name-carrot', 'name-corn', 'name-red', 'name-blue',
+    'name-yellow', 'name-white', 'brush', 'sticky', 'sparkle', 'spray', 'slurp', 'egg-crack', ...OUTSIDE_SONG,
   ],
 };
 /** A guest's own layers: loaded when the sharing starts (all three, the two not invited are freed at once). */
@@ -971,13 +1191,15 @@ export const SOUND_KEYS = [
   'heartbeat', 'cough', 'gurgle', 'spray', 'sticky', 'brush', 'wheeze', 'honk', 'jingle', 'zing',
   // the clinic, round 3: a germ popping, a drop landing, the x-ray's hum, a star filling a tooth
   'eek', 'drip', 'scan', 'sparkle',
+  // the clinic, round 5: the care rooms (medicine shaken in its bottle, bath water, a bandage going round)
+  'shake', 'splash', 'wrap',
+  // the farm (core/farmAssets.ts)
+  ...FARM_SFX,
 ] as const;
 export type SoundKey = (typeof SOUND_KEYS)[number];
 
 /** Art geometry the code relies on, in each image's own viewBox coordinates. */
 export const ART = {
-  /** Fingertip of hand-hint (the hand is tilted 12 degrees). */
-  handTip: { x: 53, y: 23 },
   /** Oven window hole in oven-closed, and where the pizza sits behind it. */
   ovenWindow: { x: 150, y: 320, w: 400, h: 290 },
   ovenPizza: { x: 350, y: 480, diameter: 320 },
@@ -1186,15 +1408,20 @@ export const ART = {
     scareHat: { x: 190, y: 104 },
     scareShirt: { x: 190, y: 386 },
     hatBrim: { x: 120, y: 128 },
+    /** garden-jar (220x260): the middle of its open mouth. */
+    jarMouth: { x: 110, y: 66 },
   },
   /** The market's paying (assets-src/images-b-minigames/tools/gen_minigames.py): market-slate's chalk face. */
   market: {
     slateFace: { x: 44, y: 40, w: 292, h: 196 },
+    /** The balance scale (gen_minigames.py): the base's pivot and foot, the beam's hub and the ends the pans hang from, a
+     * pan's ring and the middle of its dish (where the goods sit, 200 wide). */
+    scale: { pivot: { x: 200, y: 70 }, foot: 436, hub: { x: 280, y: 30 }, ends: [{ x: 34, y: 30 }, { x: 526, y: 30 }], hook: { x: 130, y: 10 }, top: { x: 130, y: 170 }, panW: 200 },
+    /** market-cat-* (600x320): where the code lays the slots of a category list. */
+    catSlots: { x: 300, y: 70, w: 260, h: 220 },
   },
   /** The art corner (assets-src/images-b-art/tools/gen_art.py prints it). */
   art: {
-    /** art-easel (1000x1000): where the sheet lies on the board (5:4). */
-    sheet: { x: 112, y: 100, w: 776, h: 620 },
     /** art-window-frame (800x640): the glass inside the frame (the fog covers it). */
     glass: { x: 44, y: 44, w: 712, h: 520 },
   },
@@ -1209,6 +1436,22 @@ export const ART = {
       // round 3 (gen_clinic3.py)
       filler: { x: 62, y: 52 }, cotton: { x: 120, y: 120 }, eyedrops: { x: 120, y: 216 }, swab: { x: 58, y: 182 },
       light: { x: 66, y: 174 }, icepack: { x: 120, y: 124 }, xray: { x: 113, y: 98 },
+      sponge: { x: 120, y: 122 }, bugspray: { x: 52, y: 40 },
+      // round 5 (gen_clinic5.py)
+      honey: { x: 84, y: 77 }, aloe: { x: 68, y: 46 }, hat: { x: 120, y: 120 },
+      // round 5, part 2: the care rooms' tools (gen_clinic5.py TOOL_TIP5B)
+      shower: { x: 84, y: 84 }, towel: { x: 120, y: 130 }, roll: { x: 120, y: 120 }, polisher: { x: 66, y: 66 },
+    },
+    /**
+     * The care rooms (gen_clinic5.py part B): the medicine's box in care-bottle-fill (x0, top when full, x1, bottom), the
+     * tub's rim in care-tub-* (1000x520), the mattress's top in care-bed-* (1000x560), the eye chart's shapes (520x640:
+     * name, centre, size).
+     */
+    care: {
+      bottleLiq: { x0: 52, top: 150, x1: 208, bottom: 352 },
+      tubRim: 236,
+      bedSeat: 300,
+      chart: [['star', 260, 150, 1.0], ['heart', 170, 330, 0.7], ['moon', 350, 330, 0.7], ['circle', 140, 500, 0.5], ['triangle', 260, 500, 0.5], ['house', 380, 500, 0.5]] as readonly (readonly [string, number, number, number])[],
     },
     /** lens-eye-ball (520): the pupil; lens-ear: the ear's hole. */
     eye: { x: 260, y: 262 },
@@ -1217,8 +1460,6 @@ export const ART = {
     teeth: [[155, 190], [222, 172], [298, 172], [365, 190], [165, 350], [228, 368], [292, 368], [355, 350]] as readonly (readonly [number, number])[],
     knee: { x: 320, y: 285 },
     paw: { x: 262, y: 340 },
-    /** clinic-chart (300x380): the centres of its four rows. */
-    chartRows: [[150, 104], [150, 175], [150, 246], [150, 316]] as readonly (readonly [number, number])[],
     /** clinic-bed (900x320): the cushion's top (where a patient sits); clinic-bench (1500x420): its seat. */
     bedSeat: 112,
     benchSeat: 252,

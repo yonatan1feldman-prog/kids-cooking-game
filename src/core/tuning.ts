@@ -20,6 +20,9 @@ export const HINT_AFTER_MS = 8000;
 export const SCREEN_HINT_MS = 5000;
 /** Further ms of no progress before Mom helps ("Let me help you!", and her hand does it). 20 s since the gameplay round. */
 export const AUTO_AFTER_HINT_MS = 20000;
+/** The longest one piece of Mom's help may take before the turn is given back anyway (a safety net: a rotation or a
+ * paused scene can cut her motion short, and the child must never be left waiting for it). */
+export const HELP_MAX_MS = 15000;
 /** A demo never runs longer than this. */
 export const DEMO_MAX_MS = 2500;
 /** Before a demo, Mom finishes the line she is saying, waiting at most this long. */
@@ -36,7 +39,16 @@ export const TUNING = {
     rubLineAt: 4,
     /** How long the rinse takes (the bubbles slide off, the water runs, the tap closes). */
     rinseMs: 1500,
+    /** The recipe challenges (PR A): a soap bar on the sink's rim; rubbing makes bubbles only after it (both levels). */
+    soap: true,
   },
+  /**
+   * The recipe challenges (PR A), both levels: the busiest counts grow with how often this recipe was played on this
+   * device (`run.runNo`, 0 = the first run). From run `fromRun[0]` (0-based: the 3rd) one more cut per vegetable, one
+   * more press per knead / crush / tear stage, `sprinkle` more cheese pieces and `shakes` more shakes of salt; from run
+   * `fromRun[1]` the same again. Applied as each step starts (`grown` below, RecipeScene).
+   */
+  grow: { fromRun: [2, 4] as readonly number[], chop: 1, presses: 1, sprinkle: 10, shakes: 1 },
   /** Knead: presses on the dough per stage (dough-knead-1 -> 2 -> 3 -> dough-ball: 3 changes). */
   knead: { pressesPerStage: 4 },
   /** Crush: presses on the tomatoes per stage (sauce-stage-0 -> 1 -> 2: 2 changes). */
@@ -215,6 +227,17 @@ export const TUNING = {
     order: 3,
     wish: { rememberMs: 3500, peekMs: 2500, decorate: [2, 2, 3] as readonly number[] },
     thread: { pieces: 6, reach: 200 },
+    /**
+     * The recipe challenges (PR A), hard only. `hintAfterMs`: she gets a little longer to work it out before Mom's hand
+     * comes (help still `AUTO_AFTER_HINT_MS` after). `spreadCoverage`: sauce or frosting "all the way to the edge".
+     * `ovenTargets`: Mom picks one of these each run and says it; she sets the needle on the number she heard.
+     * `model`: Mom's picture in decorating counts as copied when each of its things has one of hers within this share
+     * of the dish's radius of its spot (any order).
+     */
+    hintAfterMs: 11000,
+    spreadCoverage: 0.88,
+    ovenTargets: { pizza: [150, 200, 250], cake: [150, 200, 250], cookies: [100, 150, 200] } as Record<string, readonly number[]>,
+    model: { near: 0.25 },
   },
   /** Mom's help (after the idle hint): the pace of her own presses, rubs and strokes. */
   /**
@@ -251,7 +274,7 @@ export const TUNING = {
    */
   garden: {
     waterMs: 2200, sproutAt: 0.35, cloudPush: 260, cloudTap: 90, pull: 0.75, perPlant: 3, carrotsPerPlant: 2, reach: 230, helpMs: 1100,
-    hard: { waterMs: 3000, weedPull: 0.7, puddleMs: 700, drainMs: 1400, clouds: 2, bunnyFoods: 3 },
+    hard: { waterMs: 3000, weedPull: 0.7, puddleMs: 700, drainMs: 1400, clouds: 2, bunnyFoods: 3, seeds: [2, 1] as readonly [number, number], caterpillar: true, leaves: 2, emptyTaps: 3 },
     /**
      * Garden round 3 (both levels; each visit is drawn at random). `rainChance`: a rainy day (the rain cloud waters the
      * mounds while she moves it over them, then she pushes it off the sun; a rainbow), else the watering can. Then one of
@@ -261,31 +284,61 @@ export const TUNING = {
      * butterfly let go (or dragged) this near a flower visits it.
      */
     rainChance: 0.5, scarecrowChance: 0.5, birds: 3, sunTaps: 3, bflyReach: 150,
+    /**
+     * Challenge round (research/challenge-spec.md, both levels). `unripe` [easy, hard]: fruit per plant still green (a
+     * carrot: a small top) at picking; one dragged to a basket floats back ("Not ripe yet!", a miss); a tap on the sun
+     * ripens them all (`ripenMs`). `pipaCount`: Pipa's bubble wants this many of the fruit (by visit: first, second,
+     * then on), counted into the basket; only where Pipa is on screen. Level 2 (`hard`): `seeds` = seeds in the first and
+     * the second packet (two kinds, two baskets to sort into at picking); `caterpillar`: after the sun a caterpillar hides
+     * under one of `leaves` leaves per plant (a miss every `emptyTaps` empty leaves); she carries it to the jar.
+     */
+    unripe: [1, 2] as readonly [number, number], ripenMs: 1000, pipaCount: [2, 3, 4] as readonly number[],
   },
   /**
-   * The market (MarketScene, research/minigames-spec.md). `listItems`: pictures on each list at level 1 / 2 (level 2: one
-   * of them twice, `pair`); `rounds` lists (the second is Pipa's). Level 2's paper list folds `foldAfterMs` after it
+   * The market (MarketScene, research/minigames-spec.md). `listItems`: pictures on each list at level 1 / 2 by visit (level
+   * 2: one of them twice, `pair`); `rounds` lists (the second is Pipa's). Level 2's paper list folds `foldAfterMs` after it
    * shows and a tap opens it for `peekMs`. `slot`: the narrowest a crate may be (world units x k; 3-5 in a row), `itemH`
    * the tallest a good is drawn. `tapMove`: a press that moves less than this is a tap (the good goes in by itself);
    * `reach`: a good let go this near the basket goes in.
    */
   market: {
-    listItems: [3, 4], pair: true, rounds: 2, foldAfterMs: 4200, peekMs: 3000, slot: 215, itemH: 180, tapMove: 40, reach: 220, helpMs: 1100,
+    listItems: [[3, 3, 4], [4]], pair: true, pairEasyFrom: 2, rounds: 2, foldAfterMs: 4200, peekMs: 3000, slot: 215, itemH: 180, tapMove: 40, reach: 220, helpMs: 1100,
     /**
      * Market round 2 (every visit, in a shuffled order between the two lists, then paying). `guestWants`: what the visitor
      * at the stall wishes for at level 1 / 2. `mixed`: things in the mixed-up box (2 rows of 3) and how many do not belong
      * at level 1 / 2 (level 2's look alike: a strawberry among tomatoes). `price`: the coins to pay at level 1 / 2 (from,
-     * to); level 1 fills a chalk circle per coin from Mom's purse, level 2 shows the price as dice dots and she picks the
-     * pile of coins with as many (the other piles have one less and one more). `countMs`: Mom counting a pile, per coin.
+     * to); level 1 fills a chalk circle per coin from Mom's purse, level 2 shows the price as dice dots and circles for a
+     * big coin (2) and a small one (1) under the slate (see below).
      */
-    guestWants: [1, 2], mixed: { items: 6, odd: [1, 2] }, price: [[2, 4], [3, 6]], countMs: 520,
+    guestWants: [1, 2], mixed: { items: 6, odd: [1, 2] }, price: [[2, 4], [4, 7]],
+    /**
+     * More challenge (research/challenge-spec.md, section 3). `listItems` is per visit now (`[easy by visit, hard by visit]`,
+     * the last value holds for later visits); on easy Pipa's list has one pair from visit `pairEasyFrom` (0-based: the
+     * third visit). Hard (`pair`): one thing twice on both lists, as before. `weigh` (both levels, a part in the shuffled
+     * middle): how many of one good balance the scale, (from, to) per level; each one tips the beam by `weighTilt`
+     * degrees x (1 / n) from `weighTilt` down to level; at the number it is level and waits `weighSettleMs` for one too
+     * many (it tips the other way, the extra slides back, a miss) before the part ends. `catNeed`: on hard one of the two
+     * lists is a kind (green, grows on a tree, round) and needs this many things of it. Hard paying (`price` [4, 7]): big
+     * coins worth 2 and small ones worth 1 onto circles of their size: floor((n - 1) / 2) big circles, the rest small.
+     */
+    weigh: [[2, 3], [3, 5]], weighTilt: 12, weighSettleMs: 1600, catNeed: 2,
   },
   /**
    * Washing up (DishesScene, research/minigames-spec.md). `dishes`: how many at level 1 / 2. `scrub`: finger travel on a
    * dish (world units x k) to wash it clean at level 1 / 2; a bubble every `bubbleEvery`. `reach`: a dish let go this
    * near its place on the rack goes there (or, near a wrong one, back to the sink).
+   * Challenge round (research/challenge-spec.md, both levels unless said): `dry` the towel's travel on a rinsed dish
+   * before it may go on the rack (a drop flies off every `dropEvery`). One dish in `spotEvery` has `spots` stubborn spots
+   * (easy / hard) the finger cannot wash (after `spotFinger` of finger rubbing on one Mom says "Try the sponge!"); the
+   * sponge takes one off after `spotRub` on it. Hard: the plates come in `sizes` sizes (`sizeScale`), and once the rack
+   * is full she stacks them by the empty stack's place, the biggest first; then Pipa wants one dish from the rack (a dish
+   * let go within `pipaReach` of her mouth goes to her).
    */
-  dishes: { dishes: [4, 6], scrub: [1500, 2200], bubbleEvery: 90, reach: 150, helpMs: 1100, scrubMs: 2200 },
+  dishes: {
+    dishes: [4, 6], scrub: [1500, 2200], bubbleEvery: 90, reach: 150, helpMs: 1100, scrubMs: 2200,
+    dry: [600, 900], dropEvery: 110, dryMs: 1800, spotEvery: 3, spots: [1, 2], spotFinger: 500, spotRub: 260,
+    sizes: [1, 3], sizeScale: [1, 0.85, 0.7], pipaReach: 260,
+  },
   /**
    * The art corner (ArtScene, research/drawing-stages-spec.md). Distances are world units x k, [level 1, level 2] where two.
    * `brushR` the crayon's radius; a sparkle every `sparkleEvery` of stroke; `grid` coverage cells across the sheet.
@@ -295,12 +348,19 @@ export const TUNING = {
    * paint spreading. Mirror: `mirrorInk` of the shape covered before the done button. Steam: `steamClear` of the glass
    * clear (level 1), a thing is found when `findClear` of its box is clear, wiped glass fogs over again after `refogMs`
    * (level 2). Idle: free drawing (mirror) waits `freeHintMs` / `freeHelpMs`. `aliveMs`: the picture coming alive.
+   * Challenge round (research/challenge-spec.md): `traceDir` the trace follows its arrows (level 2): ink glows and lights
+   * only moving within `traceAngle` degrees of the arrows' way, from the lit front (at most `traceGap` checkpoints
+   * ahead); `traceWrong` of travel the other way in one stroke is a wrong stroke (three: Mom's hand shows the way).
+   * Dots on level 2: Mom says the number; the right dot glows after `dotsGlowAfter` misses. Stamps: `stampTouch` a
+   * stamp's touch radius, `stampScale` its size in the column (x k, at most), `stampMs` its press.
    */
   art: {
-    brushR: 22, sparkleEvery: 160, grid: 24,
+    brushR: 22, brushShare: 0.024, sparkleEvery: 160, grid: 24,
     traceBand: [0.09, 0.06], traceMin: [70, 55], checkpoints: 24, traceDone: [0.75, 0.85], partDone: 0.5,
     dotTouch: 160, dotR: [32, 44], fillMs: 450, mirrorInk: [0.25, 0.35], steamClear: 0.6, findClear: 0.4, refogMs: 9000,
     freeHintMs: 15000, freeHelpMs: 15000, aliveMs: 2500, helpMs: 1300,
+    traceDir: [false, true], traceAngle: 50, traceGap: 1, traceWrong: 90, dotsGlowAfter: 3,
+    stampTouch: 120, stampScale: 0.9, stampMs: 420,
   },
   /**
    * The clinic (ClinicScene; round 3, research/clinic-doctor-games.md). Distances are world units x k, [little, big] where
@@ -310,14 +370,46 @@ export const TUNING = {
    * `dripMs` between two drops; `findR` how near the magnifier / light / x-ray must come to show a hidden thing (the
    * stethoscope finds the wheezy spot within `wheezeR`, it is heard louder within `hearR`); `pull` how far a gripped thing
    * is drawn out (`magnetR` / `magnetPull` for the bell); `decoys` the tools on the tray not needed; `dodge` the share of
-   * a germ's cleaning at which it hops to another tooth (big chef, once); `helpMs` Mom's hand reaching for the target.
+   * a germ's cleaning at which it hops to another tooth (big chef, once); `helpMs` Mom's hand reaching for the target;
+   * `problems` how many problems each patient brings (round 4: their cards float beside her, a tap on one starts it).
    */
   clinic: {
     patients: 3, reach: 120, rub: [240, 300], rubOne: [700, 900], timeMs: [650, 800], holdMs: [1500, 1800], dripMs: 520,
     findR: 95, wheezeR: 70, hearR: 330, pull: 170, magnetR: 150, magnetPull: 240, decoys: [1, 2], dodge: 0.5, helpMs: 1100,
-    zoomMax: 1.6,
+    zoomMax: 1.6, problems: [2, 2],
+    // round 5, more challenge: how often someone hides in the waiting room (hard only), the eye's blink when the drops
+    // come fast (both levels: how long it stays shut, how fast is "fast" in units/ms x k, how many blinks a station),
+    // the tickle of a sponge on her tummy (ms between giggles)
+    hideChance: [0, 0.7], blinkMs: 750, blinkSpeed: 1.6, blinks: [1, 2], tickleGapMs: 1100,
   },
-  help: { pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150, chopEveryMs: 950, openMs: 1500, tempEveryMs: 1100, peelEveryMs: 900, candleEveryMs: 700, threadEveryMs: 700 },
+  /**
+   * The care rooms next door (round 5, part 2; scenes/ClinicCare.ts): the third thing for every patient, in her own room
+   * (core/care.ts). [easy, hard]. Distances are world units x k. `slideMs` the screen's slide to the room.
+   */
+  care: {
+    slideMs: 520,
+    // medicine: taps on the bottle to shake it, spoons of it (Mom counts on hard), the pour
+    shakes: [3, 3], spoons: [1, 2], pourMs: 1100,
+    // bath: bubbles made (one per `foamEvery` of rubbing), the shower takes one off every `rinseMs` held over her,
+    // the towel's rubbing on her head
+    foam: [7, 9], foamEvery: 150, rinseMs: 320, towel: [800, 1000],
+    // bandage: turns of the roll round the limb (Mom counts), how far from its centre the finger may go round;
+    // hard: the arrows' way only, `wrongTurn` radians the other way wobble it once
+    turns: [4, 6], turnR: [40, 330], wrongTurn: 1.4,
+    // polish: teeth to polish, rubbing each
+    teeth: [4, 8], polish: [260, 320],
+    // the eye chart: rounds, shapes on the tray
+    rounds: [3, 3], shapes: [3, 4],
+    // rest: the blanket pulled up (share of the way), the nap after the lamp, snacks fed
+    blanket: 0.85, napMs: 2400, snacks: [2, 2],
+  },
+  /**
+   * Mom's help. `againMs`: once she has helped and the child has not touched the screen since, the next help comes
+   * after this much idle (the hint `againHintMs` before it) instead of the hint + help times; any touch resets it.
+   * `netMs`: a help that has not handed the step back or finished it by then hands it back by itself (never stuck).
+   * The rest: the pace of her own presses, rubs and strokes.
+   */
+  help: { againMs: 12000, againHintMs: 4000, netMs: 30000, pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150, chopEveryMs: 950, openMs: 1500, tempEveryMs: 1100, peelEveryMs: 900, candleEveryMs: 700, threadEveryMs: 700 },
 } as const;
 
 /** How a cut is made on the current level (`cut`, with `big.cut` on the big-chef level). */
@@ -325,7 +417,27 @@ export function cutTuning() {
   return isBigChef() ? { ...TUNING.cut, ...TUNING.big.cut } : TUNING.cut;
 }
 
+/** How many more a count gets on this run (TUNING.grow): 0 on the first runs, then `step`, then twice `step`. */
+export function grown(step: number, runNo: number) {
+  return TUNING.grow.fromRun.filter((r) => runNo >= r).length * step;
+}
+
 /** Where the stirring arrows turn round on the current level (shares of the stirring). */
 export function stirFlips(): readonly number[] {
   return isBigChef() ? TUNING.big.stirFlips : [TUNING.stirArrow.flipAt];
+}
+
+/** Ms of no progress before Mom's hint in the games and scenes (the same as in the recipes): a little longer on the hard level. */
+export function hintAfterMs(hard: boolean, quiet = false): number {
+  const ms = hard ? TUNING.big.hintAfterMs : HINT_AFTER_MS;
+  // (she has helped and no finger has touched the screen since: the hint comes sooner too, `TUNING.help.againHintMs`)
+  return quiet ? Math.min(ms, TUNING.help.againHintMs) : ms;
+}
+
+/**
+ * Ms of no progress before Mom's help: `hint` + `after`, or, when she has helped and no finger has touched the screen
+ * since (`quiet`), `TUNING.help.againMs` if that is sooner.
+ */
+export function helpAtMs(hint: number, quiet: boolean, after = AUTO_AFTER_HINT_MS): number {
+  return quiet ? Math.min(hint + after, TUNING.help.againMs) : hint + after;
 }

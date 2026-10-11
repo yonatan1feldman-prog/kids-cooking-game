@@ -11,7 +11,8 @@ import { iconButton } from '../core/ui';
 import { RECIPES } from '../recipes';
 import { Character } from '../steps/Character';
 import { Mom } from '../steps/Mom';
-import { assetsReady, recipeAssets, releaseRecipe } from './BootScene';
+import { worldReady } from '../core/worldCache';
+import { homeArtReady, recipeAssets, releaseRecipe, titleArtReady } from './BootScene';
 
 /**
  * Home: one card per recipe (a grid, up to 8 without scrolling), Mom at the counter (and Pipa beside her on phones). Nothing moves by
@@ -21,11 +22,12 @@ import { assetsReady, recipeAssets, releaseRecipe } from './BootScene';
  * recipe the home screen stays quiet (the finale already said goodbye). Idle 5 s: her hand taps the card.
  */
 /** The games on the home screen that are not recipes (each its own scene, its assets under RECIPE_ASSETS[id]). */
-const PLAY: { id: string; card: 'card-garden' | 'card-market' | 'card-dishes' | 'card-art'; line: 'vo-pick-garden' | 'vo-pick-market' | 'vo-pick-dishes' | 'vo-pick-art'; scene: string }[] = [
+const PLAY: { id: string; card: 'card-garden' | 'card-market' | 'card-dishes' | 'card-art' | 'card-farm'; line: 'vo-pick-garden' | 'vo-pick-market' | 'vo-pick-dishes' | 'vo-pick-art' | 'vo-pick-farm'; scene: string }[] = [
   { id: 'garden', card: 'card-garden', line: 'vo-pick-garden', scene: 'Garden' },
   { id: 'market', card: 'card-market', line: 'vo-pick-market', scene: 'Market' },
   { id: 'dishes', card: 'card-dishes', line: 'vo-pick-dishes', scene: 'Dishes' },
   { id: 'art', card: 'card-art', line: 'vo-pick-art', scene: 'Art' },
+  { id: 'farm', card: 'card-farm', line: 'vo-pick-farm', scene: 'Farm' },
 ];
 
 export interface HomeData {
@@ -57,7 +59,7 @@ export class HomeScene extends Phaser.Scene {
     touchRipples(this, L);
 
     // Mom and Pipa come in as soon as their art is loaded (normally before this screen shows).
-    assetsReady().then(() => {
+    titleArtReady().then(() => {
       if (!this.scene.isActive()) return;
       const m = (mom = new Mom(this, S.mom));
       m.followHand(() => hint?.active() ?? false);
@@ -75,80 +77,107 @@ export class HomeScene extends Phaser.Scene {
       this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.events.off(Phaser.Scenes.Events.UPDATE, look));
     });
 
-    const n = RECIPES.length;
-    // The memory book takes one more cell in the same grid, and only once there is something in it: never an empty
-    // slot waiting to be filled (Child wellbeing rules). The cards get a touch smaller the day it appears.
-    // The games that are not recipes (the garden, the market, washing up) take the cells after the recipes.
-    const cells = n + PLAY.length + (albumCount() > 0 ? 1 : 0);
-    const cards: Phaser.GameObjects.Image[] = [];
-    RECIPES.forEach((recipe, i) => {
-      const at = S.card(i, cells);
-      const card = iconButton(this, L, recipe.card, at.x, at.y, () => {
-        if (going) return;
-        going = true;
-        hint?.stop();
-        stars(this, card.x, card.y, 14, 70 * L.k);
-        voice.say(recipe.pickLine, { ttlMs: 3000 });
-        // The recipe's own art and sounds load now: Mom waves, a small spinner turns over the card (only if it takes a
-        // moment), and the recipe starts the moment they are in.
-        mom?.wave();
-        const spin = this.time.delayedCall(250, () => loading(card.x, card.y + card.displayHeight * 0.1));
-        Promise.all([recipeAssets(this.game, recipe.id), new Promise((r) => this.time.delayedCall(350, r))]).then(() => {
-          spin.remove();
-          if (this.scene.isActive()) this.scene.start('Recipe', { id: recipe.id });
-        });
-      }, { hitPad: cells === 1 ? 120 : 30, scale: S.cardScale(cells) });
-      this.tweens.add({ targets: card, alpha: { from: 0, to: 1 }, duration: 400 });
-      cards.push(card);
-    });
-    // The games that are not cooking, after the recipes: the garden (plant, water, pick), the market (a picture list),
-    // washing up (scrub, sort by colour) and the art corner (five kinds of drawing). Each loads on its tap like a recipe and is its own scene.
-    PLAY.forEach((g, j) => {
-      const at = S.card(n + j, cells);
-      const card = iconButton(this, L, g.card, at.x, at.y, () => {
-        if (going) return;
-        going = true;
-        hint?.stop();
-        stars(this, card.x, card.y, 14, 70 * L.k);
-        voice.say(g.line, { ttlMs: 3000 });
-        mom?.wave();
-        const spin = this.time.delayedCall(250, () => loading(card.x, card.y + card.displayHeight * 0.1));
-        Promise.all([recipeAssets(this.game, g.id), new Promise((r) => this.time.delayedCall(350, r))]).then(() => {
-          spin.remove();
-          if (this.scene.isActive()) this.scene.start(g.scene);
-        });
-      }, { hitPad: 30, scale: S.cardScale(cells) });
-      this.tweens.add({ targets: card, alpha: { from: 0, to: 1 }, duration: 400 });
-      cards.push(card);
-    });
-    if (cells > n + PLAY.length) {
-      // The album button: no text, the same size as a card, its picture drawn in code (a little stack of photos).
-      makeAlbumTextures(this.game);
-      const at = S.card(n + PLAY.length, cells);
-      const btn = iconButton(this, L, ALBUM_ICON, at.x, at.y, () => {
-        if (going) return;
-        going = true;
-        hint?.stop();
-        this.scene.start('Album');
-      }, { hitPad: 30, scale: S.cardScale(cells) });
-      this.tweens.add({ targets: btn, alpha: { from: 0, to: 1 }, duration: 400 });
-    }
-
-    // The home button (two taps, as everywhere) goes back to the title, where the two worlds are.
-    iconButton(this, L, 'btn-home', S.home.x, S.home.y, () => {
-      if (going) return;
-      going = true;
-      hint?.stop();
-      this.scene.start('Title');
-    }, { confirm: true, scale: S.homeScale, hitPad: 30 }).setDepth(900);
-
     /** The loading spinner (the one thing allowed to turn by itself): a short orange arc on a cream disc. */
     const loading = (x: number, y: number) => {
       const r = 46 * L.k;
-      this.add.circle(x, y, r * 1.5, 0xfff6e6, 0.92).setDepth(50);
+      const disc = this.add.circle(x, y, r * 1.5, 0xfff6e6, 0.92).setDepth(50);
       const arc = this.add.arc(x, y, r, 0, 270, false).setStrokeStyle(12 * L.k, 0xff8c42).setClosePath(false).setDepth(51);
       this.tweens.add({ targets: arc, angle: 360, duration: 900, repeat: -1 });
+      return [disc, arc];
     };
-    hint = screenHint(this, L, () => (going || !cards[0] ? null : { x: cards[0].x, y: cards[0].y }), () => true);
+    // The cards (and the home button) come in as soon as their art is in: normally it already is (it loads while the
+    // title is up); if not, a spinner turns in the middle until then.
+    const wait = this.time.delayedCall(250, () => {
+      if (!built) waiting = loading(L.cx, L.cy);
+    });
+    let built = false;
+    let waiting: Phaser.GameObjects.GameObject[] | null = null;
+    homeArtReady().then(() => {
+      if (!this.scene.isActive()) return;
+      built = true;
+      wait.remove();
+      waiting?.forEach((o) => o.destroy());
+      const n = RECIPES.length;
+      // The memory book takes one more cell in the same grid, and only once there is something in it: never an empty
+      // slot waiting to be filled (Child wellbeing rules). The cards get a touch smaller the day it appears.
+      // The games that are not recipes (the garden, the market, washing up) take the cells after the recipes.
+      const cells = n + PLAY.length + (albumCount() > 0 ? 1 : 0);
+      const cards: Phaser.GameObjects.Image[] = [];
+      RECIPES.forEach((recipe, i) => {
+        const at = S.card(i, cells);
+        const card = iconButton(this, L, recipe.card, at.x, at.y, () => {
+          if (going) return;
+          going = true;
+          hint?.stop();
+          stars(this, card.x, card.y, 14, 70 * L.k);
+          voice.say(recipe.pickLine, { ttlMs: 3000 });
+          // The recipe's own art and sounds load now: Mom waves, a small spinner turns over the card (only if it takes a
+          // moment), and the recipe starts the moment they are in.
+          mom?.wave();
+          const spin = this.time.delayedCall(250, () => loading(card.x, card.y + card.displayHeight * 0.1));
+          Promise.all([recipeAssets(this.game, recipe.id), new Promise((r) => this.time.delayedCall(350, r))]).then(() => {
+            spin.remove();
+            if (this.scene.isActive()) this.scene.start('Recipe', { id: recipe.id });
+          });
+        }, { hitPad: cells === 1 ? 120 : 30, scale: S.cardScale(cells) });
+        this.tweens.add({ targets: card, alpha: { from: 0, to: 1 }, duration: 400 });
+        cards.push(card);
+      });
+      // The games that are not cooking, after the recipes: the garden (plant, water, pick), the market (a picture list),
+      // washing up (scrub, sort by colour) and the art corner (five kinds of drawing). Each loads on its tap like a recipe and is its own scene.
+      PLAY.forEach((g, j) => {
+        const at = S.card(n + j, cells);
+        const card = iconButton(this, L, g.card, at.x, at.y, () => {
+          if (going) return;
+          going = true;
+          hint?.stop();
+          stars(this, card.x, card.y, 14, 70 * L.k);
+          voice.say(g.line, { ttlMs: 3000 });
+          mom?.wave();
+          let shown: Phaser.GameObjects.GameObject[] = [];
+          const spin = this.time.delayedCall(250, () => (shown = loading(card.x, card.y + card.displayHeight * 0.1)));
+          const delay = new Promise((r) => this.time.delayedCall(350, r));
+          // The farm's files are not in the install (core/worldCache.ts): if they can't be had (offline before the
+          // first visit), the spinner goes, the card wobbles a little and the home screen stays as it was.
+          worldReady(g.id).then((ok) => {
+            if (!ok) {
+              spin.remove();
+              if (!this.scene.isActive()) return;
+              shown.forEach((o) => o.destroy());
+              going = false;
+              this.tweens.add({ targets: card, angle: { from: -3, to: 3 }, duration: 90, yoyo: true, repeat: 2, onComplete: () => card.setAngle(0) });
+              return;
+            }
+            Promise.all([recipeAssets(this.game, g.id), delay]).then(() => {
+              spin.remove();
+              if (this.scene.isActive()) this.scene.start(g.scene);
+            });
+          });
+        }, { hitPad: 30, scale: S.cardScale(cells) });
+        this.tweens.add({ targets: card, alpha: { from: 0, to: 1 }, duration: 400 });
+        cards.push(card);
+      });
+      if (cells > n + PLAY.length) {
+        // The album button: no text, the same size as a card, its picture drawn in code (a little stack of photos).
+        makeAlbumTextures(this.game);
+        const at = S.card(n + PLAY.length, cells);
+        const btn = iconButton(this, L, ALBUM_ICON, at.x, at.y, () => {
+          if (going) return;
+          going = true;
+          hint?.stop();
+          this.scene.start('Album');
+        }, { hitPad: 30, scale: S.cardScale(cells) });
+        this.tweens.add({ targets: btn, alpha: { from: 0, to: 1 }, duration: 400 });
+      }
+
+      // The home button (two taps, as everywhere) goes back to the title, where the two worlds are.
+      iconButton(this, L, 'btn-home', S.home.x, S.home.y, () => {
+        if (going) return;
+        going = true;
+        hint?.stop();
+        this.scene.start('Title');
+      }, { confirm: true, scale: S.homeScale, hitPad: 30 }).setDepth(900);
+      hint = screenHint(this, L, () => (going || !cards[0] ? null : { x: cards[0].x, y: cards[0].y }), () => true);
+    });
   }
 }

@@ -191,12 +191,46 @@ def sparkle():
     return out
 
 
+# Added 2026-10-09 (clinic round 5, the care rooms next door): shake (medicine sloshing in its bottle, three quick shakes),
+# splash (bath water, a soft splash and drips), wrap (a bandage going round once: a soft cloth swish).
+# Run only these: python scripts/make_clinic_sfx.py shake splash wrap
+def shake():
+    out = np.zeros(int(0.75 * SR))
+    for i, at in enumerate((0.0, 0.22, 0.44)):
+        n = int(0.2 * SR)
+        t = np.arange(n) / SR
+        slosh = bp(rng.standard_normal(n), 300, 1400) * env(n, 0.01, 0.06)
+        glug = np.sin(2 * np.cumsum(np.pi * (260 + 200 * np.sin(np.pi * t / 0.2)) / SR)) * env(n, 0.01, 0.05)
+        place(out, (0.6 * slosh + 0.35 * glug) * (1 - 0.12 * i), at)
+    return out
+
+
+def splash():
+    n = int(0.9 * SR)
+    t = np.arange(n) / SR
+    x = bp(rng.standard_normal(n), 400, 5000) * env(n, 0.005, 0.18)
+    out = 0.7 * x
+    for at, f0 in ((0.25, 900), (0.42, 1200), (0.6, 1000)):
+        m = int(0.12 * SR)
+        tm = np.arange(m) / SR
+        place(out, 0.25 * np.sin(2 * np.cumsum(np.pi * f0 * 2 ** (1.5 * tm / 0.06) / SR)) * env(m, 0.002, 0.03), at)
+    return out
+
+
+def wrap():
+    n = int(0.5 * SR)
+    t = np.arange(n) / SR
+    swish = bp(rng.standard_normal(n), 1500, 6000) * np.sin(np.pi * t / 0.5) ** 2
+    return 0.5 * swish + 0.15 * bp(rng.standard_normal(n), 300, 900) * np.sin(np.pi * t / 0.5) ** 2
+
+
 import sys
 ONLY = sys.argv[1:]
 for name, fn in (("heartbeat", heartbeat), ("cough", cough), ("gurgle", gurgle), ("spray", spray), ("sticky", sticky),
                  ("brush", brush), ("wheeze", wheeze),
                  ("honk", honk), ("jingle", jingle), ("zing", zing),
-                 ("eek", eek), ("drip", drip), ("scan", scan), ("sparkle", sparkle)):
+                 ("eek", eek), ("drip", drip), ("scan", scan), ("sparkle", sparkle),
+                 ("shake", shake), ("splash", splash), ("wrap", wrap)):
     if ONLY and name not in ONLY:
         continue
     finish(name, fn())

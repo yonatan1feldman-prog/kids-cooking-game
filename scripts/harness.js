@@ -23,6 +23,8 @@
       await __run(100);
       await new Promise((r) => setTimeout(r, 50));
     }
+    // (since the polish round the home screen waits for its own art, loaded in real time after the title: wait for all of it)
+    for (let i = 0; i < 400 && !window.__loadTiming?.all; i++) await new Promise((r) => setTimeout(r, 50));
     window.__S = g.getBoundingClientRect().width / game.scale.width;
     game.scene.getScenes(true).forEach((s) => s.scene.stop());
     await __run(50);
@@ -81,6 +83,8 @@
     const r = d.R * d.scaleX;
     if (name === 'WashStep') {
       if (st.phase === 'tap') { const b = st.faucet.getBounds(); __tap(b.centerX, b.y + b.height * 0.35); await __run(500); }
+      // (PR A, the recipe challenges: the soap before rubbing)
+      else if (st.phase === 'rub' && st.soap && !st.soaped) { __tap(st.soap.x, st.soap.y); await __run(900); }
       else if (st.phase === 'rub') {
         const y = st.palmL.y + (st.basket ? 40 : -30), pts = [];
         for (let i = 0; i <= 8; i++) pts.push([i % 2 ? st.palmR.x + 30 : st.palmL.x - 30, y + (i % 2 ? 40 : -20)]);
@@ -109,6 +113,15 @@
     } else if (name === 'SprinkleStep') {
       for (let i = 0; i < 6; i++) { const a = Math.random() * 6.28; __tap(d.x + Math.cos(a) * r * 0.5, d.y + Math.sin(a) * r * 0.5); await __run(120); }
     } else if (name === 'DecorateStep') {
+      // (PR A, hard: Mom's picture first, its things where they are on her card; window.__copyModel = false skips it)
+      if (st.model && !st.model.done && window.__copyModel !== false && st.params.onto !== 'cookies') {
+        const it = st.modelNext(), w = d.toWorld(it.x * d.R, it.y * d.R);
+        await __drag([[it.bin.x, it.bin.y], [w.x, w.y + 90]]); await __run(400); return;
+      }
+      if (st.model && !st.model.done && window.__copyModel !== false && st.params.onto === 'cookies') {
+        const c = st.cookieList[0], n = st.dish.toppings.list.filter((t) => t.getData('on') === 0).length, it = st.model.items[n % st.model.items.length], w = d.toWorld(c.x, c.y);
+        await __drag([[it.bin.x, it.bin.y], [w.x, w.y + 90]]); await __run(400); return;
+      }
       if ((st.placed ?? 0) >= 4) { __tap(st.done.x, st.done.y); await __run(2600); return; }
       const b = st.bins[(st.placed ?? 0) % st.bins.length];
       const a = (st.placed ?? 0) * 1.7;
@@ -161,7 +174,13 @@
         else { const pts = [[b.x, b.y - b.displayHeight * 0.4]]; for (let i = 0; i < 8; i++) pts.push([b.x + (i % 2 ? 90 : -90), b.y - b.displayHeight * 0.4]); await __drag(pts); }
         await __run(500);
       } else if (st.phase === 'pour') {
-        const pp = st.pourPoint(); await __drag([[b.x, b.y], [pp.x, pp.y]], { hold: true }); await __run(st.params.pourMs + 400); __touch('end', 1, pp.x, pp.y); await __run(300);
+        // (PR A, hard: the pour order; window.__pourWrong first tries another one, once per step)
+        if (st.expected && window.__pourWrong && !st.__triedWrong) {
+          st.__triedWrong = true;
+          const o = st.sources.find((x) => !x.done && x !== st.expected);
+          if (o) { await __drag([[o.img.x, o.img.y], [o.img.x + 40, o.img.y - 100]]); await __run(800); return; }
+        }
+        const pp = st.pourPoint(); await __drag([[b.x, b.y], [pp.x, pp.y]], { hold: true }); await __run((st.cur?.pourMs ?? st.params.pourMs) + 400); __touch('end', 1, pp.x, pp.y); await __run(300);
       }
     } else if (name === 'ShareStep') {
       // Gameplay round 2: first she cuts (a stroke across the dish, anywhere), then shares.
@@ -245,8 +264,10 @@
   /** Title -> Home -> Recipe. */
   window.__start = async () => {
     const t = game.scene.getScene('Title');
-    const btn = t.children.list.find((o) => (o.texture?.key === 'btn-play' || o.texture?.key === 'btn-world-kitchen'));
-    __tap(btn.x, btn.y); await __run(1300);
+    // (since the clinic's title, the kitchen is a card: 'world-card-kitchen')
+    const btn = t.children.list.find((o) => ['btn-play', 'btn-world-kitchen', 'world-card-kitchen'].includes(o.texture?.key));
+    if (btn) { __tap(btn.x, btn.y); await __run(1300); }
+    if (!game.scene.isActive('Home')) { game.scene.getScenes(true).forEach((s) => s.scene.stop()); game.scene.start('Home'); await __run(1300); }
     const h = game.scene.getScene('Home');
     const card = h.children.list.find((o) => o.texture?.key === `card-${window.__recipe || 'pizza'}`);
     __tap(card.x, card.y); await __run(1600);
@@ -455,7 +476,7 @@ window.__shotAt = async (w, h, what) => {
   const D = () => __R().ctx.dish;
   if (what === 'title') return __setup(w, h);
   if (what === 'home') {
-    const b = game.scene.getScene('Title').children.list.find((o) => (o.texture?.key === 'btn-play' || o.texture?.key === 'btn-world-kitchen'));
+    const b = game.scene.getScene('Title').children.list.find((o) => ['btn-play', 'btn-world-kitchen', 'world-card-kitchen'].includes(o.texture?.key));
     __tap(b.x, b.y); return __run(1300);
   }
   if (what === 'roll') {
@@ -566,7 +587,7 @@ window.__tour = async (w, h, tag) => {
   const until = async (fn, ms = 8000) => { for (let t = 0; t < ms && !fn(); t += 50) await __run(50); };
   __demos(true);
   await __setup(w, h); await __run(600); await shot('title');
-  const b = game.scene.getScene('Title').children.list.find((o) => (o.texture?.key === 'btn-play' || o.texture?.key === 'btn-world-kitchen'));
+  const b = game.scene.getScene('Title').children.list.find((o) => ['btn-play', 'btn-world-kitchen', 'world-card-kitchen'].includes(o.texture?.key));
   __tap(b.x, b.y); await __run(1600); await shot('home');
   const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-pizza');
   __tap(c.x, c.y); await __waitRecipe(); await until(() => game.scene.isActive('Recipe') && __R().step); await __run(1000); await shot('roll-demo');
@@ -618,7 +639,7 @@ window.__fullRun = async (demos, mode = 'fast') => {
   }
   try {
     const n0 = __voLog.length; const steps = []; const t0 = performance.now(); const at = {};
-    const b = game.scene.getScene('Title').children.list.find((o) => (o.texture?.key === 'btn-play' || o.texture?.key === 'btn-world-kitchen'));
+    const b = game.scene.getScene('Title').children.list.find((o) => ['btn-play', 'btn-world-kitchen', 'world-card-kitchen'].includes(o.texture?.key));
     __tap(b.x, b.y); await __real(mode === 'child' ? 2500 : 1600);
     const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-pizza');
     const tCard = performance.now();
@@ -654,7 +675,7 @@ window.__tour5 = async (w, h, tag) => {
   const until = async (fn, ms = 8000) => { for (let t = 0; t < ms && !fn(); t += 50) await __run(50); };
   __demos(true);
   await __setup(w, h); await __run(900); await shot('title');
-  const b = game.scene.getScene('Title').children.list.find((o) => (o.texture?.key === 'btn-play' || o.texture?.key === 'btn-world-kitchen'));
+  const b = game.scene.getScene('Title').children.list.find((o) => ['btn-play', 'btn-world-kitchen', 'world-card-kitchen'].includes(o.texture?.key));
   __tap(b.x, b.y); await __run(1600); await shot('home');
   const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-pizza');
   __tap(c.x, c.y); await __waitRecipe(); await until(() => game.scene.isActive('Recipe') && __R().step);
@@ -707,7 +728,7 @@ window.__voSim = (on = true) => __voice.simulate(on);
  */
 window.__yourTurnTest = async (w = 900, h = 405, ms = 12000) => {
   __demos(true); await __setup(w, h); __voSim(true);
-  const b = game.scene.getScene('Title').children.list.find((o) => (o.texture?.key === 'btn-play' || o.texture?.key === 'btn-world-kitchen'));
+  const b = game.scene.getScene('Title').children.list.find((o) => ['btn-play', 'btn-world-kitchen', 'world-card-kitchen'].includes(o.texture?.key));
   __tap(b.x, b.y); await __run(1300);
   const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-pizza');
   __voLog.length = 0; const t0 = __voice.now();
@@ -759,7 +780,7 @@ window.__fullRun5 = async (demos, mode = 'child', picks = ['tomato', 'corn', 'ol
   }
   const T = () => game.loop.time;
   try {
-    const b = game.scene.getScene('Title').children.list.find((o) => (o.texture?.key === 'btn-play' || o.texture?.key === 'btn-world-kitchen'));
+    const b = game.scene.getScene('Title').children.list.find((o) => ['btn-play', 'btn-world-kitchen', 'world-card-kitchen'].includes(o.texture?.key));
     __tap(b.x, b.y); await __run(mode === 'child' ? 2500 : 1600);
     const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === `card-${window.__recipe || 'pizza'}`);
     const n0 = __voLog.length; const t0 = T(); const steps = []; const at = {};
@@ -882,7 +903,7 @@ window.__tour5b = async (w, h, tag) => {
   __demos(true); await __setup(w, h); __voSim(true);
   window.__pickOrder = ['tomato', 'corn', 'olive']; window.__shareTo = 'alt';
   await __run(900); await shot('title');
-  const b = game.scene.getScene('Title').children.list.find((o) => (o.texture?.key === 'btn-play' || o.texture?.key === 'btn-world-kitchen'));
+  const b = game.scene.getScene('Title').children.list.find((o) => ['btn-play', 'btn-world-kitchen', 'world-card-kitchen'].includes(o.texture?.key));
   __tap(b.x, b.y); await __run(1600); await shot('home');
   const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-pizza');
   __tap(c.x, c.y); await __waitRecipe(); await until(() => game.scene.isActive('Recipe') && __R().step);
@@ -945,7 +966,7 @@ window.__tour6 = async (w, h, tag) => {
   const until = async (fn, ms = 8000) => { for (let t = 0; t < ms && !fn(); t += 50) await __run(50); };
   window.__recipe = 'salad'; __demos(false); await __setup(w, h); __voSim(true);
   window.__pickOrder = ['cucumber', 'carrot', 'tomato']; window.__shareTo = 'alt';
-  const b = game.scene.getScene('Title').children.list.find((o) => (o.texture?.key === 'btn-play' || o.texture?.key === 'btn-world-kitchen'));
+  const b = game.scene.getScene('Title').children.list.find((o) => ['btn-play', 'btn-world-kitchen', 'world-card-kitchen'].includes(o.texture?.key));
   __tap(b.x, b.y); await __run(1600); await shot('home');
   const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-salad');
   __tap(c.x, c.y); await __waitRecipe(); await until(() => game.scene.isActive('Recipe') && __R().step);
@@ -1042,7 +1063,7 @@ window.__tour7 = async (w, h, tag) => {
   const shot = async (n) => out.push(await __saveShot(`${tag}-${String(i++).padStart(2, '0')}-${n}`, 'screenshots-round7'));
   const until = async (fn, ms = 8000) => { for (let t = 0; t < ms && !fn(); t += 50) await __run(50); };
   window.__recipe = 'cookies'; __demos(false); await __setup(w, h); __voSim(true); window.__shareTo = 'alt';
-  const b = game.scene.getScene('Title').children.list.find((o) => (o.texture?.key === 'btn-play' || o.texture?.key === 'btn-world-kitchen'));
+  const b = game.scene.getScene('Title').children.list.find((o) => ['btn-play', 'btn-world-kitchen', 'world-card-kitchen'].includes(o.texture?.key));
   __tap(b.x, b.y); await __run(1600); await shot('home');
   const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-cookies');
   __tap(c.x, c.y); await __waitRecipe(); await until(() => game.scene.isActive('Recipe') && __R().step);
@@ -1230,7 +1251,9 @@ window.__pancakeMoments = () => [
 // ---------------------------------------------------------------- The garden (GardenScene; garden round 2 adds level 2)
 // window.__gardenLevel = 1 | 2 picks the level; __gardenSeed = 'tomato' | 'strawberry' | 'carrot' picks the packet
 // (default: Pipa's wish); __overWater = true pours on a grown plant once (level 2); __bunnyWrong = true offers the bunny
-// a wrong thing first.
+// a wrong thing first. Challenge round: __gardenWrong = true makes one mistake in each new task (a green fruit to the
+// basket, the other kind's basket on level 2, an empty leaf before the caterpillar's, the caterpillar let go short of
+// the jar); __gardenVisit = n sets the visit number (Pipa's count at picking).
 window.__GS = () => game.scene.getScene('Garden');
 /** One round of whatever the garden's current part expects (with the child __drag of __gardenRun, at her pace). */
 window.__gardenGesture = async () => {
@@ -1246,10 +1269,22 @@ window.__gardenGesture = async () => {
       await __drag([[sp.x, soil - 90 * bs], [sp.x, soil - 300 * bs]]); return;
     }
     case 'plant': {
-      const h = g.nextHole(); if (!h) return;
+      const h = g.nextHole(), pk = g.nextPacket(); if (!h || !pk) return;
       if (g.spots.filter((s) => s.stage > 0).length % 2) __tap(h.x, soil);
-      else await __drag([[g.packet.x, g.packet.y], [h.x, soil - 30 * k]]);
+      else await __drag([[pk.img.x, pk.img.y], [h.x, soil - 30 * k]]);
       return;
+    }
+    case 'cater': {
+      const c = g.cater; if (!c) return;
+      if (!c.found) {
+        const empty = c.leaves.find((q) => q !== c.under);
+        if (window.__gardenWrong && !c.empty && empty) { __tap(empty.at.x, empty.at.y); return; }
+        __tap(c.under.at.x, c.under.at.y); return;
+      }
+      if (!c.jar) return;
+      const m = g.jarMouth();
+      if (window.__gardenWrong && !window.__caterMissed) { window.__caterMissed = true; await __drag([[c.img.x, c.img.y], [c.img.x + 60, c.img.y - 200]]); return; }
+      await __drag([[c.img.x, c.img.y], [m.x, m.y]]); return;
     }
     case 'water': {
       const grown = g.spots.find((s) => s.stage >= 3);
@@ -1295,9 +1330,23 @@ window.__gardenGesture = async () => {
       const m = g.bunnyMouth(); await __drag([[f.img.x, f.img.y], [m.x, m.y]]); return;
     }
     case 'pick': {
-      const f = g.nextFruit(); if (!f) return;
+      const W = window.__gardenWrong;
+      const green = g.fruits.find((q) => !q.picked && q.green);
+      // (a mistake: a green one to the basket, once)
+      if (W && green && !g.shown.notRipe) {
+        const b = g.basketFor(green);
+        if (green.carrot) await __drag([[green.home.x, green.home.y - 60 * bs], [green.home.x, green.home.y - 320 * bs]]);
+        else await __drag([[green.img.x, green.img.y], [b.x, b.y]]);
+        return;
+      }
+      const f = g.nextFruit();
+      if (!f) { if (green) __tap(g.sunAt.x, g.sunAt.y); return; }
+      const b = g.basketFor(f);
+      // (a mistake on level 2: the other kind's basket, once)
+      const other = g.baskets.find((q) => q !== b);
+      const to = W && other && !g.shown.sortWrong && !f.carrot ? other : b;
       if (f.carrot) await __drag([[f.home.x, f.home.y - 60 * bs], [f.home.x, f.home.y - 320 * bs]]);
-      else await __drag([[f.img.x, f.img.y], [g.basket.x, g.basket.y]]);
+      else await __drag([[f.img.x, f.img.y], [to.x, to.y]]);
       return;
     }
   }
@@ -1312,6 +1361,7 @@ window.__gardenRun = async (level = 1, mode = 'child', w = 900, h = 405, demos =
   // (level 0: the level chosen on the title, core/level.ts)
   if (level) window.__gardenLevel = level; else delete window.__gardenLevel;
   window.__overDone = false;
+  window.__caterMissed = false;
   for (let i = 0; i < 60 && !__voice.allLoaded; i++) await new Promise((r) => setTimeout(r, 250));
   localStorage.setItem('cooking.runs.garden', demos ? '0' : '5');
   await __setup(w, h); __voSim(true);
@@ -1325,7 +1375,7 @@ window.__gardenRun = async (level = 1, mode = 'child', w = 900, h = 405, demos =
   };
   const T = () => __T;
   try {
-    const b = game.scene.getScene('Title').children.list.find((o) => (o.texture?.key === 'btn-play' || o.texture?.key === 'btn-world-kitchen'));
+    const b = game.scene.getScene('Title').children.list.find((o) => ['btn-play', 'btn-world-kitchen', 'world-card-kitchen'].includes(o.texture?.key));
     __tap(b.x, b.y); await __run(2500);
     const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-garden');
     const n0 = __voLog.length, t0 = T(), l0 = game.loop.time, at = {}, gest = {};
@@ -1361,7 +1411,7 @@ window.__mini = async (id, level = 1, opts = {}) => {
   await __run(800);
   await B.recipeAssets(game, id);
   game.scene.getScenes(true).forEach((s) => s.scene.stop());
-  const name = { market: 'Market', dishes: 'Dishes', garden: 'Garden', art: 'Art', clinic: 'Clinic' }[id];
+  const name = { market: 'Market', dishes: 'Dishes', garden: 'Garden', art: 'Art', clinic: 'Clinic', farm: 'Farm' }[id];
   game.scene.start(name);
   await __run(opts.wait ?? 3000);
   return game.scene.getScene(name);
@@ -1369,8 +1419,10 @@ window.__mini = async (id, level = 1, opts = {}) => {
 window.__marketPlay = async (opts = {}) => {
   const m = game.scene.getScene('Market');
   const log = [];
-  for (let i = 0; i < 1200 && m.scene.isActive(); i++) {
-    if (!opts.none && !m.helping && ['guest', 'mixed', 'pay'].includes(m.shown.phase)) {
+  // (the scene object lives on between visits: forget the last run's one-time mistakes)
+  for (const f of ['__gWrong', '__mWrong', '__pWrong', '__wrongDone', '__catWrong', '__wGood', '__wHeavy']) delete m[f];
+  for (let i = 0; i < 2400 && m.scene.isActive(); i++) {
+    if (!opts.none && !m.helping && ['guest', 'mixed', 'weigh', 'pay'].includes(m.shown.phase)) {
       const k = m.L.k;
       if (m.shown.phase === 'guest' && m.guest) {
         const w = m.guestWant();
@@ -1378,15 +1430,35 @@ window.__marketPlay = async (opts = {}) => {
           if (opts.wrong && !m.__gWrong) { m.__gWrong = true; const c = m.crates.find((q) => !m.guest.wants.some((z) => z.good === q.good)); log.push('guest-wrong ' + c.good.id); __tap(c.item.x, c.item.y); }
           else { const c = m.crateOf(w.good), mo = m.guest.who.mouthAt; if (opts.drag) await __drag([[c.item.x, c.item.y], [mo.x, mo.y]]); else __tap(c.item.x, c.item.y); log.push('guest ' + w.good.id); }
         }
+      } else if (m.shown.phase === 'weigh' && m.weigh) {
+        // the scale: the card's good from the upper shelf onto the right pan; `wrong`: one other good, and one too many
+        const W = m.weigh, upper = m.crates.slice(0, m.cols);
+        const c = upper.find((q) => q.good === W.good);
+        if (opts.wrong && !m.__wGood) { m.__wGood = true; const o = upper.find((q) => q.good !== W.good); log.push('weigh-wrong ' + o.good.id); __tap(o.item.x, o.item.y); }
+        else if (W.on.length < W.n || (opts.wrong && !m.__wHeavy && W.on.length === W.n)) {
+          if (W.on.length === W.n) { m.__wHeavy = true; log.push('weigh-too-heavy'); }
+          const t = m.panTop();
+          if (opts.drag) await __drag([[c.item.x, c.item.y], [(c.item.x + t.x) / 2, c.item.y - 40], [t.x, t.y - 30]]); else __tap(c.item.x, c.item.y);
+          log.push('weigh ' + W.good.id + ' ' + (W.on.length) + '/' + W.n);
+        }
+        await __run(opts.gap ?? 700);
+        if (game.scene.isActive('Home')) break;
+        continue;
       } else if (m.shown.phase === 'mixed' && m.mixed) {
         const it = (opts.wrong && !m.__mWrong) ? m.mixed.items.find((q) => !q.odd) : m.mixed.items.find((q) => q.odd && !q.out);
         if (opts.wrong && !m.__mWrong) m.__mWrong = true;
         if (it) { __tap(it.x, it.y); log.push('mixed ' + it.good.id + (it.odd ? '' : '(belongs)')); }
-      } else if (m.shown.phase === 'pay' && m.pay && !m.pay.busy) {
+      } else if (m.shown.phase === 'pay' && m.pay) {
         if (m.level === 2) {
-          const pile = (opts.wrong && !m.__pWrong) ? m.pay.piles.find((q) => q.n !== m.pay.n) : m.pay.piles.find((q) => q.n === m.pay.n);
-          if (opts.wrong) m.__pWrong = true;
-          __tap(pile.x, pile.y); log.push('pile ' + pile.n + '/' + m.pay.n);
+          // hard: a coin of the next free circle's size from its heap (`wrong`: once a coin of the other size dragged onto it)
+          const c = m.pay.circles.find((q) => !q.coin);
+          if (c) {
+            const bad = opts.wrong && !m.__pWrong;
+            if (bad) m.__pWrong = true;
+            const heap = m.pay.heaps.find((h) => h.big === (bad ? !c.big : c.big));
+            if (opts.drag || bad) await __drag([[heap.x, heap.y], [(heap.x + c.x) / 2, (heap.y + c.y) / 2 - 40], [c.x, c.y + 30]]); else __tap(heap.x, heap.y);
+            log.push('coin ' + (heap.big ? 'big' : 'small') + (bad ? '(wrong)' : ''));
+          }
         } else if (m.pay.purse) {
           if (opts.drag) await __drag([[m.pay.purse.x, m.pay.purse.y], [m.pay.slate.x, m.pay.slate.y]]); else __tap(m.pay.purse.x, m.pay.purse.y);
           log.push('coin');
@@ -1400,7 +1472,9 @@ window.__marketPlay = async (opts = {}) => {
       const w = m.wants.find((q) => !q.got);
       if (opts.none) { await __run(500); continue; }
       if (w) {
-        if (opts.wrong && !m.__wrongDone) { m.__wrongDone = true; const c = m.crates.find((q) => !m.wants.some((z) => z.good === q.good)); log.push('wrong ' + c.good.id); __tap(c.item.x, c.item.y); await __run(opts.gap ?? 900); continue; }
+        // (`wrong`: one thing not on the list; on a list of a kind (hard) one of another kind, once more)
+        const cat = m.wants.some((z) => z.cat);
+        if (opts.wrong && (!m.__wrongDone || (cat && !m.__catWrong))) { m.__wrongDone = true; if (cat) m.__catWrong = true; const c = m.crates.find((q) => !m.wantFor(q.good)); log.push('wrong ' + c.good.id + (cat ? '(kind)' : '')); __tap(c.item.x, c.item.y); await __run(opts.gap ?? 900); continue; }
         const c = m.crates.find((q) => q.good === w.good);
         if (opts.drag) await __drag([[c.item.x, c.item.y], [(c.item.x + m.basket.x) / 2, c.item.y - 50], [m.basket.x, m.basket.y - 30]]);
         else __tap(c.item.x, c.item.y);
@@ -1415,8 +1489,9 @@ window.__marketPlay = async (opts = {}) => {
 window.__dishesPlay = async (opts = {}) => {
   const m = game.scene.getScene('Dishes');
   const log = [];
+  m.__fingerTried = m.__wetTried = m.__pileTried = m.__pipaTried = false;
   let wrongDone = false;
-  for (let i = 0; i < 2400 && m.scene.isActive(); i++) {
+  for (let i = 0; i < (opts.max ?? 2400) && m.scene.isActive(); i++) {
     const ph = m.shown.phase;
     if (opts.none || m.helping) { await __run(500); continue; }
     if (ph === 'take') {
@@ -1427,10 +1502,40 @@ window.__dishesPlay = async (opts = {}) => {
       await __run(opts.gap ?? 1200);
     } else if (ph === 'scrub') {
       const d = m.cur; const pts = [];
-      for (let a = 0; a < Math.PI * 2 * 5; a += 0.5) pts.push([d.box.x + Math.cos(a) * 80, d.box.y + Math.sin(a) * 60]);
-      await __drag(pts);
-      log.push('scrub ' + m.shown.scrub);
+      const spot = d.scrub >= m.need() ? m.spotsLeft(d)[0] : null;
+      if (spot) {
+        // the food is off, a stubborn spot stays: the sponge onto it (opts.wrong: the finger first, then the sponge)
+        const s = m.spotAt(d, spot);
+        if (opts.wrong && !m.__fingerTried) { m.__fingerTried = true; for (let a = 0; a < Math.PI * 2 * 8; a += 0.5) pts.push([s.x + Math.cos(a) * 30, s.y + Math.sin(a) * 25]); await __drag(pts); log.push('spot-finger'); }
+        else { pts.push([m.sponge.x, m.sponge.y]); for (let a = 0; a < Math.PI * 2 * 4; a += 0.5) pts.push([s.x + Math.cos(a) * 30, s.y + Math.sin(a) * 25]); await __drag(pts); log.push('spot-sponge'); }
+      } else {
+        for (let a = 0; a < Math.PI * 2 * 5; a += 0.5) pts.push([d.box.x + Math.cos(a) * 80, d.box.y + Math.sin(a) * 60]);
+        await __drag(pts);
+        log.push('scrub ' + m.shown.scrub);
+      }
       await __run(opts.gap ?? 600);
+    } else if (ph === 'dry') {
+      const d = m.cur;
+      if (opts.wrong && !m.__wetTried) { m.__wetTried = true; const to = m.place(d.colour, d.kind); await __drag([[d.box.x, d.box.y], [(d.box.x + to.x) / 2, (d.box.y + to.y) / 2], [to.x, to.y]]); log.push('wet'); }
+      else if (m.rest.where === 'sink') {
+        if (opts.drag) { const t = m.towel; const pts = [[t.x, t.y + 120 * m.towelScale]]; for (let a = 0; a < Math.PI * 2 * 5; a += 0.5) pts.push([d.box.x + Math.cos(a) * 70, d.box.y + Math.sin(a) * 50]); await __drag(pts); log.push('towel-rub'); }
+        else { __tap(d.box.x, d.box.y); log.push('to-towel'); }
+      } else { const pts = []; for (let a = 0; a < Math.PI * 2 * 5; a += 0.5) pts.push([d.box.x + Math.cos(a) * 60, d.box.y + Math.sin(a) * 45]); await __drag(pts); log.push('dry ' + m.shown.dry); }
+      await __run(opts.gap ?? 700);
+    } else if (ph === 'stack') {
+      let d = m.nextPlate();
+      if (opts.wrong && !m.__pileTried) { m.__pileTried = true; const o = m.plates().filter((q) => q.state === 'rack' && q !== d); if (o.length) { d = o[0]; log.push('pile-wrong'); } }
+      const to = m.pileSpot(m.pile.length);
+      await __drag([[d.box.x, d.box.y], [(d.box.x + to.x) / 2, (d.box.y + to.y) / 2], [to.x, to.y]]);
+      log.push('pile ' + d.size);
+      await __run(opts.gap ?? 1200);
+    } else if (ph === 'pipa') {
+      let d = m.wish;
+      if (opts.wrong && !m.__pipaTried) { m.__pipaTried = true; const o = m.takeable().filter((q) => q !== d); if (o.length) { d = o[0]; log.push('pipa-wrong'); } }
+      const to = m.pipa.mouthAt;
+      await __drag([[d.box.x, d.box.y], [(d.box.x + to.x) / 2, (d.box.y + to.y) / 2], [to.x, to.y]]);
+      log.push('pipa ' + d.colour + '-' + d.kind);
+      await __run(opts.gap ?? 1500);
     } else if (ph === 'rack') {
       const d = m.cur;
       let to = m.place(d.colour, d.kind);
@@ -1464,29 +1569,35 @@ window.__artPlay = async (kind, opts = {}) => {
   const a = game.scene.getScene('Art');
   if (!opts.started) {
     for (let i = 0; i < 60 && !(a.shown.phase === 'pick' && a.cardOf(kind)); i++) await __run(300);
-    localStorage.setItem('cooking.runs.art-' + kind, '3');
+    // (`visit`: which visit this is, so which picture comes: the visits go round the kind's pictures)
+    localStorage.setItem('cooking.runs.art-' + kind, String(opts.visit ?? 3));
     if (opts.first) localStorage.removeItem('cooking.runs.art-' + kind);
     const c = a.cardOf(kind);
     __tap(c.x, c.y);
     await __run(1500);
   }
-  const log = []; let drawn = false; let pic = null; let alive = false;
+  const log = []; let drawn = false; let pic = null; let alive = false; let missed = 0;
+  a.__wrongN = 0;
   for (let i = 0; i < 3000; i++) {
     const ph = a.shown.phase;
-    if (ph === 'draw') { drawn = true; pic = a.shown.pic; }
+    if (ph === 'draw') { drawn = true; pic = a.shown.pic; missed = a.shown.missed; }
     if (ph === 'alive' && !alive) { alive = true; if (opts.onAlive) { await __run(opts.aliveAt ?? 600); await opts.onAlive(a); } }
     if (drawn && ph === 'pick') break;
     if (!game.scene.isActive('Art')) break;
     if (ph !== 'draw' || opts.none || a.helping) { await __run(400); continue; }
     if (opts.demoWait && a.hand && a.hand.active) { await __run(300); continue; }
-    const pl = a.plan();
+    // (`wrong`: the child's mistakes first, where the picture has one: three strokes against the arrows (trace, hard), a
+    // wrong dot (dots, hard), another shape's outline (stamps, easy), a stamp off Mom's pattern (stamps, hard))
+    const wrongs = kind === 'trace' ? 3 : 1;
+    const pl = a.plan(!!opts.wrong && (a.__wrongN ?? 0) < wrongs);
     if (!pl) { await __run(400); continue; }
+    if (pl.wrong) { a.__wrongN = (a.__wrongN ?? 0) + 1; log.push('wrong'); }
     if (pl.tap) { __tap(pl.tap.x, pl.tap.y); log.push('t'); }
     else if (pl.drag) { await __drag(pl.drag.map((q) => [q.x, q.y])); log.push('d'); }
     await __run(opts.gap ?? 700);
     if (opts.onGesture) await opts.onGesture(log.length, a);
   }
-  return { kind, pic, gestures: log.length, back: a.shown.phase === 'pick' };
+  return { kind, pic, gestures: log.length, wrongs: a.__wrongN, missed, back: a.shown.phase === 'pick' };
 };
 window.__artVerify = async (kind, level, opts = {}) => {
   for (let i = 0; i < 60 && !__voice.allLoaded; i++) await new Promise((r) => setTimeout(r, 250));
@@ -1501,7 +1612,7 @@ window.__artVerify = async (kind, level, opts = {}) => {
 };
 
 // ---- The clinic (round 3, the Doctor Games loop): __clinicPlay({wrongTool, none, gap, mid}) plays a whole visit like a
-// child: pick a patient, then every station (pick its tool from the tray, work on each target: rub, hold, touch, drip,
+// child: pick a patient, then (round 4) one of her problems, then every station (pick its tool from the tray, work on each target: rub, hold, touch, drip,
 // find, pull out, give), the sticker; __clinicVerify(level, opts): the same on the virtual clock with the simulated voice,
 // from the clinic's start to the title. `none`: no touch at all (Mom helps to the end). `mid(what)`: awaited mid-action.
 window.__clinicPlay = async (opts = {}) => {
@@ -1514,11 +1625,27 @@ window.__clinicPlay = async (opts = {}) => {
   for (let i = 0; i < (opts.maxSteps ?? 3000) && m.scene.isActive(); i++) {
     const ph = m.shown.phase;
     if (opts.none || m.helping) { await __run(500); continue; }
-    if (ph === 'pick') {
+    if (ph === 'hide' && m.hider) {
+      // round 5 (hard): someone is hiding; `wrong` taps the bench's middle first (a miss)
+      if (opts.wrong && !log.includes('hide-miss')) { __tap(m.bench.x, m.bench.y - 200 * k); log.push('hide-miss'); await __run(gap); continue; }
+      if (opts.mid) await opts.mid('hide');
+      const hd = m.hider; __tap(hd.at.x, hd.at.y); log.push('found ' + hd.v.p.id + ' ' + hd.spot);
+      await __run(gap * 2);
+    } else if (ph === 'pick') {
       const v = m.visit.find((q) => !q.done);
       const c = v.view.at({ x: 300, y: 430 });
       if (opts.mid) await opts.mid('pick');
       __tap(c.x, c.y); log.push('pick ' + v.p.id + '-' + v.a.id);
+      await __run(gap * 2);
+    } else if (ph === 'problem') {
+      // round 4: her problems' cards beside her; easy: the glowing one, hard: she picks the last one not fixed first
+      const v = m.cur;
+      const open = v.fixed.map((f, j) => (f ? -1 : j)).filter((j) => j >= 0);
+      const j = m.level === 2 ? open[open.length - 1] : open[0];
+      const q = m.problems[j];
+      if (!q) { await __run(300); continue; }
+      if (opts.mid) await opts.mid('problem');
+      __tap(q.at.x, q.at.y); log.push('problem ' + v.as[j].id);
       await __run(gap * 2);
     } else if (ph === 'sticker') {
       if (opts.mid) await opts.mid('sticker');
@@ -1573,6 +1700,43 @@ window.__clinicPlay = async (opts = {}) => {
       }
       __touch('end', 1, ...fingerFor(m.target() ?? { x: start[0], y: start[1] }));
       await __run(gap);
+    } else if (ph === 'care' && m.care) {
+      // round 5, part 2: the care room next door; its plan() says the next gesture (a tool's `at` is its working point)
+      const c = m.care;
+      const pl = c.plan();
+      if (!pl) { await __run(300); continue; }
+      const name = m.shown.careTask;
+      log.push('care ' + m.shown.care + ' ' + name + ' ' + pl.kind);
+      if (pl.kind === 'tap') { if (opts.mid) await opts.mid(log[log.length - 1]); __tap(pl.at.x, pl.at.y); await __run(gap * 1.5); continue; }
+      if (pl.kind === 'drag') {
+        __touch('start', 1, pl.from.x, pl.from.y);
+        for (let q = 1; q <= 10; q++) { __touch('move', 1, pl.from.x + (pl.to.x - pl.from.x) * q / 10, pl.from.y + (pl.to.y - pl.from.y) * q / 10); await __run(40); }
+        if (opts.mid) await opts.mid(log[log.length - 1]);
+        __touch('end', 1, pl.to.x, pl.to.y);
+        await __run(gap);
+        continue;
+      }
+      __touch('start', 1, pl.from.x, pl.from.y);
+      await __run(100);
+      for (let q = 1; q <= 6; q++) { __touch('move', 1, ...fingerFor({ x: pl.from.x + (pl.at.x - pl.from.x) * q / 6, y: pl.from.y + (pl.at.y - pl.from.y) * q / 6 })); await __run(30); }
+      for (let j = 0; j < 160 && m.shown.careTask === name && m.shown.phase === 'care' && m.care === c; j++) {
+        const now = c.plan();
+        if (!now || now.kind === 'tap' || now.kind === 'drag') break;
+        if (j === 2 && opts.mid) await opts.mid(log[log.length - 1]);
+        const g = now.at;
+        if (now.kind === 'rub') {
+          for (let a = 0; a < Math.PI * 2; a += 0.5) __touch('move', 1, ...fingerFor({ x: g.x + Math.cos(a) * now.r, y: g.y + Math.sin(a) * now.r * 0.7 }));
+          await __run(60);
+        } else if (now.kind === 'twirl') {
+          for (let a = 0; a < Math.PI * 2; a += 0.3) __touch('move', 1, ...fingerFor({ x: g.x + Math.cos(a * now.dir) * now.r, y: g.y + Math.sin(a * now.dir) * now.r * 0.8 }));
+          await __run(80);
+        } else {
+          for (let q = 0; q < 3; q++) __touch('move', 1, ...fingerFor({ x: g.x + (q % 2 ? 3 : -3), y: g.y }));
+          await __run(250);
+        }
+      }
+      __touch('end', 1, pl.from.x, pl.from.y);
+      await __run(gap);
     } else await __run(300);
     if (game.scene.isActive('Title')) break;
   }
@@ -1589,5 +1753,75 @@ window.__clinicVerify = async (level, opts = {}) => {
   const vc = __voCheck(__voLog);
   __fast(false);
   return { level, opts, secs: Math.round((__voice.now() - t0) / 1000), title: game.scene.isActive('Title'), log: r.log, shown: r.shown,
+    helps: __voLog.filter((e) => e.key === 'vo-help').length, problems: vc.problems, keys: __voLog.map((e) => e.key).join(' ') };
+};
+
+// ---- The farm: __farmPlay({wrong, none, gap, mid}) plays a whole visit like a child, following the scene's own plan()
+// (pick an animal, a chore card, then each stage: a tap, or a drag along the plan's keys at its pace). `wrong`: once each,
+// a spare tool, a card that has to wait (hard), the food the animal does not want (hard). __farmVerify(level, opts): the
+// same on the virtual clock with the simulated voice, from the farm's start to the home screen. window.__farmPlan = ['cow', 'pig'].
+window.__farmPlay = async (opts = {}) => {
+  const m = game.scene.getScene('Farm');
+  const log = [];
+  const gap = opts.gap ?? 700;
+  const did = {};
+  for (let i = 0; i < (opts.maxSteps ?? 3000) && m.scene.isActive(); i++) {
+    const ph = m.shown.phase;
+    if (opts.none || m.helping || !['pick', 'chore', 'work'].includes(ph)) { await __run(300); continue; }
+    if (opts.wrong && ph === 'work' && !did.tool) {
+      const d = m.tray.find((q) => q.decoy && !q.away);
+      if (d) { did.tool = 1; __tap(d.home.x, d.home.y); log.push('wrong tool ' + d.key); await __run(gap); continue; }
+    }
+    if (opts.wrong && ph === 'chore' && m.level === 2 && !did.card) {
+      const j = m.cur.chores.findIndex((c, q) => !m.cur.done[q] && !m.available(q));
+      if (j >= 0) { did.card = 1; __tap(m.cards[j].at.x, m.cards[j].at.y); log.push('wrong card ' + m.cur.chores[j]); await __run(gap * 2); continue; }
+    }
+    if (opts.wrong && ph === 'work' && m.level === 2 && !did.food && ['feed', 'pigfeed'].includes(m.shown.stage)) {
+      const want = m.cur.view.wishing[0];
+      const o = want && m.tray.find((q) => q.role === 'source' && q.key !== want);
+      if (o) {
+        did.food = 1; log.push('wrong food ' + o.key);
+        const mo = m.cur.view.mouthAt;
+        __tap(o.home.x, o.home.y); await __run(gap * 2); void mo; continue;
+      }
+    }
+    const p = m.plan();
+    if (!p) { await __run(300); continue; }
+    if (opts.mid) await opts.mid(ph + ':' + (m.shown.stage || ''));
+    if (opts.trace) console.log('FARM', ph, m.shown.stage, m.shown.animal, JSON.stringify(p).slice(0, 80));
+    if (p.tap) {
+      __tap(p.tap.x, p.tap.y); log.push(ph + ' tap ' + (ph === 'work' ? m.shown.stage : ''));
+      await __run(ph === 'work' ? Math.max(250, gap / 2) : gap * 2);
+      continue;
+    }
+    const keys = p.keys;
+    log.push(ph + ' drag ' + m.shown.stage);
+    __touch('start', 1, keys[0].x, keys[0].y);
+    for (let j = 1; j < keys.length; j++) {
+      const a = keys[j - 1], b = keys[j];
+      const steps = Math.max(1, Math.ceil((b.t - a.t) / 50));
+      for (let q = 1; q <= steps; q++) {
+        __touch('move', 1, a.x + ((b.x - a.x) * q) / steps, a.y + ((b.y - a.y) * q) / steps);
+        __tick(Math.max(0, (b.t - a.t) / steps - 16));
+      }
+      if (j === Math.floor(keys.length / 2) && opts.midDrag) await opts.midDrag(m.shown.stage);
+    }
+    __touch('end', 1, keys[keys.length - 1].x, keys[keys.length - 1].y);
+    await __run(gap);
+    if (game.scene.isActive('Home')) break;
+  }
+  return { log, shown: m.shown, home: game.scene.isActive('Home') };
+};
+window.__farmVerify = async (level, opts = {}) => {
+  for (let i = 0; i < 60 && !__voice.allLoaded; i++) await new Promise((r) => setTimeout(r, 250));
+  game.loop.raf.stop(); __voSim(true); if (!opts.render) __fast(true);
+  await __mini('farm', level, { first: !!opts.first, wait: 200 });
+  __voLog.length = 0;
+  const t0 = __voice.now();
+  const r = await __farmPlay(opts);
+  for (let i = 0; i < 40 && !game.scene.isActive('Home'); i++) await __run(500);
+  const vc = __voCheck(__voLog);
+  __fast(false);
+  return { level, opts: Object.keys(opts), secs: Math.round((__voice.now() - t0) / 1000), home: game.scene.isActive('Home'), log: r.log, shown: r.shown,
     helps: __voLog.filter((e) => e.key === 'vo-help').length, problems: vc.problems, keys: __voLog.map((e) => e.key).join(' ') };
 };

@@ -1,8 +1,163 @@
 {
- "art-easel": {
-  "sha1": "fc864a238bf8d38ffcca29b313cc006a6f644e9a",
-  "w": 1000,
-  "h": 1000
+ "animal-bunny-body": {
+  "sha1": "edb25a25080639ed4ff31582a077c8ac355b5dc1",
+  "w": 450,
+  "h": 525
+ },
+ "animal-bunny-eyes-blink": {
+  "sha1": "126a3b65f0e9ddf1bec0229b4a9a0b6d78370e33",
+  "w": 450,
+  "h": 525
+ },
+ "animal-bunny-eyes-happy": {
+  "sha1": "b116dcd8dfedfb7ad0ef7060e68049cf70c6bb1d",
+  "w": 450,
+  "h": 525
+ },
+ "animal-bunny-eyes-open": {
+  "sha1": "74ace6af36e8e3127a317639fdd1c3c673d85339",
+  "w": 450,
+  "h": 525
+ },
+ "animal-bunny-eyes-surprised": {
+  "sha1": "48ec41b30980d8db990a4422c34bf3c718ec5e57",
+  "w": 450,
+  "h": 525
+ },
+ "animal-bunny-mouth-chew": {
+  "sha1": "96c463945654b3b7b057f3834ee4562d13136128",
+  "w": 450,
+  "h": 525
+ },
+ "animal-bunny-mouth-closed": {
+  "sha1": "b6bc14e2bacbea2fe7ae5724b1c99ad8b81bdfa2",
+  "w": 450,
+  "h": 525
+ },
+ "animal-bunny-mouth-open": {
+  "sha1": "66f6b1ba4b7e5fa32b05d1eb38f1eea5c2421baa",
+  "w": 450,
+  "h": 525
+ },
+ "animal-cat-body": {
+  "sha1": "cedfa511b2b31a575eabdb3fef3a77e8034afd81",
+  "w": 450,
+  "h": 525
+ },
+ "animal-cat-eyes-blink": {
+  "sha1": "2bcfbf36beb84108cc9e304123dc62097d6d4d02",
+  "w": 450,
+  "h": 525
+ },
+ "animal-cat-eyes-happy": {
+  "sha1": "f39752b18716a1ee9ebcc4e3df571745592ef024",
+  "w": 450,
+  "h": 525
+ },
+ "animal-cat-eyes-open": {
+  "sha1": "7ceae242f763310fbd935c02d76dc3b8396524d2",
+  "w": 450,
+  "h": 525
+ },
+ "animal-cat-eyes-surprised": {
+  "sha1": "a38da483db54bb0c031e35d73ca385a9c8bd58d9",
+  "w": 450,
+  "h": 525
+ },
+ "animal-cat-mouth-chew": {
+  "sha1": "21df5887c1eaa6046775e5bc993cdc8d93075c0a",
+  "w": 450,
+  "h": 525
+ },
+ "animal-cat-mouth-closed": {
+  "sha1": "02a563a8bd034cd8b0f101b7f2883d839c5daf4d",
+  "w": 450,
+  "h": 525
+ },
+ "animal-cat-mouth-open": {
+  "sha1": "8dd27be98bc2e35e4cf97fe34ecbe1ada081a4d5",
+  "w": 450,
+  "h": 525
+ },
+ "animal-panda-body": {
+  "sha1": "c5896d5db1dc05a3b0bbac081d5de742dc8bed0e",
+  "w": 450,
+  "h": 525
+ },
+ "animal-panda-eyes-blink": {
+  "sha1": "e0777e046e53d435cada3a46a83351a9badf5137",
+  "w": 450,
+  "h": 525
+ },
+ "animal-panda-eyes-happy": {
+  "sha1": "4247380fb45d36b48fdb5dc3f255b2abc130b8c9",
+  "w": 450,
+  "h": 525
+ },
+ "animal-panda-eyes-open": {
+  "sha1": "b8423dd4c332ac3f5f522372e1cdbe4ec918bdaa",
+  "w": 450,
+  "h": 525
+ },
+ "animal-panda-eyes-surprised": {
+  "sha1": "af648e4d73c739ff9bb8adec7c41862398d79a24",
+  "w": 450,
+  "h": 525
+ },
+ "animal-panda-mouth-chew": {
+  "sha1": "981ac0b8bd7a46b79262d50b05349cac5e0e7e34",
+  "w": 450,
+  "h": 525
+ },
+ "animal-panda-mouth-closed": {
+  "sha1": "ff9a560f4a1a5aa5d47d085c268b54cb9d843ecd",
+  "w": 450,
+  "h": 525
+ },
+ "animal-panda-mouth-open": {
+  "sha1": "5034028028fd36b25bf27287957e2e49e28b5775",
+  "w": 450,
+  "h": 525
+ },
+ "animal-puppy-body": {
+  "sha1": "39884feba7033d9f0e758c77c4ca473e48e624a9",
+  "w": 450,
+  "h": 525
+ },
+ "animal-puppy-eyes-blink": {
+  "sha1": "1d153b24f2fc110d30b52240dce0bcfc1af23224",
+  "w": 450,
+  "h": 525
+ },
+ "animal-puppy-eyes-happy": {
+  "sha1": "e4d3fed6b68449395bba6252f0e9fb38233bdcbe",
+  "w": 450,
+  "h": 525
+ },
+ "animal-puppy-eyes-open": {
+  "sha1": "09164699e0f3fd9207f8cd560c0a2ac6d62ddd0e",
+  "w": 450,
+  "h": 525
+ },
+ "animal-puppy-eyes-surprised": {
+  "sha1": "7ef4e924bf404e49493256e53fa0327a6e5aec63",
+  "w": 450,
+  "h": 525
+ },
+ "animal-puppy-mouth-chew": {
+  "sha1": "9b71ca76062d29d5c4a0d7b801be31d9c80a34d2",
+  "w": 450,
+  "h": 525
+ },
+ "animal-puppy-mouth-closed": {
+  "sha1": "dc54b3b15d9f55f58457e9c74877b4c364085ff5",
+  "w": 450,
+  "h": 525
+ },
+ "animal-puppy-mouth-open": {
+  "sha1": "38dc096ff0e07c683262365647ec7a26d610689d",
+  "w": 450,
+  "h": 525
  },
  "art-find-bird": {
   "sha1": "38004751c9f8148ef38363b7e7f6e608f566b123",
@@ -36,6 +191,11 @@
  },
  "art-pick-mirror": {
   "sha1": "09a30d01d904739f3d041c884bfa44764b83ef34",
+  "w": 300,
+  "h": 300
+ },
+ "art-pick-stamps": {
+  "sha1": "0c93ce1c9b579b2f004460b70ae35682e73c0107",
   "w": 300,
   "h": 300
  },
@@ -87,6 +247,26 @@
  "art-pot-yellow": {
   "sha1": "9e984767fa0e1ecb51e19e7633c39be329636a0b",
   "w": 220,
+  "h": 240
+ },
+ "art-stamp-bird": {
+  "sha1": "4713a393af4e8ae4ac2e28c848ceb255851ea0ce",
+  "w": 240,
+  "h": 240
+ },
+ "art-stamp-cloud": {
+  "sha1": "baf41aee15e83dc2baa048649160f5afbccf94be",
+  "w": 240,
+  "h": 240
+ },
+ "art-stamp-flower": {
+  "sha1": "516bf263163f90ef12b1137723a032e6be707c59",
+  "w": 240,
+  "h": 240
+ },
+ "art-stamp-sun": {
+  "sha1": "d0bc4087edd2f574ba6d5b54d5ec3c50f2208b45",
+  "w": 240,
   "h": 240
  },
  "art-window-frame": {
@@ -154,8 +334,18 @@
   "w": 2400,
   "h": 1080
  },
+ "bg-clinic-care": {
+  "sha1": "da0d09f49f630c89e6b9ae6b309b882b75a200fc",
+  "w": 2400,
+  "h": 1080
+ },
  "bg-clinic-wait": {
   "sha1": "93d719accc35482386c95dde413485a6b4900995",
+  "w": 2400,
+  "h": 1080
+ },
+ "bg-farm": {
+  "sha1": "179d1075340fe4c2be9ac612ac245297fc086f03",
   "w": 2400,
   "h": 1080
  },
@@ -228,11 +418,6 @@
   "sha1": "564e1d6a6f7b75936f3c7432362bb4c8a3d6b39b",
   "w": 240,
   "h": 240
- },
- "btn-play": {
-  "sha1": "94dd13c2d996300c36f043fd9558701e89d8fb1d",
-  "w": 336,
-  "h": 336
  },
  "btn-temp-down": {
   "sha1": "71edd7e29870756d70ac95cda39ba20e6b782c58",
@@ -344,6 +529,11 @@
   "w": 400,
   "h": 520
  },
+ "card-farm": {
+  "sha1": "c6ae16a5f99f8b6db5b1be9df97a086e064f9ef3",
+  "w": 400,
+  "h": 520
+ },
  "card-garden": {
   "sha1": "eab13997e76c0315ffe31805c6b514e23023c411",
   "w": 400,
@@ -383,6 +573,156 @@
   "sha1": "954989be41d633cc2268611053cadd8c6e848a8f",
   "w": 400,
   "h": 520
+ },
+ "care-apple": {
+  "sha1": "330b328ef36571b28ed5d8a4cef4fea1523106dc",
+  "w": 160,
+  "h": 160
+ },
+ "care-banana": {
+  "sha1": "ed890655150edfa35f488768df82cbae2f69377c",
+  "w": 160,
+  "h": 160
+ },
+ "care-bed-back": {
+  "sha1": "187d46c96a2606d6e9ca8536371db73e1af13c32",
+  "w": 1000,
+  "h": 560
+ },
+ "care-bed-front": {
+  "sha1": "1ffa56bf95c5d879755bc3884b770d2d766b3451",
+  "w": 1000,
+  "h": 560
+ },
+ "care-berry": {
+  "sha1": "c4e2b3d7aaf3869158adf557bd05424ae377bfa5",
+  "w": 160,
+  "h": 160
+ },
+ "care-blanket": {
+  "sha1": "da0aab9121a3e585145f2887b07e1fc5b93cb023",
+  "w": 720,
+  "h": 340
+ },
+ "care-bottle-back": {
+  "sha1": "d7917c455790c579da1b87d2ab11d0a7f5753d9e",
+  "w": 260,
+  "h": 380
+ },
+ "care-bottle-fill": {
+  "sha1": "8ab9a6816acb0a6d97165235b56cb8e5092b2036",
+  "w": 260,
+  "h": 380
+ },
+ "care-bottle-front": {
+  "sha1": "3d27bcd243d5bb7f551019531a4b3fc3eee79887",
+  "w": 260,
+  "h": 380
+ },
+ "care-chart": {
+  "sha1": "01accfd1962589b9f1c4286b6d639caf221811c4",
+  "w": 520,
+  "h": 640
+ },
+ "care-duck": {
+  "sha1": "1628ab0607d59470a050435d0fe966933e60c095",
+  "w": 140,
+  "h": 120
+ },
+ "care-glasses": {
+  "sha1": "9f7148c39850f540092e86157d779085ddd1f0fd",
+  "w": 240,
+  "h": 120
+ },
+ "care-heart": {
+  "sha1": "1c9c1d34f0f80052e83d1b2227ec72f0e66d7167",
+  "w": 204,
+  "h": 204
+ },
+ "care-jar-banana": {
+  "sha1": "545f9d9eaa7592bb0d164d4477bdb147e4bec5b0",
+  "w": 240,
+  "h": 240
+ },
+ "care-jar-blueberry": {
+  "sha1": "223e86de49b35bb822f11732d6e57e72e7f66c41",
+  "w": 240,
+  "h": 240
+ },
+ "care-jar-strawberry": {
+  "sha1": "5c8df9013dcf738dc6d3e19f7d6159d8810b5c4f",
+  "w": 240,
+  "h": 240
+ },
+ "care-lamp-off": {
+  "sha1": "b95523b49dae9b14ab6c91afed42b87b507b7e3d",
+  "w": 240,
+  "h": 380
+ },
+ "care-lamp-on": {
+  "sha1": "eb3c7c608d53a67217605332228fbe478ed8f3e8",
+  "w": 240,
+  "h": 380
+ },
+ "care-paste": {
+  "sha1": "41b928da07bc425ecc77b8ceb597212d89647bd6",
+  "w": 240,
+  "h": 240
+ },
+ "care-shape-circle": {
+  "sha1": "fdbe2dfa216ab2024fb4123dfa3e533365de169d",
+  "w": 200,
+  "h": 200
+ },
+ "care-shape-heart": {
+  "sha1": "17a5084aba6877da1b60fa174bf865510b96deb3",
+  "w": 200,
+  "h": 200
+ },
+ "care-shape-house": {
+  "sha1": "6ae5adb0f0f96209ed0dc99c6cfea056fb563951",
+  "w": 200,
+  "h": 200
+ },
+ "care-shape-moon": {
+  "sha1": "27fe1903ce3189f9c047baf25114b529a5c20a66",
+  "w": 200,
+  "h": 200
+ },
+ "care-shape-star": {
+  "sha1": "d4b8fe42a03f4ae6d8385e3724bc0e5e952c2af8",
+  "w": 200,
+  "h": 200
+ },
+ "care-shape-triangle": {
+  "sha1": "e0d8bc3dcd9d3dcc106e69c2b6861ba2da31047f",
+  "w": 200,
+  "h": 200
+ },
+ "care-tongue": {
+  "sha1": "ea306f762e94f77e23d2b7460f332c4701741b10",
+  "w": 408,
+  "h": 306
+ },
+ "care-towel-head": {
+  "sha1": "09dff7a7df93420cc32401847628d7f64ae17d6f",
+  "w": 320,
+  "h": 200
+ },
+ "care-tub-back": {
+  "sha1": "1f98705565b03b909f63b5101a32cd9f97ea5340",
+  "w": 1000,
+  "h": 520
+ },
+ "care-tub-front": {
+  "sha1": "5c082de316cd9bf18ef48a6d10cc7d0df107ef94",
+  "w": 1000,
+  "h": 520
+ },
+ "care-wrap": {
+  "sha1": "aa1d90a7b29f4e57b5aa071d0ea0aa6cbde0832a",
+  "w": 612,
+  "h": 187
  },
  "character-body": {
   "sha1": "c9653d3984497c5b8074e9af01539ebe3b934b43",
@@ -449,11 +789,6 @@
   "w": 400,
   "h": 260
  },
- "cheese-shaker": {
-  "sha1": "b61cc07749439a07dfcba9fb3d94a39b3a750b3b",
-  "w": 260,
-  "h": 400
- },
  "cheese-shred": {
   "sha1": "06ed665d8bc1584ad58ee410521831095570efb1",
   "w": 80,
@@ -474,15 +809,20 @@
   "w": 1500,
   "h": 420
  },
+ "clinic-bite": {
+  "sha1": "266e819c2fe068ce98b50ae04a6023617600dbfc",
+  "w": 153,
+  "h": 136
+ },
  "clinic-bump": {
   "sha1": "705123373296d876822e765259ea7f24b89d564f",
   "w": 120,
   "h": 110
  },
- "clinic-chart": {
-  "sha1": "c0d38afd281fe91436f23e3aedfa6a02440756c7",
-  "w": 300,
-  "h": 380
+ "clinic-burn": {
+  "sha1": "04890a0ccb969150d717c56f98924dff6b39c47b",
+  "w": 120,
+  "h": 80
  },
  "clinic-cheek": {
   "sha1": "8564a54c0290387ba1ed7751c3bd8fa3f4670929",
@@ -499,6 +839,11 @@
   "w": 170,
   "h": 153
  },
+ "clinic-done": {
+  "sha1": "fa0eef98ccc8ac3784ffc0898e8ac3deb09e76fb",
+  "w": 120,
+  "h": 120
+ },
  "clinic-dust": {
   "sha1": "24fee45df8d797820137b4163718cb203e2ccfef",
   "w": 374,
@@ -508,6 +853,21 @@
   "sha1": "6c726ec91f84767ca9abcf91c9371f3e6127a674",
   "w": 884,
   "h": 884
+ },
+ "clinic-foam": {
+  "sha1": "4eb8b3d92b75521f475abdf82f7dbcce378f1468",
+  "w": 187,
+  "h": 170
+ },
+ "clinic-gnat": {
+  "sha1": "e46fe59c0dff8788d90a5e2641e8f7fa6f832366",
+  "w": 204,
+  "h": 187
+ },
+ "clinic-mud": {
+  "sha1": "f108271f2422a6875801fbec0216dbcfbcd382b8",
+  "w": 187,
+  "h": 170
  },
  "clinic-scrape": {
   "sha1": "c7588ba1bc0ac897a70a66aef90d06b5f9ef63e2",
@@ -529,10 +889,20 @@
   "w": 70,
   "h": 70
  },
+ "clinic-sting": {
+  "sha1": "bf532d503c3dbd369310b0770e228a15a370d483",
+  "w": 187,
+  "h": 170
+ },
  "clinic-sweat": {
   "sha1": "eae4b763dcf8801c7f070a5ee797b7e213510ec9",
   "w": 60,
   "h": 80
+ },
+ "clinic-tickle": {
+  "sha1": "7afe618f3b5b0c4b1f176acebbaca1b4aa9399cd",
+  "w": 170,
+  "h": 170
  },
  "clinic-toy": {
   "sha1": "b1305ac15fce65b1250c888fee52a549391cd113",
@@ -593,6 +963,11 @@
   "sha1": "a4c473c892105d6c9abf824ded437d80b7f6faac",
   "w": 260,
   "h": 260
+ },
+ "cow-bell": {
+  "sha1": "014581a61634e15d72214f94b8b82cd19d30fb13",
+  "w": 140,
+  "h": 160
  },
  "cutter-circle": {
   "sha1": "17dc3f832d869cf678c017098ba12bfc7765bf90",
@@ -664,6 +1039,11 @@
   "w": 240,
   "h": 150
  },
+ "dishes-towel": {
+  "sha1": "989f44958f37bdffcc557f4724ca1c6bcb2db952",
+  "w": 220,
+  "h": 320
+ },
  "dough-ball": {
   "sha1": "42282b854d76724b0efe3b1bec911f7ff23060b8",
   "w": 360,
@@ -714,10 +1094,265 @@
   "w": 400,
   "h": 440
  },
+ "egg-basket": {
+  "sha1": "253c832635358616b3ca182b6911e10c117352bb",
+  "w": 300,
+  "h": 220
+ },
+ "egg-brown": {
+  "sha1": "9e6eef9e8483b8f707ac4528d0bec4a6854655ff",
+  "w": 100,
+  "h": 120
+ },
+ "egg-white": {
+  "sha1": "1fe292b1d41b13800f5666d2ba256521c10dc054",
+  "w": 100,
+  "h": 120
+ },
  "eye-speck": {
   "sha1": "8731fb1a626487bd79f031f6ac8e20633f85495b",
   "w": 153,
   "h": 85
+ },
+ "farm-apple": {
+  "sha1": "d595d3b6c7c375fa75f881af43a324b10c2b656f",
+  "w": 200,
+  "h": 200
+ },
+ "farm-brush": {
+  "sha1": "4dfe53dd5622dcb56d3fe9f81136b153e6d52015",
+  "w": 240,
+  "h": 240
+ },
+ "farm-card": {
+  "sha1": "74d6eba884142a4fc844bda33362afea9ed81fe9",
+  "w": 240,
+  "h": 240
+ },
+ "farm-carrot": {
+  "sha1": "529755c9b666848a06a65191d4fa31dee6169411",
+  "w": 200,
+  "h": 240
+ },
+ "farm-cart": {
+  "sha1": "b1e6e880eb4656b57fa5000a8b1abcbac708e2f2",
+  "w": 480,
+  "h": 330
+ },
+ "farm-chick": {
+  "sha1": "6538faa514d1bb92f18fb4efbb48b29bf639840a",
+  "w": 140,
+  "h": 140
+ },
+ "farm-corn": {
+  "sha1": "bf7e2a451e9b1eb7f700c65b9f215853d63972aa",
+  "w": 200,
+  "h": 240
+ },
+ "farm-cow-body": {
+  "sha1": "1bd9d47462fe820f43385264f25f83bf3075fca7",
+  "w": 600,
+  "h": 525
+ },
+ "farm-cow-eyes-blink": {
+  "sha1": "7ae815ee3a406645098b3b94102bb54ec24d3a03",
+  "w": 600,
+  "h": 525
+ },
+ "farm-cow-eyes-happy": {
+  "sha1": "a01a90374c5e3df8e01c503314161d0ae2993808",
+  "w": 600,
+  "h": 525
+ },
+ "farm-cow-eyes-open": {
+  "sha1": "c8ba03635b2329e223a15521bd87b15dcc8486ca",
+  "w": 600,
+  "h": 525
+ },
+ "farm-cow-eyes-surprised": {
+  "sha1": "2559139c1e93e44363b530a33de0d4bc35e25d68",
+  "w": 600,
+  "h": 525
+ },
+ "farm-cow-mouth-chew": {
+  "sha1": "e111df71cd2958b22814acb9f554ecea5ed573ae",
+  "w": 600,
+  "h": 525
+ },
+ "farm-cow-mouth-closed": {
+  "sha1": "a2dac41d3fa893b9c82ae86c3e5aed27c4c80f59",
+  "w": 600,
+  "h": 525
+ },
+ "farm-cow-mouth-open": {
+  "sha1": "196293fc8da858d39d7eb8e954b9fdebf532e618",
+  "w": 600,
+  "h": 525
+ },
+ "farm-done": {
+  "sha1": "346e44289d0bf742a9ba27041e7344b9ff2c1755",
+  "w": 120,
+  "h": 120
+ },
+ "farm-fence": {
+  "sha1": "0a6cede47a9930ba77c54981231597d1a97424b6",
+  "w": 2400,
+  "h": 240
+ },
+ "farm-horse-body": {
+  "sha1": "7d2268d9515948e5484de45dbae016668cb69ad1",
+  "w": 600,
+  "h": 525
+ },
+ "farm-horse-eyes-blink": {
+  "sha1": "dd822fb8a869ee2d49b87dcb555f30f613e5b5fe",
+  "w": 600,
+  "h": 525
+ },
+ "farm-horse-eyes-happy": {
+  "sha1": "9ce73ec4b6f0f0b63e8f8af46ca18010ba62a925",
+  "w": 600,
+  "h": 525
+ },
+ "farm-horse-eyes-open": {
+  "sha1": "c31905880d21db647b53feb5b6a8bb471f73f0a8",
+  "w": 600,
+  "h": 525
+ },
+ "farm-horse-eyes-surprised": {
+  "sha1": "c89c3c8eb1981cb0d05c366b3face121e0ef24e5",
+  "w": 600,
+  "h": 525
+ },
+ "farm-horse-mouth-chew": {
+  "sha1": "93051392b9b3ad98a6419a972b365ef52d428a3e",
+  "w": 600,
+  "h": 525
+ },
+ "farm-horse-mouth-closed": {
+  "sha1": "9cf8a2ec122d1de81297fb66fda2662ecd1cfe31",
+  "w": 600,
+  "h": 525
+ },
+ "farm-horse-mouth-open": {
+  "sha1": "6231f473fef409eda2f1e816a381dc673d281466",
+  "w": 600,
+  "h": 525
+ },
+ "farm-nest": {
+  "sha1": "9cc38bb7d9c51c92ebabd9a17dc331b1a184cc4b",
+  "w": 340,
+  "h": 170
+ },
+ "farm-pig-body": {
+  "sha1": "3f5e651fd6abc9ad1cb4de761cfa5fb9eb8e57b5",
+  "w": 600,
+  "h": 525
+ },
+ "farm-pig-eyes-blink": {
+  "sha1": "1d795d54f36616c286f1b5fb53e4ff0c253fbbe0",
+  "w": 600,
+  "h": 525
+ },
+ "farm-pig-eyes-happy": {
+  "sha1": "383651dfe2f8d8da21124abd3ca0a5addaf439be",
+  "w": 600,
+  "h": 525
+ },
+ "farm-pig-eyes-open": {
+  "sha1": "39bc52451de730b45281e8549e08a4e508938f8b",
+  "w": 600,
+  "h": 525
+ },
+ "farm-pig-eyes-surprised": {
+  "sha1": "eaf8e7ae8a90d3b09fd3ae4c28394ba0b30ac5dd",
+  "w": 600,
+  "h": 525
+ },
+ "farm-pig-mouth-chew": {
+  "sha1": "100100e15d7857a9771e50e30dd246682ae31430",
+  "w": 600,
+  "h": 525
+ },
+ "farm-pig-mouth-closed": {
+  "sha1": "e199685394df9ddd5f201fab897492b76b9bda64",
+  "w": 600,
+  "h": 525
+ },
+ "farm-pig-mouth-open": {
+  "sha1": "381c61b421eda35e86be287b4b07316e3edf59a9",
+  "w": 600,
+  "h": 525
+ },
+ "farm-pump": {
+  "sha1": "a6e3a234c91f560c43d4f0d7f2bf9a22d3c4267c",
+  "w": 240,
+  "h": 400
+ },
+ "farm-shears": {
+  "sha1": "01a4b8d7294dd9fcccb5e45fda5e4eb34f9e5e09",
+  "w": 240,
+  "h": 240
+ },
+ "farm-sheep-body": {
+  "sha1": "2e60ca98190ce8643243c5abeba551b33208b524",
+  "w": 600,
+  "h": 525
+ },
+ "farm-sheep-eyes-blink": {
+  "sha1": "4ad540ccad5f1f20c7385657fd84cd9c36e3181a",
+  "w": 600,
+  "h": 525
+ },
+ "farm-sheep-eyes-happy": {
+  "sha1": "17ab4b7f9eb9712028057ba9b6e86ed259c81b4e",
+  "w": 600,
+  "h": 525
+ },
+ "farm-sheep-eyes-open": {
+  "sha1": "60785c794cdc4b316019055b298518cc0822f26e",
+  "w": 600,
+  "h": 525
+ },
+ "farm-sheep-eyes-surprised": {
+  "sha1": "5304cbd849da1c0cfd7fa72d84b516099854b322",
+  "w": 600,
+  "h": 525
+ },
+ "farm-sheep-mouth-chew": {
+  "sha1": "05bdb8a7606eaa618d08887e31cc0cdf63f114ea",
+  "w": 600,
+  "h": 525
+ },
+ "farm-sheep-mouth-closed": {
+  "sha1": "5ff69d10b5f2715d8b6bb8ffbe15975675cbb903",
+  "w": 600,
+  "h": 525
+ },
+ "farm-sheep-mouth-open": {
+  "sha1": "b26c46f062d788935a478a6276437c63ed8c02bc",
+  "w": 600,
+  "h": 525
+ },
+ "farm-smudge": {
+  "sha1": "39e152bda855e8185904d160fdf60e9f97214f85",
+  "w": 100,
+  "h": 80
+ },
+ "farm-soap": {
+  "sha1": "d25aa8055dc6105ac585799a266d6a15823b3574",
+  "w": 240,
+  "h": 240
+ },
+ "farm-sponge": {
+  "sha1": "e82ccda90b20d5bf5eadd0fa16bf7443c20998b3",
+  "w": 240,
+  "h": 240
+ },
+ "farm-trough": {
+  "sha1": "812b5c5ee69b54231c4afaf17e0ce4aea60af684",
+  "w": 360,
+  "h": 170
  },
  "faucet": {
   "sha1": "61f616bdc7d7085177015a53839eb5b6aa299274",
@@ -733,6 +1368,56 @@
   "sha1": "a690a204996faf84380939b1f836a20b129e75de",
   "w": 200,
   "h": 280
+ },
+ "fleece-4-1": {
+  "sha1": "23d057b34afb7d7f505c3de44deddd0bc8d3c5fe",
+  "w": 154,
+  "h": 390
+ },
+ "fleece-4-2": {
+  "sha1": "ddf8fb119421f933cea03fd7a0e9e48e40ce256c",
+  "w": 128,
+  "h": 390
+ },
+ "fleece-4-3": {
+  "sha1": "66e89dc2fb4209b50ed4201186e4f9d8d638f143",
+  "w": 128,
+  "h": 390
+ },
+ "fleece-4-4": {
+  "sha1": "07781c262eb28dc0b9d9079eaa242b08d6acdac2",
+  "w": 154,
+  "h": 390
+ },
+ "fleece-6-1": {
+  "sha1": "40e64fa41ab2b1d117987cb83d5a9e92da6991dd",
+  "w": 114,
+  "h": 390
+ },
+ "fleece-6-2": {
+  "sha1": "6b6e0e04c0a592f73a47136bb8d6c98a113b4c30",
+  "w": 88,
+  "h": 390
+ },
+ "fleece-6-3": {
+  "sha1": "1bc16939969ddf4752771db759e6d7aa9fb92275",
+  "w": 88,
+  "h": 390
+ },
+ "fleece-6-4": {
+  "sha1": "7ce3182ae25fc6fa35f2bc80297812c366f78e87",
+  "w": 88,
+  "h": 390
+ },
+ "fleece-6-5": {
+  "sha1": "1701163bfbd7d136282cbbb49b665eeb08e702fd",
+  "w": 88,
+  "h": 390
+ },
+ "fleece-6-6": {
+  "sha1": "22cd4337f390d3b3f3737b84e0cfcfdf5f3e20a3",
+  "w": 114,
+  "h": 390
  },
  "flour-bag": {
   "sha1": "65195daf2cfca3f56d5d0b223082867e1f035195",
@@ -829,6 +1514,16 @@
   "w": 440,
   "h": 320
  },
+ "garden-basket-2": {
+  "sha1": "ea984640d3cc2d6871186c3f2289374fdb5ccfb3",
+  "w": 440,
+  "h": 320
+ },
+ "garden-basket-2-front": {
+  "sha1": "a03507516876bae49330f50c757a0cbe930b8c8c",
+  "w": 440,
+  "h": 320
+ },
  "garden-basket-front": {
   "sha1": "0405006d98ab571b22491f1e9f9aaffb8dc7563d",
   "w": 440,
@@ -869,6 +1564,11 @@
   "w": 180,
   "h": 420
  },
+ "garden-caterpillar": {
+  "sha1": "5fcfabc9c013d9125e9c197fb5a3c481f41355ad",
+  "w": 220,
+  "h": 120
+ },
  "garden-cloud": {
   "sha1": "29afb8e0d1e1f97b7c42c01b07c3cfdab7b538e9",
   "w": 580,
@@ -898,6 +1598,11 @@
   "sha1": "906088193a1423ccc9faf905db1abeb5eb08ba4c",
   "w": 180,
   "h": 80
+ },
+ "garden-jar": {
+  "sha1": "8a3909965b6e635d98a954c2c9eda11bb02c3fc9",
+  "w": 220,
+  "h": 260
  },
  "garden-leaf": {
   "sha1": "80e3668f285acc253c0b939599a455d9b9e9c05b",
@@ -954,6 +1659,11 @@
   "w": 130,
   "h": 150
  },
+ "garden-strawberry-green": {
+  "sha1": "6f294c23bca341e710f734a3d5ac79e7d48b3d96",
+  "w": 130,
+  "h": 150
+ },
  "garden-sun": {
   "sha1": "a79caf94349550cc413435915bb990a8f2a5cd09",
   "w": 300,
@@ -961,6 +1671,11 @@
  },
  "garden-tomato": {
   "sha1": "327294169209f124e2eebd1e47303e359dc28125",
+  "w": 140,
+  "h": 150
+ },
+ "garden-tomato-green": {
+  "sha1": "7b2c8eeb92d9a436a503464e6581f91e3c5f68ec",
   "w": 140,
   "h": 150
  },
@@ -993,6 +1708,11 @@
   "sha1": "2fb51ff5bf1d178062dcb98b43a0c802b2c7ce66",
   "w": 320,
   "h": 440
+ },
+ "grain-scoop": {
+  "sha1": "8721ca9daffe90d1d81e1cbd5fb115c32255ee75",
+  "w": 240,
+  "h": 240
  },
  "grater": {
   "sha1": "d48b1748d37b82e98e68b74a1c8343bd2816701f",
@@ -1154,10 +1874,45 @@
   "w": 450,
   "h": 525
  },
- "hand-hint": {
-  "sha1": "6b68a244d4079f2bf1f08f923612e6e87c72919c",
-  "w": 220,
-  "h": 280
+ "hay-bale": {
+  "sha1": "be780a3ad85d573c3ea324d6c6d96ce1f64b57b3",
+  "w": 240,
+  "h": 220
+ },
+ "hay-pile": {
+  "sha1": "a6548238a974598c0a8d29d7453a86a2bc7193b0",
+  "w": 280,
+  "h": 140
+ },
+ "hen-sit-brown": {
+  "sha1": "b9c70e5894a0c9fecea54d370cf0304590ac6ae8",
+  "w": 300,
+  "h": 260
+ },
+ "hen-sit-white": {
+  "sha1": "12083ba20401a8a436f298a362446ba02f141e39",
+  "w": 300,
+  "h": 260
+ },
+ "hen-up-brown": {
+  "sha1": "59db376e32db6f4e9e717dd5402798bd824cb443",
+  "w": 300,
+  "h": 320
+ },
+ "hen-up-white": {
+  "sha1": "9f1bc4d51fa0c8f36417a96e0ef6eebee12936d6",
+  "w": 300,
+  "h": 320
+ },
+ "horse-shine": {
+  "sha1": "d0734db3cbfb8f1102dcfd4e867cab71295c9e9d",
+  "w": 470,
+  "h": 220
+ },
+ "horse-teeth": {
+  "sha1": "30a5b25f7d2007df7b88ab41ac4b65d80bdb58b8",
+  "w": 520,
+  "h": 520
  },
  "icing-blob-choc": {
   "sha1": "33918d929b33556df72ed894df9787dcf5b0ab76",
@@ -1218,6 +1973,326 @@
   "sha1": "2d9e556aeb9a9b886e1b5407235c5367c7f2e416",
   "w": 600,
   "h": 420
+ },
+ "kid-leo-body": {
+  "sha1": "a3f1ec0ef9004887fd59c2be94714aba122737b9",
+  "w": 450,
+  "h": 525
+ },
+ "kid-leo-eyes-blink": {
+  "sha1": "8ba719e7c5816d6e7e98a8a9ca2667c9f7493df4",
+  "w": 450,
+  "h": 525
+ },
+ "kid-leo-eyes-happy": {
+  "sha1": "d9379c768464f2154f56e0ebb7caefbb9e3e76b3",
+  "w": 450,
+  "h": 525
+ },
+ "kid-leo-eyes-open": {
+  "sha1": "ea2ee928e673647892cde4441358bc8de6e996e1",
+  "w": 450,
+  "h": 525
+ },
+ "kid-leo-eyes-surprised": {
+  "sha1": "915679d316903ffdc7676df7ccc645747316f705",
+  "w": 450,
+  "h": 525
+ },
+ "kid-leo-mouth-chew": {
+  "sha1": "df9e96c46728e294610a9391573b0bc0b993e7b3",
+  "w": 450,
+  "h": 525
+ },
+ "kid-leo-mouth-closed": {
+  "sha1": "3fb63a3e4fd06e4bb42e26a76ff63b286b3b9ea6",
+  "w": 450,
+  "h": 525
+ },
+ "kid-leo-mouth-open": {
+  "sha1": "9da426fba3962e806ad94ff6988894ef74d839a6",
+  "w": 450,
+  "h": 525
+ },
+ "kid-lily-body": {
+  "sha1": "cf7b484b544b172f624fc28967d2b8c94b3c0694",
+  "w": 450,
+  "h": 525
+ },
+ "kid-lily-eyes-blink": {
+  "sha1": "08b3738ba8fc0c7e0fb420a5a38f936cb404699a",
+  "w": 450,
+  "h": 525
+ },
+ "kid-lily-eyes-happy": {
+  "sha1": "117a3aa0ae2140c6d8680919d45ec015a9acfb40",
+  "w": 450,
+  "h": 525
+ },
+ "kid-lily-eyes-open": {
+  "sha1": "29459b96bd82af238c5a11c47df4cd798bd98f1e",
+  "w": 450,
+  "h": 525
+ },
+ "kid-lily-eyes-surprised": {
+  "sha1": "68eaae15919f24a1b015238d310b7b7169eb0935",
+  "w": 450,
+  "h": 525
+ },
+ "kid-lily-mouth-chew": {
+  "sha1": "59a2a67be29490e2e9d2c45b6c0ea2a3fd3deb7a",
+  "w": 450,
+  "h": 525
+ },
+ "kid-lily-mouth-closed": {
+  "sha1": "d2d5b17be486859340442e7f0c7fe33f0f44e91d",
+  "w": 450,
+  "h": 525
+ },
+ "kid-lily-mouth-open": {
+  "sha1": "2d6832b889f332233d9382892adef48826935aeb",
+  "w": 450,
+  "h": 525
+ },
+ "kid-max-body": {
+  "sha1": "030b2f6f05ea8ea6807a0bf1b2eb93e03e62c1c7",
+  "w": 450,
+  "h": 525
+ },
+ "kid-max-eyes-blink": {
+  "sha1": "038f218b65967837797be921ff600d96b27b00f3",
+  "w": 450,
+  "h": 525
+ },
+ "kid-max-eyes-happy": {
+  "sha1": "bea786ec6c2ca0eac668da8e4b72f8ac4fcdc14b",
+  "w": 450,
+  "h": 525
+ },
+ "kid-max-eyes-open": {
+  "sha1": "9bed677a7aa245a22290fd64a6c5d41357357059",
+  "w": 450,
+  "h": 525
+ },
+ "kid-max-eyes-surprised": {
+  "sha1": "2637745a38e67d41f22a4dec47d0fa9342522bec",
+  "w": 450,
+  "h": 525
+ },
+ "kid-max-mouth-chew": {
+  "sha1": "f57f3f888d43b21db47f0d15ab88c67cc81f9316",
+  "w": 450,
+  "h": 525
+ },
+ "kid-max-mouth-closed": {
+  "sha1": "4b9cb106a7802e684ed0a7db957a11ec8e687fda",
+  "w": 450,
+  "h": 525
+ },
+ "kid-max-mouth-open": {
+  "sha1": "1cae31d69a700204e08bc96c6a775db7a443b91f",
+  "w": 450,
+  "h": 525
+ },
+ "kid-mia-body": {
+  "sha1": "bfadd3088a5ae00536dd776d5418e88c3691ebe4",
+  "w": 450,
+  "h": 525
+ },
+ "kid-mia-eyes-blink": {
+  "sha1": "b4b60444f08072d40131fd774492cc327d72b11b",
+  "w": 450,
+  "h": 525
+ },
+ "kid-mia-eyes-happy": {
+  "sha1": "f1d5f614b3d298edfe882430f025e6904921b94e",
+  "w": 450,
+  "h": 525
+ },
+ "kid-mia-eyes-open": {
+  "sha1": "cbe25fad670bea050c4bb090a059e7f1647b5a9a",
+  "w": 450,
+  "h": 525
+ },
+ "kid-mia-eyes-surprised": {
+  "sha1": "db6ed3914b379007fb351c827a4edf01fcfedd92",
+  "w": 450,
+  "h": 525
+ },
+ "kid-mia-mouth-chew": {
+  "sha1": "9bd1698f16489f23387cb76daf7f2b46d3ea7665",
+  "w": 450,
+  "h": 525
+ },
+ "kid-mia-mouth-closed": {
+  "sha1": "ffc915e0cf701d5bd35f9b82e2273e7e2ca5973e",
+  "w": 450,
+  "h": 525
+ },
+ "kid-mia-mouth-open": {
+  "sha1": "ca6f37a736a38668f98f0685dcaeac31b44ddf3a",
+  "w": 450,
+  "h": 525
+ },
+ "kid-noah-body": {
+  "sha1": "51a890c449f57eb5563d1d7604cfcc839172debc",
+  "w": 450,
+  "h": 525
+ },
+ "kid-noah-eyes-blink": {
+  "sha1": "7d7332c13a6c71274c82ae606ebc7a367d31bf21",
+  "w": 450,
+  "h": 525
+ },
+ "kid-noah-eyes-happy": {
+  "sha1": "54a68fa4b032c69dcf38baebc95efaba4ab93e52",
+  "w": 450,
+  "h": 525
+ },
+ "kid-noah-eyes-open": {
+  "sha1": "a2d6a1ff31ecaa7267a4bf4f6071e3870e2c4bd3",
+  "w": 450,
+  "h": 525
+ },
+ "kid-noah-eyes-surprised": {
+  "sha1": "9296b65a145f7c8a7aa2ac761f1fdaf77cfbe12d",
+  "w": 450,
+  "h": 525
+ },
+ "kid-noah-mouth-chew": {
+  "sha1": "2693cca0a7f1622c6d23c088a7cf55a42f77c26c",
+  "w": 450,
+  "h": 525
+ },
+ "kid-noah-mouth-closed": {
+  "sha1": "60d6495b0abec1395e425cc44de76a5880db0070",
+  "w": 450,
+  "h": 525
+ },
+ "kid-noah-mouth-open": {
+  "sha1": "e8f09368ec90093d4d316552769f49b9bb346f0e",
+  "w": 450,
+  "h": 525
+ },
+ "kid-ruby-body": {
+  "sha1": "d7b5ea2037b20ad1e2d16a529dc1f2a8af2535a6",
+  "w": 450,
+  "h": 525
+ },
+ "kid-ruby-eyes-blink": {
+  "sha1": "fa4d93f3dabbcc7583adc21777582a900a866808",
+  "w": 450,
+  "h": 525
+ },
+ "kid-ruby-eyes-happy": {
+  "sha1": "2844387391d65de932f0db7a3831309c5a5f894a",
+  "w": 450,
+  "h": 525
+ },
+ "kid-ruby-eyes-open": {
+  "sha1": "f3132611a50e981673f9a0f8ff85c7b4f18c500b",
+  "w": 450,
+  "h": 525
+ },
+ "kid-ruby-eyes-surprised": {
+  "sha1": "68988277011e35e586d46d31dcae77fab7758804",
+  "w": 450,
+  "h": 525
+ },
+ "kid-ruby-mouth-chew": {
+  "sha1": "5d560dd0e8a7516e6692d2667adca5ea4b5e41cd",
+  "w": 450,
+  "h": 525
+ },
+ "kid-ruby-mouth-closed": {
+  "sha1": "cb62c27c14e63641b46690a92af306648ec8367a",
+  "w": 450,
+  "h": 525
+ },
+ "kid-ruby-mouth-open": {
+  "sha1": "35a8406fe3d48ded44ea86ff9f4271b0bab8a8f7",
+  "w": 450,
+  "h": 525
+ },
+ "kid-sam-body": {
+  "sha1": "9eb1ca63c227baa438afd594f8884f84e6dd806a",
+  "w": 450,
+  "h": 525
+ },
+ "kid-sam-eyes-blink": {
+  "sha1": "be748134864c6dac6efc576c95673e18be32b740",
+  "w": 450,
+  "h": 525
+ },
+ "kid-sam-eyes-happy": {
+  "sha1": "05e940e25540f8fff19d2dc8017a7bbc8462ea65",
+  "w": 450,
+  "h": 525
+ },
+ "kid-sam-eyes-open": {
+  "sha1": "37c6d7891ce92dd5c1ba55da1c4f6934a9e5c6fe",
+  "w": 450,
+  "h": 525
+ },
+ "kid-sam-eyes-surprised": {
+  "sha1": "dcc55776693048606de3af9dcc1d30ee82927516",
+  "w": 450,
+  "h": 525
+ },
+ "kid-sam-mouth-chew": {
+  "sha1": "aa29ad0653ba77b21e5667c23918c47fa51b8d2a",
+  "w": 450,
+  "h": 525
+ },
+ "kid-sam-mouth-closed": {
+  "sha1": "468c02bac059410c268ec429e6d8237cb9127988",
+  "w": 450,
+  "h": 525
+ },
+ "kid-sam-mouth-open": {
+  "sha1": "6195f6c0e6a17d1f9dcca020d4216b1b030511b4",
+  "w": 450,
+  "h": 525
+ },
+ "kid-zoe-body": {
+  "sha1": "d5c563f35c2bdfad8e4457873dbc2e13dce21d0b",
+  "w": 450,
+  "h": 525
+ },
+ "kid-zoe-eyes-blink": {
+  "sha1": "3561eccbc24ec9ce85a32600c7f613e97ffa95fe",
+  "w": 450,
+  "h": 525
+ },
+ "kid-zoe-eyes-happy": {
+  "sha1": "2868fc6336f21ca2179b1f6c0988f453d0e6245f",
+  "w": 450,
+  "h": 525
+ },
+ "kid-zoe-eyes-open": {
+  "sha1": "9ea3cba58fedcdcc28d12f0ffedc5b6482d6d333",
+  "w": 450,
+  "h": 525
+ },
+ "kid-zoe-eyes-surprised": {
+  "sha1": "dec12ffbb452b056933d3ae3a3c2d0d040bef428",
+  "w": 450,
+  "h": 525
+ },
+ "kid-zoe-mouth-chew": {
+  "sha1": "8b2221dda3b0979b4e30179a1140df7ba0c2bfbf",
+  "w": 450,
+  "h": 525
+ },
+ "kid-zoe-mouth-closed": {
+  "sha1": "1ca06145a0f3d1fb99e66e1c9cc627eb86849ecf",
+  "w": 450,
+  "h": 525
+ },
+ "kid-zoe-mouth-open": {
+  "sha1": "f56d4f83b1cdf122d26c9bbb0a3e48d71db60dc3",
+  "w": 450,
+  "h": 525
  },
  "kitchen-basil": {
   "sha1": "9d48a325f1439949bd35e8ea510e670505c0bccb",
@@ -1439,6 +2514,16 @@
   "w": 884,
   "h": 884
  },
+ "lens-eye-lid": {
+  "sha1": "3ad1e48f5023afa8cddb567e1072c4c8a4209297",
+  "w": 884,
+  "h": 884
+ },
+ "lens-hand": {
+  "sha1": "2b49e1d2922bbf964b99d09d50f8db94339f9c51",
+  "w": 884,
+  "h": 884
+ },
  "lens-knee": {
   "sha1": "3c32e090746f1021356280ef53908abe2a63ad83",
   "w": 884,
@@ -1459,8 +2544,13 @@
   "w": 1020,
   "h": 1020
  },
- "lens-tummy": {
-  "sha1": "f6910ef1572978cc5b60de09b263c9236b4024b4",
+ "lens-skin": {
+  "sha1": "ea97b7507dfa5aa91defff07eae5fb8f738a455f",
+  "w": 884,
+  "h": 884
+ },
+ "lens-throat": {
+  "sha1": "043e8cf5ca0c2b8f55e7cabb3a7d84b6216338fc",
   "w": 884,
   "h": 884
  },
@@ -1489,20 +2579,35 @@
   "w": 640,
   "h": 560
  },
- "logo-cooking-with-mom": {
-  "sha1": "535bb225921486031340c7fa58e5701e97d74f9a",
-  "w": 900,
-  "h": 400
- },
  "market-awning": {
   "sha1": "69eddb5d841411c8778a4c12fd8b8045d3685403",
   "w": 1600,
   "h": 260
  },
+ "market-cat-green": {
+  "sha1": "c12dbdeae94415a96f98fc7f85469d7e202b8960",
+  "w": 600,
+  "h": 320
+ },
+ "market-cat-round": {
+  "sha1": "e6fb76abfeefbf7603210fc0a1d41a9057cbf5c6",
+  "w": 600,
+  "h": 320
+ },
+ "market-cat-tree": {
+  "sha1": "653229a05833aff21bc5b5caf3336628c2b3b6e0",
+  "w": 600,
+  "h": 320
+ },
  "market-coin": {
   "sha1": "be7f3ed7c7d064076706ee9745251ca1320f2bec",
   "w": 110,
   "h": 110
+ },
+ "market-coin-big": {
+  "sha1": "519dceded05bdbf6a3872cab03379362cde663f2",
+  "w": 150,
+  "h": 150
  },
  "market-counter": {
   "sha1": "38481a7a1c2652fe15265a7447d73ef77e2da2d2",
@@ -1529,6 +2634,21 @@
   "w": 260,
   "h": 230
  },
+ "market-scale-base": {
+  "sha1": "edaa1334a6cd0ad12532375cc080828462eedb3c",
+  "w": 400,
+  "h": 440
+ },
+ "market-scale-beam": {
+  "sha1": "8dd68c72fe40245720160cc36873ce7b03a70144",
+  "w": 560,
+  "h": 60
+ },
+ "market-scale-pan": {
+  "sha1": "7b3e8727cb316cdd07ab9e0eb1f32f4f4805af59",
+  "w": 260,
+  "h": 220
+ },
  "market-shelf": {
   "sha1": "4daf315dcf61fefedf6b8da928a93d0ba3308de4",
   "w": 1600,
@@ -1538,6 +2658,26 @@
   "sha1": "d7969251c988bbff27d67f4a1ac2e076f9b26b53",
   "w": 380,
   "h": 300
+ },
+ "milk-bottle-empty": {
+  "sha1": "5aeee170061e11e72f220d23b2abed4331d265ed",
+  "w": 140,
+  "h": 260
+ },
+ "milk-bottle-full": {
+  "sha1": "19611ecd961557e9fef19ebad7d33d622b5af59b",
+  "w": 140,
+  "h": 260
+ },
+ "milk-bucket": {
+  "sha1": "eade03bc4388666567db5d6efef06b527535985e",
+  "w": 260,
+  "h": 260
+ },
+ "milk-bucket-full": {
+  "sha1": "1eb61a01b6f52ea8115f4c7e58c540f9fe4edaa5",
+  "w": 260,
+  "h": 260
  },
  "milk-carton": {
   "sha1": "5138a695096f18727a15b4cc93879ec35ae7b9eb",
@@ -1704,6 +2844,31 @@
   "w": 800,
   "h": 800
  },
+ "mud-patch-1": {
+  "sha1": "4ec255f2a1e82091a70b0771e75f64e752680d8a",
+  "w": 166,
+  "h": 126
+ },
+ "mud-patch-2": {
+  "sha1": "78d21cd26fdb3ab61a3237857dbf203fb7479a3e",
+  "w": 176,
+  "h": 116
+ },
+ "mud-patch-3": {
+  "sha1": "324c6c41d76ddca984698dfb312efc657bc9db0a",
+  "w": 166,
+  "h": 136
+ },
+ "mud-patch-4": {
+  "sha1": "549f3a706090359e21f481a6374fafcd0253e6a5",
+  "w": 186,
+  "h": 116
+ },
+ "mud-patch-5": {
+  "sha1": "d83ec18d1569ae5c842d3a3f596aca2c32b3a037",
+  "w": 136,
+  "h": 106
+ },
  "oil-bottle": {
   "sha1": "257930d1da6dc064088666f494d63323589583f6",
   "w": 300,
@@ -1834,6 +2999,11 @@
   "w": 700,
   "h": 780
  },
+ "photo-frame-farm": {
+  "sha1": "2f968e2f7b3908852e5cf633e421202f35128bf0",
+  "w": 700,
+  "h": 780
+ },
  "photo-frame-pancakes": {
   "sha1": "bafab9fdb5c75d84b8ada1b06af7828440013516",
   "w": 700,
@@ -1873,6 +3043,11 @@
   "sha1": "8e9c98a28eead9e15a9bb8a5c30e4ca83f44e5c2",
   "w": 140,
   "h": 140
+ },
+ "pipa-scarf": {
+  "sha1": "11e8ccac3fbb155af07bc274d88528307ec4019e",
+  "w": 260,
+  "h": 160
  },
  "pizza-board": {
   "sha1": "c08421194607fb7f6063afb679cc7dcb24b1a1da",
@@ -2054,6 +3229,26 @@
   "w": 480,
   "h": 320
  },
+ "sheep-ribbon-blue": {
+  "sha1": "d778edd1cd811f77a2e285b76413d5a37b575263",
+  "w": 200,
+  "h": 150
+ },
+ "sheep-ribbon-red": {
+  "sha1": "4406a467a98c8d5f30716275c5e859441688bed4",
+  "w": 200,
+  "h": 150
+ },
+ "sheep-ribbon-yellow": {
+  "sha1": "7a3e6c7ff9d93df2e87cae212ff326c22f8b8ee7",
+  "w": 200,
+  "h": 150
+ },
+ "sick-bites": {
+  "sha1": "177a5f7064e0303126c9912a09c490483e2e05c9",
+  "w": 200,
+  "h": 200
+ },
  "sick-cold": {
   "sha1": "ab5e29b6c480f13f78f7c0fa4da5a410ae8c10ab",
   "w": 200,
@@ -2061,6 +3256,11 @@
  },
  "sick-cough": {
   "sha1": "a79b7652b72f9aba49684331e6ddf7519e8c33fc",
+  "w": 200,
+  "h": 200
+ },
+ "sick-dirty": {
+  "sha1": "c804ce24e0006e46c080c4e1ba35b36b063080be",
   "w": 200,
   "h": 200
  },
@@ -2091,6 +3291,21 @@
  },
  "sick-spots": {
   "sha1": "28487f91b588811ee6220c162e5a3c9b1aa5c145",
+  "w": 200,
+  "h": 200
+ },
+ "sick-sting": {
+  "sha1": "09c86515e31f880077ebe475bc44c6de96d9e400",
+  "w": 200,
+  "h": 200
+ },
+ "sick-sunburn": {
+  "sha1": "938ee0f28a83096ba58aeacbecb59d14887f4fc4",
+  "w": 200,
+  "h": 200
+ },
+ "sick-throat": {
+  "sha1": "837da8ecb8117ded9f20a0bc0b25d2b58f0e02b0",
   "w": 200,
   "h": 200
  },
@@ -2128,6 +3343,11 @@
   "sha1": "8110d13b66dc3fa57d25db4ee248cb94477b4ed1",
   "w": 240,
   "h": 360
+ },
+ "soap-bar": {
+  "sha1": "502272db78b14b8a7746aeeb0c6890a6d5c753d2",
+  "w": 240,
+  "h": 160
  },
  "soup-bowl-empty": {
   "sha1": "d15b55944870187b39aedd92eb07ec675f7d9ecd",
@@ -2224,6 +3444,16 @@
   "w": 400,
   "h": 280
  },
+ "tool-aloe": {
+  "sha1": "14317f23fe0b69350d63acd0b11a3f24cbd007c0",
+  "w": 240,
+  "h": 240
+ },
+ "tool-bugspray": {
+  "sha1": "53ef0e5f145879c0ae3fa18ba83bb02991a89791",
+  "w": 240,
+  "h": 240
+ },
  "tool-cloth": {
   "sha1": "6639f421bc70d2c08094f602777a121aba32af04",
   "w": 240,
@@ -2254,6 +3484,16 @@
   "w": 240,
   "h": 240
  },
+ "tool-hat": {
+  "sha1": "6ed0d3ebf71e77003b4c21fc4691cf21642a9251",
+  "w": 240,
+  "h": 240
+ },
+ "tool-honey": {
+  "sha1": "4241a605a1f604645362b863112c4f756a86902d",
+  "w": 240,
+  "h": 240
+ },
  "tool-hotbottle": {
   "sha1": "4c43d674dc29cec12fe32749c4b46ee0c0139695",
   "w": 240,
@@ -2281,6 +3521,26 @@
  },
  "tool-plaster": {
   "sha1": "d30aaae06743308d434634fa67625d0149e4e77e",
+  "w": 240,
+  "h": 240
+ },
+ "tool-polisher": {
+  "sha1": "e092dde134a2f3e5ea09b1829440d9edd76dc018",
+  "w": 240,
+  "h": 240
+ },
+ "tool-roll": {
+  "sha1": "534edbcc4d1ab88cabe7e97f79b639bc034e2bb9",
+  "w": 240,
+  "h": 240
+ },
+ "tool-shower": {
+  "sha1": "f25e1eb9a8643c3e88ae009d49e40d3cd00ab277",
+  "w": 240,
+  "h": 240
+ },
+ "tool-sponge": {
+  "sha1": "f155e0fb0765ebe47106fdada0e77419765c0b57",
   "w": 240,
   "h": 240
  },
@@ -2316,6 +3576,11 @@
  },
  "tool-toothbrush": {
   "sha1": "c122a50190af74b0c39ad795f12bc056daa03734",
+  "w": 240,
+  "h": 240
+ },
+ "tool-towel": {
+  "sha1": "d6bf3c03dad12c114702002f2e67999ba019d3f0",
   "w": 240,
   "h": 240
  },
@@ -2373,11 +3638,6 @@
   "sha1": "1a917c0851fdceda8b8ae50c8685f0526ac1e571",
   "w": 140,
   "h": 140
- },
- "tray": {
-  "sha1": "c08421194607fb7f6063afb679cc7dcb24b1a1da",
-  "w": 820,
-  "h": 830
  },
  "veg-carrot-inside": {
   "sha1": "e31760dd81d009536f01c60b36e14e36e200ce09",
@@ -2519,6 +3779,16 @@
   "w": 440,
   "h": 320
  },
+ "wool-curl": {
+  "sha1": "ade93509c36cb24559aefd7f78bd364580d46fcc",
+  "w": 140,
+  "h": 110
+ },
+ "wool-pile": {
+  "sha1": "0f8508702e70eab7c7b9a6de9134422b7f7309be",
+  "w": 340,
+  "h": 180
+ },
  "world-card-clinic": {
   "sha1": "518bfc92d0deb395642f2e2ac05e02f517595c21",
   "w": 700,
@@ -2528,5 +3798,10 @@
   "sha1": "8ae8f93ab6141ec85ba9133f1558238fb375bbc7",
   "w": 700,
   "h": 760
+ },
+ "yarn-ball": {
+  "sha1": "2fc08015aad3dafd9793655df56253b197aa995a",
+  "w": 240,
+  "h": 240
  }
 }

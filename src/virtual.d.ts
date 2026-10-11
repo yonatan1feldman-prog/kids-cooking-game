@@ -6,6 +6,8 @@ declare module 'virtual:asset-manifest' {
     webp: Record<string, string>;
     /** sound key -> urls, preferred format first */
     sounds: Record<string, string[]>;
+    /** the worlds the service worker caches at runtime, not at install (clinic, farm): the urls only each one uses */
+    world: Record<string, string[]>;
   };
   export default manifest;
 }
