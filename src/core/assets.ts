@@ -669,6 +669,37 @@ export const IMAGES = {
   'clinic-done': { size: [120, 120] },
   // round 6: the kidney bowl beside the close-up, for whatever the tweezers or the magnet take out (gen_clinic6.py)
   'clinic-bowl': { size: [300, 170] },
+  // round 6, PR 2 (gen_clinic6.py part B): seven more problems (the teeth, burrs in the fur, the hiccups, a bump)
+  'tooth-plaque': { size: [90, 80], raster: ZOOM_RASTER },
+  'tooth-dull': { size: [70, 86], raster: ZOOM_RASTER },
+  'tooth-candy': { size: [70, 70], raster: ZOOM_RASTER },
+  'tooth-smear': { size: [70, 60], raster: ZOOM_RASTER },
+  'tooth-crooked': { size: [120, 140], raster: ZOOM_RASTER },
+  'tooth-bracket': { size: [60, 60], raster: ZOOM_RASTER },
+  'tooth-wire': { size: [300, 70], raster: ZOOM_RASTER },
+  'tooth-wobbly': { size: [100, 120], raster: ZOOM_RASTER },
+  'tooth-gum': { size: [90, 100], raster: ZOOM_RASTER },
+  'tooth-new': { size: [70, 80], raster: ZOOM_RASTER },
+  'lens-fur': { size: [520, 520], raster: ZOOM_RASTER },
+  'clinic-burr': { size: [100, 100], raster: ZOOM_RASTER },
+  'clinic-tangle': { size: [110, 90], raster: ZOOM_RASTER },
+  'clinic-band': { size: [120, 120] },
+  'clinic-braces-smile': { size: [240, 120] },
+  'tool-flosser': { size: [240, 240] },
+  'tool-floss': { size: [240, 240] },
+  'tool-pusher': { size: [240, 240] },
+  'tool-brackets': { size: [240, 240] },
+  'tool-gauze': { size: [240, 240] },
+  'tool-toothbox': { size: [240, 240] },
+  'tool-comb': { size: [240, 240] },
+  'tool-bow': { size: [240, 240] },
+  'sick-plaque': { size: [200, 200] },
+  'sick-candy': { size: [200, 200] },
+  'sick-braces': { size: [200, 200] },
+  'sick-wobbly': { size: [200, 200] },
+  'sick-burrs': { size: [200, 200] },
+  'sick-hiccups': { size: [200, 200] },
+  'sick-bump': { size: [200, 200] },
   'clinic-scrape': { size: [200, 140], raster: ZOOM_RASTER },
   'clinic-dust': { size: [220, 160], raster: ZOOM_RASTER },
   'clinic-splinter': { size: [160, 70], raster: ZOOM_RASTER },
@@ -1119,6 +1150,8 @@ RECIPE_ASSETS.clinic = {
     'lens-throat', 'clinic-tickle', 'clinic-burn', 'tool-honey', 'tool-aloe', 'tool-hat', 'sick-throat', 'sick-sunburn',
     'lens-eye-lid', // (care-tongue is among the care- keys below)
     'clinic-bowl',
+    // round 6, PR 2: seven more problems
+    'tooth-plaque', 'tooth-dull', 'tooth-candy', 'tooth-smear', 'tooth-crooked', 'tooth-bracket', 'tooth-wire', 'tooth-wobbly', 'tooth-gum', 'tooth-new', 'lens-fur', 'clinic-burr', 'clinic-tangle', 'clinic-band', 'clinic-braces-smile', 'tool-flosser', 'tool-floss', 'tool-pusher', 'tool-brackets', 'tool-gauze', 'tool-toothbox', 'tool-comb', 'tool-bow', 'sick-plaque', 'sick-candy', 'sick-braces', 'sick-wobbly', 'sick-burrs', 'sick-hiccups', 'sick-bump',
     // round 5, part 2: the care rooms next door
     ...IMAGE_KEYS.filter((k) => k.startsWith('care-')), 'bg-clinic-care', 'tool-shower', 'tool-towel', 'tool-roll', 'tool-polisher',
     ...IMAGE_KEYS.filter((k) => k.startsWith('kid-') || k.startsWith('animal-')),
@@ -1150,6 +1183,8 @@ RECIPE_ASSETS.clinic = {
     'name-green', 'shake', 'splash', 'wrap',
     // round 6: the bowl
     'vo-bowl-in', 'vo-bowl-again', 'vo-bowl-full', 'vo-bell-back', 'vo-sting-pull', 'tink',
+    // round 6, PR 2: seven more problems
+    'vo-sick-plaque', 'vo-tool-flosser', 'vo-plaque-gone', 'vo-brush-shine', 'vo-sick-candy', 'vo-tool-floss', 'vo-sick-braces', 'vo-tool-pusher', 'vo-tool-brackets', 'vo-pick-band', 'vo-band-colour', 'vo-braces-done', 'vo-sick-wobbly', 'vo-tool-gauze', 'vo-tooth-out', 'vo-tool-toothbox', 'vo-new-tooth', 'vo-sick-burrs', 'vo-tool-comb', 'vo-tool-bow', 'vo-sick-hiccups', 'vo-tool-water', 'vo-hiccups-gone', 'vo-sick-bump', 'vo-follow-light', 'vo-bump-gone', 'hic',
     // (not 'vo-then': it is core, Pipa's order and the pours in every recipe say it too; a listed sound is not core)
   ],
 };
@@ -1198,8 +1233,8 @@ export const SOUND_KEYS = [
   'eek', 'drip', 'scan', 'sparkle',
   // the clinic, round 5: the care rooms (medicine shaken in its bottle, bath water, a bandage going round)
   'shake', 'splash', 'wrap',
-  // the clinic, round 6: something taken out landing in the bowl
-  'tink',
+  // the clinic, round 6: something taken out landing in the bowl; a hiccup
+  'tink', 'hic',
   // the farm (core/farmAssets.ts)
   ...FARM_SFX,
 ] as const;
@@ -1446,6 +1481,9 @@ export const ART = {
       sponge: { x: 120, y: 122 }, bugspray: { x: 52, y: 40 },
       // round 5 (gen_clinic5.py)
       honey: { x: 84, y: 77 }, aloe: { x: 68, y: 46 }, hat: { x: 120, y: 120 },
+      // round 6, PR 2 (gen_clinic6.py TOOL_TIP6)
+      flosser: { x: 58, y: 47 }, floss: { x: 120, y: 70 }, pusher: { x: 70, y: 70 }, brackets: { x: 64, y: 61 },
+      gauze: { x: 120, y: 120 }, toothbox: { x: 120, y: 140 }, comb: { x: 130, y: 138 }, bow: { x: 120, y: 120 },
       // round 5, part 2: the care rooms' tools (gen_clinic5.py TOOL_TIP5B)
       shower: { x: 84, y: 84 }, towel: { x: 120, y: 130 }, roll: { x: 120, y: 120 }, polisher: { x: 66, y: 66 },
     },

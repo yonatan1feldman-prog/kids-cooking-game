@@ -1660,6 +1660,17 @@ window.__clinicPlay = async (opts = {}) => {
         const w = m.tools.find((q) => !q.away && !m.steps.some((s, j) => s.tool === q.id && !m.doneSt[j]));
         if (w) { wrongToolDone = true; __tap(w.img.x, w.img.y); log.push('wrong tool ' + w.id); await __run(gap * 1.5); continue; }
       }
+      // round 6, PR 2: the braces' bands: a tap on one (hard: the one Mom asks for; `wrong`: another one first)
+      if (m.station?.act === 'pick') {
+        if (!m.bands.length) { await __run(300); continue; }
+        let j = Math.max(0, m.wantBand);
+        if (opts.wrong && m.wantBand >= 0 && !dropped['band' + m.shown.patients]) { dropped['band' + m.shown.patients] = 1; j = (m.wantBand + 1) % m.bands.length; log.push('wrong band'); }
+        else log.push('band ' + j);
+        if (opts.mid) await opts.mid('band');
+        __tap(m.bands[j].at.x, m.bands[j].at.y);
+        await __run(gap * 1.5);
+        continue;
+      }
       // big chef: she chooses a station that can be done now (the first one, like a child who knows)
       let si = m.si;
       if (m.level === 2) { const j = m.steps.findIndex((q, j) => m.available(j)); if (j >= 0) si = j; }
@@ -1691,7 +1702,9 @@ window.__clinicPlay = async (opts = {}) => {
           __touch('move', 1, ...fingerFor(g));
           await __run(150);
           __touch('move', 1, ...fingerFor({ x: g.x + 2, y: g.y }));
-          if (!m.carry) for (let q = 1; q <= 12; q++) { __touch('move', 1, ...fingerFor({ x: g.x + 25 * q * k, y: g.y - 25 * q * k })); await __run(30); }
+          // (round 6, PR 2: the wobbly tooth is wiggled out in circles, not drawn out)
+          if (!m.carry && st.by === 'rub') for (let q = 0; q < 40 && !m.carry; q++) { for (let a = 0; a < Math.PI * 2; a += 0.6) __touch('move', 1, ...fingerFor({ x: g.x + Math.cos(a) * 30 * k, y: g.y + Math.sin(a) * 20 * k })); await __run(60); }
+          else if (!m.carry) for (let q = 1; q <= 12; q++) { __touch('move', 1, ...fingerFor({ x: g.x + 25 * q * k, y: g.y - 25 * q * k })); await __run(30); }
           await __run(300);
           if (m.carry) {
             // round 6: what came out rides on the tips to the bowl; `wrong`: the first one of a station is let go
