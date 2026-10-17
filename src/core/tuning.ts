@@ -383,6 +383,8 @@ export const TUNING = {
     // round 6, the bowl: how near its middle a thing let go lands in it (x k), how many places it has, whether it glows
     // while something is carried to it [easy, hard]
     bowlR: 220, bowlSlots: 6, bowlGlow: [true, false],
+    // round 6, PR 2: how much wiggling (finger travel x k) the wobbly baby tooth needs in the gauze [easy, hard]
+    wiggle: [900, 1200],
   },
   /**
    * The care rooms next door (round 5, part 2; scenes/ClinicCare.ts): the third thing for every patient, in her own room

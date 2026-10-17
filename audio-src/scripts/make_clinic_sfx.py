@@ -234,13 +234,26 @@ def tink():
     return 0.45 * x + 0.08 * bp(rng.standard_normal(n), 3000, 9000) * np.exp(-t / 0.006)
 
 
+
+# Added 2026-10-17 (clinic round 6, PR 2): hic (a patient's little hiccup: a quick, cute "hic!" with a rising pitch and a
+# soft click at its start, about 180 ms; the game plays it at her own voice's pitch). Run only it: python scripts/make_clinic_sfx.py hic
+def hic():
+    n = int(0.22 * SR)
+    t = np.arange(n) / SR
+    f = 520 + 380 * np.minimum(1, t / 0.05)
+    ph = 2 * np.cumsum(np.pi * f / SR)
+    voice = (np.sin(ph) + 0.45 * np.sin(2 * ph) + 0.2 * np.sin(3 * ph)) * env(n, 0.006, 0.05)
+    click = bp(rng.standard_normal(n), 1500, 6000) * env(n, 0.0008, 0.008)
+    breath = bp(rng.standard_normal(n), 2000, 5000) * env(n, 0.01, 0.04) * 0.25
+    return 0.5 * voice + 0.6 * click + breath
+
 import sys
 ONLY = sys.argv[1:]
 for name, fn in (("heartbeat", heartbeat), ("cough", cough), ("gurgle", gurgle), ("spray", spray), ("sticky", sticky),
                  ("brush", brush), ("wheeze", wheeze),
                  ("honk", honk), ("jingle", jingle), ("zing", zing),
                  ("eek", eek), ("drip", drip), ("scan", scan), ("sparkle", sparkle),
-                 ("shake", shake), ("splash", splash), ("wrap", wrap), ("tink", tink)):
+                 ("shake", shake), ("splash", splash), ("wrap", wrap), ("tink", tink), ("hic", hic)):
     if ONLY and name not in ONLY:
         continue
     finish(name, fn())

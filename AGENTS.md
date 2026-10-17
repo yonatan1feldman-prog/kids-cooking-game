@@ -233,7 +233,7 @@ src/scenes/
   MiniGame                 the frame the market and washing up share: home button, Mom, Pipa, demo / hint / help, one finger
   MarketScene / DishesScene  the market (shopping from a list) and washing up (scrub, rack by colour)
   ArtScene                 the art corner: the easel wall and five ways to draw (trace, dots, colour, mirror, steam)
-  ClinicScene              the clinic, the second world (waiting room, 8 animals and 8 children, each with her own first problem and a second one, stations of small targets in big close-ups, then her own care room next door, stickers, photo; 16 ailments)
+  ClinicScene              the clinic, the second world (waiting room, 8 animals and 8 children, each with her own first problem and a second one, stations of small targets in big close-ups, then her own care room next door, stickers, photo; 23 ailments, the bowl for what is taken out)
   ClinicCare               the six care rooms the clinic slides to after a patient's problems (data in core/care.ts)
 ```
 
@@ -675,7 +675,38 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the clinic round 6 (part 1, the bowl), the clinic round 5 (part 3, more challenge), the clinic round 5 (part 2, the care rooms), the farm, the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; the clinic round 6 (part 2, seven ailments), the clinic round 6 (part 1, the bowl), the clinic round 5 (part 3, more challenge), the clinic round 5 (part 2, the care rooms), the farm, the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 000000000000000000000000000000000000. The clinic, round 6, part 2 (seven more ailments, five of them on the teeth)
+Jonathan: more treatments, "including dental". Spec `/mnt/project-files/research/clinic-spec-6.md` section 3 (its PR 2). Branch
+`claude/clinic-6-ailments-yer6xm`. Data in `core/clinic.ts`, play in `ClinicScene.ts`, counts `TUNING.clinic.wiggle` and the stations' `n`.
+- **The teeth (all in the mouth close-up):** `plaque` (the water flosser holds on each yellow blob, `tooth-dull` waits under
+  each, the brush shines it; hard: one more behind the tongue, `UNDER_TONGUE` now works for germs and plaque), `candy`
+  (hard: the magnifier finds them; the tweezers take each candy bit from between two teeth (`SPOTS.mouth.candy`) into the
+  bowl; the floss cleans the sticky gap left under each), `braces` (the pusher touches each crooked tooth straight, the
+  `tooth-bracket` ghost shows on it, the brackets tool sticks it on; then the new act `pick`: three bands (pink, blue,
+  green, `BANDS`) come out where the tray is (`showBands`, the tray fades; `bands` is in `OFF_TRAY`, never on the tray), a
+  tap tints the wire over each row and a braces smile goes on her mouth and stays; hard: Mom asks for one colour
+  (vo-band-colour + name-*), another one wiggles = a miss), `wobbly` (children only; a gentle milestone: the soft gauze
+  wiggles the baby tooth by rubbing (`pull` with `by: 'rub'`, `wiggleOut`, `TUNING.clinic.wiggle`), "It came out!", into the
+  bowl like every pull; the tooth fairy box is brought TO THE BOWL (`Station.needs`, `giveAt`, `toothBox`): the tooth hops in
+  and the box goes to her hand and stays; the rinse in the open mouth grows `tooth-new` where it was).
+- **The others:** `burrs` (furry patients: cat, panda, bunny, puppy; the `fur` close-up `lens-fur`; hard: the magnifier first;
+  the tweezers take each burr into the bowl, the comb smooths the knot left under each, a bow on her head that stays),
+  `hiccups` (a "Hic!" and a hop as she comes in, on a tap and at each station's start (`hic()`, sfx `hic`); water in sips
+  (hard: two, Mom counts), a spoon of honey, the stethoscope on her tummy hears them go quiet), `bump` (a bump on her
+  forehead (`bumpOf`); hard: the light finds three soft lights round her head (`look`) and her eyes follow it; the ice pack
+  shrinks it, a dab of cream, a plaster that stays).
+- **Who gets what (`planVisit`):** `DENTAL` = tooth, plaque, candy, braces, wobbly. Every patient with drawn teeth has them
+  in her pool (the children all five; the furry four, the turtle and Pipa all but `wobbly`; not the penguin or the giraffe).
+  No patient gets two problems in the mouth, and a visit with three patients has at least one (a non-signature problem is
+  swapped for a free dental one). Everyone can have the hiccups and the bump. The signatures are unchanged.
+- **Bowl rule:** the candy, the burrs and the wobbly tooth are `pull` stations, so `takesOut()` sends them to the bowl.
+- Art: `gen_clinic6.py` part B (30 SVGs; tips `TOOL_TIP6` = `ART.clinic.tip`). Voice: 26 Mom lines (`make_vo.py mom-a`),
+  sfx `hic` (`make_clinic_sfx.py hic`); not heard by a human. Harness: `__clinicPlay` taps a band (`wrong`: the wrong one first
+  on hard), wiggles a rubbing pull in circles; the toothbox's target is the bowl. Screenshots
+  `/mnt/project-files/research/screens-clinic6-ailments/`.
+- **Needs a real child:** does the wobbly tooth read as happy (never scary)? Is wiggling with the gauze clear without Mom's
+  hand? Does she find the bands where the tray was? Is "Hic!" funny?
 ### 00000000000000000000000000000000000. The clinic, round 6, part 1 (the bowl for what the tweezers take out)
 Jonathan: "whenever something is taken out with the tweezers, there must be a bowl to put it in". Spec
 `/mnt/project-files/research/clinic-spec-6.md` section 2 (this is its PR 1). Branch `claude/clinic-6-bowl-tj0tc2`.

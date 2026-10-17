@@ -531,6 +531,25 @@ own work, synthesised by `audio-src/scripts/make_clinic_sfx.py`; the kidney bowl
 | vo-bowl-in · vo-bowl-again · vo-bowl-full | Got it! Now pop it in the bowl. · Into the bowl, please! · Look at everything we took out! |
 | vo-bell-back · vo-sting-pull | Here's your bell back! · Little bee stings. Out they come, one by one! |
 
+### New in the clinic, round 6, part 2 (seven more ailments; 26 lines)
+
+Same engine, voice and processing as every line above; no fix was needed (vo-tooth-out stays at -20.8 LUFS, held by its
+peak cap). The effect hic (a small cartoon hiccup) is own work, synthesised by `audio-src/scripts/make_clinic_sfx.py`; the
+art (the plaque, the candy, the braces, the baby tooth, the burrs, the fur close-up, the new tools and cards) is drawn by
+`assets-src/images-b-clinic/tools/gen_clinic6.py` (our own, like the rest of the clinic's art).
+
+| Key | Line |
+|---|---|
+| vo-sick-plaque · vo-tool-flosser · vo-plaque-gone · vo-brush-shine | Ooh, sticky plaque on your teeth. Open wide! · The water flosser! Squirt the sticky bits away. · Squeaky clean! · Now brush each tooth till it shines! |
+| vo-sick-candy · vo-tool-floss | Oh my, candy stuck between your teeth! · Floss between the teeth, up and down. |
+| vo-sick-braces · vo-tool-pusher · vo-tool-brackets | Some teeth are a little crooked. Let's line them up! · Gently tap each crooked tooth, and it stands up straight. · A tiny bracket on each one. |
+| vo-pick-band · vo-band-colour · vo-braces-done | Pick a colour for your braces! · Let's use... · What a sparkly smile! |
+| vo-sick-wobbly · vo-tool-gauze · vo-tooth-out | A wobbly tooth! That means you're growing up. · Wiggle it gently with the soft gauze. · Pop! Out it came. No ouch at all! |
+| vo-tool-toothbox · vo-new-tooth | A little box, to keep it for the tooth fairy. · Look! A brand new tooth is peeking out. |
+| vo-sick-burrs · vo-tool-comb · vo-tool-bow | Prickly burrs in your fur! Let's take them out. · Comb the fur nice and smooth. · And a bow. So pretty! |
+| vo-sick-hiccups · vo-tool-water · vo-hiccups-gone | Hic! Hic! You've got the hiccups! · A little sip of water. · All quiet. The hiccups are gone! |
+| vo-sick-bump · vo-follow-light · vo-bump-gone | A bump on your head. Let's make it feel better. · Follow the little light with your eyes! · The bump is all gone! |
+
 ### New in the recipe challenges, PR A (soap first, the pour order, Mom's oven number, Mom's picture, find the tool; 14 lines)
 
 Same engine, voice and processing as every line above; no fix was needed (-18.0 to -18.9 LUFS).

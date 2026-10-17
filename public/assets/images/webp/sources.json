@@ -879,6 +879,11 @@
   "w": 140,
   "h": 140
  },
+ "clinic-band": {
+  "sha1": "9f76293e77751a1d03555a59cb86c0f92ffd6783",
+  "w": 120,
+  "h": 120
+ },
  "clinic-bed": {
   "sha1": "7ca240a28ad8818367fac4bb5e70aef3af2adbe3",
   "w": 900,
@@ -899,6 +904,11 @@
   "w": 300,
   "h": 170
  },
+ "clinic-braces-smile": {
+  "sha1": "4d87683821fa8f028dd405090b29faa5e4e9094c",
+  "w": 240,
+  "h": 120
+ },
  "clinic-bump": {
   "sha1": "705123373296d876822e765259ea7f24b89d564f",
   "w": 120,
@@ -908,6 +918,11 @@
   "sha1": "04890a0ccb969150d717c56f98924dff6b39c47b",
   "w": 120,
   "h": 80
+ },
+ "clinic-burr": {
+  "sha1": "c656116aec586c7ff6eb57c426372cbb5f97d3b7",
+  "w": 170,
+  "h": 170
  },
  "clinic-cheek": {
   "sha1": "8564a54c0290387ba1ed7751c3bd8fa3f4670929",
@@ -983,6 +998,11 @@
   "sha1": "eae4b763dcf8801c7f070a5ee797b7e213510ec9",
   "w": 60,
   "h": 80
+ },
+ "clinic-tangle": {
+  "sha1": "a8264592334c33b9dbdc8daaadcce6e8d4f3d967",
+  "w": 187,
+  "h": 153
  },
  "clinic-tickle": {
   "sha1": "7afe618f3b5b0c4b1f176acebbaca1b4aa9399cd",
@@ -2684,6 +2704,11 @@
   "w": 884,
   "h": 884
  },
+ "lens-fur": {
+  "sha1": "b0119955ed94eeccbb7fda3fa643adebc7d4e9d7",
+  "w": 884,
+  "h": 884
+ },
  "lens-hand": {
   "sha1": "2b49e1d2922bbf964b99d09d50f8db94339f9c51",
   "w": 884,
@@ -3414,6 +3439,26 @@
   "w": 200,
   "h": 200
  },
+ "sick-braces": {
+  "sha1": "eed9f60bb4b76cf83c5e858952964f7190668619",
+  "w": 200,
+  "h": 200
+ },
+ "sick-bump": {
+  "sha1": "92897e57d7f77600f17959bdc402e36d9709ad9a",
+  "w": 200,
+  "h": 200
+ },
+ "sick-burrs": {
+  "sha1": "601ee4512378e3838c78d19682c6cf6cabbdb0be",
+  "w": 200,
+  "h": 200
+ },
+ "sick-candy": {
+  "sha1": "37734e42fe92e66d8216c1390c1c294b94fa0f6d",
+  "w": 200,
+  "h": 200
+ },
  "sick-cold": {
   "sha1": "ab5e29b6c480f13f78f7c0fa4da5a410ae8c10ab",
   "w": 200,
@@ -3444,6 +3489,11 @@
   "w": 200,
   "h": 200
  },
+ "sick-hiccups": {
+  "sha1": "a2f40b59db5c5a86a5935493d8a8737bd80ebc7f",
+  "w": 200,
+  "h": 200
+ },
  "sick-knee": {
   "sha1": "7d11435649cc55cbb99a86b416f3f501373d1c32",
   "w": 200,
@@ -3451,6 +3501,11 @@
  },
  "sick-paw": {
   "sha1": "2e6e8278e6209db54548c32a9c09584bd619f199",
+  "w": 200,
+  "h": 200
+ },
+ "sick-plaque": {
+  "sha1": "90cc9c6fa098ac5e4f0a09ff55fd875293a63348",
   "w": 200,
   "h": 200
  },
@@ -3486,6 +3541,11 @@
  },
  "sick-tummy": {
   "sha1": "9867f099ab1f4b99d48d87fda5c8869f5865b878",
+  "w": 200,
+  "h": 200
+ },
+ "sick-wobbly": {
+  "sha1": "3394f61d9a343c46a098a74ec3aeb349f9732524",
   "w": 200,
   "h": 200
  },
@@ -3614,6 +3674,16 @@
   "w": 240,
   "h": 240
  },
+ "tool-bow": {
+  "sha1": "5d908fd786dee8f82844d60c40767dfd82df791f",
+  "w": 240,
+  "h": 240
+ },
+ "tool-brackets": {
+  "sha1": "9cee610c422e8fc297207d1e41c49622a4c15560",
+  "w": 240,
+  "h": 240
+ },
  "tool-bugspray": {
   "sha1": "53ef0e5f145879c0ae3fa18ba83bb02991a89791",
   "w": 240,
@@ -3621,6 +3691,11 @@
  },
  "tool-cloth": {
   "sha1": "6639f421bc70d2c08094f602777a121aba32af04",
+  "w": 240,
+  "h": 240
+ },
+ "tool-comb": {
+  "sha1": "6c1e7569b8f147b69b1244fbbf290a86860f53d2",
   "w": 240,
   "h": 240
  },
@@ -3646,6 +3721,21 @@
  },
  "tool-filler": {
   "sha1": "489e56f782c44136e7280a414b6155a81c4085f2",
+  "w": 240,
+  "h": 240
+ },
+ "tool-floss": {
+  "sha1": "b699968e56a744be8be97cd5a8e25d1a97ae3804",
+  "w": 240,
+  "h": 240
+ },
+ "tool-flosser": {
+  "sha1": "0d2bc290788c2b2ca57e575b9b2a0b07a495e7b2",
+  "w": 240,
+  "h": 240
+ },
+ "tool-gauze": {
+  "sha1": "4e4df2db679d2982750b875c12b886b2c34bc33c",
   "w": 240,
   "h": 240
  },
@@ -3694,6 +3784,11 @@
   "w": 240,
   "h": 240
  },
+ "tool-pusher": {
+  "sha1": "13d3429d239cb184a9d3cb30eb2c6d295847d9e4",
+  "w": 240,
+  "h": 240
+ },
  "tool-roll": {
   "sha1": "534edbcc4d1ab88cabe7e97f79b639bc034e2bb9",
   "w": 240,
@@ -3739,6 +3834,11 @@
   "w": 240,
   "h": 240
  },
+ "tool-toothbox": {
+  "sha1": "703c2dca9a5c2be6bbbf9cf22a8a4c9fe0bed50a",
+  "w": 240,
+  "h": 240
+ },
  "tool-toothbrush": {
   "sha1": "c122a50190af74b0c39ad795f12bc056daa03734",
   "w": 240,
@@ -3759,15 +3859,65 @@
   "w": 240,
   "h": 240
  },
+ "tooth-bracket": {
+  "sha1": "bb54b4788ac484ccdc48251f90d84d46adabb6ef",
+  "w": 102,
+  "h": 102
+ },
+ "tooth-candy": {
+  "sha1": "93cb949c518ba4b08546ea94e26c9be287d7c52e",
+  "w": 119,
+  "h": 119
+ },
+ "tooth-crooked": {
+  "sha1": "0fa8275cc96dfac18c2a4207095978b19a602a00",
+  "w": 204,
+  "h": 238
+ },
+ "tooth-dull": {
+  "sha1": "5f510c449612982b5275ac0d6cb212ced1c503da",
+  "w": 119,
+  "h": 146
+ },
+ "tooth-gum": {
+  "sha1": "b0ea7093c3602646d83baf52189c9cd17c56bed2",
+  "w": 153,
+  "h": 170
+ },
  "tooth-hole": {
   "sha1": "9550fcb1d0fb239a62143bac132dc5399612a559",
   "w": 119,
   "h": 119
  },
+ "tooth-new": {
+  "sha1": "96d885e487ea643b22117868f5c480a61cf1c298",
+  "w": 119,
+  "h": 136
+ },
+ "tooth-plaque": {
+  "sha1": "df09b4808a7d5b24a90ce5d97ef8ec4a8943a29d",
+  "w": 153,
+  "h": 136
+ },
+ "tooth-smear": {
+  "sha1": "86981c8217aeb8be282d3b8d09c5d2377ce36c9b",
+  "w": 119,
+  "h": 102
+ },
  "tooth-star": {
   "sha1": "c969a6fd14af736f1db585137f066b514307a14f",
   "w": 153,
   "h": 153
+ },
+ "tooth-wire": {
+  "sha1": "b6adbe467792dfff8467b4611926f0f9bd69d1b9",
+  "w": 510,
+  "h": 119
+ },
+ "tooth-wobbly": {
+  "sha1": "0c21bf1d7f22a51312af63bfd5477ecdd7a00c54",
+  "w": 170,
+  "h": 204
  },
  "topping-bin": {
   "sha1": "0a96df93db413a641f89d656efb9b5fd0a5472e8",
