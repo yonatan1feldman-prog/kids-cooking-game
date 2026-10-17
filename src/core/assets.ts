@@ -667,6 +667,8 @@ export const IMAGES = {
   'sick-bites': { size: [200, 200] },
   'sick-dirty': { size: [200, 200] },
   'clinic-done': { size: [120, 120] },
+  // round 6: the kidney bowl beside the close-up, for whatever the tweezers or the magnet take out (gen_clinic6.py)
+  'clinic-bowl': { size: [300, 170] },
   'clinic-scrape': { size: [200, 140], raster: ZOOM_RASTER },
   'clinic-dust': { size: [220, 160], raster: ZOOM_RASTER },
   'clinic-splinter': { size: [160, 70], raster: ZOOM_RASTER },
@@ -1149,6 +1151,7 @@ RECIPE_ASSETS.clinic = {
     'tool-bugspray', 'sick-sting', 'sick-bites', 'sick-dirty', 'clinic-done',
     'lens-throat', 'clinic-tickle', 'clinic-burn', 'tool-honey', 'tool-aloe', 'tool-hat', 'sick-throat', 'sick-sunburn',
     'lens-eye-lid', // (care-tongue is among the care- keys below)
+    'clinic-bowl',
     // round 5, part 2: the care rooms next door
     ...IMAGE_KEYS.filter((k) => k.startsWith('care-')), 'bg-clinic-care', 'tool-shower', 'tool-towel', 'tool-roll', 'tool-polisher',
     ...IMAGE_KEYS.filter((k) => k.startsWith('kid-') || k.startsWith('animal-')),
@@ -1179,6 +1182,8 @@ RECIPE_ASSETS.clinic = {
     'vo-care-wake', 'vo-care-order', 'vo-follow-arrows', 'name-strawberry', 'name-banana', 'name-blueberry',
     'name-apple', 'name-star', 'name-heart', 'name-moon', 'name-circle', 'name-triangle', 'name-house', 'name-pink', 'name-blue',
     'name-green', 'shake', 'splash', 'wrap',
+    // round 6: the bowl
+    'vo-bowl-in', 'vo-bowl-again', 'vo-bowl-full', 'vo-bell-back', 'vo-sting-pull', 'tink',
     // (not 'vo-then': it is core, Pipa's order and the pours in every recipe say it too; a listed sound is not core)
   ],
 };
@@ -1227,6 +1232,8 @@ export const SOUND_KEYS = [
   'eek', 'drip', 'scan', 'sparkle',
   // the clinic, round 5: the care rooms (medicine shaken in its bottle, bath water, a bandage going round)
   'shake', 'splash', 'wrap',
+  // the clinic, round 6: something taken out landing in the bowl
+  'tink',
   // the farm (core/farmAssets.ts)
   ...FARM_SFX,
 ] as const;

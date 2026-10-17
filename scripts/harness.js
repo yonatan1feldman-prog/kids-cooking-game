@@ -1615,12 +1615,15 @@ window.__artVerify = async (kind, level, opts = {}) => {
 // child: pick a patient, then (round 4) one of her problems, then every station (pick its tool from the tray, work on each target: rub, hold, touch, drip,
 // find, pull out, give), the sticker; __clinicVerify(level, opts): the same on the virtual clock with the simulated voice,
 // from the clinic's start to the title. `none`: no touch at all (Mom helps to the end). `mid(what)`: awaited mid-action.
+// Round 6: what the tweezers or the magnet take out is carried to the bowl; `wrong` lets the first of each station go
+// away from it (a miss) and picks it up again (`finger`: with the finger).
 window.__clinicPlay = async (opts = {}) => {
   const m = game.scene.getScene('Clinic');
   const log = [];
   const k = m.L.k;
   const fingerFor = (p) => [p.x + 26 * k, p.y + 66 * k];
   let wrongToolDone = false;
+  const dropped = {};
   const gap = opts.gap ?? 700;
   for (let i = 0; i < (opts.maxSteps ?? 3000) && m.scene.isActive(); i++) {
     const ph = m.shown.phase;
@@ -1677,6 +1680,7 @@ window.__clinicPlay = async (opts = {}) => {
         await __run(gap);
         continue;
       }
+      let ended = false;
       for (let j = 0; j < 160 && m.station === st && m.shown.phase === 'tool'; j++) {
         const g = m.target(); if (!g) break;
         if (j === 2 && opts.mid) await opts.mid(log[log.length - 1]);
@@ -1687,8 +1691,37 @@ window.__clinicPlay = async (opts = {}) => {
           __touch('move', 1, ...fingerFor(g));
           await __run(150);
           __touch('move', 1, ...fingerFor({ x: g.x + 2, y: g.y }));
-          for (let q = 1; q <= 12; q++) { __touch('move', 1, ...fingerFor({ x: g.x + 25 * q * k, y: g.y - 25 * q * k })); await __run(30); }
+          if (!m.carry) for (let q = 1; q <= 12; q++) { __touch('move', 1, ...fingerFor({ x: g.x + 25 * q * k, y: g.y - 25 * q * k })); await __run(30); }
           await __run(300);
+          if (m.carry) {
+            // round 6: what came out rides on the tips to the bowl; `wrong`: the first one of a station is let go
+            // away from the bowl (a miss), then picked up again (`finger`: by the finger, else with the tweezers)
+            const b = m.bowlAt();
+            const here = m.carry.t.img;
+            const drop = opts.wrong && !dropped[m.shown.patients + st.what];
+            const d = Math.hypot(b.x - here.x, b.y - here.y) || 1;
+            const to = drop ? { x: Math.min(m.room.x1 - 80 * k, here.x + ((here.x - b.x) / d) * 160 * k + 40 * k), y: Math.max(140 * k, here.y - 80 * k) } : b;
+            const p0 = { x: here.x, y: here.y };
+            for (let q = 1; q <= 8; q++) { __touch('move', 1, ...fingerFor({ x: p0.x + (to.x - p0.x) * q / 8, y: p0.y + (to.y - p0.y) * q / 8 })); await __run(40); }
+            if (opts.mid) await opts.mid('carry ' + st.what);
+            __touch('end', 1, ...fingerFor(to)); ended = true;
+            log.push(drop ? 'dropped ' + st.what : 'bowl ' + st.what);
+            await __run(gap);
+            if (drop) {
+              dropped[m.shown.patients + st.what] = 1;
+              if (opts.mid) await opts.mid('loose ' + st.what);
+              const lo = m.looseOf(st);
+              if (lo && opts.finger) {
+                const a = { x: lo.img.x, y: lo.img.y };
+                __touch('start', 1, a.x, a.y);
+                for (let q = 1; q <= 8; q++) { __touch('move', 1, ...fingerFor({ x: a.x + (b.x - a.x) * q / 8, y: a.y + (b.y - a.y) * q / 8 })); await __run(40); }
+                __touch('end', 1, ...fingerFor(b));
+                log.push('finger bowl ' + st.what);
+                await __run(gap);
+              }
+            }
+            break;
+          }
         } else if (st.act === 'touch' || (st.act === 'find' && st.what !== 'wheeze')) {
           for (let q = 0; q <= 6; q++) __touch('move', 1, ...fingerFor({ x: g.x + (q % 2 ? 4 : -4), y: g.y }));
           await __run(250);
@@ -1698,7 +1731,7 @@ window.__clinicPlay = async (opts = {}) => {
           await __run(250);
         }
       }
-      __touch('end', 1, ...fingerFor(m.target() ?? { x: start[0], y: start[1] }));
+      if (!ended) __touch('end', 1, ...fingerFor(m.target() ?? { x: start[0], y: start[1] }));
       await __run(gap);
     } else if (ph === 'care' && m.care) {
       // round 5, part 2: the care room next door; its plan() says the next gesture (a tool's `at` is its working point)

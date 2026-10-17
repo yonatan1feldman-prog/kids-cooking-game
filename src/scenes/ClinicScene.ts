@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { keepPhoto } from '../core/album';
 import { ART, FX_SOFT, IMAGES, type ImageKey } from '../core/assets';
-import { music } from '../core/audio';
+import { countKey, music } from '../core/audio';
 import { AILMENTS, burnPlaces, PATIENTS, planVisit, TOOL_LINE, TOOLS, type Ailment, type AilmentId, type Patient, type Station, type ToolId, type What, type ZoomId } from '../core/clinic';
 import type { VoiceKey } from '../core/audio';
 import { boing, burst, puff, stars } from '../core/fx';
@@ -65,6 +65,11 @@ const TONGUE_AT: P = { x: 260, y: 362 };
 const UNDER_TONGUE = [5, 6];
 /** The tools that tickle when they pass over her tummy (round 5; the care rooms' towel too). */
 const TICKLERS: readonly string[] = ['sponge', 'towel'];
+/** Where the things taken out lie in the bowl (clinic-bowl's 300x170 frame, from its centre: gen_clinic6.py BOWL_FLOOR). */
+const BOWL_SLOTS: readonly P[] = [{ x: -62, y: 2 }, { x: 0, y: 6 }, { x: 62, y: 2 }, { x: -32, y: 20 }, { x: 32, y: 20 }, { x: 0, y: -12 }];
+/** The bowl's scale (x k) and the biggest a thing lying in it is (world units x k). */
+const BOWL_SCALE = 0.9;
+const BOWL_ITEM = 84;
 
 /** A patient: the layered character (Character.ts) with her own voice's pitch and things drawn on her. */
 export class PatientView extends Character {
@@ -159,6 +164,23 @@ interface Thing {
   waiting: boolean;
   /** Behind the tongue (round 5, hard level): it waits until the tongue moves. */
   tongue?: true;
+  /**
+   * Round 6, the bowl: taken out of her (its picture left the close-up, it rides on the tool or lies about), lying
+   * where it was let go outside the bowl (with a soft glow under it), in the bowl.
+   */
+  out?: true;
+  loose?: boolean;
+  inBowl?: true;
+  glow?: Phaser.GameObjects.Image;
+}
+
+/** Round 6: the kidney bowl beside the close-up, for whatever the tweezers or the magnet take out (Jonathan's rule). */
+interface Bowl {
+  img: Phaser.GameObjects.Image;
+  glow: Phaser.GameObjects.Image;
+  /** What lies in it (the pictures), how many went in. */
+  items: Phaser.GameObjects.Image[];
+  n: number;
 }
 
 interface Zoom {
@@ -208,7 +230,7 @@ export class ClinicScene extends MiniGame {
   /** The care room next door (round 5, part 2): its pictures (they slide in) and what runs it. */
   private careRoom: Phaser.GameObjects.GameObject[] = [];
   private care: ClinicCare | null = null;
-  private room!: { x0: number; x1: number; bedX: number; seatY: number; bedScale: number; ps: number; toolS: number; zoom: { at: P; s: number } };
+  private room!: { x0: number; x1: number; bedX: number; seatY: number; bedScale: number; ps: number; toolS: number; zoom: { at: P; s: number }; bowl: P };
   private tools: Tool[] = [];
   private steps: Station[] = [];
   /** Which stations are done, and the one she is at. */
@@ -240,6 +262,11 @@ export class ClinicScene extends MiniGame {
   private stillSaid = false;
   private tongueSaid = false;
   private tickledAt = -Infinity;
+  /** Round 6: the bowl (while a problem that takes something out is being fixed), what rides to it, what was said. */
+  private bowl: Bowl | null = null;
+  private carry: { t: Thing; tool: Tool | null; f: P } | null = null;
+  private bowlSaid = false;
+  private againSaid = new Set<string>();
 
   constructor() {
     super('Clinic');
@@ -276,7 +303,11 @@ export class ClinicScene extends MiniGame {
     this.stillSaid = false;
     this.tongueSaid = false;
     this.tickledAt = -Infinity;
-    Object.assign(this.shown, { patients: [] as string[], fixed: 0,  treated: 0, step: '', tool: '', wrong: 0, photo: 0, zoom: '', stations: 0, things: 0, hide: '', found: 0, blinks: 0, tongue: 0, tickles: 0, loves: 0 });
+    this.bowl = null;
+    this.carry = null;
+    this.bowlSaid = false;
+    this.againSaid = new Set();
+    Object.assign(this.shown, { bowled: 0, carried: 0, loose: 0, patients: [] as string[], fixed: 0,  treated: 0, step: '', tool: '', wrong: 0, photo: 0, zoom: '', stations: 0, things: 0, hide: '', found: 0, blinks: 0, tongue: 0, tickles: 0, loves: 0 });
   }
 
   protected withPipa() {
@@ -344,7 +375,9 @@ export class ClinicScene extends MiniGame {
     // The close-ups: as big as the middle allows (up to `zoomMax` of the 600 rim), clear of the top and the palm strip.
     const zs = Math.min(T.zoomMax * k, (right - x0) / RING, (L.Y(1000) - L.Y(24)) / RING);
     const zat = { x: (x0 + right) / 2, y: L.Y(24) + (RING / 2) * zs };
-    this.room = { x0, x1: right, bedX, seatY: bedSeat, bedScale, ps, toolS: 0.92 * k, zoom: { at: zat, s: zs } };
+    // (round 6) the bowl at the close-up's lower left, on the rim, clear of the palm strip
+    const bowl = { x: zat.x - 0.36 * RING * zs, y: Math.min(zat.y + 0.4 * RING * zs, L.Y(1000) - 76 * k) };
+    this.room = { x0, x1: right, bedX, seatY: bedSeat, bedScale, ps, toolS: 0.92 * k, zoom: { at: zat, s: zs }, bowl };
     this.showRoom('wait');
   }
 
@@ -706,6 +739,7 @@ export class ClinicScene extends MiniGame {
     this.setPhase('intro');
     this.closeZoom();
     this.clearTray();
+    this.clearBowl();
     // what showed the problem goes (a plaster stays on a knee or a foot); the places on her go
     const signs = v.signs.get(a.id) ?? [];
     for (const g of signs) this.tweens.add({ targets: g, alpha: 0, duration: 500, onComplete: () => g.destroy() });
@@ -1132,6 +1166,7 @@ export class ClinicScene extends MiniGame {
     this.shown.step = `${st.tool}-${st.act}-${st.what}`;
     this.shown.tool = st.tool;
     this.setPhase('intro');
+    if (this.takesOut(st)) this.showBowl();
     const go = () => {
       if (this.leaving) return;
       if (this.level === 1) {
@@ -1198,11 +1233,13 @@ export class ClinicScene extends MiniGame {
   targets(): Thing[] {
     const st = this.station;
     if (!st) return [];
-    return this.things.filter((t) => t.what === st.what && t.zoom === (st.view === 'body' ? null : st.view) && !t.done && !t.waiting && (st.act === 'find' ? t.hidden : !t.hidden || st.act === 'give'));
+    return this.things.filter((t) => t.what === st.what && t.zoom === (st.view === 'body' ? null : st.view) && !t.done && !t.out && !t.waiting && (st.act === 'find' ? t.hidden : !t.hidden || st.act === 'give'));
   }
 
   /** A thing's point in the world (in the close-up, which may be moving; or on her). */
   private worldOf(t: Thing): P {
+    // (taken out: its picture is in the room now)
+    if (t.out) return { x: t.img.x, y: t.img.y };
     if (t.zoom) {
       const z = this.zooms.get(t.zoom)!;
       return { x: z.box.x + t.img.x * z.box.scale, y: z.box.y + t.img.y * z.box.scale };
@@ -1212,6 +1249,10 @@ export class ClinicScene extends MiniGame {
 
   /** Where the current station's tool should go next (the hint, Mom's help, the harness). */
   target(): P | null {
+    // (round 6: something taken out goes to the bowl; one lying about is picked up first)
+    if (this.carry) return this.bowlAt();
+    const lo = this.station && this.looseOf(this.station);
+    if (lo) return this.worldOf(lo);
     const t = this.targets()[0];
     if (!t) return this.tongueWaits() ? this.tongueAt() : null;
     if (this.station?.act === 'find') {
@@ -1334,7 +1375,7 @@ export class ClinicScene extends MiniGame {
         if (!this.targets().length) this.stationDone();
         return;
       case 'pull':
-        return this.pulling(st, tp);
+        return this.pulling(st, tp, tool);
       default:
     }
   }
@@ -1650,14 +1691,23 @@ export class ClinicScene extends MiniGame {
   }
 
   /** Taking it out: the tweezers grip the speck, the ladybird, the splinter (the magnet catches the bell), drawn out. */
-  private pulling(st: Station, tp: P) {
+  private pulling(st: Station, tp: P, tool: Tool) {
     const k = this.L.k;
     const mag = st.tool === 'magnet';
+    if (this.carry) {
+      // (round 6: on its way to the bowl; Mom's help lets it go as soon as it is over the bowl)
+      if (this.helping && this.carry.tool === tool && this.overBowl(tp)) this.intoBowl(this.carry.t);
+      return;
+    }
     if (!this.gripped) {
+      // (something taken out and let go beside the bowl: the tool picks it up again)
+      const lo = this.looseOf(st);
+      if (lo && this.near(tp, this.worldOf(lo), Math.max(T.reach * k, 110 * k))) return this.pickUp(lo, tool, tp);
       const t = this.nearest(this.targets(), tp, mag ? T.magnetR * k : T.reach * k * 0.85);
       if (!t) return;
       this.gripped = t;
-      this.gripAt = { ...tp };
+      // (Mom's hand pulls from the thing itself, so her pull always reaches out of it)
+      this.gripAt = this.helping ? this.worldOf(t) : { ...tp };
       sfx(this, mag ? 'zing' : 'click', { volume: mag ? 0.7 : 1 });
       boing(this, t.img, 0.2);
       t.img.setAlpha(1);
@@ -1671,8 +1721,240 @@ export class ClinicScene extends MiniGame {
     if (z) t.img.setPosition(tp.x - z.box.x, tp.y - z.box.y);
     if (mag && Math.random() < 0.15) sfx(this, 'jingle', { minGapMs: 700, volume: 0.35 });
     if (out >= (mag ? T.magnetPull : T.pull) * k) {
+      // (round 6) out it comes, and it stays in the tool: it goes in the bowl
       this.gripped = null;
-      this.thingDone(t, tp);
+      this.takeOut(t);
+      this.pickUp(t, tool, tp);
+    }
+  }
+
+  // ---------------------------------------------------------------- the bowl (round 6)
+
+  /** Does this station take something out of her (and so needs the bowl)? Round 6's PR 2 adds candy, burrs, a tooth. */
+  private takesOut(st: Station) {
+    return st.act === 'pull';
+  }
+
+  /** The bowl grows in at the close-up's lower left, empty (once per problem). */
+  private showBowl() {
+    if (this.bowl) return;
+    const k = this.L.k;
+    const at = this.room.bowl;
+    const s = BOWL_SCALE * k;
+    const glow = this.add.image(at.x, at.y, FX_SOFT).setTint(0xfff1a8).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0).setDepth(39);
+    glow.setScale((300 * s * 1.35) / glow.frame.realWidth);
+    const img = this.add.image(at.x, at.y, 'clinic-bowl').setScale(0).setDepth(40);
+    this.tweens.add({ targets: img, scale: s, duration: 360, delay: 200, ease: 'Back.easeOut' });
+    this.time.delayedCall(200, () => sfx(this, 'pop', { volume: 0.35 }));
+    this.bowl = { img, glow, items: [], n: 0 };
+    this.shown.bowl = 1;
+  }
+
+  /** The problem is fixed: the bowl and what is in it fade with the close-up. */
+  private clearBowl() {
+    const b = this.bowl;
+    this.bowl = null;
+    this.carry = null;
+    this.shown.bowl = 0;
+    if (!b) return;
+    const all = [b.img, b.glow, ...b.items.filter((q) => q.active)];
+    this.tweens.killTweensOf(all);
+    this.tweens.add({ targets: all, alpha: 0, duration: 400, onComplete: () => all.forEach((q) => q.destroy()) });
+  }
+
+  bowlAt(): P {
+    return { ...this.room.bowl };
+  }
+
+  /** Over the bowl: near its middle (`bowlR`), or anywhere on its picture. */
+  private overBowl(p: P) {
+    const b = this.bowl;
+    if (!b) return false;
+    return this.near(p, this.room.bowl, T.bowlR * this.L.k) || b.img.getBounds().contains(p.x, p.y);
+  }
+
+  /** Something of this station taken out and lying beside the bowl. */
+  looseOf(st: Station): Thing | null {
+    return this.things.find((q) => q.loose && q.what === st.what) ?? null;
+  }
+
+  /** Its picture leaves the close-up for the room (where it is now, as big as it looks). */
+  private takeOut(t: Thing) {
+    const w = this.worldOf(t);
+    const z = t.zoom ? this.zooms.get(t.zoom) : null;
+    this.tweens.killTweensOf(t.img);
+    if (z) {
+      const sc = t.img.scale * z.box.scale;
+      z.box.remove(t.img);
+      this.add.existing(t.img);
+      t.img.setScale(sc);
+    }
+    t.img.setPosition(w.x, w.y).setAlpha(1).setVisible(true);
+    t.out = true;
+  }
+
+  /** It rides on the tool's tips (or under the finger) to the bowl. */
+  private pickUp(t: Thing, tool: Tool | null, f: P) {
+    const k = this.L.k;
+    t.loose = false;
+    if (t.glow) {
+      const g = t.glow;
+      t.glow = undefined;
+      this.tweens.add({ targets: g, alpha: 0, duration: 200, onComplete: () => g.destroy() });
+    }
+    this.tweens.killTweensOf(t.img);
+    t.img.setDepth(601);
+    this.carry = { t, tool, f: { ...f } };
+    this.placeCarry();
+    sfx(this, 'click', { minGapMs: 0, volume: 0.7 });
+    if (t.what === 'bug') sfx(this, 'char-giggle', { rate: 1.6, volume: 0.5 });
+    stars(this, t.img.x, t.img.y, 4, 26 * k);
+    this.shown.carried = (this.shown.carried as number) + 1;
+    if (this.bowl && T.bowlGlow[this.level - 1]) {
+      this.tweens.killTweensOf(this.bowl.glow);
+      this.tweens.add({ targets: this.bowl.glow, alpha: 0.9, duration: 250 });
+    }
+    if (!this.bowlSaid && !this.helping) {
+      this.bowlSaid = true;
+      // (it may wait behind the station's line; once something is in the bowl it is not needed)
+      const b = this.bowl;
+      this.say('vo-bowl-in', { ttlMs: 7000, valid: () => !b || b.n === 0 });
+    }
+    this.poke();
+  }
+
+  private placeCarry() {
+    const c = this.carry;
+    if (!c) return;
+    const p = c.tool ? this.tip(c.tool) : this.fingerTip(c.f);
+    c.t.img.setPosition(p.x, p.y);
+  }
+
+  private bowlGlowOff() {
+    const b = this.bowl;
+    if (!b) return;
+    this.tweens.killTweensOf(b.glow);
+    this.tweens.add({ targets: b.glow, alpha: 0, duration: 250 });
+  }
+
+  /** In it goes: a little hop into its place in the bowl, a tink, Mom counts; the thing is done. */
+  private intoBowl(t: Thing) {
+    const k = this.L.k;
+    const b = this.bowl;
+    if (this.carry?.t === t) this.carry = null;
+    this.bowlGlowOff();
+    if (!b) return this.thingDone(t);
+    if (!t.out) this.takeOut(t);
+    t.loose = false;
+    t.glow?.destroy();
+    t.glow = undefined;
+    t.inBowl = true;
+    const slot = BOWL_SLOTS[b.n % Math.min(T.bowlSlots, BOWL_SLOTS.length)];
+    b.n++;
+    const s = BOWL_SCALE * k;
+    const to = { x: this.room.bowl.x + slot.x * s, y: this.room.bowl.y + slot.y * s };
+    const img = t.img;
+    b.items.push(img);
+    this.tweens.killTweensOf(img);
+    img.setDepth(41);
+    const big = Math.max(img.displayWidth, img.displayHeight);
+    const sc = big > BOWL_ITEM * k ? img.scale * ((BOWL_ITEM * k) / big) : img.scale;
+    const from = { x: img.x, y: img.y };
+    const sc0 = img.scale;
+    this.tweens.addCounter({
+      from: 0,
+      to: 1,
+      duration: 220,
+      onUpdate: (tw) => {
+        const u = tw.getValue() ?? 0;
+        img.setPosition(from.x + (to.x - from.x) * u, from.y + (to.y - from.y) * u - Math.sin(Math.PI * u) * 60 * k).setScale(sc0 + (sc - sc0) * u);
+      },
+      onComplete: () => {
+        sfx(this, 'tink', { minGapMs: 0 });
+        stars(this, to.x, to.y, 6, 30 * k);
+        boing(this, b.img, 0.06);
+      },
+    });
+    this.shown.bowled = (this.shown.bowled as number) + 1;
+    // (Mom counts when there is more than one to take out)
+    const st = this.station;
+    if (st && this.things.filter((q) => q.what === st.what && q.zoom === t.zoom).length > 1) {
+      this.say(countKey(this.things.filter((q) => q.inBowl && q.what === st.what).length), { ttlMs: 4000, group: 'count', sequence: true });
+    }
+    this.thingDone(t, to);
+  }
+
+  /** Let go away from the bowl: it lies where it was let go, glowing softly (a miss); the station waits for it. */
+  private dropLoose(t: Thing, at: P, cancelled: boolean) {
+    const k = this.L.k;
+    const L = this.L;
+    if (this.carry?.t === t) this.carry = null;
+    this.bowlGlowOff();
+    t.loose = true;
+    const x = Phaser.Math.Clamp(at.x, this.room.x0 + 40 * k, this.room.x1 - 40 * k);
+    const y = Phaser.Math.Clamp(at.y, L.Y(80), L.Y(1000) - 40 * k);
+    const img = t.img;
+    this.tweens.killTweensOf(img);
+    img.setDepth(46);
+    const glow = this.add.image(x, y, FX_SOFT).setTint(0xfff1a8).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0).setDepth(45);
+    glow.setScale((Math.max(img.displayWidth, img.displayHeight, 60 * k) * 1.8) / glow.frame.realWidth);
+    t.glow = glow;
+    this.tweens.add({ targets: img, x, y, duration: 220, ease: 'Quad.easeIn', onComplete: () => boing(this, img, 0.2) });
+    this.tweens.add({ targets: glow, alpha: 0.75, duration: 300, delay: 150 });
+    sfx(this, 'tap', { minGapMs: 0, volume: 0.5 });
+    this.shown.loose = (this.shown.loose as number) + 1;
+    if (cancelled) return;
+    this.miss();
+    const key = `${this.cur?.p.id}:${this.cur?.ai}:${this.si}`;
+    if (!this.againSaid.has(key)) {
+      this.againSaid.add(key);
+      this.say('vo-bowl-again', { ttlMs: 3500 });
+    }
+  }
+
+  /** The station is done: what lies in the bowl that goes home does (the ladybird flies off, the bell goes back to her). */
+  private bowlStationDone(st: Station) {
+    const v = this.cur!;
+    const k = this.L.k;
+    const mine = this.things.filter((q) => q.inBowl && q.what === st.what);
+    if (mine.length >= 2) this.say('vo-bowl-full', { ttlMs: 4000 });
+    for (const [i, t] of mine.entries()) {
+      const img = t.img;
+      if (t.what === 'bug') {
+        // the ladybird climbs out of the bowl and flies home, out of the window
+        this.time.delayedCall(500 + 250 * i, () => {
+          if (!img.active || this.leaving) return;
+          this.bowl?.items.splice(this.bowl.items.indexOf(img), 1);
+          img.setDepth(70);
+          sfx(this, 'whoosh', { minGapMs: 0, volume: 0.5 });
+          this.tweens.add({ targets: img, x: this.L.W * 0.3, y: -80 * k, angle: -30, duration: 1300, ease: 'Sine.easeIn', onComplete: () => img.destroy() });
+          this.tweens.add({ targets: img, scaleX: img.scaleX * 0.8, duration: 90, yoyo: true, repeat: 7 });
+        });
+      } else if (t.what === 'bell') {
+        // the bell hops out of the bowl and back to her, and stays beside her (like the hat)
+        const f = v.p.hand ?? v.p.foot ?? v.p.chest[0];
+        const keep = { x: f.x + 70, y: f.y + 40 };
+        this.time.delayedCall(900 + 250 * i, () => {
+          if (!img.active || this.leaving || this.cur !== v) return;
+          this.bowl?.items.splice(this.bowl.items.indexOf(img), 1);
+          const to = v.view.at(keep);
+          const from = { x: img.x, y: img.y };
+          img.setDepth(70);
+          sfx(this, 'jingle', { minGapMs: 0, volume: 0.6 });
+          this.tweens.addCounter({ from: 0, to: 1, duration: 520, ease: 'Sine.easeInOut', onUpdate: (tw) => {
+            const u = tw.getValue() ?? 0;
+            img.setPosition(from.x + (to.x - from.x) * u, from.y + (to.y - from.y) * u - Math.sin(Math.PI * u) * 140 * k);
+          }, onComplete: () => {
+            img.destroy();
+            if (this.cur !== v) return;
+            const b = v.view.put('clinic-toy', keep, 0.42, -10);
+            boing(this, b, 0.25);
+            stars(this, to.x, to.y, 6, 32 * k);
+            v.view.react('love');
+          } });
+          this.say('vo-bell-back', { ttlMs: 4000 });
+        });
+      }
     }
   }
 
@@ -1688,7 +1970,12 @@ export class ClinicScene extends MiniGame {
     const s = z ? z.s : 1;
     this.poke();
     this.reveal(t);
-    switch (t.what) {
+    // (round 6: it is in the bowl now; intoBowl did the tink and the stars)
+    if (t.inBowl) {
+      if (t.what === 'bug') sfx(this, 'char-giggle', { minGapMs: 0, rate: 1.7, volume: 0.45 });
+      else if (t.what === 'bell') sfx(this, 'jingle', { minGapMs: 0, volume: 0.4 });
+      else if (t.what === 'sting' && Math.random() < 0.5) sfx(this, 'char-wow', { minGapMs: 1200, rate: v.view.rate, volume: 0.5 });
+    } else switch (t.what) {
       case 'gnat':
         // off it flies, buzzing, home out of the window
         sfx(this, 'whoosh', { minGapMs: 0, volume: 0.5 });
@@ -1956,6 +2243,12 @@ export class ClinicScene extends MiniGame {
     this.shown.stations = (this.shown.stations as number) + 1;
     this.setPhase('intro');
     this.gripped = null;
+    // (round 6: nothing taken out is left anywhere but in the bowl)
+    if (this.takesOut(st)) {
+      this.carry = null;
+      this.bowlGlowOff();
+      this.bowlStationDone(st);
+    }
     this.lightGlow?.setVisible(false);
     const held = this.held;
     if (held) {
@@ -1986,8 +2279,10 @@ export class ClinicScene extends MiniGame {
         v.view.react('love');
       });
     }
-    if (next < 0) return this.time.delayedCall(st.after ? 1300 : 600, () => !this.leaving && this.cur === v && this.problemDone());
-    this.time.delayedCall(st.after ? 1500 : 700, () => this.startStation(next));
+    // (the bowl's goodbyes take a moment: the ladybird flying home, the bell back to her)
+    const talk = st.after || (this.takesOut(st) && this.things.some((q) => q.inBowl && q.what === st.what && ['bug', 'bell'].includes(q.what)));
+    if (next < 0) return this.time.delayedCall(talk ? 1300 : 600, () => !this.leaving && this.cur === v && this.problemDone());
+    this.time.delayedCall(talk ? 1500 : 700, () => this.startStation(next));
   }
 
   // ---------------------------------------------------------------- all better, a sticker, back to the bench
@@ -2371,6 +2666,8 @@ export class ClinicScene extends MiniGame {
   /** The keyframes of the current station over what is left (`from` ms on): rub circles, holds, touches, a pull. */
   private path(st: Station, from: number, all: boolean): HandKey[] {
     const k = this.L.k;
+    // (round 6) taking out: to the thing (or the one lying beside the bowl), out, and into the bowl
+    if (this.takesOut(st)) return this.pullPath(st, from);
     const list = this.targets().slice(0, all ? undefined : 1);
     if (!list.length) return [];
     const keys: HandKey[] = [];
@@ -2399,10 +2696,6 @@ export class ClinicScene extends MiniGame {
           keys.push({ ...p, t: t + T.dripMs * (this.count(st) + 1) });
           t += T.dripMs * (this.count(st) + 1);
           break;
-        case 'pull':
-          keys.push({ ...p, t: t + 250 }, { x: p.x + 200 * k, y: p.y - 200 * k, t: t + 1050 });
-          t += 1100;
-          break;
         case 'find':
           if (st.what === 'wheeze') {
             keys.push({ x: p.x - 80 * k, y: p.y, t: t + 300 }, { x: p.x + 60 * k, y: p.y, t: t + 700 }, { ...p, t: t + 1100 }, { ...p, t: t + 1100 + T.timeMs[1] + 200 });
@@ -2418,6 +2711,25 @@ export class ClinicScene extends MiniGame {
       }
     }
     return keys;
+  }
+
+  /** One thing out and into the bowl (round 6): the tips on it, a pull towards the bowl, the bowl, let go. */
+  private pullPath(st: Station, from: number): HandKey[] {
+    const k = this.L.k;
+    const b = this.bowlAt();
+    const lo = this.looseOf(st);
+    if (lo) {
+      const p = this.worldOf(lo);
+      return [{ ...p, t: from }, { ...p, t: from + 350 }, { ...b, t: from + 1050 }, { ...b, t: from + 1350 }];
+    }
+    const th = this.targets()[0];
+    if (!th) return [];
+    const p = this.worldOf(th);
+    const d = Math.max(1, Math.hypot(b.x - p.x, b.y - p.y));
+    const reach = Math.min(d, (st.tool === 'magnet' ? T.magnetPull : T.pull) * k * 1.2);
+    const out = { x: p.x + ((b.x - p.x) / d) * reach, y: p.y + ((b.y - p.y) / d) * reach };
+    const t = from;
+    return [{ ...p, t }, { ...p, t: t + 350 }, { ...p, t: t + 550 }, { ...out, t: t + 1350 }, { ...b, t: t + 1950 }, { ...b, t: t + 2250 }];
   }
 
   protected way(): HandMotion | null {
@@ -2525,7 +2837,7 @@ export class ClinicScene extends MiniGame {
     const k = this.L.k;
     // (only the germ behind the tongue left: Mom's hand moves the tongue first)
     if (!this.targets().length && this.tongueWaits()) this.moveTongue();
-    if (!this.targets().length) {
+    if (!this.targets().length && !(this.takesOut(st) && this.looseOf(st))) {
       this.helped();
       if (st.act === 'give') this.give(t);
       else this.stationDone();
@@ -2537,6 +2849,7 @@ export class ClinicScene extends MiniGame {
     this.hand.follow('grab', () => ({ x: t.img.x, y: t.img.y }));
     const start = this.tip(t);
     const keys = [{ ...start, t: 0 }, ...this.path(st, T.helpMs, true)];
+    const one = this.takesOut(st);
     const total = Math.min(13000, keys[keys.length - 1].t + 200);
     let last = start;
     let tPrev = 0;
@@ -2556,6 +2869,13 @@ export class ClinicScene extends MiniGame {
         if (now >= T.helpMs && st.act !== 'give') this.work(t, p, Math.max(dist, st.by === 'rub' ? 10 * k : 0), d);
       },
       onComplete: () => {
+        if (this.si === si && this.phase === 'tool' && one) {
+          // (round 6: one thing out and in the bowl, then the tool is hers again)
+          this.finishOne(st);
+          this.helped();
+          if (!this.doneSt[si]) this.backToTray(t);
+          return;
+        }
         if (this.si === si && this.phase === 'tool') {
           this.helped();
           if (st.act === 'give') return this.give(t);
@@ -2568,10 +2888,32 @@ export class ClinicScene extends MiniGame {
     return true;
   }
 
+  /** Mom's help taking one thing out: whatever is in her tool (or still gripped) goes in the bowl. */
+  private finishOne(st: Station) {
+    const g = this.gripped;
+    this.gripped = null;
+    if (this.carry) return this.intoBowl(this.carry.t);
+    if (g && !g.done) return this.intoBowl(g);
+    const lo = this.looseOf(st);
+    if (lo) this.intoBowl(lo);
+  }
+
   /** Mom's help ran out of time before the station was done: what is left is done as if by hand. */
   private finishStation() {
     const st = this.station;
     if (!st) return;
+    if (this.takesOut(st)) {
+      // (round 6: everything taken out, and in the bowl)
+      this.gripped = null;
+      if (this.carry) this.intoBowl(this.carry.t);
+      for (const t of this.things.filter((q) => q.loose && q.what === st.what)) this.intoBowl(t);
+      for (const t of this.targets()) {
+        if (this.doneSt[this.si]) return;
+        this.intoBowl(t);
+      }
+      if (!this.doneSt[this.si]) this.stationDone();
+      return;
+    }
     for (const t of this.targets()) {
       if (st.act === 'find') {
         t.hidden = false;
@@ -2642,6 +2984,15 @@ export class ClinicScene extends MiniGame {
         return this.startProblem(i);
       }
       case 'tool': {
+        // (round 6: something taken out lying beside the bowl: the finger picks it up too)
+        const lo = this.things.find((q) => q.loose && this.near(at, q.img, Math.max(110 * k, q.img.displayWidth)));
+        if (lo) {
+          const j = this.steps.findIndex((q, j) => !this.doneSt[j] && this.takesOut(q) && q.what === lo.what);
+          if (j >= 0 && j !== this.si) this.selectStation(j);
+          this.pickUp(lo, null, at);
+          this.own(p);
+          return;
+        }
         const t = this.tools.find((q) => !q.away && this.near(at, q.img, Math.max(115 * k, 120 * q.homeScale)));
         if (!t) {
           if (this.zoom?.id === 'mouth' && this.tongueNear(at, 110)) {
@@ -2659,16 +3010,8 @@ export class ClinicScene extends MiniGame {
           const free = this.steps.findIndex((q, j) => q.tool === t.id && this.available(j));
           if (free < 0) return this.wrongTool(t, true);
           i = free;
-          this.si = i;
-          const st = this.steps[i];
-          this.freshPlaces(st);
-          this.shown.step = `${st.tool}-${st.act}-${st.what}`;
-          this.shown.tool = st.tool;
-          this.gripped = null;
-          this.dripT = 0;
-          this.blinks = 0;
-          this.revealPlaces();
-          this.viewFor(st, () => undefined);
+          this.selectStation(i);
+          this.viewFor(this.steps[i], () => undefined);
         } else if (this.level === 2) this.viewFor(this.steps[i], () => undefined);
         const st = this.steps[i];
         this.tweens.killTweensOf(t.img);
@@ -2691,8 +3034,30 @@ export class ClinicScene extends MiniGame {
     }
   }
 
+  /** Big chef picked a tool for another station that can be done now: that one is the station. */
+  private selectStation(i: number) {
+    this.si = i;
+    const st = this.steps[i];
+    this.freshPlaces(st);
+    this.shown.step = `${st.tool}-${st.act}-${st.what}`;
+    this.shown.tool = st.tool;
+    this.gripped = null;
+    this.dripT = 0;
+    this.blinks = 0;
+    this.revealPlaces();
+    if (this.takesOut(st)) this.showBowl();
+  }
+
   protected move(p: Phaser.Input.Pointer) {
     if (this.care?.holding) return this.care.move(p);
+    if (this.carry && !this.carry.tool) {
+      // (carried by the finger, round 6)
+      const L = this.L;
+      this.carry.f = { x: Phaser.Math.Clamp(p.worldX, 0, L.W), y: Phaser.Math.Clamp(p.worldY, 0, L.H) };
+      this.placeCarry();
+      sway(this, this.carry.t.img, p.worldX - p.prevPosition.x, L.k);
+      return;
+    }
     const h = this.held;
     if (!h) return;
     const L = this.L;
@@ -2714,6 +3079,7 @@ export class ClinicScene extends MiniGame {
 
   protected tick(delta: number) {
     this.care?.tick(delta);
+    this.placeCarry();
     const h = this.held;
     if (!h || this.phase !== 'tool') return;
     const st = this.station;
@@ -2725,6 +3091,15 @@ export class ClinicScene extends MiniGame {
     if (this.care?.holding) return this.care.up(_p, cancelled);
     const h = this.held;
     this.held = null;
+    // (round 6) let go with something taken out: in the bowl, or beside it to pick up again
+    const c = this.carry;
+    if (c && (c.tool === null || c.tool === h?.tool)) {
+      const p = { x: c.t.img.x, y: c.t.img.y };
+      const tp = c.tool ? this.tip(c.tool) : p;
+      if (!cancelled && (this.overBowl(p) || this.overBowl(tp))) this.intoBowl(c.t);
+      else this.dropLoose(c.t, p, cancelled);
+      if (!c.tool) return;
+    }
     if (!h) return;
     const k = this.L.k;
     const t = h.tool;
@@ -2746,21 +3121,12 @@ export class ClinicScene extends MiniGame {
       const tg = thing ? this.worldOf(thing) : null;
       const tapped = h.moved < 30 * k && this.time.now - h.t0 < 450;
       const ready = st.view === 'body' ? !this.zoom : this.zoom?.id === st.view && !this.zoomBusy;
-      if (tg && ready && (tapped || this.near(this.tip(t), tg, T.reach * k * 1.4))) {
-        if (tapped) {
-          const tp = C.tip[t.id as keyof typeof C.tip];
-          this.tweens.add({
-            targets: t.img,
-            x: tg.x - (tp.x - 120) * t.img.scale,
-            y: tg.y - (tp.y - 120) * t.img.scale,
-            duration: 380,
-            ease: 'Sine.easeInOut',
-            onComplete: () => this.station === st && this.phase === 'tool' && this.give(t),
-          });
-          return;
-        }
-        return this.give(t);
+      // (round 6: a tap only shows the way, Mom's hand carries it there; it is brought by dragging)
+      if (tapped) {
+        this.hintNow();
+        return this.backToTray(t);
       }
+      if (tg && ready && this.near(this.tip(t), tg, T.reach * k * 1.4)) return this.give(t);
       if (h.moved > 40 * k) this.miss();
       return this.backToTray(t);
     }
@@ -2772,6 +3138,7 @@ export class ClinicScene extends MiniGame {
   protected lookTarget() {
     const c = this.care?.look();
     if (c) return c;
+    if (this.carry) return { x: this.carry.t.img.x, y: this.carry.t.img.y };
     if (this.held) return { x: this.held.tool.img.x, y: this.held.tool.img.y };
     return null;
   }

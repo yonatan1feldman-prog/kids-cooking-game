@@ -628,6 +628,13 @@ MOM_LINES = {
     "name-blueberry": "Blueberry!",
     "name-moon": "Moon!",
     "name-triangle": "Triangle!",
+    # The clinic, round 6, PR 1 (added 2026-10-17; Voice A only: python make_vo.py mom-a <names>): the bowl for what the
+    # tweezers and the magnet take out (research/clinic-spec-6.md section 2)
+    "vo-bowl-in": "Got it! Now pop it in the bowl.",
+    "vo-bowl-again": "Into the bowl, please!",
+    "vo-bowl-full": "Look at everything we took out!",
+    "vo-bell-back": "Here's your bell back!",
+    "vo-sting-pull": "Little bee stings. Out they come, one by one!",
 }
 SUFFIX = ""
 if len(sys.argv) > 1 and sys.argv[1] in ("mom", "mom-a"):

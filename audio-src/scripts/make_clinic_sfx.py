@@ -224,13 +224,23 @@ def wrap():
     return 0.5 * swish + 0.15 * bp(rng.standard_normal(n), 300, 900) * np.sin(np.pi * t / 0.5) ** 2
 
 
+# Added 2026-10-17 (clinic round 6): tink (the thing the tweezers took out landing in the enamel bowl: a small bright
+# metal tap, about 120 ms). Run only it: python scripts/make_clinic_sfx.py tink
+def tink():
+    n = int(0.16 * SR)
+    t = np.arange(n) / SR
+    x = sum(np.sin(2 * np.pi * f * t) * w * np.exp(-t / d) for f, w, d in ((3150, 1, .045), (4720, .5, .03), (7380, .25, .018)))
+    x *= np.minimum(1, t / 0.0015)
+    return 0.45 * x + 0.08 * bp(rng.standard_normal(n), 3000, 9000) * np.exp(-t / 0.006)
+
+
 import sys
 ONLY = sys.argv[1:]
 for name, fn in (("heartbeat", heartbeat), ("cough", cough), ("gurgle", gurgle), ("spray", spray), ("sticky", sticky),
                  ("brush", brush), ("wheeze", wheeze),
                  ("honk", honk), ("jingle", jingle), ("zing", zing),
                  ("eek", eek), ("drip", drip), ("scan", scan), ("sparkle", sparkle),
-                 ("shake", shake), ("splash", splash), ("wrap", wrap)):
+                 ("shake", shake), ("splash", splash), ("wrap", wrap), ("tink", tink)):
     if ONLY and name not in ONLY:
         continue
     finish(name, fn())
