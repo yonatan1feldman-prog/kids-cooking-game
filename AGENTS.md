@@ -233,7 +233,7 @@ src/scenes/
   MiniGame                 the frame the market and washing up share: home button, Mom, Pipa, demo / hint / help, one finger
   MarketScene / DishesScene  the market (shopping from a list) and washing up (scrub, rack by colour)
   ArtScene                 the art corner: the easel wall and five ways to draw (trace, dots, colour, mirror, steam)
-  ClinicScene              the clinic, the second world (waiting room, 8 animals and 8 children, each with her own first problem and a second one, stations of small targets in big close-ups, then her own care room next door, stickers, photo; 23 ailments, the bowl for what is taken out)
+  ClinicScene              the clinic, the second world (waiting room, 10 animals and 10 children, each with her own first problem and a second one, stations of small targets in big close-ups, then her own care room next door, stickers, photo; 23 ailments, the bowl for what is taken out)
   ClinicCare               the six care rooms the clinic slides to after a patient's problems (data in core/care.ts)
 ```
 
@@ -675,7 +675,18 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the clinic round 6 (part 2, seven ailments), the clinic round 6 (part 1, the bowl), the clinic round 5 (part 3, more challenge), the clinic round 5 (part 2, the care rooms), the farm, the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; the clinic round 6 (part 3, four patients), the clinic round 6 (part 2, seven ailments), the clinic round 6 (part 1, the bowl), the clinic round 5 (part 3, more challenge), the clinic round 5 (part 2, the care rooms), the farm, the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 0000000000000000000000000000000000000. The clinic, round 6, part 3 (four new patients, each with a problem of the teeth)
+Spec `/mnt/project-files/research/clinic-spec-6.md` section 4 (its PR 3). Branch `claude/clinic-6-patients-ngr3d9`. 20 patients now.
+- **Who:** Hazel the hippo (signature `plaque`, care polish; a huge muzzle, two lower teeth) and Chip the beaver (`candy`,
+  polish; buck teeth, a paddle tail) in `gen_animals.py` (`animal()`, pools `[...COMMON, ...TEETH, 'burrs']`); Ava, 6 (`wobbly`,
+  rest; wavy hair, a headband, a daisy dress, her mouth layers show the tilted tooth) and Omar, 5 (`braces`, polish; curls, a
+  purple hoodie, sneakers) in `gen_kids.py` (`KIDS`, pools `[...COMMON, ...DENTAL]`). 32 layers on the 600x700 frame, baked.
+- **Dances** (`ClinicScene.dance`): Hazel wiggles her bottom, Chip bounces and spins, Ava twirls twice, Omar a stepped robot dance.
+- **Voice:** vo-hi-hippo / -beaver / -ava / -omar (`make_vo.py mom-a`), not heard by a human. The visit rule is PR 2's
+  (`planVisit`: at least one problem of the teeth a visit, never two for one patient); `pickPatients` brings all 20 round in
+  seven visits. Screenshots `/mnt/project-files/research/screens-clinic6-patients/`.
+- **Needs a real child:** do the hippo and the beaver read as who they are on the phone; is Ava's tilted tooth visible.
 ### 000000000000000000000000000000000000. The clinic, round 6, part 2 (seven more ailments, five of them on the teeth)
 Jonathan: more treatments, "including dental". Spec `/mnt/project-files/research/clinic-spec-6.md` section 3 (its PR 2). Branch
 `claude/clinic-6-ailments-yer6xm`. Data in `core/clinic.ts`, play in `ClinicScene.ts`, counts `TUNING.clinic.wiggle` and the stations' `n`.
