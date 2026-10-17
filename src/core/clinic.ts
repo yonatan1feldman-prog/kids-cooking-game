@@ -206,11 +206,11 @@ export const AILMENTS: Record<AilmentId, Ailment> = {
     line: 'vo-sick-sting',
     steps: [
       [
-        { tool: 'tweezers', act: 'pull', view: 'skin', what: 'sting', n: [2, 3] },
+        { tool: 'tweezers', act: 'pull', view: 'skin', what: 'sting', n: [2, 3], line: 'vo-sting-pull' },
         { tool: 'cream', act: 'touch', view: 'skin', what: 'bite', n: [2, 3], on: 'sting', line: 'vo-tool-dab' },
       ],
       [
-        { tool: 'tweezers', act: 'pull', view: 'skin', what: 'sting', n: [2, 3] },
+        { tool: 'tweezers', act: 'pull', view: 'skin', what: 'sting', n: [2, 3], line: 'vo-sting-pull' },
         { tool: 'cream', act: 'touch', view: 'skin', what: 'bite', n: [2, 3], on: 'sting', line: 'vo-tool-dab' },
         { tool: 'icepack', act: 'clean', by: 'time', view: 'skin', what: 'skin' },
       ],

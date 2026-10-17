@@ -511,6 +511,18 @@ Same engine, voice and processing as every line above; no fix was needed. The to
 | vo-hide · vo-found-you | Oh! Someone is hiding! Can you find them? · Peekaboo! Found you! |
 | vo-tongue · vo-hold-still | One more germ is hiding behind the tongue! · Oops, a blink! Hold it still. |
 
+### New in the clinic, round 6 (the bowl for what the tweezers and the magnet take out; 5 lines)
+
+Same engine, voice and processing as every line above; vo-sting-pull and vo-bowl-full soft-limited by
+`audio-src/scripts/fix_vo_clinic6.py` (4.8 / 1.4 dB, then -18 LUFS). The effect tink (a small metal tap on enamel) is
+own work, synthesised by `audio-src/scripts/make_clinic_sfx.py`; the kidney bowl (`clinic-bowl`) is drawn by
+`assets-src/images-b-clinic/tools/gen_clinic6.py` (our own, like the rest of the clinic's art).
+
+| Key | Line |
+|---|---|
+| vo-bowl-in · vo-bowl-again · vo-bowl-full | Got it! Now pop it in the bowl. · Into the bowl, please! · Look at everything we took out! |
+| vo-bell-back · vo-sting-pull | Here's your bell back! · Little bee stings. Out they come, one by one! |
+
 ### New in the recipe challenges, PR A (soap first, the pour order, Mom's oven number, Mom's picture, find the tool; 14 lines)
 
 Same engine, voice and processing as every line above; no fix was needed (-18.0 to -18.9 LUFS).

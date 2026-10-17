@@ -144,6 +144,8 @@ export type VoiceKey =
   | 'vo-care-bath' | 'vo-care-duck' | 'vo-care-rinse' | 'vo-care-towel' | 'vo-care-wrap' | 'vo-care-heart' | 'vo-care-paste'
   | 'vo-care-polish' | 'vo-care-shiny' | 'vo-care-eyes' | 'vo-care-chart' | 'vo-care-glasses' | 'vo-care-rest' | 'vo-care-lamp'
   | 'vo-care-wake' | 'vo-care-order'
+  // the clinic, round 6: the bowl for what the tweezers and the magnet take out
+  | 'vo-bowl-in' | 'vo-bowl-again' | 'vo-bowl-full' | 'vo-bell-back' | 'vo-sting-pull'
   // more challenge in the games that are not cooking (research/challenge-spec.md, PR B)
   | 'vo-not-ripe' | 'vo-one-more-seed' | 'vo-sort-basket' | 'vo-find-caterpillar' | 'vo-caterpillar-found' | 'vo-caterpillar-bye'
   | 'vo-weigh' | 'vo-too-heavy' | 'vo-need-green' | 'vo-need-tree' | 'vo-need-round' | 'vo-is-green' | 'vo-is-tree' | 'vo-is-round'

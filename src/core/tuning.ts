@@ -380,6 +380,9 @@ export const TUNING = {
     // come fast (both levels: how long it stays shut, how fast is "fast" in units/ms x k, how many blinks a station),
     // the tickle of a sponge on her tummy (ms between giggles)
     hideChance: [0, 0.7], blinkMs: 750, blinkSpeed: 1.6, blinks: [1, 2], tickleGapMs: 1100,
+    // round 6, the bowl: how near its middle a thing let go lands in it (x k), how many places it has, whether it glows
+    // while something is carried to it [easy, hard]
+    bowlR: 220, bowlSlots: 6, bowlGlow: [true, false],
   },
   /**
    * The care rooms next door (round 5, part 2; scenes/ClinicCare.ts): the third thing for every patient, in her own room

@@ -675,7 +675,30 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the clinic round 5 (part 3, more challenge), the clinic round 5 (part 2, the care rooms), the farm, the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; the clinic round 6 (part 1, the bowl), the clinic round 5 (part 3, more challenge), the clinic round 5 (part 2, the care rooms), the farm, the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 00000000000000000000000000000000000. The clinic, round 6, part 1 (the bowl for what the tweezers take out)
+Jonathan: "whenever something is taken out with the tweezers, there must be a bowl to put it in". Spec
+`/mnt/project-files/research/clinic-spec-6.md` section 2 (this is its PR 1). Branch `claude/clinic-6-bowl-tj0tc2`.
+- **The rule:** every station that takes something out of her (`takesOut(st)`: today `act: 'pull'`, the tweezers and the
+  magnet: the eye's speck, the ear's ladybird, the splinter in a paw or a hand, the bee stings, the swallowed bell; PR 2's
+  candy, burrs and wobbly tooth hook in there) shows `clinic-bowl` (a steel-blue kidney bowl, `gen_clinic6.py`) at the
+  close-up's lower left (`room.bowl`) from the station's start until the problem is fixed (`showBowl` / `clearBowl`).
+- **The flow:** the pull as before; at `pull` / `magnetPull` the thing leaves the close-up (`takeOut`) and rides on the
+  tool's tips (`carry`, `pickUp`; easy: the bowl glows, `bowlGlow`). Let go over the bowl (`bowlR` x k from its middle, or
+  on its picture): it hops in (`intoBowl`: `tink`, stars, Mom counts when the station has more than one, the thing is done).
+  Let go anywhere else (`dropLoose`): it lies there with a soft glow, a miss, vo-bowl-again once a station; the tool or a
+  bare finger picks it up again (`looseOf`); the station waits for it. A rotation or a lost touch drops it the same way,
+  without the miss. At the station's end (`bowlStationDone`): 2+ things, vo-bowl-full; the ladybird flies home out of the
+  bowl; the bell hops back to her and stays beside her hand or foot (vo-bell-back). vo-bowl-in once a visit, the first
+  carry. `target()` is the bowl while carrying and a loose thing first, so Mom's hint (`pullPath`) and the harness follow it;
+  her help takes ONE thing out and into the bowl (`finishOne`), then the tool is hers again; `finishStation` bowls the rest.
+- Also: a give tool (spoon, cup, plaster...) is brought by dragging; a tap shows Mom's hand (`hintNow`). The stings have
+  their own line (vo-sting-pull).
+- Voice: 5 lines (`make_vo.py mom-a`; two soft-limited by `fix_vo_clinic6.py`); `vo-into-bowl` is the salad's line, so
+  this one is `vo-bowl-in`. Not heard by a human. Harness: `__clinicPlay` carries to `m.bowlAt()`; `wrong` lets the first of
+  each station go away from the bowl, `finger` picks it up by hand; `mid('carry X')` / `mid('loose X')`;
+  `shown.bowled / carried / loose`. Screenshots: `/mnt/project-files/research/screens-clinic6-bowl/`.
+- **Needs a real child:** does she carry it to the bowl or let go on the spot? Is the bowl big enough to hit (`bowlR`)?
 ### 0000000000000000000000000000000000. The clinic, round 5, part 3 (more challenge, mostly on hard)
 Spec `/mnt/project-files/research/clinic-spec-5.md` section 5, brief `research/clinic-5-briefs.md` (PR 3). Branch
 `claude/clinic-5-challenge-1fjxiw`. All in `ClinicScene.ts` (station code, the waiting room) and `TUNING.clinic`.
