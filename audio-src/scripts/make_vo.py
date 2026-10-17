@@ -535,6 +535,11 @@ MOM_LINES = {
     "vo-hi-noah": "Hi, Noah! Come on in.",
     "vo-hi-zoe": "Hello, Zoe! In you come.",
     "vo-hi-max": "Hi, Max! Come on in.",
+    # The clinic, round 6 (added 2026-10-17; python make_vo.py mom-a <names>): four more patients
+    "vo-hi-hippo": "Hello, Hazel! Come in, big hippo.",
+    "vo-hi-beaver": "Hi, Chip! Come on in.",
+    "vo-hi-ava": "Hello, Ava! Come in.",
+    "vo-hi-omar": "Hi, Omar! Come on in.",
     "vo-sick-throat": "Ooh, a scratchy throat. Say aah!",
     "vo-sick-sunburn": "Too much sun! Let's cool you down.",
     "vo-tool-honey": "A spoon of honey. Sweet!",

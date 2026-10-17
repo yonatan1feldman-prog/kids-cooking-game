@@ -2887,6 +2887,32 @@ export class ClinicScene extends MiniGame {
       case 'max':
         this.tweens.add({ targets: box, y: r.y - 100 * s, scaleY: s * 1.06, duration: 230, yoyo: true, repeat: 2, ease: 'Quad.easeOut', onComplete: back });
         break;
+      // round 6: Hazel wiggles her bottom and bounces, Chip taps his tail twice and spins, Ava twirls with her arms out,
+      // Omar does a robot dance (stiff little steps and hops)
+      case 'hippo':
+        this.tweens.add({ targets: box, angle: { from: -6, to: 6 }, duration: 140, yoyo: true, repeat: 4, ease: 'Sine.easeInOut', onComplete: back });
+        this.tweens.add({ targets: box, scaleY: s * 0.94, scaleX: s * 1.05, duration: 280, yoyo: true, repeat: 1, ease: 'Sine.easeInOut' });
+        break;
+      case 'beaver':
+        this.tweens.add({ targets: box, y: r.y + 12 * s, scaleY: s * 0.95, duration: 110, yoyo: true, repeat: 1, ease: 'Quad.easeOut' });
+        this.tweens.add({ targets: box, scaleX: { from: s, to: -s }, duration: 240, yoyo: true, delay: 520, ease: 'Sine.easeInOut', onComplete: back });
+        break;
+      case 'ava':
+        this.tweens.add({ targets: box, scaleX: { from: s, to: -s }, duration: 320, yoyo: true, repeat: 1, ease: 'Sine.easeInOut', onComplete: back });
+        this.tweens.add({ targets: box, y: r.y - 24 * s, angle: { from: -5, to: 5 }, duration: 320, yoyo: true, repeat: 1, ease: 'Sine.easeInOut' });
+        break;
+      case 'omar':
+        this.tweens.chain({
+          targets: box,
+          tweens: [
+            { angle: -10, y: r.y - 30 * s, duration: 150, ease: 'Stepped', easeParams: [2] },
+            { angle: 10, y: r.y, duration: 150, ease: 'Stepped', easeParams: [2] },
+            { angle: -10, y: r.y - 30 * s, duration: 150, ease: 'Stepped', easeParams: [2] },
+            { angle: 0, y: r.y, duration: 150, ease: 'Stepped', easeParams: [2] },
+          ],
+          onComplete: back,
+        });
+        break;
       default:
         this.tweens.add({ targets: box, y: r.y - 70 * s, duration: 260, yoyo: true, repeat: 1, ease: 'Quad.easeOut' });
         this.tweens.add({ targets: box, angle: 360, duration: 1040, ease: 'Sine.easeInOut', onComplete: back });

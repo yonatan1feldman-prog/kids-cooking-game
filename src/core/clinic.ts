@@ -12,7 +12,8 @@ import { GUESTS } from './guests';
  */
 export type PatientId =
   | 'turtle' | 'penguin' | 'giraffe' | 'pipa' | 'lily' | 'leo' | 'mia' | 'sam'
-  | 'cat' | 'panda' | 'bunny' | 'puppy' | 'ruby' | 'noah' | 'zoe' | 'max';
+  | 'cat' | 'panda' | 'bunny' | 'puppy' | 'ruby' | 'noah' | 'zoe' | 'max'
+  | 'hippo' | 'beaver' | 'ava' | 'omar';
 export type AilmentId =
   | 'fever' | 'cough' | 'tummy' | 'tooth' | 'knee' | 'paw' | 'spots' | 'cold' | 'toy' | 'eye' | 'ear' | 'sting' | 'bites' | 'dirty'
   | 'throat' | 'sunburn'
@@ -450,7 +451,7 @@ const guest = (id: 'turtle' | 'penguin' | 'giraffe') => GUESTS.find((g) => g.id 
  * prints their points): they sit on the bench, knees forward, hands in the lap. `hy` is the head's centre in the frame
  * (Mia, the smallest, has a bigger head for her size and her body is drawn at `body` around her feet).
  */
-const KIDS: { id: 'lily' | 'leo' | 'mia' | 'sam' | 'ruby' | 'noah' | 'zoe' | 'max'; rate: number; hy: number; body: number; skin: number; signature: AilmentId; care: CareId }[] = [
+const KIDS: { id: 'lily' | 'leo' | 'mia' | 'sam' | 'ruby' | 'noah' | 'zoe' | 'max' | 'ava' | 'omar'; rate: number; hy: number; body: number; skin: number; signature: AilmentId; care: CareId }[] = [
   { id: 'lily', rate: 1.25, hy: 240, body: 1, skin: 0xf8d5bc, signature: 'eye', care: 'eyes' },
   { id: 'leo', rate: 1.05, hy: 240, body: 1, skin: 0x8e5a3b, signature: 'knee', care: 'bandage' },
   { id: 'mia', rate: 1.45, hy: 262, body: 0.86, skin: 0xf4d3b2, signature: 'ear', care: 'rest' },
@@ -460,6 +461,9 @@ const KIDS: { id: 'lily' | 'leo' | 'mia' | 'sam' | 'ruby' | 'noah' | 'zoe' | 'ma
   { id: 'noah', rate: 1.0, hy: 240, body: 1, skin: 0xf2cda8, signature: 'cough', care: 'medicine' },
   { id: 'zoe', rate: 1.4, hy: 240, body: 1, skin: 0x6e4128, signature: 'sunburn', care: 'bath' },
   { id: 'max', rate: 1.15, hy: 240, body: 1, skin: 0xe0a878, signature: 'throat', care: 'rest' },
+  // round 6 (gen_kids.py): Ava with her wobbly baby tooth, Omar in his purple hoodie (both dental patients)
+  { id: 'ava', rate: 1.22, hy: 240, body: 1, skin: 0xe9c29a, signature: 'wobbly', care: 'rest' },
+  { id: 'omar', rate: 1.08, hy: 240, body: 1, skin: 0xb07850, signature: 'braces', care: 'polish' },
 ];
 
 function kid(c: (typeof KIDS)[number]): Patient {
@@ -495,7 +499,7 @@ function kid(c: (typeof KIDS)[number]): Patient {
 }
 
 /** An animal patient of round 5 (gen_animals.py prints her points): layers `animal-<id>-*`. */
-function animal(id: 'cat' | 'panda' | 'bunny' | 'puppy', o: Omit<Patient, 'id' | 'def' | 'hello' | 'ailments'>): Patient {
+function animal(id: 'cat' | 'panda' | 'bunny' | 'puppy' | 'hippo' | 'beaver', o: Omit<Patient, 'id' | 'def' | 'hello' | 'ailments'>): Patient {
   const L = (part: string) => `animal-${id}-${part}` as ImageKey;
   return {
     id,
@@ -621,6 +625,31 @@ export const PATIENTS: readonly Patient[] = [
     signature: 'bites',
     care: 'bath',
   }),
+  // round 6 (gen_animals.py): Hazel the hippo with her huge smile, Chip the beaver with his big front teeth
+  animal('hippo', {
+    rate: 0.8,
+    forehead: { x: 300, y: 226 },
+    cheeks: [{ x: 166, y: 424 }, { x: 434, y: 424 }],
+    chest: [{ x: 300, y: 548 }, { x: 246, y: 600 }, { x: 354, y: 600 }],
+    nose: { x: 300, y: 360 },
+    foot: { x: 418, y: 650 },
+    spots: [{ x: 180, y: 398 }, { x: 420, y: 398 }, { x: 196, y: 560 }, { x: 404, y: 560 }, { x: 300, y: 610 }, { x: 300, y: 220 }, { x: 244, y: 530 }, { x: 356, y: 640 }],
+    tint: { skin: 0xb6a8c8, tummy: 0xd4cae0 },
+    signature: 'plaque',
+    care: 'polish',
+  }),
+  animal('beaver', {
+    rate: 1.2,
+    forehead: { x: 300, y: 254 },
+    cheeks: [{ x: 210, y: 378 }, { x: 390, y: 378 }],
+    chest: [{ x: 300, y: 540 }, { x: 254, y: 596 }, { x: 346, y: 596 }],
+    nose: { x: 300, y: 370 },
+    foot: { x: 404, y: 662 },
+    spots: [{ x: 222, y: 384 }, { x: 378, y: 384 }, { x: 196, y: 560 }, { x: 404, y: 560 }, { x: 300, y: 610 }, { x: 300, y: 250 }, { x: 256, y: 540 }, { x: 344, y: 624 }],
+    tint: { skin: 0xa0663a, tummy: 0xe8c9a0 },
+    signature: 'candy',
+    care: 'polish',
+  }),
   ...KIDS.map(kid),
 ];
 
@@ -636,7 +665,7 @@ const SEEN_KEY = 'cooking.clinic.seen';
 
 /**
  * Who comes this time (round 5): the ones who have not come for the longest (shuffled among equals), at least one child,
- * so all 16 come within about six visits. Remembered on the device only; any storage failure just means a random visit.
+ * so all 20 come within about seven visits. Remembered on the device only; any storage failure just means a random visit.
  */
 export function pickPatients(n: number, rnd: () => number = Math.random): Patient[] {
   let seen: string[] = [];

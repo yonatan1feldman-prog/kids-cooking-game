@@ -136,6 +136,7 @@ export type VoiceKey =
   | FarmVoiceKey
   // the clinic, round 5: eight more patients, the scratchy throat, the sunburn
   | 'vo-hi-cat' | 'vo-hi-panda' | 'vo-hi-bunny' | 'vo-hi-puppy' | 'vo-hi-ruby' | 'vo-hi-noah' | 'vo-hi-zoe' | 'vo-hi-max'
+  | 'vo-hi-hippo' | 'vo-hi-beaver' | 'vo-hi-ava' | 'vo-hi-omar'
   | 'vo-sick-throat' | 'vo-sick-sunburn' | 'vo-tool-honey' | 'vo-tool-aloe' | 'vo-tool-hat' | 'vo-tickles'
   // the clinic, round 5, more challenge: hide and seek, the germ behind the tongue, the blink
   | 'vo-hide' | 'vo-found-you' | 'vo-tongue' | 'vo-hold-still'
