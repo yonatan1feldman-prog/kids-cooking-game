@@ -6,6 +6,9 @@
 # - Bao the panda: black and white, a round tummy, a little honey pot beside him (only a picture).
 # - Clover the bunny: peach and cream, one ear flopped over, two front teeth.
 # - Biscuit the puppy: golden brown, floppy ears, his tongue out in a smile.
+# Round 6 (research/clinic-spec-6.md section 4): two more, both dental patients.
+# - Hazel the hippo: lavender grey, round, tiny ears, a huge smiling mouth with two lower teeth, pink cheeks.
+# - Chip the beaver: chestnut brown, a flat criss-cross tail, two big front teeth, a little stick in his paw.
 # Run: python tools/gen_animals.py [names...]   (writes animal-<name>-*.svg into images-b-clinic/; then copy them into
 # public/assets/images and bake the WebPs). The frame points the game uses are printed at the end (core/clinic.ts).
 import math, os, sys
@@ -26,6 +29,10 @@ PANDA = dict(white="#FBF8F2", white_d="#E4DED2", black="#38302E", black_l="#5A50
              jar="#EEB23C", jar_d="#C98A22", lid="#E2533F", mouth="#6E2E26", brow="#38302E")
 BUNNY = dict(fur="#F2CDA8", fur_d="#E0B088", fur_l="#FBE6D2", cream="#FFF6EA", ear="#F3A6A0", nose="#E8838A",
              tooth="#FFFDF7", mouth="#6E2E26", brow="#C99878")
+HIPPO = dict(skin="#B6A8C8", skin_d="#9585AA", skin_l="#D4CAE0", muzzle="#C7BAD8", toe="#ECE6F2", ear="#E8A8B8",
+             nostril="#7A6890", tooth="#FFFDF7", mouth="#6E2E26", brow="#7A6890")
+BEAVER = dict(fur="#A0663A", fur_d="#7E4A26", fur_l="#C48A58", cream="#E8C9A0", tail="#5E4636", tail_d="#463224",
+              nose="#3A2620", tooth="#FFF8E6", stick="#8A6A40", leaf="#7CC47A", mouth="#6E2E26", brow="#6A3E20")
 PUP = dict(fur="#D9A25E", fur_d="#B98243", fur_l="#EBC48C", ear="#8E5A30", ear_l="#A86E3A", cream="#F5DDB4",
            nose="#2E201B", collar="#4C8FD0", tag="#EEB23C", tongue="#EE7A70", mouth="#6E2E26", brow="#8E5A30")
 
@@ -189,6 +196,78 @@ def pup_body():
     return svg(W, H, defs(p, 211), G("".join(L), p + "gr"))
 
 
+# ---------------- Hazel the hippo (round 6) ----------------
+HIPPO_EYES = dict(xs=(246, 354), y=280, rx=25, ry=30, lash=True, brow=HIPPO["brow"])
+HIPPO_MOUTH = dict(x=300, y=430, s=1.0, cheek_dx=122, face=HIPPO["muzzle"])
+
+
+def hippo_body():
+    c, p = HIPPO, "ahip-bd-"
+    cut, sh = p + "cut", p + "sh"
+    L = [shadow(p, 200)]
+    # stubby legs with pale toenails, the big round body, the lighter tummy, short arms
+    for sgn, sd in ((-1, 1), (1, 2)):
+        x = 300 + sgn * 118
+        L.append(G(P(wob(x, 642, 70, 44, .04, sd), c["skin"]) + "".join(C(x + dx, 668, 10, c["toe"]) for dx in (-26, 0, 26)), cut))
+    L.append(G(P(wob(300, 556, 176, 132, .02, 3), c["skin"]), cut))
+    L.append(P(wob(300, 584, 108, 92, .03, 4), c["skin_l"], ' opacity="0.75"'))
+    for sgn, sd in ((-1, 5), (1, 6)):
+        x = 300 + sgn * 150
+        L.append(G(P(wob(x, 560, 40, 62, .05, sd, 18, -sgn * 18), c["skin"]) + "".join(C(x + sgn * 4 + dx, 616, 7, c["toe"]) for dx in (-12, 6)), sh))
+    # the head: tiny round ears up top, the dome with the eyes, the very wide muzzle with its nostrils
+    for sgn, sd in ((-1, 7), (1, 8)):
+        x = 300 + sgn * 98
+        L.append(G(C(x, 210, 26, c["skin"]) + C(x, 212, 13, c["ear"]), cut))
+    L.append(G(P(wob(300, 292, 134, 100, .02, 9), c["skin"]), cut))
+    L.append(P(wob(276, 248, 76, 40, .05, 10), c["skin_l"], ' opacity="0.6"'))
+    L.append(G(P(wob(300, 418, 176, 104, .02, 11), c["muzzle"]), sh))
+    L.append(P(wob(276, 360, 104, 30, .05, 12), c["skin_l"], ' opacity="0.5"'))
+    for sgn in (-1, 1):
+        L.append(E(300 + sgn * 44, 360, 13, 9, c["nostril"]))
+    L.append(E(166, 424, 30, 18, CHEEK, ' opacity="0.8"') + E(434, 424, 30, 18, CHEEK, ' opacity="0.8"'))
+    return svg(W, H, defs(p, 221), G("".join(L), p + "gr"))
+
+
+# ---------------- Chip the beaver (round 6) ----------------
+BEAVER_EYES = dict(xs=(250, 350), y=314, rx=27, ry=33, lash=False, brow=BEAVER["brow"])
+BEAVER_MOUTH = dict(x=300, y=404, s=.6, cheek_dx=96, face=BEAVER["cream"])
+
+
+def beaver_body():
+    c, p = BEAVER, "abea-bd-"
+    cut, sh = p + "cut", p + "sh"
+    L = [shadow(p, 190)]
+    # the flat paddle tail behind him on the right, criss-crossed
+    tail = "M392,646 Q470,676 540,640 Q580,610 560,566 Q530,532 474,548 Q414,566 392,646Z"
+    L.append(f'<clipPath id="{p}tl"><path d="{tail}"/></clipPath>')
+    hatch = "".join(stroke(f"M{x},520 L{x + 140},690", c["tail_d"], 5) + stroke(f"M{x + 140},520 L{x},690", c["tail_d"], 5) for x in range(340, 600, 30))
+    L.append(G(P(tail, c["tail"]) + G(hatch, None, f' clip-path="url(#{p}tl)" opacity="0.8"'), cut))
+    # big dark feet, the body, the cream tummy, front paws (the right one holds his stick)
+    for sgn, sd in ((-1, 1), (1, 2)):
+        x = 300 + sgn * 104
+        L.append(G(P(wob(x, 662, 64, 24, .04, sd), c["tail"]) + "".join(stroke(f"M{x + dx},650 L{x + dx},674", c["tail_d"], 3, ' opacity="0.6"') for dx in (-24, 0, 24)), cut))
+    L.append(G(P(wob(300, 566, 144, 124, .02, 3), c["fur"]), cut))
+    L.append(P(wob(300, 588, 86, 86, .03, 4), c["cream"]))
+    L.append(G(stroke("M404,642 L470,520", c["stick"], 13) + stroke("M452,552 q20,-10 30,-34", c["stick"], 7)
+               + P(wob(488, 508, 22, 12, .1, 33, 14, -40), c["leaf"]) + stroke("M474,520 L500,498", mix(c["leaf"], "#2E4A20", .4), 3), sh))
+    for sgn, sd in ((-1, 6), (1, 7)):
+        x = 300 + sgn * 56
+        L.append(G(P(wrect(x - 26, 586, 52, 70, 22, 1, sd), c["fur"]) + "".join(stroke(f"M{x + dx},{646} L{x + dx},{656}", c["fur_d"], 4) for dx in (-9, 9)), sh))
+    L.append(G(P(wob(420, 598, 30, 26, .06, 35), c["fur"]) + stroke("M406,590 q14,10 28,0", c["fur_d"], 4, ' opacity="0.7"'), sh))
+    # the head: little round ears, the face, a cream muzzle and a dark nose
+    for sgn in (-1, 1):
+        x = 300 + sgn * 112
+        L.append(G(C(x, 232, 28, c["fur"]) + C(x, 234, 14, c["fur_d"]), cut))
+    L.append(G(P(wob(300, 330, 142, 118, .02, 8), c["fur"]), cut))
+    L.append(P(wob(278, 280, 82, 44, .05, 9), c["fur_l"], ' opacity="0.55"'))
+    L.append("".join(stroke(f"M{x},{214} Q{x + 4},{232} {x},{246}", c["fur_d"], 7, ' opacity="0.6"') for x in (286, 314)))
+    L.append(G(P(wob(300, 394, 72, 48, .04, 10), c["cream"]), sh))
+    L.append(E(210, 378, 24, 15, CHEEK, ' opacity="0.7"') + E(390, 378, 24, 15, CHEEK, ' opacity="0.7"'))
+    L.append(G(P(wob(300, 370, 24, 16, .05, 11), c["nose"]) + E(292, 365, 8, 4, "#FFFFFF", ' opacity="0.6"'), sh))
+    L.append("".join(stroke(f"M{300 + s * 44},{y} L{300 + s * 104},{y + dy}", c["fur_d"], 3, ' opacity="0.7"') for s in (-1, 1) for y, dy in ((390, -8), (402, 6))))
+    return svg(W, H, defs(p, 231), G("".join(L), p + "gr"))
+
+
 # ---------------- the mouths (Pipa's soft mouths, moved and sized; the bunny's teeth, the puppy's tongue) ----------------
 def mouth(kind, c, m, name, extra=""):
     p = f"a{name[:3]}-m{kind[0]}-"
@@ -196,6 +275,10 @@ def mouth(kind, c, m, name, extra=""):
         d = "M252,394 Q300,408 348,394 Q360,392 358,406 Q350,474 300,476 Q250,474 242,406 Q240,392 252,394Z"
         inner = (f'<clipPath id="{p}c"><path d="{d}"/></clipPath>'
                  + G(P(d, c["mouth"]) + G(E(300, 482, 46, 32, "#EE7A70"), None, f' clip-path="url(#{p}c)"'), p + "sh"))
+        if extra == "hippo":   # two lower teeth standing up from the bottom lip
+            inner += G(P("M262,470 L264,440 Q272,434 280,440 L282,472Z", c["tooth"]) + P("M318,472 L320,440 Q328,434 336,440 L338,470Z", c["tooth"]), p + "sh")
+        if extra == "buck":
+            inner += G(P("M278,398 L299,400 L299,438 Q288,444 278,436Z", c["tooth"]) + P("M301,400 L322,398 L322,436 Q312,444 301,438Z", c["tooth"]), p + "sh")
         if extra == "teeth":
             inner += G(P("M282,398 L298,400 L298,426 Q290,430 282,424Z", c["tooth"]) + P("M302,400 L318,398 L318,424 Q310,430 302,426Z", c["tooth"]), p + "sh")
     elif kind == "closed":
@@ -203,6 +286,13 @@ def mouth(kind, c, m, name, extra=""):
         if extra == "teeth":   # a little "w" and two front teeth under it
             inner = G(stroke("M258,396 Q278,414 300,398 Q322,414 342,396", c["mouth"], 10) + P("M280,404 L298,402 L298,438 Q288,442 280,436Z", c["tooth"])
                       + P("M302,402 L320,404 L320,436 Q312,442 302,438Z", c["tooth"]) + stroke("M300,402 L300,438", "#E4DDD0", 3), p + "sh")
+        elif extra == "hippo":   # a huge happy smile with two lower teeth
+            d = "M236,392 Q300,414 364,392 Q374,390 370,402 Q352,446 300,448 Q248,446 230,402 Q226,390 236,392Z"
+            inner = G(P(d, c["mouth"]) + E(300, 438, 30, 9, "#DC6C66") + P("M262,442 L264,420 Q271,414 278,420 L280,444Z", c["tooth"])
+                      + P("M320,444 L322,420 Q329,414 336,420 L338,442Z", c["tooth"]), p + "sh")
+        elif extra == "buck":   # a smile with two big front teeth over the lip
+            inner = G(stroke("M256,394 Q278,416 300,400 Q322,416 344,394", c["mouth"], 10) + P("M278,404 L299,402 L299,446 Q288,452 278,444Z", c["tooth"])
+                      + P("M301,402 L322,404 L322,444 Q312,452 301,446Z", c["tooth"]) + stroke("M300,404 L300,446", "#E4DDD0", 3), p + "sh")
         elif extra == "tongue":   # a happy pant, the tongue out
             inner = G(P(d, c["mouth"]) + P("M276,418 Q300,428 324,418 Q330,470 300,476 Q270,470 276,418Z", c["tongue"]) + stroke("M300,428 L300,460", mix(c["tongue"], "#3A2216", .25), 4, ' opacity="0.7"'), p + "sh")
         else:
@@ -221,6 +311,8 @@ ANIMALS = {
     "panda": (panda_body, PANDA, PANDA_EYES, PANDA_MOUTH, ""),
     "bunny": (bunny_body, BUNNY, BUNNY_EYES, BUNNY_MOUTH, "teeth"),
     "puppy": (pup_body, PUP, PUP_EYES, PUP_MOUTH, "tongue"),
+    "hippo": (hippo_body, HIPPO, HIPPO_EYES, HIPPO_MOUTH, "hippo"),
+    "beaver": (beaver_body, BEAVER, BEAVER_EYES, BEAVER_MOUTH, "buck"),
 }
 
 # The frame points the game uses (core/clinic.ts): forehead, cheeks, nose, chest (3), a front paw (the splinter, the
@@ -234,6 +326,10 @@ POINTS = {
                   foot=(404, 664), spots=((220, 384), (380, 384), (196, 560), (404, 560), (300, 610), (300, 262), (258, 540), (342, 620))),
     "puppy": dict(forehead=(300, 252), cheeks=((214, 380), (386, 380)), nose=(300, 370), chest=((300, 540), (254, 590), (346, 590)),
                   foot=(354, 650), spots=((226, 386), (374, 386), (196, 560), (404, 560), (300, 600), (300, 248), (250, 530), (350, 620))),
+    "hippo": dict(forehead=(300, 226), cheeks=((166, 424), (434, 424)), nose=(300, 360), chest=((300, 548), (246, 600), (354, 600)),
+                  foot=(418, 650), spots=((180, 398), (420, 398), (196, 560), (404, 560), (300, 610), (300, 220), (244, 530), (356, 640))),
+    "beaver": dict(forehead=(300, 254), cheeks=((210, 378), (390, 378)), nose=(300, 370), chest=((300, 540), (254, 596), (346, 596)),
+                   foot=(404, 662), spots=((222, 384), (378, 384), (196, 560), (404, 560), (300, 610), (300, 250), (256, 540), (344, 624))),
 }
 
 

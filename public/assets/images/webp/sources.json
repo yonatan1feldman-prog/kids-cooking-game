@@ -1,4 +1,44 @@
 {
+ "animal-beaver-body": {
+  "sha1": "11ff579912ea4870528820675e6f18bb98efb2b7",
+  "w": 450,
+  "h": 525
+ },
+ "animal-beaver-eyes-blink": {
+  "sha1": "81fa5ca3bf5526bc33b06b98a7c9ea683559ecff",
+  "w": 450,
+  "h": 525
+ },
+ "animal-beaver-eyes-happy": {
+  "sha1": "ffc1dac13c2a0b244674413abd5d37f97c9cf082",
+  "w": 450,
+  "h": 525
+ },
+ "animal-beaver-eyes-open": {
+  "sha1": "30a17018178efd4b06066d61fa0a67f7db1cdaeb",
+  "w": 450,
+  "h": 525
+ },
+ "animal-beaver-eyes-surprised": {
+  "sha1": "b4384a14318e76dbe534285c5b76e90a05657464",
+  "w": 450,
+  "h": 525
+ },
+ "animal-beaver-mouth-chew": {
+  "sha1": "99e67fe33dfad06eea1a6e6498c2bb3c82550c2d",
+  "w": 450,
+  "h": 525
+ },
+ "animal-beaver-mouth-closed": {
+  "sha1": "ca328ed3e7f3150b0aa7394ad8be96af7ae887bc",
+  "w": 450,
+  "h": 525
+ },
+ "animal-beaver-mouth-open": {
+  "sha1": "72b48b3ec7c980b376b8b8312d1db6414f9a795c",
+  "w": 450,
+  "h": 525
+ },
  "animal-bunny-body": {
   "sha1": "edb25a25080639ed4ff31582a077c8ac355b5dc1",
   "w": 450,
@@ -76,6 +116,46 @@
  },
  "animal-cat-mouth-open": {
   "sha1": "8dd27be98bc2e35e4cf97fe34ecbe1ada081a4d5",
+  "w": 450,
+  "h": 525
+ },
+ "animal-hippo-body": {
+  "sha1": "124b4dfb9f38e7f4587b163f8905375dd188f52d",
+  "w": 450,
+  "h": 525
+ },
+ "animal-hippo-eyes-blink": {
+  "sha1": "791e25e53725d77ff440025ebff9b84a08e8ebe5",
+  "w": 450,
+  "h": 525
+ },
+ "animal-hippo-eyes-happy": {
+  "sha1": "d20b7b027f80130a5fe452bacaabedcfe3565c7c",
+  "w": 450,
+  "h": 525
+ },
+ "animal-hippo-eyes-open": {
+  "sha1": "7fb26fb012d1a3ed723630e8d746f9610ad5eff8",
+  "w": 450,
+  "h": 525
+ },
+ "animal-hippo-eyes-surprised": {
+  "sha1": "007e41f178922bfe7acd4fcf17a7baff539a45cf",
+  "w": 450,
+  "h": 525
+ },
+ "animal-hippo-mouth-chew": {
+  "sha1": "aa76e73cefc4a92186f9b06683c4c26a7a4f91f5",
+  "w": 450,
+  "h": 525
+ },
+ "animal-hippo-mouth-closed": {
+  "sha1": "9400cdad379f88c442ad41a2dafa0f9edab3f106",
+  "w": 450,
+  "h": 525
+ },
+ "animal-hippo-mouth-open": {
+  "sha1": "6bb57cfa3b2f8aef82c250e9257e9ec335f1d6c1",
   "w": 450,
   "h": 525
  },
@@ -1969,6 +2049,46 @@
   "w": 120,
   "h": 160
  },
+ "kid-ava-body": {
+  "sha1": "5ece0230d6582b268c13c39794a0e10cc16cffdc",
+  "w": 450,
+  "h": 525
+ },
+ "kid-ava-eyes-blink": {
+  "sha1": "7be3f29ad8731b41b5bfe9a4e16cac91cd998fb9",
+  "w": 450,
+  "h": 525
+ },
+ "kid-ava-eyes-happy": {
+  "sha1": "f1039111a9a734bd8db1639e6184320361c1f93c",
+  "w": 450,
+  "h": 525
+ },
+ "kid-ava-eyes-open": {
+  "sha1": "02d04b68e7a1eabe74ebc5dcee5813de082be46d",
+  "w": 450,
+  "h": 525
+ },
+ "kid-ava-eyes-surprised": {
+  "sha1": "31790098dfd3511b9614d079091efc2cc35d37e1",
+  "w": 450,
+  "h": 525
+ },
+ "kid-ava-mouth-chew": {
+  "sha1": "a23f63991c1c5f43308b8a168352a28b6f7e6ee4",
+  "w": 450,
+  "h": 525
+ },
+ "kid-ava-mouth-closed": {
+  "sha1": "64ffe22a39d38033509a3ad76aaff5b799f70906",
+  "w": 450,
+  "h": 525
+ },
+ "kid-ava-mouth-open": {
+  "sha1": "cc29b4e59c9dc943527c7ea1ec6ae652db5b5ad7",
+  "w": 450,
+  "h": 525
+ },
  "kid-hands": {
   "sha1": "2d9e556aeb9a9b886e1b5407235c5367c7f2e416",
   "w": 600,
@@ -2171,6 +2291,46 @@
  },
  "kid-noah-mouth-open": {
   "sha1": "e8f09368ec90093d4d316552769f49b9bb346f0e",
+  "w": 450,
+  "h": 525
+ },
+ "kid-omar-body": {
+  "sha1": "e61835af81087f6bdfae81d938b624a36eea95cb",
+  "w": 450,
+  "h": 525
+ },
+ "kid-omar-eyes-blink": {
+  "sha1": "ddd6220dfc3c14659d9190c2272e11e87ab31e1c",
+  "w": 450,
+  "h": 525
+ },
+ "kid-omar-eyes-happy": {
+  "sha1": "38d37d0996eae471b8efb42eb2d26012b7528472",
+  "w": 450,
+  "h": 525
+ },
+ "kid-omar-eyes-open": {
+  "sha1": "207533678f393e2a309163f4ea1a4e7650e484f2",
+  "w": 450,
+  "h": 525
+ },
+ "kid-omar-eyes-surprised": {
+  "sha1": "0d8340165810e76d73b1a225ee6eae3c9debc1db",
+  "w": 450,
+  "h": 525
+ },
+ "kid-omar-mouth-chew": {
+  "sha1": "e99ebb3154d5480a82d8bd32447d7de346cb15e6",
+  "w": 450,
+  "h": 525
+ },
+ "kid-omar-mouth-closed": {
+  "sha1": "39fdd5e458e45f67f1217a0bfa90e1ac95e1ebec",
+  "w": 450,
+  "h": 525
+ },
+ "kid-omar-mouth-open": {
+  "sha1": "4db32ae7fb10997188e1310091abedf8f13e644c",
   "w": 450,
   "h": 525
  },

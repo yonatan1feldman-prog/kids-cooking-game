@@ -10,6 +10,9 @@
 # Round 5 (research/clinic-spec-5.md): Ruby (5, long brown braids, a yellow dress, a lollipop in her pocket: the dentist's
 # patient), Noah (6, straight black hair, round glasses, a blue sweater), Zoe (4, two afro puffs with ribbons, an orange top),
 # Max (5, a buzz cut, a plaid shirt, a gap where a baby tooth fell out).
+# Round 6 (research/clinic-spec-6.md section 4): Ava (6, a wavy auburn bob with a headband, a green dress with daisies, one
+# wobbly baby tooth in her grin, marked with two little wiggle lines) and Omar (5, short dark curls, a purple hoodie with a
+# pocket, sneakers).
 # Run: python tools/gen_kids.py   (writes kid-<name>-*.svg into images-b-clinic/; then copy them into
 # public/assets/images and bake the WebPs). The frame points the game uses are printed at the end (core/clinic.ts).
 import math, os, sys
@@ -42,6 +45,11 @@ KIDS = {
                 sock="#FFFDF7", shoe="#B99CE3", lash=True, freckles=False, hy=240, body=1.0),
     "max": dict(skin="#E0A878", hair="#8A5A2E", style="buzz", shirt="#E2533F", plaid="#FBE3C4", bottom="#4F7FC0", skirt=False,
                 sock="#FFFDF7", shoe="#5DB043", gap=True, lash=False, freckles=False, hy=240, body=1.0),
+    # the clinic, round 6 (research/clinic-spec-6.md): two more
+    "ava": dict(skin="#E9C29A", hair="#8A4426", style="wavy", band="#F6C445", shirt="#6CB86A", daisies="#FFFDF7", bottom="#6CB86A",
+                skirt=True, sock="#FFFDF7", shoe="#F06A8A", wobbly=True, lash=True, freckles=False, hy=240, body=1.0),
+    "omar": dict(skin="#B07850", hair="#1E1612", style="curly", shirt="#8E64C8", sleeves=True, hoodie=True, bottom="#4F5E80",
+                 skirt=False, sock="#FFFDF7", shoe="#E2533F", sneaker=True, lash=False, freckles=False, hy=240, body=1.0),
 }
 
 
@@ -81,6 +89,9 @@ def lower_body(c, p):
         L.append(E(x, 604, 18, 9, c["skin_l"], ' opacity="0.6"'))                    # the knee's light
         L.append(G(P(wrect(x - 24, 636, 48, 30, 10, 1, seed + 2), c["sock"]), sh))
         L.append(G(P(wob(x + sgn * 4, 668, 42, 17, .04, seed + 4), c["shoe"]) + P(wob(x + sgn * 4, 662, 30, 7, .08, seed + 6), mix(c["shoe"], "#FFFFFF", .35), ' opacity="0.6"'), cut))
+        if c.get("sneaker"):
+            L.append(P(f"M{x + sgn * 4 - 42},676 Q{x + sgn * 4},688 {x + sgn * 4 + 42},676 L{x + sgn * 4 + 40},682 Q{x + sgn * 4},694 {x + sgn * 4 - 40},682Z", WHITE)
+                     + "".join(stroke(f"M{x + sgn * 4 - 10},{y} L{x + sgn * 4 + 10},{y}", WHITE, 3) for y in (658, 664)))
     # the lap: a skirt or shorts (the thighs come toward us, so the lap is short and wide)
     if c["skirt"]:
         lap = "M178,532 L422,532 Q440,566 450,606 Q300,628 150,606 Q160,566 178,532Z"
@@ -95,6 +106,19 @@ def lower_body(c, p):
     if c.get("dots"):
         pat = "".join(C(x + (14 if r % 2 else 0), 430 + r * 28, 6, c["dots"]) for r in range(6) for x in range(186, 420, 30))
         L.append(clip + G(pat, None, f' clip-path="url(#{p}tc)" opacity="0.9"'))
+    if c.get("daisies"):   # little daisies on her dress
+        pat = ""
+        for r in range(5):
+            for x in range(200, 420, 52):
+                cx, cy = x + (26 if r % 2 else 0), 432 + r * 32
+                pat += "".join(E(cx + 7 * math.cos(math.radians(a)), cy + 7 * math.sin(math.radians(a)), 5, 3.4, c["daisies"],
+                                 f' transform="rotate({a} {n(cx + 7 * math.cos(math.radians(a)))} {n(cy + 7 * math.sin(math.radians(a)))})"') for a in range(0, 360, 60))
+                pat += C(cx, cy, 3.6, "#F6C445")
+        L.append(clip + G(pat, None, f' clip-path="url(#{p}tc)"'))
+    if c.get("hoodie"):   # the hood's fold behind the neck, the drawstrings, the front pocket
+        L.append(G(P("M232,414 Q300,446 368,414 Q356,398 300,396 Q244,398 232,414Z", c["shirt_d"]) + P("M244,412 Q300,434 356,412", "none", f' stroke="{mix(c["shirt"], "#FFFFFF", .2)}" stroke-width="6"'), sh))
+        L.append(stroke("M282,428 L278,476", WHITE, 4) + stroke("M318,428 L322,476", WHITE, 4) + C(278, 478, 5, WHITE) + C(322, 478, 5, WHITE))
+        L.append(G(P("M240,500 L360,500 L376,546 Q300,556 224,546Z", mix(c["shirt"], "#3A2216", .1)) + stroke("M240,500 L360,500", c["shirt_d"], 4), sh))
     if c.get("stripe"):
         pat = "".join(f'<rect x="170" y="{y}" width="260" height="13" fill="{c["stripe"]}"/>' for y in range(424, 560, 30))
         L.append(clip + G(pat, None, f' clip-path="url(#{p}tc)" opacity="0.85"'))
@@ -138,6 +162,11 @@ def head(c, p):
     # the back hair (the bob's sides, the pigtails) goes behind the head
     if c["style"] == "bob":
         L.append(G(P(f"M138,{hy - 30} Q122,{hy + 70} 140,{hy + 130} Q170,{hy + 150} 204,{hy + 132} L396,{hy + 132} Q430,{hy + 150} 460,{hy + 130} Q478,{hy + 70} 462,{hy - 30}Z", c["hair_d"]), cut))
+    if c["style"] == "wavy":   # the bob's waves, below her ears
+        back = [(140, hy - 30), (128, hy + 30), (140, hy + 70), (126, hy + 110), (150, hy + 140), (186, hy + 128), (210, hy + 140),
+                (390, hy + 140), (414, hy + 128), (450, hy + 140), (474, hy + 110), (460, hy + 70), (472, hy + 30), (460, hy - 30)]
+        L.append(G(P(smooth(back), c["hair_d"]), cut))
+        L.append("".join(stroke(f"M{x},{hy + 20} Q{x - 12},{hy + 70} {x + 4},{hy + 120}", c["hair_m"], 6, ' opacity="0.6"') for x in (150, 170, 430, 450)))
     if c["style"] == "pigtails":
         for sgn, seed in ((-1, 41), (1, 42)):
             x = 300 + sgn * 176
@@ -197,6 +226,14 @@ def hair_front(c, p):
                + P(f"M{bx},{by} Q{bx + 52},{by - 46} {bx + 58},{by + 6} Q{bx + 40},{by + 38} {bx},{by}Z", c["bow"])
                + C(bx, by, 14, mix(c["bow"], "#3A2216", .2)) + C(bx - 30, by - 8, 7, "#FFFFFF", ' opacity="0.5"'))
         L.append(G(bow, sh))
+    elif c["style"] == "wavy":
+        outer = top(168, 372, 162, 158)
+        fringe = [(456, hy + 4), (446, hy - 40), (414, hy - 60), (380, hy - 50), (350, hy - 72), (316, hy - 58), (284, hy - 76), (250, hy - 58),
+                  (216, hy - 70), (184, hy - 44), (154, hy - 36), (144, hy + 4)]
+        L.append(G(P(smooth(outer + fringe), h), cut))
+        L.append(P(f"M190,{hy - 108} Q250,{hy - 142} 330,{hy - 140} Q258,{hy - 128} 204,{hy - 96}Z", hl, ' opacity="0.7"'))
+        band = [(300 + math.cos(math.radians(a)) * 160, hy - 6 + math.sin(math.radians(a)) * 150) for a in range(196, 345, 8)]
+        L.append(G(stroke(smooth_open(band, .2), c["band"], 18) + stroke(smooth_open(band, .2), mix(c["band"], "#FFFFFF", .4), 5, ' opacity="0.7"'), sh))
     elif c["style"] == "curly":
         spots = [(300, hy - 132, 34), (254, hy - 128, 32), (346, hy - 128, 32), (212, hy - 112, 30), (388, hy - 112, 30),
                  (178, hy - 84, 28), (422, hy - 84, 28), (160, hy - 48, 24), (440, hy - 48, 24), (276, hy - 96, 26),
@@ -268,6 +305,17 @@ def mouth_layer(name, kind):
                  + G(P(d, c["mouth"]) + G(E(300, my + h + 4, 32, 18, "#EE7A70")
                                           + P(f"M262,{my - 14} Q300,{my - 4} 338,{my - 14} L336,{my + 4} Q300,{my + 12} 264,{my + 4}Z", teeth)
                                           + f'<rect x="286" y="{my - 14}" width="14" height="26" fill="{c["mouth"]}"/>', None, f' clip-path="url(#{p}c)"'), p + "sh"))
+    elif c.get("wobbly") and kind in ("open", "closed"):
+        # a big grin; one baby tooth stands a little crooked, with two tiny wiggle lines beside it
+        h = 40 if kind == "open" else 26
+        d = f"M258,{my - 16} Q300,{my - 6} 342,{my - 16} Q352,{my - 16} 348,{my - 4} Q336,{my + h} 300,{my + h + 2} Q264,{my + h} 252,{my - 4} Q248,{my - 16} 258,{my - 16}Z"
+        inner = (f'<clipPath id="{p}c"><path d="{d}"/></clipPath>'
+                 + G(P(d, c["mouth"]) + G(E(300, my + h + 4, 32, 18, "#EE7A70")
+                                          + P(f"M262,{my - 14} Q300,{my - 4} 338,{my - 14} L336,{my + 4} Q300,{my + 12} 264,{my + 4}Z", teeth)
+                                          + f'<rect x="286" y="{my - 14}" width="14" height="20" fill="{c["mouth"]}"/>'
+                                          + f'<rect x="287" y="{my - 12}" width="13" height="19" rx="4" fill="{teeth}" stroke="#E4DDD0" stroke-width="2" transform="rotate(12 293 {my - 2})"/>',
+                                          None, f' clip-path="url(#{p}c)"'), p + "sh")
+                 + stroke(f"M276,{my + 10} q-6,6 -2,12", c["mouth"], 3, ' opacity="0.7"') + stroke(f"M312,{my + 10} q6,6 2,12", c["mouth"], 3, ' opacity="0.7"'))
     elif kind == "open":
         d = f"M262,{my - 16} Q300,{my - 8} 338,{my - 16} Q348,{my - 16} 345,{my - 4} Q336,{my + 38} 300,{my + 40} Q264,{my + 38} 255,{my - 4} Q252,{my - 16} 262,{my - 16}Z"
         inner = (f'<clipPath id="{p}c"><path d="{d}"/></clipPath>'

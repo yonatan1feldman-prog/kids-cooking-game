@@ -12,7 +12,8 @@ import { GUESTS } from './guests';
  */
 export type PatientId =
   | 'turtle' | 'penguin' | 'giraffe' | 'pipa' | 'lily' | 'leo' | 'mia' | 'sam'
-  | 'cat' | 'panda' | 'bunny' | 'puppy' | 'ruby' | 'noah' | 'zoe' | 'max';
+  | 'cat' | 'panda' | 'bunny' | 'puppy' | 'ruby' | 'noah' | 'zoe' | 'max'
+  | 'hippo' | 'beaver' | 'ava' | 'omar';
 export type AilmentId =
   | 'fever' | 'cough' | 'tummy' | 'tooth' | 'knee' | 'paw' | 'spots' | 'cold' | 'toy' | 'eye' | 'ear' | 'sting' | 'bites' | 'dirty'
   | 'throat' | 'sunburn';
@@ -334,6 +335,8 @@ export interface Patient {
 
 /** Every problem but the teeth (round 5: only Ruby has the teeth). */
 const ALL_BUT_TEETH: AilmentId[] = ['fever', 'cough', 'tummy', 'knee', 'paw', 'spots', 'cold', 'toy', 'eye', 'ear', 'sting', 'bites', 'dirty', 'throat', 'sunburn'];
+/** The teeth (round 6): every visit has one of them, a patient never two. */
+export const DENTAL: readonly AilmentId[] = ['tooth'];
 
 const guest = (id: 'turtle' | 'penguin' | 'giraffe') => GUESTS.find((g) => g.id === id)!;
 
@@ -342,7 +345,7 @@ const guest = (id: 'turtle' | 'penguin' | 'giraffe') => GUESTS.find((g) => g.id 
  * prints their points): they sit on the bench, knees forward, hands in the lap. `hy` is the head's centre in the frame
  * (Mia, the smallest, has a bigger head for her size and her body is drawn at `body` around her feet).
  */
-const KIDS: { id: 'lily' | 'leo' | 'mia' | 'sam' | 'ruby' | 'noah' | 'zoe' | 'max'; rate: number; hy: number; body: number; skin: number; signature: AilmentId; care: CareId }[] = [
+const KIDS: { id: 'lily' | 'leo' | 'mia' | 'sam' | 'ruby' | 'noah' | 'zoe' | 'max' | 'ava' | 'omar'; rate: number; hy: number; body: number; skin: number; signature: AilmentId; care: CareId }[] = [
   { id: 'lily', rate: 1.25, hy: 240, body: 1, skin: 0xf8d5bc, signature: 'eye', care: 'eyes' },
   { id: 'leo', rate: 1.05, hy: 240, body: 1, skin: 0x8e5a3b, signature: 'knee', care: 'bandage' },
   { id: 'mia', rate: 1.45, hy: 262, body: 0.86, skin: 0xf4d3b2, signature: 'ear', care: 'rest' },
@@ -352,6 +355,9 @@ const KIDS: { id: 'lily' | 'leo' | 'mia' | 'sam' | 'ruby' | 'noah' | 'zoe' | 'ma
   { id: 'noah', rate: 1.0, hy: 240, body: 1, skin: 0xf2cda8, signature: 'cough', care: 'medicine' },
   { id: 'zoe', rate: 1.4, hy: 240, body: 1, skin: 0x6e4128, signature: 'sunburn', care: 'bath' },
   { id: 'max', rate: 1.15, hy: 240, body: 1, skin: 0xe0a878, signature: 'throat', care: 'rest' },
+  // round 6 (gen_kids.py): Ava with her wobbly baby tooth, Omar in his purple hoodie (both dental patients)
+  { id: 'ava', rate: 1.22, hy: 240, body: 1, skin: 0xe9c29a, signature: 'tooth', care: 'rest' },
+  { id: 'omar', rate: 1.08, hy: 240, body: 1, skin: 0xb07850, signature: 'tooth', care: 'polish' },
 ];
 
 function kid(c: (typeof KIDS)[number]): Patient {
@@ -380,14 +386,14 @@ function kid(c: (typeof KIDS)[number]): Patient {
     hand: b(216, 562),
     spots: [{ x: 214, y: hy + 92 }, { x: 386, y: hy + 92 }, b(196, 500), b(404, 500), b(368, 604), { x: 300, y: hy - 40 }, b(256, 470), b(344, 540)],
     tint: { skin: c.skin, tummy: c.skin },
-    ailments: c.signature === 'tooth' ? ['tooth', ...ALL_BUT_TEETH] : ALL_BUT_TEETH,
+    ailments: DENTAL.includes(c.signature) ? [...DENTAL, ...ALL_BUT_TEETH] : ALL_BUT_TEETH,
     signature: c.signature,
     care: c.care,
   };
 }
 
 /** An animal patient of round 5 (gen_animals.py prints her points): layers `animal-<id>-*`. */
-function animal(id: 'cat' | 'panda' | 'bunny' | 'puppy', o: Omit<Patient, 'id' | 'def' | 'hello' | 'ailments'>): Patient {
+function animal(id: 'cat' | 'panda' | 'bunny' | 'puppy' | 'hippo' | 'beaver', o: Omit<Patient, 'id' | 'def' | 'hello' | 'ailments'>): Patient {
   const L = (part: string) => `animal-${id}-${part}` as ImageKey;
   return {
     id,
@@ -396,7 +402,7 @@ function animal(id: 'cat' | 'panda' | 'bunny' | 'puppy', o: Omit<Patient, 'id' |
       mouthClosed: L('mouth-closed'), mouthOpen: L('mouth-open'), mouthChew: L('mouth-chew'),
     },
     hello: `vo-hi-${id}` as VoiceKey,
-    ailments: ALL_BUT_TEETH,
+    ailments: DENTAL.includes(o.signature) ? [...DENTAL, ...ALL_BUT_TEETH] : ALL_BUT_TEETH,
     ...o,
   };
 }
@@ -513,6 +519,31 @@ export const PATIENTS: readonly Patient[] = [
     signature: 'bites',
     care: 'bath',
   }),
+  // round 6 (gen_animals.py): Hazel the hippo with her huge smile, Chip the beaver with his big front teeth
+  animal('hippo', {
+    rate: 0.8,
+    forehead: { x: 300, y: 226 },
+    cheeks: [{ x: 166, y: 424 }, { x: 434, y: 424 }],
+    chest: [{ x: 300, y: 548 }, { x: 246, y: 600 }, { x: 354, y: 600 }],
+    nose: { x: 300, y: 360 },
+    foot: { x: 418, y: 650 },
+    spots: [{ x: 180, y: 398 }, { x: 420, y: 398 }, { x: 196, y: 560 }, { x: 404, y: 560 }, { x: 300, y: 610 }, { x: 300, y: 220 }, { x: 244, y: 530 }, { x: 356, y: 640 }],
+    tint: { skin: 0xb6a8c8, tummy: 0xd4cae0 },
+    signature: 'tooth',
+    care: 'polish',
+  }),
+  animal('beaver', {
+    rate: 1.2,
+    forehead: { x: 300, y: 254 },
+    cheeks: [{ x: 210, y: 378 }, { x: 390, y: 378 }],
+    chest: [{ x: 300, y: 540 }, { x: 254, y: 596 }, { x: 346, y: 596 }],
+    nose: { x: 300, y: 370 },
+    foot: { x: 404, y: 662 },
+    spots: [{ x: 222, y: 384 }, { x: 378, y: 384 }, { x: 196, y: 560 }, { x: 404, y: 560 }, { x: 300, y: 610 }, { x: 300, y: 250 }, { x: 256, y: 540 }, { x: 344, y: 624 }],
+    tint: { skin: 0xa0663a, tummy: 0xe8c9a0 },
+    signature: 'spots',
+    care: 'polish',
+  }),
   ...KIDS.map(kid),
 ];
 
@@ -528,7 +559,7 @@ const SEEN_KEY = 'cooking.clinic.seen';
 
 /**
  * Who comes this time (round 5): the ones who have not come for the longest (shuffled among equals), at least one child,
- * so all 16 come within about six visits. Remembered on the device only; any storage failure just means a random visit.
+ * so all 20 come within about seven visits. Remembered on the device only; any storage failure just means a random visit.
  */
 export function pickPatients(n: number, rnd: () => number = Math.random): Patient[] {
   let seen: string[] = [];
@@ -564,10 +595,16 @@ export function planVisit(n: number, m: number, rnd: () => number = Math.random,
     const used = new Set<AilmentId>(who.map((p) => p.signature));
     const out: { patient: Patient; ailments: Ailment[] }[] = [];
     // (the ones with the fewest ailments choose first; a close-up first, then anything)
+    const needTooth = m > 1 && !who.some((p) => DENTAL.includes(p.signature));
+    const mouths = who.filter((p) => p.ailments.some((x) => DENTAL.includes(x)));
+    const toothFor = needTooth && mouths.length ? mouths[Math.floor(rnd() * mouths.length)] : null;
     for (const p of [...who].sort((a, b) => a.ailments.length - b.ailments.length)) {
-      const free = shuffle(p.ailments).filter((x) => !used.has(x));
+      // (round 6: one patient with a mouth gets the teeth when nobody's own problem is them; nobody gets two of them)
+      const tooth = p === toothFor ? shuffle(DENTAL).find((x) => !used.has(x)) : undefined;
+      if (tooth) used.add(tooth);
+      const free = shuffle(p.ailments).filter((x) => !used.has(x) && !DENTAL.includes(x));
       const zoom = ZOOM_AILMENTS.includes(p.signature) ? undefined : free.find((x) => ZOOM_AILMENTS.includes(x));
-      const pick = [...(zoom ? [zoom] : []), ...free.filter((x) => x !== zoom)].slice(0, m - 1);
+      const pick = [...(tooth ? [tooth] : []), ...(zoom && !tooth ? [zoom] : []), ...free.filter((x) => tooth !== undefined || x !== zoom)].slice(0, m - 1);
       if (pick.length < m - 1) break;
       for (const x of pick) used.add(x);
       out.push({ patient: p, ailments: [p.signature, ...shuffle(pick)].map((x) => AILMENTS[x]) });
