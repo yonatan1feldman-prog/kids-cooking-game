@@ -146,6 +146,11 @@ export type VoiceKey =
   | 'vo-care-wake' | 'vo-care-order'
   // the clinic, round 6: the bowl for what the tweezers and the magnet take out
   | 'vo-bowl-in' | 'vo-bowl-again' | 'vo-bowl-full' | 'vo-bell-back' | 'vo-sting-pull'
+  // the clinic, round 6, PR 2: seven more problems
+  | 'vo-sick-plaque' | 'vo-tool-flosser' | 'vo-plaque-gone' | 'vo-brush-shine' | 'vo-sick-candy' | 'vo-tool-floss' | 'vo-sick-braces'
+  | 'vo-tool-pusher' | 'vo-tool-brackets' | 'vo-pick-band' | 'vo-band-colour' | 'vo-braces-done' | 'vo-sick-wobbly' | 'vo-tool-gauze'
+  | 'vo-tooth-out' | 'vo-tool-toothbox' | 'vo-new-tooth' | 'vo-sick-burrs' | 'vo-tool-comb' | 'vo-tool-bow' | 'vo-sick-hiccups'
+  | 'vo-tool-water' | 'vo-hiccups-gone' | 'vo-sick-bump' | 'vo-follow-light' | 'vo-bump-gone'
   // more challenge in the games that are not cooking (research/challenge-spec.md, PR B)
   | 'vo-not-ripe' | 'vo-one-more-seed' | 'vo-sort-basket' | 'vo-find-caterpillar' | 'vo-caterpillar-found' | 'vo-caterpillar-bye'
   | 'vo-weigh' | 'vo-too-heavy' | 'vo-need-green' | 'vo-need-tree' | 'vo-need-round' | 'vo-is-green' | 'vo-is-tree' | 'vo-is-round'

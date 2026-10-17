@@ -15,21 +15,26 @@ export type PatientId =
   | 'cat' | 'panda' | 'bunny' | 'puppy' | 'ruby' | 'noah' | 'zoe' | 'max';
 export type AilmentId =
   | 'fever' | 'cough' | 'tummy' | 'tooth' | 'knee' | 'paw' | 'spots' | 'cold' | 'toy' | 'eye' | 'ear' | 'sting' | 'bites' | 'dirty'
-  | 'throat' | 'sunburn';
+  | 'throat' | 'sunburn'
+  // round 6 (research/clinic-spec-6.md section 3): five on the teeth, burrs in the fur, the hiccups, a bump on the head
+  | 'plaque' | 'candy' | 'braces' | 'wobbly' | 'burrs' | 'hiccups' | 'bump';
 /** The care room each patient goes to after her problems (round 5, research/clinic-spec-5.md: built in its own PR). */
 export type CareId = 'medicine' | 'bath' | 'bandage' | 'polish' | 'eyes' | 'rest';
 export type ToolId =
   | 'thermometer' | 'stethoscope' | 'plaster' | 'cream' | 'spray' | 'tweezers' | 'magnifier' | 'toothbrush' | 'cup' | 'syrup'
   | 'cloth' | 'hotbottle' | 'tissue' | 'magnet' | 'filler' | 'cotton' | 'eyedrops' | 'swab' | 'light' | 'icepack' | 'xray'
-  | 'sponge' | 'bugspray' | 'honey' | 'aloe' | 'hat';
+  | 'sponge' | 'bugspray' | 'honey' | 'aloe' | 'hat'
+  | 'flosser' | 'floss' | 'pusher' | 'brackets' | 'bands' | 'gauze' | 'toothbox' | 'comb' | 'bow';
 export const TOOLS: readonly ToolId[] = [
   'thermometer', 'stethoscope', 'plaster', 'cream', 'spray', 'tweezers', 'magnifier', 'toothbrush', 'cup', 'syrup', 'hotbottle',
   'tissue', 'magnet', 'filler', 'cotton', 'eyedrops', 'swab', 'light', 'icepack', 'xray', 'sponge', 'bugspray', 'honey', 'aloe',
-  'hat',
+  'hat', 'flosser', 'floss', 'pusher', 'brackets', 'gauze', 'toothbox', 'comb', 'bow',
 ];
+/** Tools that never lie on the tray (round 6: the braces' bands are three colours to pick, shown when their station starts). */
+export const OFF_TRAY: readonly ToolId[] = ['bands'];
 /** The big close-ups that grow out of the patient (tinted to her, but the mouth and the x-ray); `paw` is a child's hand
  * (lens-hand), `skin` a patch of her arm (round 4: the stings, the bites); `throat` the mouth open wide (round 5: the tickles, not tinted). */
-export type ZoomId = 'mouth' | 'eye' | 'ear' | 'knee' | 'paw' | 'xray' | 'skin' | 'throat';
+export type ZoomId = 'mouth' | 'eye' | 'ear' | 'knee' | 'paw' | 'xray' | 'skin' | 'throat' | 'fur';
 
 /**
  * What a tool works on: things drawn in a close-up (or on her) that go one by one (germs, food bits, holes to fill,
@@ -38,6 +43,10 @@ export type ZoomId = 'mouth' | 'eye' | 'ear' | 'knee' | 'paw' | 'xray' | 'skin' 
 export type What =
   | 'germ' | 'food' | 'hole' | 'tear' | 'speck' | 'wax' | 'bug' | 'dirt' | 'spot' | 'splinter' | 'bell' | 'listen' | 'wheeze'
   | 'sting' | 'bite' | 'gnat' | 'mud' | 'foam' | 'tickle' | 'burn'
+  // round 6: sticky plaque and the dull tooth it leaves, a candy bit between two teeth and the sticky gap, a crooked
+  // tooth and the bracket on it, the braces' band, the wobbly baby tooth, a burr in the fur and the knot it leaves, the
+  // little lights her eyes follow (the bump)
+  | 'plaque' | 'dull' | 'candy' | 'gap' | 'crooked' | 'bracket' | 'band' | 'wobbly' | 'burr' | 'tangle' | 'look'
   | 'mouth' | 'forehead' | 'nose' | 'tummy' | 'eye' | 'ear' | 'knee' | 'paw' | 'skin';
 
 /**
@@ -48,11 +57,13 @@ export type What =
  * - drops: hold the bottle over the place; a drop falls every so often, `n` drops;
  * - find: move the tool (the magnifier, the light, the x-ray, the stethoscope by ear) until the hidden things show;
  * - pull: take hold of each one and draw it out (the speck, the ladybird, the splinter, the bell with the magnet);
- * - give: bring it to the place, once (the medicine spoon, a drink, the plaster).
+ * - give: bring it to the place, once (the medicine spoon, a drink, the plaster; `n` sips of a drink);
+ * - pick (round 6): tap one of three colours shown for it (the braces' bands; hard: the one Mom asks for).
+ * Round 6: a `pull` by `rub` wiggles it out (the wobbly tooth in the gauze) instead of drawing it out.
  */
 export interface Station {
   tool: ToolId;
-  act: 'clean' | 'touch' | 'drops' | 'find' | 'pull' | 'give';
+  act: 'clean' | 'touch' | 'drops' | 'find' | 'pull' | 'give' | 'pick';
   view: 'body' | ZoomId;
   what: What;
   /** How many targets [little chef, big chef] (default 1). */
@@ -63,12 +74,14 @@ export interface Station {
   /** Mom's line when it is done. */
   after?: VoiceKey;
   /** What the stethoscope hears. */
-  hear?: 'heartbeat' | 'gurgle' | 'jingle';
+  hear?: 'heartbeat' | 'gurgle' | 'jingle' | 'hic';
   /**
    * Its targets are under the `on` things (round 4): each shows where one of them went (the bump under a sting, the
    * soap where the mud was). The station waits until the station that clears them is done.
    */
   on?: What;
+  /** It waits until the station working on these is done (round 6: the tooth fairy box waits for the tooth in the bowl). */
+  needs?: What;
 }
 
 export interface Ailment {
@@ -96,6 +109,40 @@ const knee = (): Station[] => [
   { tool: 'plaster', act: 'give', view: 'knee', what: 'knee' },
 ];
 const pull = (what: What, after?: VoiceKey, line?: VoiceKey | null): Station => ({ tool: 'tweezers', act: 'pull', view: what === 'speck' ? 'eye' : what === 'bug' ? 'ear' : 'paw', what, n: [1, 2], after, line });
+
+// ---- round 6
+const rinse: Station = { tool: 'cup', act: 'give', view: 'body', what: 'mouth', line: 'vo-tool-rinse' };
+const plaque = (): Station[] => [
+  { tool: 'flosser', act: 'clean', by: 'time', view: 'mouth', what: 'plaque', n: [4, 6] },
+  { tool: 'toothbrush', act: 'clean', by: 'rub', view: 'mouth', what: 'dull', n: [4, 6], on: 'plaque', line: 'vo-brush-shine', after: 'vo-plaque-gone' },
+  rinse,
+];
+const candyPull: Station = { tool: 'tweezers', act: 'pull', view: 'mouth', what: 'candy', n: [3, 4], line: null };
+const candyFloss: Station = { tool: 'floss', act: 'clean', by: 'rub', view: 'mouth', what: 'gap', n: [3, 4], on: 'candy' };
+const braces = (): Station[] => [
+  { tool: 'pusher', act: 'touch', view: 'mouth', what: 'crooked', n: [2, 3] },
+  { tool: 'brackets', act: 'touch', view: 'mouth', what: 'bracket', n: [2, 3], on: 'crooked' },
+  { tool: 'bands', act: 'pick', view: 'mouth', what: 'band', after: 'vo-braces-done' },
+];
+const wobbly = (): Station[] => [
+  { tool: 'gauze', act: 'pull', by: 'rub', view: 'mouth', what: 'wobbly' },
+  { tool: 'toothbox', act: 'give', view: 'mouth', what: 'wobbly', needs: 'wobbly' },
+  // (the rinse in the open mouth: the new tooth peeks out where she can see it)
+  { tool: 'cup', act: 'give', view: 'mouth', what: 'mouth', line: 'vo-tool-rinse', after: 'vo-new-tooth' },
+];
+const burrPull: Station = { tool: 'tweezers', act: 'pull', view: 'fur', what: 'burr', n: [3, 4], line: null };
+const burrComb: Station = { tool: 'comb', act: 'clean', by: 'rub', view: 'fur', what: 'tangle', n: [3, 4], on: 'burr' };
+const bow: Station = { tool: 'bow', act: 'give', view: 'body', what: 'forehead' };
+const hiccups = (): Station[] => [
+  { tool: 'cup', act: 'give', view: 'body', what: 'mouth', n: [1, 2], line: 'vo-tool-water' },
+  { tool: 'honey', act: 'give', view: 'body', what: 'mouth' },
+  { tool: 'stethoscope', act: 'clean', by: 'time', view: 'body', what: 'tummy', hear: 'hic', after: 'vo-hiccups-gone' },
+];
+const bump = (): Station[] => [
+  { tool: 'icepack', act: 'clean', by: 'time', view: 'body', what: 'forehead' },
+  { tool: 'cream', act: 'touch', view: 'body', what: 'forehead', line: 'vo-tool-dab' },
+  { tool: 'plaster', act: 'give', view: 'body', what: 'forehead', after: 'vo-bump-gone' },
+];
 
 export const AILMENTS: Record<AilmentId, Ailment> = {
   tooth: { id: 'tooth', card: 'sick-tooth', line: 'vo-sick-tooth', steps: [tooth(), tooth()] },
@@ -294,10 +341,69 @@ export const AILMENTS: Record<AilmentId, Ailment> = {
       ],
     ],
   },
+  // ---- round 6 (research/clinic-spec-6.md section 3): four more on the teeth (all in the mouth close-up), burrs in the fur,
+  // the hiccups, a bump on the head. The wobbly tooth is a happy milestone: it wiggles out into the soft gauze, goes in
+  // the bowl, then in a tooth fairy box she takes home, and a new tooth peeks out. Nothing is pulled with a metal tool.
+  plaque: {
+    id: 'plaque',
+    card: 'sick-plaque',
+    line: 'vo-sick-plaque',
+    steps: [plaque(), plaque()],
+  },
+  candy: {
+    id: 'candy',
+    card: 'sick-candy',
+    line: 'vo-sick-candy',
+    steps: [
+      [candyPull, candyFloss, rinse],
+      [{ tool: 'magnifier', act: 'find', view: 'mouth', what: 'candy', n: [3, 4], after: 'vo-found-it' }, candyPull, candyFloss, rinse],
+    ],
+  },
+  braces: {
+    id: 'braces',
+    card: 'sick-braces',
+    line: 'vo-sick-braces',
+    steps: [braces(), braces()],
+  },
+  wobbly: {
+    id: 'wobbly',
+    card: 'sick-wobbly',
+    line: 'vo-sick-wobbly',
+    steps: [
+      wobbly(),
+      [{ tool: 'magnifier', act: 'find', view: 'mouth', what: 'wobbly', after: 'vo-found-it' }, ...wobbly()],
+    ],
+  },
+  burrs: {
+    id: 'burrs',
+    card: 'sick-burrs',
+    line: 'vo-sick-burrs',
+    steps: [
+      [burrPull, burrComb, bow],
+      [{ tool: 'magnifier', act: 'find', view: 'fur', what: 'burr', n: [3, 4], after: 'vo-found-it' }, burrPull, burrComb, bow],
+    ],
+  },
+  hiccups: {
+    id: 'hiccups',
+    card: 'sick-hiccups',
+    line: 'vo-sick-hiccups',
+    steps: [hiccups(), hiccups()],
+  },
+  bump: {
+    id: 'bump',
+    card: 'sick-bump',
+    line: 'vo-sick-bump',
+    steps: [
+      bump(),
+      [{ tool: 'light', act: 'find', view: 'body', what: 'look', n: [3, 3], line: 'vo-follow-light' }, ...bump()],
+    ],
+  },
 };
 
 /** The ailments that open a big close-up (a visit always has at least two of them: they are the fun of it). */
-export const ZOOM_AILMENTS: readonly AilmentId[] = ['tooth', 'eye', 'ear', 'tummy', 'toy', 'knee', 'paw', 'sting', 'bites', 'throat'];
+export const ZOOM_AILMENTS: readonly AilmentId[] = ['tooth', 'eye', 'ear', 'tummy', 'toy', 'knee', 'paw', 'sting', 'bites', 'throat', 'plaque', 'candy', 'braces', 'wobbly', 'burrs'];
+/** The problems in the mouth (round 6): every patient with a mouth can have them, a visit has at least one, a patient at most one. */
+export const DENTAL: readonly AilmentId[] = ['tooth', 'plaque', 'candy', 'braces', 'wobbly'];
 
 type F = { x: number; y: number };
 
@@ -326,14 +432,16 @@ export interface Patient {
   kid?: true;
   hand?: F;
   tint: { skin: number; tummy: number };
-  /** What she can have (her second problem comes from these; never the teeth, but for Ruby). */
+  /** What she can have (her second problem comes from these; round 6: the mouth's problems for everyone with teeth). */
   ailments: AilmentId[];
   signature: AilmentId;
   care: CareId;
 }
 
-/** Every problem but the teeth (round 5: only Ruby has the teeth). */
-const ALL_BUT_TEETH: AilmentId[] = ['fever', 'cough', 'tummy', 'knee', 'paw', 'spots', 'cold', 'toy', 'eye', 'ear', 'sting', 'bites', 'dirty', 'throat', 'sunburn'];
+/** The problems anyone with a body can have (round 6 added the hiccups and the bump). */
+const COMMON: AilmentId[] = ['fever', 'cough', 'tummy', 'knee', 'paw', 'spots', 'cold', 'toy', 'eye', 'ear', 'sting', 'bites', 'dirty', 'throat', 'sunburn', 'hiccups', 'bump'];
+/** Round 6: the mouth's problems for a patient with drawn teeth (the wobbly baby tooth only for the children). */
+const TEETH: AilmentId[] = DENTAL.filter((a) => a !== 'wobbly');
 
 const guest = (id: 'turtle' | 'penguin' | 'giraffe') => GUESTS.find((g) => g.id === id)!;
 
@@ -380,7 +488,7 @@ function kid(c: (typeof KIDS)[number]): Patient {
     hand: b(216, 562),
     spots: [{ x: 214, y: hy + 92 }, { x: 386, y: hy + 92 }, b(196, 500), b(404, 500), b(368, 604), { x: 300, y: hy - 40 }, b(256, 470), b(344, 540)],
     tint: { skin: c.skin, tummy: c.skin },
-    ailments: c.signature === 'tooth' ? ['tooth', ...ALL_BUT_TEETH] : ALL_BUT_TEETH,
+    ailments: [...COMMON, ...DENTAL],
     signature: c.signature,
     care: c.care,
   };
@@ -396,7 +504,7 @@ function animal(id: 'cat' | 'panda' | 'bunny' | 'puppy', o: Omit<Patient, 'id' |
       mouthClosed: L('mouth-closed'), mouthOpen: L('mouth-open'), mouthChew: L('mouth-chew'),
     },
     hello: `vo-hi-${id}` as VoiceKey,
-    ailments: ALL_BUT_TEETH,
+    ailments: [...COMMON, ...TEETH, 'burrs'],
     ...o,
   };
 }
@@ -415,7 +523,7 @@ export const PATIENTS: readonly Patient[] = [
     foot: { x: 448, y: 640 },
     spots: [{ x: 200, y: 560 }, { x: 236, y: 470 }, { x: 362, y: 470 }, { x: 410, y: 590 }, { x: 178, y: 500 }, { x: 422, y: 500 }],
     tint: { skin: 0x9fd27a, tummy: 0xf3dfa6 },
-    ailments: ALL_BUT_TEETH.filter((a) => a !== 'ear'),
+    ailments: [...COMMON.filter((a) => a !== 'ear'), ...TEETH],
     signature: 'paw',
     care: 'bandage',
   },
@@ -430,7 +538,7 @@ export const PATIENTS: readonly Patient[] = [
     foot: { x: 376, y: 664 },
     spots: [{ x: 250, y: 520 }, { x: 345, y: 520 }, { x: 297, y: 600 }, { x: 230, y: 610 }, { x: 362, y: 610 }, { x: 297, y: 450 }],
     tint: { skin: 0xf6ab5a, tummy: 0xfbf7ee },
-    ailments: ALL_BUT_TEETH.filter((a) => a !== 'ear' && a !== 'throat'),
+    ailments: COMMON.filter((a) => a !== 'ear' && a !== 'throat'),
     signature: 'cold',
     care: 'medicine',
   },
@@ -445,7 +553,7 @@ export const PATIENTS: readonly Patient[] = [
     foot: null,
     spots: [],
     tint: { skin: 0xf3c768, tummy: 0xf8e2a8 },
-    ailments: ['fever', 'tummy', 'cold', 'toy', 'eye', 'ear', 'sting', 'dirty', 'throat', 'sunburn'],
+    ailments: ['fever', 'tummy', 'cold', 'toy', 'eye', 'ear', 'sting', 'dirty', 'throat', 'sunburn', 'hiccups', 'bump'],
     signature: 'fever',
     care: 'medicine',
   },
@@ -460,7 +568,7 @@ export const PATIENTS: readonly Patient[] = [
     foot: { x: 392, y: 660 },
     spots: [{ x: 240, y: 560 }, { x: 350, y: 560 }, { x: 182, y: 470 }, { x: 412, y: 470 }, { x: 295, y: 620 }, { x: 250, y: 220 }],
     tint: { skin: 0xf3d9b8, tummy: 0xf3d9b8 },
-    ailments: ALL_BUT_TEETH,
+    ailments: [...COMMON, ...TEETH],
     signature: 'toy',
     care: 'rest',
   },
@@ -557,6 +665,7 @@ export function pickPatients(n: number, rnd: () => number = Math.random): Patien
  * A visit (round 4, round 5): `n` different patients (`who`: by default the ones who have not come for the longest, at
  * least one of them a child), each with `m` problems: her own signature problem first (round 5), then others of hers (a
  * close-up among them when hers is not one: they are the fun of it), no problem twice in a visit. Never stuck.
+ * Round 6: no patient has two problems in the mouth, and a visit with someone who has teeth has at least one.
  */
 export function planVisit(n: number, m: number, rnd: () => number = Math.random, who: Patient[] = pickPatients(n, rnd)): { patient: Patient; ailments: Ailment[] }[] {
   const shuffle = <T>(a: readonly T[]) => a.map((v) => ({ v, r: rnd() })).sort((p, q) => p.r - q.r).map((p) => p.v);
@@ -567,12 +676,31 @@ export function planVisit(n: number, m: number, rnd: () => number = Math.random,
     for (const p of [...who].sort((a, b) => a.ailments.length - b.ailments.length)) {
       const free = shuffle(p.ailments).filter((x) => !used.has(x));
       const zoom = ZOOM_AILMENTS.includes(p.signature) ? undefined : free.find((x) => ZOOM_AILMENTS.includes(x));
-      const pick = [...(zoom ? [zoom] : []), ...free.filter((x) => x !== zoom)].slice(0, m - 1);
+      const pick: AilmentId[] = [];
+      let mouth = DENTAL.includes(p.signature);
+      for (const x of [...(zoom ? [zoom] : []), ...free.filter((x) => x !== zoom)]) {
+        if (pick.length >= m - 1) break;
+        if (DENTAL.includes(x)) {
+          if (mouth) continue;
+          mouth = true;
+        }
+        pick.push(x);
+      }
       if (pick.length < m - 1) break;
       for (const x of pick) used.add(x);
       out.push({ patient: p, ailments: [p.signature, ...shuffle(pick)].map((x) => AILMENTS[x]) });
     }
-    if (out.length === who.length) return who.map((p) => out.find((o) => o.patient === p)!);
+    if (out.length < who.length) continue;
+    // at least one problem in the mouth: one of a patient with teeth swaps a non-signature problem for a free one
+    if (m > 1 && !out.some((o) => o.ailments.some((a) => DENTAL.includes(a.id)))) {
+      const o = shuffle(out).find((x) => x.patient.ailments.some((a) => DENTAL.includes(a) && !used.has(a)));
+      if (o) {
+        const d = shuffle(o.patient.ailments.filter((a) => DENTAL.includes(a) && !used.has(a)))[0];
+        const i = 1 + Math.floor(rnd() * (o.ailments.length - 1));
+        o.ailments[i] = AILMENTS[d];
+      }
+    }
+    return who.map((p) => out.find((o) => o.patient === p)!);
   }
   return who.map((p) => ({ patient: p, ailments: [AILMENTS[p.signature]] }));
 }
@@ -605,4 +733,13 @@ export const TOOL_LINE: Record<ToolId, VoiceKey> = {
   honey: 'vo-tool-honey',
   aloe: 'vo-tool-aloe',
   hat: 'vo-tool-hat',
+  flosser: 'vo-tool-flosser',
+  floss: 'vo-tool-floss',
+  pusher: 'vo-tool-pusher',
+  brackets: 'vo-tool-brackets',
+  bands: 'vo-pick-band',
+  gauze: 'vo-tool-gauze',
+  toothbox: 'vo-tool-toothbox',
+  comb: 'vo-tool-comb',
+  bow: 'vo-tool-bow',
 };

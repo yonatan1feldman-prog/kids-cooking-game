@@ -630,6 +630,35 @@ MOM_LINES = {
     "vo-bowl-full": "Look at everything we took out!",
     "vo-bell-back": "Here's your bell back!",
     "vo-sting-pull": "Little bee stings. Out they come, one by one!",
+    # The clinic, round 6, PR 2 (added 2026-10-17; Voice A only: python make_vo.py mom-a <names>): seven new problems
+    # (research/clinic-spec-6.md section 3): sticky plaque, candy stuck between the teeth, crooked teeth (braces), a wobbly
+    # baby tooth, burrs in the fur, the hiccups, a bump on the head
+    "vo-sick-plaque": "Ooh, sticky plaque on your teeth. Open wide!",
+    "vo-tool-flosser": "The water flosser! Squirt the sticky bits away.",
+    "vo-plaque-gone": "Squeaky clean!",
+    "vo-brush-shine": "Now brush each tooth till it shines!",
+    "vo-sick-candy": "Oh my, candy stuck between your teeth!",
+    "vo-tool-floss": "Floss between the teeth, up and down.",
+    "vo-sick-braces": "Some teeth are a little crooked. Let's line them up!",
+    "vo-tool-pusher": "Gently tap each crooked tooth, and it stands up straight.",
+    "vo-tool-brackets": "A tiny bracket on each one.",
+    "vo-pick-band": "Pick a colour for your braces!",
+    "vo-band-colour": "Let's use...",
+    "vo-braces-done": "What a sparkly smile!",
+    "vo-sick-wobbly": "A wobbly tooth! That means you're growing up.",
+    "vo-tool-gauze": "Wiggle it gently with the soft gauze.",
+    "vo-tooth-out": "Pop! Out it came. No ouch at all!",
+    "vo-tool-toothbox": "A little box, to keep it for the tooth fairy.",
+    "vo-new-tooth": "Look! A brand new tooth is peeking out.",
+    "vo-sick-burrs": "Prickly burrs in your fur! Let's take them out.",
+    "vo-tool-comb": "Comb the fur nice and smooth.",
+    "vo-tool-bow": "And a bow. So pretty!",
+    "vo-sick-hiccups": "Hic! Hic! You've got the hiccups!",
+    "vo-tool-water": "A little sip of water.",
+    "vo-hiccups-gone": "All quiet. The hiccups are gone!",
+    "vo-sick-bump": "A bump on your head. Let's make it feel better.",
+    "vo-follow-light": "Follow the little light with your eyes!",
+    "vo-bump-gone": "The bump is all gone!",
 }
 SUFFIX = ""
 if len(sys.argv) > 1 and sys.argv[1] in ("mom", "mom-a"):
