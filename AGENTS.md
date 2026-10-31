@@ -675,7 +675,26 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the clinic round 6 (part 3, four patients), the clinic round 6 (part 2, seven ailments), the clinic round 6 (part 1, the bowl), the clinic round 5 (part 3, more challenge), the clinic round 5 (part 2, the care rooms), the farm, the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; the clinic-open fix, the clinic round 6 (part 3, four patients), the clinic round 6 (part 2, seven ailments), the clinic round 6 (part 1, the bowl), the clinic round 5 (part 3, more challenge), the clinic round 5 (part 2, the care rooms), the farm, the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 00000000000000000000000000000000000000. The clinic-open fix (the owner: "the doctor game does not open")
+- **What was wrong.** Nothing crashed in the cloud, but the clinic door was fragile: every visit loaded all 472 of its
+  files (all 20 patients' layers, ~240 MB of pictures once decoded, 20% more than before round 6) behind a small
+  spinner; on the first visit after an update one file that stalled 30 s (or any failed request) made `worldReady`
+  answer false and the card only wobbled; an error in loading left the spinner turning for ever. A phone short of
+  memory or on a weak connection sees "it doesn't open".
+- **Now.** `BootScene.enterWorld(game, id, onProgress, skip)` is the one way into a world that is not in the install
+  (title → clinic, home → farm and the other games): `worldReady` (each file tried 3 times, 45 s per try; online, up to
+  15% missing still goes in, the loader tries them again and stand-ins cover; nothing at all coming through gives up
+  after 6 files, so offline she gets the wobble in seconds), then `recipeAssets` raced against a 60 s watchdog (a load
+  that takes longer goes in; late pictures appear as they land; no stand-ins then, so no texture is pulled from under a
+  drawn object), never rejects. The title's spinner has a green ring that fills with the progress.
+- **Only this visit's patients.** The title plans the visit on the tap (`clinic.planNextVisit`, ClinicScene takes it with
+  `takePlannedVisit`) and loads only those patients' layers (`patientArtPrefix`: `kid-<id>-`, `animal-<id>-`,
+  `guest-<id>-`): 278 textures instead of 418; in the cloud the clinic's extra memory went from ~580 MB to ~300 MB.
+  `window.__clinicPlan` (harness) still loads everyone. `worldReady` still fetches every file (offline later works).
+- **Cloud timing.** The cloud browser decodes the clinic's 185 voice/sound files slowly (~1 s each), so in the cloud the
+  real tap path hits the 60 s watchdog; a phone decodes them in seconds. `__clinicVerify` (via `__mini`) is unaffected.
+
 ### 0000000000000000000000000000000000000. The clinic, round 6, part 3 (four new patients, each with a problem of the teeth)
 Spec `/mnt/project-files/research/clinic-spec-6.md` section 4 (its PR 3). Branch `claude/clinic-6-patients-ngr3d9`. 20 patients now.
 - **Who:** Hazel the hippo (signature `plaque`, care polish; a huge muzzle, two lower teeth) and Chip the beaver (`candy`,

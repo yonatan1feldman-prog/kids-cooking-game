@@ -11,8 +11,7 @@ import { iconButton } from '../core/ui';
 import { RECIPES } from '../recipes';
 import { Character } from '../steps/Character';
 import { Mom } from '../steps/Mom';
-import { worldReady } from '../core/worldCache';
-import { homeArtReady, recipeAssets, releaseRecipe, titleArtReady } from './BootScene';
+import { enterWorld, homeArtReady, recipeAssets, releaseRecipe, titleArtReady } from './BootScene';
 
 /**
  * Home: one card per recipe (a grid, up to 8 without scrolling), Mom at the counter (and Pipa beside her on phones). Nothing moves by
@@ -139,7 +138,7 @@ export class HomeScene extends Phaser.Scene {
           const delay = new Promise((r) => this.time.delayedCall(350, r));
           // The farm's files are not in the install (core/worldCache.ts): if they can't be had (offline before the
           // first visit), the spinner goes, the card wobbles a little and the home screen stays as it was.
-          worldReady(g.id).then((ok) => {
+          enterWorld(this.game, g.id).then((ok) => {
             if (!ok) {
               spin.remove();
               if (!this.scene.isActive()) return;
@@ -148,7 +147,7 @@ export class HomeScene extends Phaser.Scene {
               this.tweens.add({ targets: card, angle: { from: -3, to: 3 }, duration: 90, yoyo: true, repeat: 2, onComplete: () => card.setAngle(0) });
               return;
             }
-            Promise.all([recipeAssets(this.game, g.id), delay]).then(() => {
+            delay.then(() => {
               spin.remove();
               if (this.scene.isActive()) this.scene.start(g.scene);
             });

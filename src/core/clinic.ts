@@ -734,6 +734,31 @@ export function planVisit(n: number, m: number, rnd: () => number = Math.random,
   return who.map((p) => ({ patient: p, ailments: [AILMENTS[p.signature]] }));
 }
 
+/**
+ * The next visit, planned on her tap on the clinic card, so that only its patients' pictures are loaded (clinic-open
+ * fix: the 20 patients' layers, about 110 MB of pictures once open, were all loaded for every visit and took the whole
+ * clinic past what a phone gives a page). ClinicScene takes it; without one it plans its own.
+ */
+let planned: { patient: Patient; ailments: Ailment[] }[] | null = null;
+
+export function planNextVisit(n: number, m: number): { patient: Patient; ailments: Ailment[] }[] {
+  planned = planVisit(n, m);
+  return planned;
+}
+
+export function takePlannedVisit(): { patient: Patient; ailments: Ailment[] }[] | null {
+  const p = planned;
+  planned = null;
+  return p;
+}
+
+/** The start of the picture keys of a patient's own layers (`kid-lily-`, `animal-cat-`, `guest-turtle-`); Pipa's are core. */
+export function patientArtPrefix(p: Patient): string | null {
+  const body = String(p.def.body);
+  const m = /^((?:kid|animal|guest)-[a-z]+-)/.exec(body);
+  return m ? m[1] : null;
+}
+
 /** The tool's own line (its name, as Mom hands it over). */
 export const TOOL_LINE: Record<ToolId, VoiceKey> = {
   thermometer: 'vo-tool-thermometer',

@@ -14,8 +14,13 @@ import { gameStarted, titleShown, updating } from '../core/update';
 import { RECIPES } from '../recipes';
 import { Character } from '../steps/Character';
 import { Mom } from '../steps/Mom';
-import { recipeAssets, releaseRecipe, titleArtLoaded, titleArtReady } from './BootScene';
-import { worldReady } from '../core/worldCache';
+import { enterWorld, releaseRecipe, titleArtLoaded, titleArtReady } from './BootScene';
+import { PATIENTS, patientArtPrefix, planNextVisit } from '../core/clinic';
+import { TUNING } from '../core/tuning';
+import { gameLevel } from './MiniGame';
+
+/** The test harness's own visit (window.__clinicPlan, ClinicScene): then every patient's pictures are loaded. */
+const forcedVisit = () => !!(globalThis as { __clinicPlan?: unknown }).__clinicPlan;
 
 /** Mom says hello only on the very first tap of a session (coming back to the title from a world, she just smiles). */
 let greeted = false;
@@ -162,19 +167,43 @@ export class TitleScene extends Phaser.Scene {
       this.time.delayedCall(900, () => this.scene.start('Home', { from: 'title' }));
       return;
     }
-    // The clinic: its art and sounds load (a small spinner over the button if it takes a
-    // moment), then in. Its files are not in the install (core/worldCache.ts): if they can't be had (offline before
-    // the first visit), the spinner goes, the card gives a little wobble and the title stays as it was.
+    // The clinic: its art and sounds load (a small spinner over the card if it takes a moment, with a ring round it
+    // that fills up as the files come in, so a first visit on a slow connection shows it is on its way), then in. Its
+    // files are not in the install (core/worldCache.ts): if they can't be had (offline before the first visit), the
+    // spinner goes, the card gives a little wobble and the title stays as it was; a tap later carries on where it got
+    // to. It never hangs (BootScene `enterWorld`, clinic-open fix).
     const shown: Phaser.GameObjects.GameObject[] = [];
+    const r = 46 * k;
+    let share = 0;
+    let ring: Phaser.GameObjects.Graphics | undefined;
+    const drawRing = () => {
+      if (!ring?.active) return;
+      ring.clear();
+      ring.lineStyle(10 * k, 0xffd7b0, 1).strokeCircle(x, y, r * 1.5 - 8 * k);
+      if (share > 0.01) {
+        ring.lineStyle(10 * k, 0x6cc070, 1).beginPath();
+        ring.arc(x, y, r * 1.5 - 8 * k, -Math.PI / 2, -Math.PI / 2 + share * Math.PI * 2, false).strokePath();
+      }
+    };
     const spin = this.time.delayedCall(250, () => {
-      const r = 46 * k;
       shown.push(this.add.circle(x, y, r * 1.5, 0xfff6e6, 0.92).setDepth(50));
-      const arc = this.add.arc(x, y, r, 0, 270, false).setStrokeStyle(12 * k, 0xff8c42).setClosePath(false).setDepth(51);
+      ring = this.add.graphics().setDepth(51);
+      shown.push(ring);
+      drawRing();
+      const arc = this.add.arc(x, y, r * 0.8, 0, 270, false).setStrokeStyle(12 * k, 0xff8c42).setClosePath(false).setDepth(52);
       shown.push(arc);
       this.tweens.add({ targets: arc, angle: 360, duration: 900, repeat: -1 });
     });
-    const delay = new Promise((r) => this.time.delayedCall(900, r));
-    worldReady('clinic').then((ok) => {
+    const delay = new Promise((res) => this.time.delayedCall(900, res));
+    // Who comes this time is chosen now, so that only their pictures are loaded (clinic-open fix; ClinicScene takes it).
+    const visit = forcedVisit() ? null : planNextVisit(TUNING.clinic.patients, TUNING.clinic.problems[gameLevel() - 1]);
+    const coming = new Set(visit?.map((v) => patientArtPrefix(v.patient)));
+    const away = visit ? PATIENTS.map(patientArtPrefix).filter((x): x is string => !!x && !coming.has(x)) : [];
+    const skip = (key: string) => away.some((pre) => key.startsWith(pre));
+    enterWorld(this.game, 'clinic', (v) => {
+      share = Math.max(share, v);
+      drawRing();
+    }, skip).then((ok) => {
       if (!ok) {
         spin.remove();
         if (!this.scene.isActive()) return;
@@ -185,7 +214,7 @@ export class TitleScene extends Phaser.Scene {
         if (card) this.tweens.add({ targets: card, angle: { from: -3, to: 3 }, duration: 90, yoyo: true, repeat: 2, onComplete: () => (card as Phaser.GameObjects.Image).setAngle(0) });
         return;
       }
-      Promise.all([recipeAssets(this.game, 'clinic'), delay]).then(() => {
+      delay.then(() => {
         spin.remove();
         if (this.scene.isActive()) this.scene.start('Clinic');
       });
