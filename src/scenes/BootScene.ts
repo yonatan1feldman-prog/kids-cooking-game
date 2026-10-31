@@ -7,6 +7,7 @@ import { loadRecipeSounds, loadSounds, releaseSounds } from '../core/audio';
 import { ensurePlaceholders, makeFxTextures, makeUiTextures } from '../core/placeholders';
 import { SUNBEAM_KEY } from '../core/scenery';
 import { loadSvgTexture, loadWebpTexture } from '../core/svgRaster';
+import { worldReady } from '../core/worldCache';
 
 /** Asset paths in the manifest are relative to the site root; the game lives under BASE_URL. */
 const url = (p: string) => import.meta.env.BASE_URL + p;
@@ -110,10 +111,12 @@ const timing: { images?: number; total?: number; title?: number; home?: number; 
  * Loads a recipe's own images and sounds (RECIPE_ASSETS in the contract) after the core; resolves when they are in
  * (placeholders for missing art). Another recipe's are released first. The home screen calls it on a card tap.
  */
-export function recipeAssets(game: Phaser.Game, id: string): Promise<void> {
+export function recipeAssets(game: Phaser.Game, id: string, skip?: (key: string) => boolean): Promise<void> {
   if (current?.id === id) return current.ready;
   releaseRecipe(game);
-  const own = RECIPE_ASSETS[id] ?? { images: [], sounds: [] };
+  const all = RECIPE_ASSETS[id] ?? { images: [], sounds: [] };
+  // (`skip`: pictures this time doesn't need, the clinic's patients who are not coming: not loaded, no stand-ins)
+  const own = skip ? { images: all.images.filter((k) => !skip(k)), sounds: all.sounds } : all;
   const me: { id: string; ready: Promise<void>; done?: boolean } = { id, ready: Promise.resolve() };
   const t0 = performance.now();
   // Its sounds start at once (they don't compete with the pictures for the GPU); its pictures queue right behind
@@ -131,6 +134,49 @@ export function recipeAssets(game: Phaser.Game, id: string): Promise<void> {
   });
   current = me;
   return me.ready;
+}
+
+/** Loading a world that takes longer than this (a very slow phone or connection) goes in anyway: what is not in yet
+ * comes in while she plays (clinic-open fix: the door never stays shut with a spinner turning for ever). */
+const WORLD_WATCHDOG_MS = 60000;
+
+/**
+ * Going into a world that is not in the install (the clinic, the farm): its files are made sure of (`worldReady`, with
+ * `onProgress` for the spinner), then loaded like a recipe. Resolves false only when its files can't be had (offline
+ * before the first visit); never rejects and never hangs: an error or a load that takes too long goes in with stand-ins.
+ */
+export async function enterWorld(game: Phaser.Game, id: string, onProgress?: (share: number) => void, skip?: (key: string) => boolean): Promise<boolean> {
+  let ok = true;
+  try {
+    // (the files are most of the wait: they fill the first 80% of the ring, loading them the rest)
+    ok = await worldReady(id, (done, total) => onProgress?.(0.8 * (done / Math.max(1, total))));
+  } catch (err) {
+    console.warn(`[assets] ${id}: checking its files failed, going in`, err);
+  }
+  if (!ok) return false;
+  onProgress?.(0.8);
+  const t0 = performance.now();
+  const tick = setInterval(() => onProgress?.(0.8 + 0.19 * Math.min(1, (performance.now() - t0) / 15000)), 250);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const late = new Promise<'late'>((r) => (timer = setTimeout(() => r('late'), WORLD_WATCHDOG_MS)));
+  try {
+    const how = await Promise.race([recipeAssets(game, id, skip).then(() => 'in' as const), late]);
+    // (no stand-ins here: a picture still on its way replaces its stand-in when it lands, and that would pull the
+    // texture from under what is already drawn with it; the few late ones just appear as they come)
+    if (how === 'late') console.warn(`[assets] ${id}: still loading after ${WORLD_WATCHDOG_MS} ms, going in`);
+  } catch (err) {
+    console.warn(`[assets] ${id}: loading failed, going in with stand-ins`, err);
+    try {
+      ensurePlaceholders(game, (RECIPE_ASSETS[id]?.images ?? []).filter((k) => !skip?.(k)));
+    } catch {
+      /* the scene draws what it has */
+    }
+  } finally {
+    clearTimeout(timer);
+    clearInterval(tick);
+  }
+  onProgress?.(1);
+  return true;
 }
 
 /** True once `id`'s own images and sounds are in. */

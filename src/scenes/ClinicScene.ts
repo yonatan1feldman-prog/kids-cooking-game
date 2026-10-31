@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { keepPhoto } from '../core/album';
 import { ART, FX_SOFT, IMAGES, type ImageKey } from '../core/assets';
 import { countKey, music } from '../core/audio';
-import { AILMENTS, burnPlaces, DENTAL, OFF_TRAY, PATIENTS, planVisit, TOOL_LINE, TOOLS, type Ailment, type AilmentId, type Patient, type Station, type ToolId, type What, type ZoomId } from '../core/clinic';
+import { AILMENTS, burnPlaces, DENTAL, OFF_TRAY, PATIENTS, planVisit, takePlannedVisit, TOOL_LINE, TOOLS, type Ailment, type AilmentId, type Patient, type Station, type ToolId, type What, type ZoomId } from '../core/clinic';
 import type { VoiceKey } from '../core/audio';
 import { boing, burst, puff, stars } from '../core/fx';
 import { tapMotion, type HandKey, type HandMotion } from '../core/hand';
@@ -351,7 +351,7 @@ export class ClinicScene extends MiniGame {
     const forced = (globalThis as { __clinicPlan?: string[][] }).__clinicPlan;
     const plan = forced
       ? forced.map(([p, ...as]) => ({ patient: PATIENTS.find((q) => q.id === p)!, ailments: as.map((a) => AILMENTS[a as AilmentId]) }))
-      : planVisit(T.patients, T.problems[this.level - 1]);
+      : (takePlannedVisit() ?? planVisit(T.patients, T.problems[this.level - 1]));
     this.visit = plan.map(({ patient, ailments }) => ({ p: patient, as: ailments, fixed: ailments.map(() => false), ai: 0, pre: {}, cards: [], signs: new Map(), get a() { return (this as unknown as Visitor).as[(this as unknown as Visitor).ai]; } }) as unknown as Visitor);
     this.shown.patients = this.visit.map((v) => `${v.p.id}:${v.as.map((a) => a.id).join('+')}`);
 
