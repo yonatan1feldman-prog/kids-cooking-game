@@ -55,6 +55,18 @@ export const SEA_IMAGES = {
   'lagoon-dolphin-far': { size: [240, 120] },
   'photo-frame-sea': { size: [700, 780] },
   'sea-done': { size: [120, 120] },
+  // mermaid PR 2: the sparkly tail (tail-big under the paint, tail-big-lines over it; the shells of paint) and the swim
+  // with Marina (the rings in two halves, white: the game tints them; a pearl; a little fish)
+  'tail-big': { size: [900, 900] },
+  'tail-big-lines': { size: [900, 900] },
+  'shell-paint': { size: [220, 220] },
+  'paint-blob': { size: [220, 220] },
+  'shell-glitter': { size: [220, 220] },
+  'fx-sparkle': { size: [80, 80] },
+  'ring-back': { size: [260, 260] },
+  'ring-front': { size: [260, 260] },
+  'pearl': { size: [110, 110] },
+  'little-fish': { size: [120, 80] },
   // mermaid PR 3: cleaning the lagoon (images-b-sea/tools/gen_sea3.py): the murky water, the rubbish (green or blue: the
   // hard level sorts it by colour), the two net bags, the dolphin and the turtle (the net and the bag over them are the
   // real trash-net / trash-bag), the seaweed things hide behind, a seahorse
@@ -87,6 +99,8 @@ export type SeaImageKey = keyof typeof SEA_IMAGES;
 export const SEA_SFX = [
   // mermaid PR 1: a shell door opening, Pipa's little breath of bubbles
   'shell-open', 'bubble-breath',
+  // mermaid PR 2: paint spreading on a scale, glitter rubbed on, a ring swum through, a pearl, a soft bump at a red ring
+  'shimmer', 'glitter', 'ring-ding', 'pearl-plink', 'ride-bump',
   // mermaid PR 3: cleaning the lagoon and the shell treasure
   'splash-trash', 'murk-clear', 'dolphin-click', 'turtle-blub', 'net-off', 'basket-pop', 'shell-thread',
 ] as const;
@@ -96,6 +110,9 @@ export const SEA_VOICE = [
   'vo-world-mermaid',
   // mermaid PR 1: the lagoon
   'vo-sea-hello', 'vo-sea-again', 'vo-pick-tail', 'vo-pick-ride', 'vo-pick-clean', 'vo-pick-shells', 'vo-pick-song',
+  // mermaid PR 2: the sparkly tail, the swim with Marina
+  'vo-tail-start', 'vo-tail-pattern', 'vo-tail-next', 'vo-tail-glitter', 'vo-tail-fin', 'vo-tail-all', 'vo-tail-look',
+  'vo-ride-start', 'vo-ride-ring', 'vo-ride-over', 'vo-ride-chest', 'vo-ride-done',
   // mermaid PR 3: cleaning the lagoon
   'vo-clean-start', 'vo-clean-sort', 'vo-clean-blue', 'vo-clean-green', 'vo-clean-hidden', 'vo-clean-dolphin', 'vo-fact-dolphin',
   'vo-clean-turtle', 'vo-fact-turtle', 'vo-fact-seahorse', 'vo-clean-clearer', 'vo-clean-done', 'name-dolphin', 'name-turtle',
@@ -124,6 +141,7 @@ export const SEA_LAGOON: { images: readonly SeaImageKey[]; sounds: readonly stri
   sounds: [...SEA_SFX, ...SEA_VOICE.filter((k) => k !== 'vo-world-mermaid'), ...SEA_SONG],
 };
 
+
 /** The five activities behind the shell doors, in the doors' order (left to right). */
 export const SEA_DOORS = ['tail', 'ride', 'clean', 'shells', 'song'] as const;
 export type SeaDoor = (typeof SEA_DOORS)[number];
@@ -133,8 +151,18 @@ export type SeaDoor = (typeof SEA_DOORS)[number];
  * closed door for now: the shell opens, Mom says its line, and it closes again (mermaid PR 1; PRs 2-4 add the scenes).
  */
 export const SEA_ACTIVITY: Record<SeaDoor, { scene?: string; images: readonly string[]; sounds: readonly string[] }> = {
-  tail: { images: [], sounds: [] },
-  ride: { images: [], sounds: [] },
+  // mermaid PR 2
+  tail: {
+    scene: 'SeaTail',
+    images: ['tail-big', 'tail-big-lines', 'shell-paint', 'paint-blob', 'shell-glitter', 'fx-sparkle', 'photo-frame-sea'],
+    sounds: ['shimmer', 'glitter', 'squeak', 'name-pink', 'name-blue', 'name-purple', 'name-yellow', 'name-green', 'name-white',
+      'vo-tail-start', 'vo-tail-pattern', 'vo-tail-next', 'vo-tail-glitter', 'vo-tail-fin', 'vo-tail-all', 'vo-tail-look'],
+  },
+  ride: {
+    scene: 'SeaRide',
+    images: ['ring-back', 'ring-front', 'pearl', 'little-fish', 'fx-sparkle', 'photo-frame-sea'],
+    sounds: ['ring-ding', 'pearl-plink', 'ride-bump', 'vo-ride-start', 'vo-ride-ring', 'vo-ride-over', 'vo-ride-chest', 'vo-ride-done'],
+  },
   // mermaid PR 3
   clean: {
     scene: 'SeaClean',
@@ -153,6 +181,13 @@ export const SEA_ACTIVITY: Record<SeaDoor, { scene?: string; images: readonly st
   },
   song: { images: [], sounds: [] },
 };
+
+// (mermaid PR 2: an activity's own effects and lines load on its door, not with the lagoon, though SEA_SFX and
+// SEA_VOICE list them all)
+{
+  const own = new Set(Object.values(SEA_ACTIVITY).flatMap((a) => a.sounds));
+  SEA_LAGOON.sounds = SEA_LAGOON.sounds.filter((k) => !own.has(k));
+}
 
 /** Every image of the world but the title's card (that one is core): RECIPE_ASSETS.mermaid. */
 export const SEA_WORLD_IMAGES = (Object.keys(SEA_IMAGES) as SeaImageKey[]).filter((k) => k !== 'world-card-mermaid');

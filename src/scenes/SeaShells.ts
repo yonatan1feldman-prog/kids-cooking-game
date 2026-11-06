@@ -4,7 +4,7 @@ import { voice, type VoiceKey } from '../core/audio';
 import { boing, puff, stars } from '../core/fx';
 import { tapMotion, type HandMotion } from '../core/hand';
 import { sfx } from '../core/sfx';
-import { SEA3, seaPhoto, seaRoom, seaWork, setMark, wearNecklace } from '../core/seaSort';
+import { SEA3, seaRock, seaWork, setMark, wearNecklace } from '../core/seaSort';
 import type { P } from './MiniGame';
 import { SeaGame } from './SeaGame';
 
@@ -90,7 +90,8 @@ export class SeaShells extends SeaGame {
     const L = this.L;
     const S = this.S;
     const k = L.k;
-    seaRoom(this, L, S);
+    this.water(false);
+    seaRock(this, S);
     const { x0, x1 } = seaWork(L, S);
     const hard = this.level === 2;
     const ss = (this.shellScale = 1.0 * k);
@@ -400,7 +401,7 @@ export class SeaShells extends SeaGame {
     const centre = { x: (x0 + x1) / 2, y: this.string!.y + 40 * k };
     const side = Math.min(L.H * 0.7, x1 - x0);
     this.time.delayedCall(1100, () =>
-      seaPhoto(this, L, 'shells', centre, side, { x: centre.x, y: L.Y(560) }, (box) => {
+      this.seaPhoto('shells', { x: centre.x - side / 2, y: centre.y - side / 2, w: side, h: side }, { x: centre.x, y: L.Y(560) }, (box) => {
         this.time.delayedCall(2200, () => {
           this.tweens.add({ targets: box, alpha: 0, scale: 0.6, duration: 400, onComplete: () => box.destroy() });
           this.toMarina();

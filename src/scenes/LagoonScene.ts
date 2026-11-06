@@ -15,6 +15,8 @@ import { Character } from '../steps/Character';
 import { Mom } from '../steps/Mom';
 import { assetsReady, loadImages, releaseImages } from './BootScene';
 import { breath, MARINA, marinaSwims } from './SeaGame';
+import { readMark, type TailMark } from '../core/sea'; // mermaid PR 2
+import { paintMomTail } from './SeaTail'; // mermaid PR 2
 import { cleanLagoonLife, hasMark, wearNecklace } from '../core/seaSort';
 
 /** What each shell door says when it opens (Mom, before the activity starts). */
@@ -32,9 +34,8 @@ const ACTIVITY_WATCHDOG_MS = 20000;
 const PLACEHOLDER_CLOSE_MS = 2600;
 
 export interface LagoonData {
-  /** 'title': she just came into the world (Mom says hello); 'activity': back from one (Mom asks what next). An
-   * activity's home button and its end come back with MiniGame's 'recipe' / 'finale': those are "back from one" too. */
-  from?: 'title' | 'activity' | 'recipe' | 'finale';
+  /** 'title': she just came into the world (Mom says hello); 'activity': back from one (Mom asks what next). */
+  from?: 'title' | 'activity';
   /** Set once Mom has spoken, so a rebuild at a new size (relayout) doesn't say it again. */
   spoken?: boolean;
 }
@@ -88,9 +89,16 @@ export class LagoonScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#5fc9c3');
     this.add.image(L.cx, L.H, 'bg-lagoon').setOrigin(0.5, 1).setScale(Math.max(1, L.W / 2400)).setDepth(-100);
     seaLife(this, L, lg.seaweed);
+    // mermaid PR 2: after the swim with Marina the chest stays open, pearls shining in it
+    const pearls = !!readMark<boolean>('pearls');
+    const chest = this.add.image(lg.chest.x, lg.chest.y, pearls ? 'chest-open' : 'chest-closed').setScale(lg.chest.scale).setDepth(-70);
+    if (pearls) {
+      const sh = this.add.image(chest.x, chest.y - 30 * lg.chest.scale, FX_SOFT).setTint(0xfff4d0).setBlendMode(Phaser.BlendModes.ADD).setDepth(-69);
+      sh.setScale((220 * lg.chest.scale) / sh.frame.realWidth);
+      this.tweens.add({ targets: sh, alpha: { from: 0.25, to: 0.6 }, duration: 2600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    }
     // mermaid PR 3: once she has cleaned it, the lagoon stays clean (brighter water, a dolphin jumping far off)
     if (hasMark('clean')) cleanLagoonLife(this, L);
-    this.add.image(lg.chest.x, lg.chest.y, 'chest-closed').setScale(lg.chest.scale).setDepth(-70);
     touchRipples(this, L);
 
     // The rock (behind Mom: her tail lies on it), Mom the mermaid, Marina swimming beside her.
@@ -101,6 +109,9 @@ export class LagoonScene extends Phaser.Scene {
     assetsReady().then(() => {
       if (!this.scene.isActive()) return;
       const m = (mom = new Mom(this, S.mom, 'mermaid'));
+      // mermaid PR 2: Mom's tail the way she painted it
+      const tail = readMark<TailMark>('tail');
+      if (tail) paintMomTail(this, m, tail);
       m.followHand(() => hint?.active() ?? false);
       m.box.setAlpha(0);
       this.tweens.add({ targets: m.box, alpha: 1, duration: 300 });
@@ -119,7 +130,7 @@ export class LagoonScene extends Phaser.Scene {
       this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.events.off(Phaser.Scenes.Events.UPDATE, look));
       if (!data.spoken) {
         data.spoken = true;
-        if (data.from && data.from !== 'title') this.time.delayedCall(1500, () => !going && !busy && this.say('vo-sea-again', () => !going && !busy));
+        if (data.from === 'activity') this.time.delayedCall(1500, () => !going && !busy && this.say('vo-sea-again', () => !going && !busy));
         else {
           this.say('vo-sea-hello', () => !going);
           m.wave();

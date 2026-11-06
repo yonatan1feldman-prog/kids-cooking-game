@@ -4,7 +4,7 @@ import { voice, type VoiceKey } from '../core/audio';
 import { boing, puff, stars } from '../core/fx';
 import { tapMotion, type HandMotion } from '../core/hand';
 import { sfx } from '../core/sfx';
-import { SEA3, seaPhoto, seaRoom, seaWork, setMark } from '../core/seaSort';
+import { SEA3, seaRock, seaWork, setMark } from '../core/seaSort';
 import type { P } from './MiniGame';
 import { breath, SeaGame } from './SeaGame';
 
@@ -113,7 +113,8 @@ export class SeaClean extends SeaGame {
     const L = this.L;
     const S = this.S;
     const k = L.k;
-    seaRoom(this, L, S);
+    this.water(false);
+    seaRock(this, S);
     const { x0, x1 } = seaWork(L, S);
     const hard = this.level === 2;
 
@@ -472,7 +473,7 @@ export class SeaClean extends SeaGame {
     const L = this.L;
     const side = Math.min(L.H * 0.86, room.x1 - room.x0);
     const centre = { x: (room.x0 + room.x1) / 2, y: L.Y(620) };
-    seaPhoto(this, L, 'clean', centre, side, { x: centre.x, y: L.Y(470) }, (box) => {
+    this.seaPhoto('clean', { x: centre.x - side / 2, y: centre.y - side / 2, w: side, h: side }, { x: centre.x, y: L.Y(470) }, (box) => {
       this.time.delayedCall(2600, () => {
         this.tweens.add({ targets: box, alpha: 0, scale: 0.6, duration: 400 });
         this.time.delayedCall(700, () => this.leave('finale'));
