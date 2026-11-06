@@ -404,6 +404,31 @@
   "w": 640,
   "h": 520
  },
+ "bell-shell-1": {
+  "sha1": "224608e6dda5753d25e68c56e9a37e4482d3f579",
+  "w": 260,
+  "h": 260
+ },
+ "bell-shell-2": {
+  "sha1": "ff230162cffd4d7f38b1fe56ea067cfc0d41be2e",
+  "w": 245,
+  "h": 245
+ },
+ "bell-shell-3": {
+  "sha1": "e8909576971d5fb64a6a7f5b331807c51ed444c8",
+  "w": 230,
+  "h": 230
+ },
+ "bell-shell-4": {
+  "sha1": "f37644aed82aaf281065d67d4eb79ed98d7170e4",
+  "w": 215,
+  "h": 215
+ },
+ "bell-shell-5": {
+  "sha1": "32593cc4ffccdd388a34cba073b8afc40c6fa62a",
+  "w": 200,
+  "h": 200
+ },
  "berry": {
   "sha1": "e683bcf8e41b4f8190ae50c7e4b45432f5b5db69",
   "w": 140,
@@ -3269,6 +3294,11 @@
   "w": 420,
   "h": 360
  },
+ "note-bubble": {
+  "sha1": "da08b4173071ab239448dec1f129455f2b77c55d",
+  "w": 120,
+  "h": 120
+ },
  "oil-bottle": {
   "sha1": "257930d1da6dc064088666f494d63323589583f6",
   "w": 300,
@@ -3708,6 +3738,11 @@
   "sha1": "fcfda087f4de8437fd0ae8755c21283b3dd8cca3",
   "w": 220,
   "h": 220
+ },
+ "shell-glow": {
+  "sha1": "01d44ca6c89471d18b87d5c734f92aa9907bf27a",
+  "w": 320,
+  "h": 320
  },
  "shell-paint": {
   "sha1": "09e2043c7d25cb7a62f0e1f291b9662d7beafe8e",

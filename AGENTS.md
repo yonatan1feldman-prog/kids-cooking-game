@@ -675,7 +675,7 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the mermaid world PR 3 (cleaning, shells), the mermaid world PR 2 (the tail, the swim), the mermaid world PR 1 (the lagoon), the clinic-open fix, the clinic round 6 (part 3, four patients), the clinic round 6 (part 2, seven ailments), the clinic round 6 (part 1, the bowl), the clinic round 5 (part 3, more challenge), the clinic round 5 (part 2, the care rooms), the farm, the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; the mermaid world PR 4 (the shell song), the mermaid world PR 3 (cleaning, shells), the mermaid world PR 2 (the tail, the swim), the mermaid world PR 1 (the lagoon), the clinic-open fix, the clinic round 6 (part 3, four patients), the clinic round 6 (part 2, seven ailments), the clinic round 6 (part 1, the bowl), the clinic round 5 (part 3, more challenge), the clinic round 5 (part 2, the care rooms), the farm, the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
 ### 00000000000000000000000000000000000000000. The mermaid world, PR 3 (cleaning the lagoon, the shell treasure)
 Spec `/mnt/project-files/research/mermaid-spec.md` 3.3, 3.4 and 11 (Pipa = Marina there). Two shell doors now open real activities.
 - **Scenes:** `scenes/SeaClean.ts` (door 'clean') and `scenes/SeaShells.ts` (door 'shells'), both on `SeaGame`; numbers,
@@ -698,6 +698,24 @@ Spec `/mnt/project-files/research/mermaid-spec.md` 3.3, 3.4 and 11 (Pipa = Marin
 - **Harness:** `__seaRun(id, level, {none, wrong, first, gap, mid})` from the lagoon through the door to the lagoon again.
 - Art `assets-src/images-b-sea/tools/gen_sea3.py` (20 SVGs), effects in `make_sea_sfx.py` (PR 3 block), 27 lines in `make_vo.py`;
   not heard by a human.
+### 00000000000000000000000000000000000000000. The mermaid world, PR 4 (the shell song, the lagoon's song mark)
+Spec `/mnt/project-files/research/mermaid-spec.md` 3.5 (Pipa there = Marina). `scenes/SeaSong.ts` (scene 'SeaSong', id
+`sea-song`), on `SeaGame`; registered in `SEA_ACTIVITY.song` (its door loads 7 pictures and 16 sounds, freed back in the lagoon).
+- **Play:** five bell shells (`bell-shell-1..5`, 260→200, biggest = lowest; notes C D E G A `shell-note-1..5`, a colour each)
+  on a rock. Phases `free` (4 notes, then Mom offers her tune once it is quiet 1.5 s) → `listen` (Mom's hand plays it;
+  her taps meanwhile sing and Mom starts again when quiet, no words) → `copy` (right shell = sings; another = `bubble-pop-soft`
+  and the right one blinks; two in a row: `vo-song-again` and she plays it, her place in the tune is kept) → `yes` → next
+  tune. `TUNES` (3 sets, rotating by visit): easy 2/3/3 notes, hard 3/4/4, then `sing` (Mom's "la" file `sing-<set>` over
+  the last tune; `SING_TUNES` in make_sea_sfx.py must match `TUNES.hard[v][2]`). Finale: every shell, party held, Marina
+  spins (no Marina at 4:3, like Pipa), photo `mermaid-song` in `photo-frame-sea` (album: `mermaid-*` → that frame), back
+  to the lagoon with `from: 'activity'` (SeaSong overrides `leave`: no "bye bye"; MiniGame's `{from: 'finale'}` would make
+  the lagoon say hello again; PRs 2-3 may want the same).
+- **Lagoon mark:** `localStorage['lagoon.song']` → three little bell shells at the foot of the song door (`marked()` in
+  LagoonScene; Mom's rock is mostly below the screen at 4:3, so not on the rock). `__lagoonState.marks`.
+- **Harness:** `__songPlay(level, {wrong, interrupt, none, gap})` from the lagoon (taps the door). Headless: raf stop +
+  `__voSim(true)` + `__fast(true)`: easy 35 s, hard 43 s of game time, no touch 163 s (9 helps); textures back to the
+  lagoon's 141. In shots, stop the raf too or the scene runs on while the screenshot is taken.
+- Not heard by anyone: the 9 synthesised effects (the "la" voice is a formant buzz; drop `sing` if it sounds odd) and 7 lines.
 
 ### 0000000000000000000000000000000000000000. The mermaid world, PR 2 (the sparkly tail, the swim with Marina)
 Spec `/mnt/project-files/research/mermaid-spec.md` 3.1, 3.2 and 11 (PR 2), with its "2026-11-06 change" (Marina, not Pipa).

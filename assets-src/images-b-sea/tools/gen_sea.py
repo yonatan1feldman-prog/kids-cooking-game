@@ -599,9 +599,55 @@ def write_tail_ts():
     with open(out, "w", encoding="utf8") as f:
         f.write("\n".join(lines))
     print("wrote", out, len(cells) + len(lobes), "areas")
+# ================================================================ mermaid PR 4: the shell song
+# Five bell shells, biggest (lowest note) to smallest (highest), each its own colour so a note has a colour too.
+BELLS = (  # (frame size, fill, dark, light)
+    (260, "#F28C7A", "#D96A58", "#FBC4B8"),   # 1 coral: C
+    (245, "#F2C14E", "#D19A2A", "#FBE3A6"),   # 2 gold: D
+    (230, "#7CCB8A", "#549F63", "#C2EBC8"),   # 3 sea green: E
+    (215, "#4E9FD8", "#2E7FA6", "#B4DAF2"),   # 4 sea blue: G
+    (200, "#B99BD8", "#9A7EBA", "#E2D4F2"),   # 5 lilac: A
+)
+
+
+def bell_shell(i):
+    """bell-shell-<i+1> (260 -> 200 square): a round scallop standing on its hinge with two little ears, a pearl at its foot
+    and a shine; drawn in a 260 frame and scaled, so the five are one family that steps down in size."""
+    size, fill, dark, light = BELLS[i]
+    p = f"bs{i + 1}-"
+    f = size / 260
+    s = G(scallop(130, 226, 112, 190, fill, dark, light, 9), p + "cut")
+    ears = f"M78,224 L50,206 Q44,232 70,246 Z M182,224 L210,206 Q216,232 190,246 Z"
+    s += G(P(ears, dark) + P(wr(96, 214, 68, 34, 12, 1, 5 + i), dark) + P(wr(100, 210, 60, 28, 10, 1, 7 + i), fill), p + "sh")
+    s += G(C(130, 238, 17, PEARL_D) + C(129, 235, 15, PEARL) + C(124, 230, 5, WHITE), p + "sh")
+    s += sparkle(176, 86, 13) + sparkle(84, 120, 8)
+    return doc(p, size, size, f'<g transform="scale({n(f)})">{s}</g>', "smooth", seed=211 + i, cut={"rim": 3, "rough": 4})
+
+
+def note_bubble():
+    """120: a round bubble with a music note in it, white and pale (the game tints it the shell's colour)."""
+    p = "nbb-"
+    s = C(60, 60, 52, WHITE, ' opacity="0.35"') + f'<circle cx="60" cy="60" r="52" fill="none" stroke="{WHITE}" stroke-width="7"/>'
+    s += P("M30,48 Q32,26 54,20", "none", f' stroke="{WHITE}" stroke-width="7" stroke-linecap="round"')
+    s += G(P(wob(52, 80, 14, 11, .03, 3, 14, -20), WHITE) + stroke("M64,78 L64,34 Q78,38 84,52", WHITE, 7, ''), p + "sh")
+    return doc(p, 120, 120, s, "smooth", seed=221)
+
+
+def shell_glow():
+    """320: a soft ring of light with little sparkles (behind a shell that sings; the game tints and fades it)."""
+    p = "sgl-"
+    defs = (f'<radialGradient id="{p}g" cx="0.5" cy="0.5" r="0.5"><stop offset="0.45" stop-color="#FFFFFF" stop-opacity="0.0"/>'
+            f'<stop offset="0.7" stop-color="#FFFFFF" stop-opacity="0.75"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/></radialGradient>')
+    s = f'<circle cx="160" cy="160" r="158" fill="url(#{p}g)"/>'
+    s += "".join(sparkle(160 + math.cos(math.radians(a)) * 128, 160 + math.sin(math.radians(a)) * 128, 12 if j % 2 else 8)
+                 for j, a in enumerate(range(0, 360, 45)))
+    return svg(320, 320, defs, s)
 
 
 ITEMS = {
+    # mermaid PR 4: the shell song
+    **{f"bell-shell-{i + 1}": (lambda i=i: bell_shell(i)) for i in range(5)},
+    "note-bubble": note_bubble, "shell-glow": shell_glow,
     # mermaid PR 1: the lagoon
     "bg-lagoon": bg_lagoon, "lagoon-rock": lagoon_rock,
     "door-shell": lambda: door_shell(False), "door-shell-open": lambda: door_shell(True),

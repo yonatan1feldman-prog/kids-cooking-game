@@ -716,6 +716,14 @@ MOM_LINES = {
     "name-shell": "Shell!",
     "name-swirly": "Swirly shell!",
     "name-starfish": "Starfish!",
+    # mermaid PR 4: the shell song
+    "vo-song-start": "Tap the shells, they sing!",
+    "vo-song-listen": "Listen to my little song!",
+    "vo-song-copy": "Can you play it too?",
+    "vo-song-again": "Let me show you again!",
+    "vo-song-yes": "That's my song!",
+    "vo-song-sing": "Now I'll sing along!",
+    "vo-song-done": "We made up a song together! Look, Marina is dancing!",
 }
 SUFFIX = ""
 if len(sys.argv) > 1 and sys.argv[1] in ("mom", "mom-a"):

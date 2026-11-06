@@ -63,7 +63,7 @@ const activitySounds = () => {
  */
 export class LagoonScene extends Phaser.Scene {
   /** For the test harness (window.__lagoonState). */
-  shown: { doors: number; opened: SeaDoor[]; started: string | null } = { doors: 0, opened: [], started: null };
+  shown: { doors: number; opened: SeaDoor[]; started: string | null; marks: string[] } = { doors: 0, opened: [], started: null, marks: [] };
 
   constructor() {
     super('Lagoon');
@@ -76,7 +76,7 @@ export class LagoonScene extends Phaser.Scene {
     const lg = S.lagoon;
     let going = false;
     let busy = false;
-    this.shown = { doors: SEA_DOORS.length, opened: [], started: null };
+    this.shown = { doors: SEA_DOORS.length, opened: [], started: null, marks: [] };
     (window as unknown as { __lagoonState: LagoonScene['shown'] }).__lagoonState = this.shown;
     keepLayoutOnResize(this, L, { relayout: true, canRelayout: () => !going && !busy });
 
@@ -160,6 +160,18 @@ export class LagoonScene extends Phaser.Scene {
       const half = 150 * lg.doorScale + 14 * k;
       return { id, shell, icon, glow, box: new Phaser.Geom.Rectangle(at.x - half, top, 2 * half, bottom - top) };
     });
+
+    // mermaid PR 4: the song's mark, three little bell shells in a row at the foot of the song's shell door (the rock
+    // Mom sits on is mostly below the screen at 4:3; here they show at every ratio), each rocking very gently
+    if (readMark('song')) {
+      const at = lg.door(SEA_DOORS.indexOf('song'));
+      const ds = lg.doorScale;
+      [[1, -82, 128], [3, 0, 134], [5, 82, 128]].forEach(([n, dx, dy], j) => {
+        const b = this.add.image(at.x + dx * ds, at.y + dy * ds, `bell-shell-${n}`).setOrigin(0.5, 0.9).setScale(0.44 * ds).setDepth(12).setAngle(-12 + j * 12);
+        this.tweens.add({ targets: b, angle: b.angle + 4, duration: 1800 + j * 300, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+      });
+      this.shown.marks.push('song');
+    }
 
     const open = (d: (typeof doors)[number]) => {
       if (going || busy) return;

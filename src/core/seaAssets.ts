@@ -92,6 +92,14 @@ export const SEA_IMAGES = {
   'sand-mound': { size: [260, 120] },
   'necklace-string': { size: [1400, 60] },
   'necklace-marina': { size: [240, 130] },
+  // mermaid PR 4: the shell song (SeaSong): five bell shells, biggest (lowest note) to smallest, a note's bubble, a glow
+  'bell-shell-1': { size: [260, 260] },
+  'bell-shell-2': { size: [245, 245] },
+  'bell-shell-3': { size: [230, 230] },
+  'bell-shell-4': { size: [215, 215] },
+  'bell-shell-5': { size: [200, 200] },
+  'note-bubble': { size: [120, 120] },
+  'shell-glow': { size: [320, 320] },
 } as const;
 export type SeaImageKey = keyof typeof SEA_IMAGES;
 
@@ -103,6 +111,8 @@ export const SEA_SFX = [
   'shimmer', 'glitter', 'ring-ding', 'pearl-plink', 'ride-bump',
   // mermaid PR 3: cleaning the lagoon and the shell treasure
   'splash-trash', 'murk-clear', 'dolphin-click', 'turtle-blub', 'net-off', 'basket-pop', 'shell-thread',
+  // mermaid PR 4: the bell shells' five notes, a soft bubble (a note that is not the tune's), Mom singing "la" (hard)
+  'shell-note-1', 'shell-note-2', 'shell-note-3', 'shell-note-4', 'shell-note-5', 'bubble-pop-soft', 'sing-1', 'sing-2', 'sing-3',
 ] as const;
 
 /** Mom's lines in the mermaid world (make_vo.py, "The mermaid world"); the title's own line is core. */
@@ -119,6 +129,8 @@ export const SEA_VOICE = [
   // mermaid PR 3: the shell treasure
   'vo-shell-start', 'vo-shell-hidden', 'vo-shell-big', 'vo-shell-little', 'vo-shell-thread', 'vo-shell-pattern', 'vo-shell-next',
   'vo-shell-marina', 'vo-shell-pretty', 'vo-fact-starfish', 'name-shell', 'name-swirly', 'name-starfish',
+  // mermaid PR 4: the shell song
+  'vo-song-start', 'vo-song-listen', 'vo-song-copy', 'vo-song-again', 'vo-song-yes', 'vo-song-sing', 'vo-song-done',
 ] as const;
 export type SeaVoiceKey = (typeof SEA_VOICE)[number];
 
@@ -129,6 +141,12 @@ export const SEA_SONG = ['music-sea-base', 'music-sea-tune', 'music-sea-party', 
 export const MOM_MERMAID = (Object.keys(SEA_IMAGES) as SeaImageKey[]).filter((k) => k.startsWith('mom-mer-'));
 export const MARINA = (Object.keys(SEA_IMAGES) as SeaImageKey[]).filter((k) => k.startsWith('marina-'));
 
+// mermaid PR 4: the song's own effects and lines (its door loads them)
+const SONG_ONLY = new Set<string>([
+  'shell-note-1', 'shell-note-2', 'shell-note-3', 'shell-note-4', 'shell-note-5', 'bubble-pop-soft', 'sing-1', 'sing-2', 'sing-3',
+  'vo-song-start', 'vo-song-listen', 'vo-song-copy', 'vo-song-again', 'vo-song-yes', 'vo-song-sing', 'vo-song-done',
+]);
+
 /** What going into the world loads: the lagoon and Mom's mermaid layers, the lagoon's sounds and the song. */
 export const SEA_LAGOON: { images: readonly SeaImageKey[]; sounds: readonly string[] } = {
   images: [
@@ -137,6 +155,8 @@ export const SEA_LAGOON: { images: readonly SeaImageKey[]; sounds: readonly stri
     'seaweed', 'lagoon-dolphin-far', 'sea-done',
     // mermaid PR 3: Marina's shell necklace (she wears it in the lagoon once she has it)
     'necklace-marina',
+    // mermaid PR 4: the lagoon's mark of the song (three little bell shells by its door)
+    'bell-shell-1', 'bell-shell-3', 'bell-shell-5',
   ],
   sounds: [...SEA_SFX, ...SEA_VOICE.filter((k) => k !== 'vo-world-mermaid'), ...SEA_SONG],
 };
@@ -179,7 +199,12 @@ export const SEA_ACTIVITY: Record<SeaDoor, { scene?: string; images: readonly st
       'vo-shell-pattern', 'vo-shell-next', 'vo-shell-marina', 'vo-shell-pretty', 'vo-fact-starfish', 'name-shell', 'name-swirly', 'name-starfish'],
     // (Mom's counting, count-1..10, is core: never listed here, so going back to the lagoon never frees it)
   },
-  song: { images: [], sounds: [] },
+  // mermaid PR 4: the shell song
+  song: {
+    scene: 'SeaSong',
+    images: ['bell-shell-1', 'bell-shell-2', 'bell-shell-3', 'bell-shell-4', 'bell-shell-5', 'note-bubble', 'shell-glow', 'photo-frame-sea'],
+    sounds: [...SONG_ONLY],
+  },
 };
 
 // (mermaid PR 2: an activity's own effects and lines load on its door, not with the lagoon, though SEA_SFX and

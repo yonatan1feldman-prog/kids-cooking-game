@@ -2034,3 +2034,47 @@ window.__seaRun = async (id, level = 1, opts = {}) => {
   return { id, level, log, shown: m.shown, lagoon: game.scene.isActive('Lagoon'), helps: vo.filter((e) => e.key === 'vo-help').length,
     check: window.__voCheck ? __voCheck(vo) : null, keys: vo.map((e) => e.key).join(' '), textures: game.textures.getTextureKeys().length };
 };
+
+// mermaid PR 4: the shell song
+/** Plays the shell song the way she would, from the lagoon's door: `level` 1 | 2; opts: wrong (one wrong shell per
+ * tune, then twice in a row once), interrupt (taps a shell while Mom plays her tune), none (no touch at all: Mom's hand
+ * and help carry it), gap (ms between taps). Returns the scene's state, Mom's lines and whether it came back. */
+window.__songPlay = async (level = 1, opts = {}) => {
+  window.__level = level;
+  if (!game.scene.isActive('Lagoon')) await __lagoon();
+  __voLog.length = 0;
+  await __seaDoor('song', 300);
+  for (let i = 0; i < 200 && !game.scene.isActive('SeaSong'); i++) { await __run(100); await new Promise((r) => setTimeout(r, 20)); }
+  const s = game.scene.getScene('SeaSong');
+  const t0 = __voice.now();
+  let wrongAt = -1, twice = false, interrupted = false, taps = 0;
+  for (let i = 0; i < 3000 && game.scene.isActive('SeaSong'); i++) {
+    const ph = s.shown.phase;
+    // (free: a few notes, then she listens, as Mom waits for a quiet moment to offer her tune)
+    if (!opts.none && ((ph === 'free' && s.freeNotes < 4) || ph === 'copy') && !s.helping) {
+      const p = s.plan();
+      if (p) {
+        if (opts.wrong && ph === 'copy' && wrongAt !== s.round) {
+          wrongAt = s.round;
+          const want = s.tunes[s.round][s.pos];
+          const other = s.bells[(want + 2) % 5].at;
+          __tap(other.x, other.y); taps++;
+          if (!twice) { twice = true; await __run(300); __tap(other.x, other.y); taps++; }
+          await __run(opts.gap ?? 700);
+          continue;
+        }
+        __tap(p.x, p.y); taps++;
+      }
+    }
+    if (opts.interrupt && !interrupted && ph === 'listen') {
+      interrupted = true;
+      const b = s.bells[4].at;
+      await __run(700); __tap(b.x, b.y); await __run(250); __tap(b.x, b.y);
+    }
+    await __run(opts.gap ?? 700);
+  }
+  for (let i = 0; i < 40 && !game.scene.isActive('Lagoon'); i++) await __run(500);
+  await __run(2500);
+  return { level, opts: Object.keys(opts), taps, secs: Math.round((__voice.now() - t0) / 1000), lagoon: game.scene.isActive('Lagoon'),
+    shown: { ...s.shown, tunes: undefined, bells: undefined }, marks: window.__lagoonState?.marks, check: __voCheck(__voLog), keys: __voLog.map((e) => e.key).join(' ') };
+};
