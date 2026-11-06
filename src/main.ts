@@ -16,6 +16,8 @@ import { PuzzleScene } from './scenes/PuzzleScene';
 import { RecipeScene } from './scenes/RecipeScene';
 import { TitleScene } from './scenes/TitleScene';
 import { LagoonScene } from './scenes/LagoonScene';
+// mermaid PR 4
+import { SeaSongScene } from './scenes/SeaSong';
 
 function start() {
   const game = new Phaser.Game({
@@ -38,7 +40,7 @@ function start() {
     // Three touch slots so a resting palm can't take the only slot. Which touch "owns" an
     // action is decided in Step / iconButton: the first finger rules until it is lifted.
     input: { activePointers: 3 },
-    scene: [BootScene, TitleScene, HomeScene, RecipeScene, AlbumScene, PuzzleScene, GardenScene, MarketScene, DishesScene, ArtScene, ClinicScene, FarmScene, LagoonScene],
+    scene: [BootScene, TitleScene, HomeScene, RecipeScene, AlbumScene, PuzzleScene, GardenScene, MarketScene, DishesScene, ArtScene, ClinicScene, FarmScene, LagoonScene, SeaSongScene],
   });
 
   blockBrowserGestures();

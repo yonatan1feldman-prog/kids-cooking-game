@@ -55,6 +55,14 @@ export const SEA_IMAGES = {
   'lagoon-dolphin-far': { size: [240, 120] },
   'photo-frame-sea': { size: [700, 780] },
   'sea-done': { size: [120, 120] },
+  // mermaid PR 4: the shell song (SeaSong): five bell shells, biggest (lowest note) to smallest, a note's bubble, a glow
+  'bell-shell-1': { size: [260, 260] },
+  'bell-shell-2': { size: [245, 245] },
+  'bell-shell-3': { size: [230, 230] },
+  'bell-shell-4': { size: [215, 215] },
+  'bell-shell-5': { size: [200, 200] },
+  'note-bubble': { size: [120, 120] },
+  'shell-glow': { size: [320, 320] },
 } as const;
 export type SeaImageKey = keyof typeof SEA_IMAGES;
 
@@ -62,6 +70,8 @@ export type SeaImageKey = keyof typeof SEA_IMAGES;
 export const SEA_SFX = [
   // mermaid PR 1: a shell door opening, Pipa's little breath of bubbles
   'shell-open', 'bubble-breath',
+  // mermaid PR 4: the bell shells' five notes, a soft bubble (a note that is not the tune's), Mom singing "la" (hard)
+  'shell-note-1', 'shell-note-2', 'shell-note-3', 'shell-note-4', 'shell-note-5', 'bubble-pop-soft', 'sing-1', 'sing-2', 'sing-3',
 ] as const;
 
 /** Mom's lines in the mermaid world (make_vo.py, "The mermaid world"); the title's own line is core. */
@@ -69,6 +79,8 @@ export const SEA_VOICE = [
   'vo-world-mermaid',
   // mermaid PR 1: the lagoon
   'vo-sea-hello', 'vo-sea-again', 'vo-pick-tail', 'vo-pick-ride', 'vo-pick-clean', 'vo-pick-shells', 'vo-pick-song',
+  // mermaid PR 4: the shell song
+  'vo-song-start', 'vo-song-listen', 'vo-song-copy', 'vo-song-again', 'vo-song-yes', 'vo-song-sing', 'vo-song-done',
 ] as const;
 export type SeaVoiceKey = (typeof SEA_VOICE)[number];
 
@@ -79,14 +91,22 @@ export const SEA_SONG = ['music-sea-base', 'music-sea-tune', 'music-sea-party', 
 export const MOM_MERMAID = (Object.keys(SEA_IMAGES) as SeaImageKey[]).filter((k) => k.startsWith('mom-mer-'));
 export const MARINA = (Object.keys(SEA_IMAGES) as SeaImageKey[]).filter((k) => k.startsWith('marina-'));
 
+// mermaid PR 4: the song's own effects and lines load on its door (SEA_ACTIVITY.song), not with the lagoon
+const SONG_ONLY = new Set<string>([
+  'shell-note-1', 'shell-note-2', 'shell-note-3', 'shell-note-4', 'shell-note-5', 'bubble-pop-soft', 'sing-1', 'sing-2', 'sing-3',
+  'vo-song-start', 'vo-song-listen', 'vo-song-copy', 'vo-song-again', 'vo-song-yes', 'vo-song-sing', 'vo-song-done',
+]);
+
 /** What going into the world loads: the lagoon and Mom's mermaid layers, the lagoon's sounds and the song. */
 export const SEA_LAGOON: { images: readonly SeaImageKey[]; sounds: readonly string[] } = {
   images: [
     ...MOM_MERMAID, ...MARINA, 'bg-lagoon', 'lagoon-rock', 'door-shell', 'door-shell-open',
     'door-icon-tail', 'door-icon-ride', 'door-icon-clean', 'door-icon-shells', 'door-icon-song', 'chest-closed', 'chest-open',
     'seaweed', 'lagoon-dolphin-far', 'sea-done',
+    // mermaid PR 4: the lagoon's mark of the song (three little bell shells on Mom's rock)
+    'bell-shell-1', 'bell-shell-3', 'bell-shell-5',
   ],
-  sounds: [...SEA_SFX, ...SEA_VOICE.filter((k) => k !== 'vo-world-mermaid'), ...SEA_SONG],
+  sounds: [...SEA_SFX, ...SEA_VOICE.filter((k) => k !== 'vo-world-mermaid'), ...SEA_SONG].filter((k) => !SONG_ONLY.has(k)),
 };
 
 /** The five activities behind the shell doors, in the doors' order (left to right). */
@@ -102,7 +122,12 @@ export const SEA_ACTIVITY: Record<SeaDoor, { scene?: string; images: readonly st
   ride: { images: [], sounds: [] },
   clean: { images: [], sounds: [] },
   shells: { images: [], sounds: [] },
-  song: { images: [], sounds: [] },
+  // mermaid PR 4: the shell song
+  song: {
+    scene: 'SeaSong',
+    images: ['bell-shell-1', 'bell-shell-2', 'bell-shell-3', 'bell-shell-4', 'bell-shell-5', 'note-bubble', 'shell-glow', 'photo-frame-sea'],
+    sounds: [...SONG_ONLY],
+  },
 };
 
 /** Every image of the world but the title's card (that one is core): RECIPE_ASSETS.mermaid. */

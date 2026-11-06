@@ -605,6 +605,24 @@ ffmpeg; no samples), -18 LUFS.
 | vo-pick-shells | Let's find shells for a necklace! |
 | vo-pick-song | Let's play the shell bells! |
 
+### New in the mermaid world, PR 4 (the shell song; 7 lines, 9 effects, 7 pictures)
+
+Same engine, voice and processing (Kokoro af_heart, `make_vo.py mom-a`); no fix was needed. The effects shell-note-1..5
+(a water-glockenspiel note per bell shell, C D E G A), bubble-pop-soft and sing-1..3 (Mom singing "la" on a short tune: a
+synthesised buzz through vowel formants, not a recording) are own work, synthesised by `audio-src/scripts/make_sea_sfx.py`
+(numpy + scipy + ffmpeg; no samples), -18 LUFS. The pictures bell-shell-1..5, note-bubble and shell-glow are own work,
+drawn by `assets-src/images-b-sea/tools/gen_sea.py`.
+
+| Key | Line |
+|---|---|
+| vo-song-start | Tap the shells, they sing! |
+| vo-song-listen | Listen to my little song! |
+| vo-song-copy | Can you play it too? |
+| vo-song-again | Let me show you again! |
+| vo-song-yes | That's my song! |
+| vo-song-sing | Now I'll sing along! |
+| vo-song-done | We made up a song together! Look, Marina is dancing! |
+
 ## Graphics (`images/`)
 
 All SVG files in `images/` were drawn for this project by the art agent (style B, paper cut-out; generators in
