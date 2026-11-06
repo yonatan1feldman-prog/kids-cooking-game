@@ -81,6 +81,56 @@ def bubble_breath():
     return lp(out, 3500)
 
 
+# ---------------------------------------------------------------- mermaid PR 2: the sparkly tail, the swim with Marina
+def shimmer():
+    """Paint spreading over a scale: a soft swish of water and a quick rising run of three tiny bells."""
+    n = int(0.7 * SR)
+    out = np.zeros(n)
+    w = int(0.35 * SR)
+    place(out, 0.35 * lp(bp(rng.standard_normal(w), 900, 5000), 4000) * env(w, 0.04, 0.09), 0.0)
+    for i, f in enumerate((1568.0, 1975.5, 2349.3)):
+        place(out, 0.22 * glock(f, 0.5), 0.05 + i * 0.06)
+    return out
+
+
+def glitter():
+    """Glitter rubbed on: a twinkling cluster of very high bell notes, scattered."""
+    n = int(0.9 * SR)
+    out = np.zeros(n)
+    for i in range(7):
+        f = rng.choice([2093.0, 2349.3, 2637.0, 3136.0, 3520.0])
+        place(out, 0.16 * glock(f, 0.4), 0.02 + i * 0.07 + rng.uniform(-0.015, 0.015))
+    return lp(out, 9000)
+
+
+def ring_ding():
+    """Swimming through a ring: one round bell (E6, the game varies its pitch) with a shimmer and a bubble."""
+    n = int(1.3 * SR)
+    out = np.zeros(n)
+    place(out, 0.5 * glock(1318.5, 1.1), 0.0)
+    place(out, 0.18 * glock(2637.0, 0.6), 0.03)
+    place(out, 0.25 * blub(420, 0.1, 1.6), 0.05)
+    return out
+
+
+def pearl_plink():
+    """A pearl caught: a short bright plink, a tiny bubble under it."""
+    n = int(0.6 * SR)
+    out = np.zeros(n)
+    place(out, 0.45 * glock(1760.0, 0.45), 0.0)
+    place(out, 0.2 * blub(600, 0.07, 2.0), 0.01)
+    return out
+
+
+def ride_bump():
+    """Marina at a red ring: a soft round boop (a low bubble bouncing), never a buzz."""
+    n = int(0.6 * SR)
+    out = np.zeros(n)
+    place(out, 0.6 * blub(180, 0.16, 0.6), 0.0)
+    place(out, 0.35 * blub(240, 0.12, 0.8), 0.17)
+    return lp(out, 2500)
+
+
 def finish(name, x):
     meter = pyln.Meter(SR, block_size=0.1)
     x = pyln.normalize.loudness(x, meter.integrated_loudness(x), -18.0)
@@ -100,6 +150,8 @@ def finish(name, x):
 SOUNDS = [
     # mermaid PR 1
     ("shell-open", shell_open), ("bubble-breath", bubble_breath),
+    # mermaid PR 2
+    ("shimmer", shimmer), ("glitter", glitter), ("ring-ding", ring_ding), ("pearl-plink", pearl_plink), ("ride-bump", ride_bump),
 ]
 
 ONLY = sys.argv[1:]

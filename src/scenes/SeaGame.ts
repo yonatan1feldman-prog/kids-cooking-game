@@ -1,6 +1,12 @@
 import Phaser from 'phaser';
-import type { Song } from '../core/audio';
+import { keepPhoto } from '../core/album';
+import { music, voice, type Song, type VoiceKey } from '../core/audio';
 import { FX_SOFT } from '../core/assets';
+import { stars } from '../core/fx';
+import { confetti } from '../core/juice';
+import { seaLife } from '../core/scenery';
+import { ART_SEA } from '../core/seaAssets';
+import { sfx } from '../core/sfx';
 import type { Spot } from '../core/stage';
 import type { Character } from '../steps/Character';
 import type { CharacterDef } from '../recipes/types';
@@ -87,5 +93,97 @@ export abstract class SeaGame extends MiniGame {
 
   protected ready() {
     if (this.pipa && this.S.pet) marinaSwims(this, this.pipa, this.S.pet, this.L.k);
+  }
+
+  // ---------------------------------------------------------------- mermaid PR 2: shared by the activities
+
+  /** The lagoon's water behind an activity (the same picture, spec 8: no background of its own), its slow sea life. */
+  protected water(seaweed = true) {
+    const L = this.L;
+    this.cameras.main.setBackgroundColor('#5fc9c3');
+    this.add.image(L.cx, L.H, 'bg-lagoon').setOrigin(0.5, 1).setScale(Math.max(1, L.W / 2400)).setDepth(-100);
+    if (seaweed) seaLife(this, L, this.S.lagoon.seaweed);
+  }
+
+  /** Back to the lagoon, which asks "What shall we do next?" (never its hello again), from the home button too. */
+  protected leave(from: 'recipe' | 'finale') {
+    if (this.leaving) return;
+    this.leaving = true;
+    this.shutdown();
+    if (from === 'recipe') voice.stop();
+    this.scene.start(this.homeScene, { from: 'activity' });
+  }
+
+  /** The warm ending in the sea: the activity's line, then quietly back to the lagoon (no "bye bye": she stays here). */
+  protected goodbye(line: VoiceKey) {
+    let gone = false;
+    const back = () => {
+      if (gone) return;
+      gone = true;
+      this.time.delayedCall(1200, () => this.leave('finale'));
+    };
+    this.say(line, { ttlMs: 5000, done: back });
+    this.time.delayedCall(7000, back);
+  }
+
+  /**
+   * The photo for the memory book: the camera's flash over `area` (world box), the picture in the sea's frame
+   * (photo-frame-sea) kept as `mermaid-<id>`, the cheer; then `then()`.
+   */
+  protected seaPhoto(id: string, area: { x: number; y: number; w: number; h: number }, at: { x: number; y: number }, then: (photo: Phaser.GameObjects.Container) => void) {
+    const L = this.L;
+    const k = L.k;
+    const a = { x: Math.round(Math.max(0, area.x)), y: Math.round(Math.max(0, area.y)), w: Math.round(area.w), h: Math.round(area.h) };
+    a.w = Math.min(a.w, Math.floor(L.W) - a.x);
+    a.h = Math.min(a.h, Math.floor(L.H) - a.y);
+    sfx(this, 'camera', { vary: false });
+    let after = false;
+    const show = (src: HTMLImageElement | null) => {
+      if (after || !this.scene.isActive()) return;
+      after = true;
+      const flash = this.add.rectangle(L.W / 2, L.H / 2, L.W * 1.2, L.H * 1.2, 0xffffff).setDepth(2000).setAlpha(0.9);
+      this.tweens.add({ targets: flash, alpha: 0, duration: 380, ease: 'Quad.easeOut', onComplete: () => flash.destroy() });
+      const W = ART_SEA.photoWindow;
+      const s = Math.min(0.62 * k, (L.H * 0.6) / 780);
+      const parts: Phaser.GameObjects.GameObject[] = [];
+      if (src) {
+        try {
+          const c = document.createElement('canvas');
+          c.width = c.height = 420;
+          c.getContext('2d')!.drawImage(src, 0, 0, 420, 420);
+          let data = c.toDataURL('image/webp', 0.75);
+          if (!data.startsWith('data:image/webp')) data = c.toDataURL('image/png');
+          this.shown.photo = data.length;
+          void keepPhoto(`mermaid-${id}`, data);
+        } catch {
+          /* the photo is simply not kept */
+        }
+        const key = `sea-photo-${id}`;
+        if (this.textures.exists(key)) this.textures.remove(key);
+        this.textures.addImage(key, src);
+        this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.textures.exists(key) && this.textures.remove(key));
+        const pic = new Phaser.GameObjects.Image(this, (W.x + W.w / 2 - 350) * s, (W.y + W.h / 2 - 390) * s, key);
+        pic.setScale((W.w * s) / pic.width, (W.h * s) / pic.height);
+        parts.push(pic);
+      }
+      parts.push(new Phaser.GameObjects.Image(this, 0, 0, 'photo-frame-sea').setScale(s));
+      const box = this.add.container(at.x, at.y, parts).setDepth(800).setScale(0.2).setAlpha(0);
+      this.tweens.add({ targets: box, scale: 1, alpha: 1, angle: { from: -8, to: -2 }, duration: 520, ease: 'Back.easeOut' });
+      this.time.delayedCall(700, () => {
+        sfx(this, 'cheer-jingle');
+        music.party(true);
+        stars(this, at.x, at.y - 200 * s, 14, 70 * k);
+        confetti(this, at.x, L.Y(200), 22, 28 * k);
+        this.mom?.celebrate();
+        this.pipa?.cheer();
+        then(box);
+      });
+    };
+    try {
+      this.game.renderer.snapshotArea(a.x, a.y, a.w, a.h, (img) => show(img instanceof HTMLImageElement ? img : null));
+    } catch {
+      show(null);
+    }
+    this.time.delayedCall(1200, () => show(null));
   }
 }

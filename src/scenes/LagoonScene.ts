@@ -15,6 +15,8 @@ import { Character } from '../steps/Character';
 import { Mom } from '../steps/Mom';
 import { assetsReady, loadImages, releaseImages } from './BootScene';
 import { breath, MARINA, marinaSwims } from './SeaGame';
+import { readMark, type TailMark } from '../core/sea'; // mermaid PR 2
+import { paintMomTail } from './SeaTail'; // mermaid PR 2
 
 /** What each shell door says when it opens (Mom, before the activity starts). */
 const PICK_LINE = {
@@ -86,7 +88,14 @@ export class LagoonScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#5fc9c3');
     this.add.image(L.cx, L.H, 'bg-lagoon').setOrigin(0.5, 1).setScale(Math.max(1, L.W / 2400)).setDepth(-100);
     seaLife(this, L, lg.seaweed);
-    this.add.image(lg.chest.x, lg.chest.y, 'chest-closed').setScale(lg.chest.scale).setDepth(-70);
+    // mermaid PR 2: after the swim with Marina the chest stays open, pearls shining in it
+    const pearls = !!readMark<boolean>('pearls');
+    const chest = this.add.image(lg.chest.x, lg.chest.y, pearls ? 'chest-open' : 'chest-closed').setScale(lg.chest.scale).setDepth(-70);
+    if (pearls) {
+      const sh = this.add.image(chest.x, chest.y - 30 * lg.chest.scale, FX_SOFT).setTint(0xfff4d0).setBlendMode(Phaser.BlendModes.ADD).setDepth(-69);
+      sh.setScale((220 * lg.chest.scale) / sh.frame.realWidth);
+      this.tweens.add({ targets: sh, alpha: { from: 0.25, to: 0.6 }, duration: 2600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    }
     touchRipples(this, L);
 
     // The rock (behind Mom: her tail lies on it), Mom the mermaid, Marina swimming beside her.
@@ -97,6 +106,9 @@ export class LagoonScene extends Phaser.Scene {
     assetsReady().then(() => {
       if (!this.scene.isActive()) return;
       const m = (mom = new Mom(this, S.mom, 'mermaid'));
+      // mermaid PR 2: Mom's tail the way she painted it
+      const tail = readMark<TailMark>('tail');
+      if (tail) paintMomTail(this, m, tail);
       m.followHand(() => hint?.active() ?? false);
       m.box.setAlpha(0);
       this.tweens.add({ targets: m.box, alpha: 1, duration: 300 });

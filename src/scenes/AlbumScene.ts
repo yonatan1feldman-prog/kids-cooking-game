@@ -31,6 +31,8 @@ function frameOf(recipe: string): ImageKey {
   if (recipe === 'clinic') return 'photo-frame-clinic';
   // (the farm's photo of its cart)
   if (recipe === 'farm') return 'photo-frame-farm';
+  // (mermaid PR 2: the mermaid world's photos, `mermaid-tail`, `mermaid-ride`...: the sea's frame)
+  if (recipe.startsWith('mermaid-')) return 'photo-frame-sea';
   const r = RECIPES.find((x) => x.id === recipe);
   const step = r?.steps.find((s) => s.type === 'photo');
   const key = step && step.type === 'photo' ? step.params.frame : 'photo-frame';
