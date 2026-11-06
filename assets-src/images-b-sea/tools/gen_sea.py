@@ -260,6 +260,347 @@ def sea_done():
     return doc(p, 120, 120, s, "smooth", seed=201, cut={"rim": 2.4, "rough": 3})
 
 
+# ================================================================ mermaid PR 2: the sparkly tail and the swim with Marina
+# The big tail she paints (tail-big under the paint, tail-big-lines over it: SeaTail.ts paints on a canvas between the
+# two) and the same areas on Mom's own tail in the lagoon (gen_mom.py's TAIL_LINE / TAIL_W, copied here read-only): the
+# geometry goes to src/core/seaTailArt.ts (written by this script) so the game paints exactly these shapes.
+TB = 900                        # the big tail's frame
+TB_TOP, TB_END = 90, 660        # the body from its waist line down to where the fluke starts
+TB_ROWS = [(90, 3), (230, 2), (360, 2), (480, 1), (575, 1)]   # each row's top and how many scales across it
+TB_DIP = 26                     # how far a scale's round bottom dips below its row line
+
+
+def tb_cx(y):
+    u = (y - TB_TOP) / (TB_END - TB_TOP)
+    return 450 + 22 * math.sin(2 * math.pi * u)
+
+
+def tb_hw(y):
+    u = min(1, max(0, (y - TB_TOP) / (TB_END - TB_TOP)))
+    return 70 + 120 * (1 - u) ** 1.2 + 110 * math.sin(math.pi * u) * (1 - u) ** 1.5
+
+
+def tb_body():
+    ys = [TB_TOP + (TB_END - TB_TOP) * i / 24 for i in range(25)]
+    left = [(tb_cx(y) - tb_hw(y), y) for y in ys]
+    right = [(tb_cx(y) + tb_hw(y), y) for y in ys][::-1]
+    top = [(tb_cx(TB_TOP) + tb_hw(TB_TOP) * .5, TB_TOP - 14), (tb_cx(TB_TOP), TB_TOP - 20), (tb_cx(TB_TOP) - tb_hw(TB_TOP) * .5, TB_TOP - 14)]
+    bottom = [(tb_cx(TB_END) + 20, TB_END + 26), (tb_cx(TB_END) - 20, TB_END + 26)]
+    return smooth(left + bottom + right + top, 1 / 8)
+
+
+def tb_splits(j):
+    """Row j's scale edges across (x), from just outside the body on the left to just outside on the right."""
+    y0, cnt = TB_ROWS[j]
+    y1 = TB_ROWS[j + 1][0] if j + 1 < len(TB_ROWS) else TB_END + 40
+    ym = (y0 + y1) / 2
+    a, b = tb_cx(ym) - tb_hw(ym) - 40, tb_cx(ym) + tb_hw(ym) + 40
+    return [a + (b - a) * i / cnt for i in range(cnt + 1)]
+
+
+def tb_line(j, x):
+    """The bottom edge of row j at x: one round dip per scale of that row."""
+    if j + 1 >= len(TB_ROWS):
+        return TB_END + 60
+    y = TB_ROWS[j + 1][0]
+    sp = tb_splits(j)
+    if x <= sp[0] or x >= sp[-1]:
+        return y - TB_DIP * .4
+    for i in range(len(sp) - 1):
+        if sp[i] <= x <= sp[i + 1]:
+            t = (x - sp[i]) / (sp[i + 1] - sp[i])
+            return y - TB_DIP * .4 + TB_DIP * 1.4 * math.sin(math.pi * t)
+    return y
+
+
+def tb_cells():
+    """Every scale as a closed polygon (clipped to the body by the game and the SVG) with its middle point."""
+    out = []
+    for j, (y0, cnt) in enumerate(TB_ROWS):
+        sp = tb_splits(j)
+        for i in range(cnt):
+            a, b = sp[i], sp[i + 1]
+            xs = [a + (b - a) * k / 16 for k in range(17)]
+            top = [(x, TB_TOP - 40 if j == 0 else tb_line(j - 1, x)) for x in xs]
+            bot = [(x, tb_line(j, x)) for x in xs][::-1]
+            d = "M" + " L".join(f"{n(x)},{n(y)}" for x, y in top + bot) + "Z"
+            ym = ((TB_TOP if j == 0 else TB_ROWS[j][0]) + (TB_ROWS[j + 1][0] if j + 1 < len(TB_ROWS) else TB_END)) / 2 + 6
+            cx = min(max((a + b) / 2, tb_cx(ym) - tb_hw(ym) + 50), tb_cx(ym) + tb_hw(ym) - 50)
+            out.append({"d": d, "x": cx, "y": ym, "row": j})
+    return out
+
+
+# the fluke: two big lobes from the end of the body, out and down, a scalloped inner edge
+TB_FX = 450
+
+
+def tb_lobe(sgn):
+    x = lambda v: TB_FX + sgn * v
+    return (f"M{n(x(-4))},{TB_END - 6} C{n(x(40))},{TB_END + 40} {n(x(150))},{TB_END + 70} {n(x(300))},{TB_END + 210}"
+            f" Q{n(x(240))},{TB_END + 196} {n(x(214))},{TB_END + 220} Q{n(x(170))},{TB_END + 196} {n(x(132))},{TB_END + 214}"
+            f" Q{n(x(92))},{TB_END + 186} {n(x(56))},{TB_END + 196} Q{n(x(26))},{TB_END + 160} {n(x(-4))},{TB_END + 150}Z")
+
+
+def tb_regions():
+    cells = tb_cells()
+    lobes = [{"d": tb_lobe(-1), "x": TB_FX - 150, "y": TB_END + 140, "row": len(TB_ROWS)},
+             {"d": tb_lobe(1), "x": TB_FX + 150, "y": TB_END + 140, "row": len(TB_ROWS)}]
+    return cells, lobes
+
+
+PALE = "#EEF2F5"; PALE_D = "#C9D2DA"
+
+
+def tail_big():
+    """900x900: the big tail before it is painted, pale pearl paper: body, fluke, shadow (SeaTail paints over it)."""
+    p = "tbg-"
+    body = tb_body()
+    _, lobes = tb_regions()
+    s = G(P(body, PALE_D, ' transform="translate(0 10)"') + "".join(P(l["d"], PALE_D, ' transform="translate(0 10)"') for l in lobes), p + "sh")
+    s += G("".join(P(l["d"], PALE) for l in lobes), p + "cut")
+    s += G(P(body, PALE), p + "cut")
+    return doc(p, TB, TB, s, "smooth", seed=211, cut={"rim": 3, "rough": 3})
+
+
+def scale_marks(clip, x0, y0, x1, y1, r):
+    """Little scallop scales over a box (a darker arc and a light edge), clipped: they show over any paint."""
+    dark, light = [], []
+    row = 0
+    y = y0
+    while y < y1 + r:
+        x = x0 - r + (r if row % 2 else 0)
+        while x < x1 + r:
+            dark.append(f"M{n(x - r)},{n(y)} A{n(r)},{n(r)} 0 0 0 {n(x + r)},{n(y)}")
+            light.append(f"M{n(x - r * .55)},{n(y + r * .45)} A{n(r * .6)},{n(r * .6)} 0 0 0 {n(x + r * .1)},{n(y + r * .78)}")
+            x += 2 * r
+        y += r * 1.05
+        row += 1
+    return (f'<g clip-path="url(#{clip})"><path d="{" ".join(dark)}" fill="none" stroke="#2A3A55" stroke-width="{n(r * .16)}" stroke-linecap="round" opacity="0.3"/>'
+            f'<path d="{" ".join(light)}" fill="none" stroke="{WHITE}" stroke-width="{n(r * .14)}" stroke-linecap="round" opacity="0.5"/></g>')
+
+
+def tail_big_lines():
+    """900x900, over the paint: the scales' edges in soft ink, small scales and a band of shine all over (they shimmer
+    over any colour), the frill at the waist, the cuff where the fluke starts, the fluke's ribs, a few sparkles."""
+    p = "tbl-"
+    body = tb_body()
+    cells, lobes = tb_regions()
+    s = f'<clipPath id="{p}bc"><path d="{body}"/></clipPath>'
+    s += scale_marks(p + "bc", 160, TB_TOP - 10, 740, TB_END + 30, 22)
+    # each big scale's round bottom edge and the edges between scales
+    edges = ""
+    for j in range(len(TB_ROWS) - 1):
+        xs = [100 + 700 * k / 120 for k in range(121)]
+        edges += stroke("M" + " L".join(f"{n(x)},{n(tb_line(j, x))}" for x in xs), INK, 9, ' opacity="0.55"')
+        edges += stroke("M" + " L".join(f"{n(x)},{n(tb_line(j, x) + 10)}" for x in xs), WHITE, 6, ' opacity="0.45"')
+    for j, (y0, cnt) in enumerate(TB_ROWS):
+        sp = tb_splits(j)
+        for x in sp[1:-1]:
+            ya = TB_TOP - 30 if j == 0 else tb_line(j - 1, x)
+            edges += stroke(f"M{n(x)},{n(ya)} L{n(x)},{n(tb_line(j, x))}", INK, 7, ' opacity="0.45"')
+    s += f'<g clip-path="url(#{p}bc)">{edges}</g>'
+    # the shine down the tail's left side
+    shine = [(tb_cx(y) - tb_hw(y) * .55, y) for y in range(TB_TOP + 30, TB_END - 20, 30)]
+    s += f'<g clip-path="url(#{p}bc)">' + stroke(smooth_open(shine), WHITE, 26, ' opacity="0.3"') + stroke(smooth_open(shine), WHITE, 9, ' opacity="0.45"') + "</g>"
+    # the fluke: ribs, a light edge
+    for l in lobes:
+        sg = -1 if l["x"] < TB_FX else 1
+        for k, (dx, dy) in enumerate(((60, 160), (120, 175), (190, 190), (250, 200))):
+            s += stroke(f"M{n(TB_FX + sg * 6)},{TB_END + 20} Q{n(TB_FX + sg * dx * .45)},{TB_END + dy * .45} {n(TB_FX + sg * dx)},{TB_END + dy * .92}", WHITE, 7, ' opacity="0.55"')
+            s += stroke(f"M{n(TB_FX + sg * 10)},{TB_END + 30} Q{n(TB_FX + sg * dx * .48)},{TB_END + dy * .5} {n(TB_FX + sg * dx + sg * 10)},{TB_END + dy * .9}", INK, 4, ' opacity="0.25"')
+    # the waist: a frill of soft violet fin, and a band of pearls
+    frill = "M" + " L".join(f"{n(tb_cx(TB_TOP) - tb_hw(TB_TOP) - 10 + i * (2 * tb_hw(TB_TOP) + 20) / 40)},{n(TB_TOP - 24 + (14 if i % 2 else 0) + 8 * math.sin(i / 40 * math.pi))}" for i in range(41))
+    band = "M" + " L".join(f"{n(tb_cx(TB_TOP) - tb_hw(TB_TOP) - 10 + i * (2 * tb_hw(TB_TOP) + 20) / 40)},{n(TB_TOP - 34 - 10 * math.sin(i / 40 * math.pi))}" for i in range(41))
+    s += G(stroke(frill, "#B79CE8", 30) + stroke(band, "#9B7FD6", 18), p + "sh")
+    s += G("".join(C(tb_cx(TB_TOP) - tb_hw(TB_TOP) + 20 + i * (2 * tb_hw(TB_TOP) - 40) / 10, TB_TOP - 40 - 10 * math.sin(i / 10 * math.pi), 11, PEARL) for i in range(11)), p + "sh")
+    # the cuff where the fluke starts
+    s += G(P(wob(TB_FX, TB_END + 6, 64, 24, .1, 7, 18), "#B79CE8") + P(wob(TB_FX, TB_END, 42, 12, .1, 9, 16), "#DCCFF7", ' opacity="0.8"'), p + "sh")
+    s += "".join(sparkle(x, y, r) for x, y, r in ((300, 200, 14), (610, 320, 11), (410, 470, 12), (520, 600, 9), (250, 800, 12), (680, 780, 10)))
+    return doc(p, TB, TB, s, "smooth", seed=212)
+
+
+def shell_paint():
+    """220x220: a little open shell lying on its back, its pearly dish waiting for the paint (paint-blob goes in it)."""
+    p = "spt-"
+    dish = "M24,120 Q34,196 110,202 Q186,196 196,120 Q150,140 110,140 Q70,140 24,120Z"
+    s = G(scallop(110, 128, 92, 108, PEARL, PEARL_D, WHITE, 8), p + "cut")
+    s += G(P(dish, PEARL_D, ' transform="translate(0 5)"') + P(dish, "#FBF6F0"), p + "cut")
+    s += P("M40,128 Q110,162 180,128 Q160,150 110,152 Q60,150 40,128Z", WHITE, ' opacity="0.8"')
+    return doc(p, 220, 220, s, "smooth", seed=221, cut={"rim": 2.4, "rough": 3})
+
+
+def paint_blob():
+    """220x220: the paint in the shell's dish, white (the game tints it), with a soft light on it."""
+    p = "pbl-"
+    blob = wob(110, 150, 64, 30, .06, 3, 20)
+    s = P(blob, "#D8D8D8", ' transform="translate(0 4)"') + P(blob, WHITE) + P(wob(92, 140, 22, 8, .1, 4, 14), WHITE, ' opacity="0.9"')
+    s += P(wob(124, 160, 30, 10, .08, 5, 14), "#E6E6E6", ' opacity="0.8"')
+    return doc(p, 220, 220, s, "smooth", seed=222)
+
+
+def shell_glitter():
+    """220x220: the glitter shell: the same little shell full of rainbow sparkles."""
+    p = "sgl-"
+    dish = "M24,120 Q34,196 110,202 Q186,196 196,120 Q150,140 110,140 Q70,140 24,120Z"
+    s = G(scallop(110, 128, 92, 108, "#E9DDFB", "#B9A6E0", WHITE, 8), p + "cut")
+    s += G(P(dish, "#B9A6E0", ' transform="translate(0 5)"') + P(dish, "#F7F0FF"), p + "cut")
+    rr = random.Random(5)
+    cols = ("#F58FB4", "#4FB8E0", "#F7C948", "#5CC98A", "#9B7BE0", WHITE)
+    s += "".join(C(rr.uniform(50, 170), rr.uniform(140, 186), rr.uniform(4, 8), cols[i % 6]) for i in range(30))
+    s += sparkle(84, 132, 18, "#FFF4B8") + sparkle(146, 146, 14, WHITE) + sparkle(112, 170, 10, "#FFF4B8") + sparkle(60, 60, 12, WHITE) + sparkle(166, 72, 10, "#FFF4B8")
+    return doc(p, 220, 220, s, "smooth", seed=223, cut={"rim": 2.4, "rough": 3})
+
+
+def fx_sparkle():
+    """80x80: one white four-point sparkle (tinted, pulsing on a glittered scale)."""
+    p = "fsp-"
+    s = sparkle(40, 40, 36) + C(40, 40, 7, WHITE)
+    return doc(p, 80, 80, s, "smooth", seed=224)
+
+
+def ring(front):
+    """260x260: a big ring standing in the water, seen a little from the side (an ellipse), in two halves: the back
+    half (behind Marina) and the front half (over her) so she swims through. White-gold paper, the game tints it."""
+    p = "rgf-" if front else "rgb-"
+    rx, ry, w = 70, 116, 30
+    arc = (f"M130,{130 - ry} A{rx},{ry} 0 0 0 130,{130 + ry}" if front else f"M130,{130 - ry} A{rx},{ry} 0 0 1 130,{130 + ry}")
+    s = G(stroke(arc, "#C8C8C8", w + 6, ' transform="translate(0 4)"') + stroke(arc, WHITE, w), p + "cut")
+    s += stroke(arc, "#E2E2E2", w * .35, ' opacity="0.9"' + (' transform="translate(6 0)"' if front else ' transform="translate(-6 0)"'))
+    if front:
+        s += stroke(f"M{130 - rx + 6},{130 - 40} Q{130 - rx},130 {130 - rx + 10},{130 + 30}", WHITE, 8, ' opacity="0.9"')
+        s += sparkle(130 - rx + 4, 130 - ry + 40, 14)
+    return doc(p, 260, 260, s, "smooth", seed=231 + front, cut={"rim": 2.4, "rough": 3})
+
+
+def pearl():
+    """110x110: one big pearl with its shine."""
+    p = "prl-"
+    s = G(C(55, 58, 40, PEARL_D) + C(55, 55, 40, PEARL), p + "cut")
+    s += C(55, 55, 40, "#F7D6E6", ' opacity="0.25"') + C(42, 40, 12, WHITE) + C(68, 72, 8, WHITE, ' opacity="0.6"')
+    return doc(p, 110, 110, s, "smooth", seed=241, cut={"rim": 2.2, "rough": 2})
+
+
+def little_fish():
+    """120x80: a little round orange fish facing left (the game flips it)."""
+    p = "lfh-"
+    body = wob(52, 40, 40, 26, .03, 3, 20)
+    s = G(P("M84,40 L114,16 Q106,40 114,64Z", "#E98A3C") + P(body, "#F7A04B"), p + "cut")
+    s += P("M40,16 Q56,4 70,16Z", "#E98A3C") + stroke("M58,20 Q66,40 58,60", WHITE, 6, ' opacity="0.7"')
+    s += C(32, 34, 9, WHITE) + C(30, 34, 5, INK) + C(28, 32, 2, WHITE) + stroke("M20,50 Q26,54 32,50", INK, 3)
+    return doc(p, 120, 80, s, "smooth", seed=251, cut={"rim": 2.2, "rough": 2})
+
+
+# Mom's own tail in the lagoon (gen_mom.py, read-only copy): the same five rows of scales and the two lobes, as strips
+# along her tail, so the colours she gave the big tail show on Mom (SeaTail.paintMomTail).
+MOM_TAIL_LINE = [(620, 850), (540, 836), (450, 820), (366, 802), (292, 782), (226, 760), (180, 730), (152, 698), (142, 664)]
+MOM_TAIL_W = [260, 246, 226, 200, 172, 144, 116, 90, 66]
+
+
+def mom_tail_regions():
+    # the centre line resampled finely (Catmull-Rom) with its width, from her hips (s=0) to the fluke (s=1)
+    pts, ws = MOM_TAIL_LINE, MOM_TAIL_W
+    fine = []
+    for i in range(len(pts) - 1):
+        p0, p1, p2, p3 = pts[max(i - 1, 0)], pts[i], pts[i + 1], pts[min(i + 2, len(pts) - 1)]
+        for k in range(10):
+            t = k / 10
+            t2, t3 = t * t, t * t * t
+            x = .5 * ((2 * p1[0]) + (-p0[0] + p2[0]) * t + (2 * p0[0] - 5 * p1[0] + 4 * p2[0] - p3[0]) * t2 + (-p0[0] + 3 * p1[0] - 3 * p2[0] + p3[0]) * t3)
+            y = .5 * ((2 * p1[1]) + (-p0[1] + p2[1]) * t + (2 * p0[1] - 5 * p1[1] + 4 * p2[1] - p3[1]) * t2 + (-p0[1] + 3 * p1[1] - 3 * p2[1] + p3[1]) * t3)
+            fine.append((x, y, ws[i] + (ws[i + 1] - ws[i]) * t))
+    fine.append((pts[-1][0], pts[-1][1], ws[-1]))
+    acc = [0.0]
+    for a, b in zip(fine, fine[1:]):
+        acc.append(acc[-1] + math.hypot(b[0] - a[0], b[1] - a[1]))
+    total = acc[-1]
+    def at(s):
+        d = s * total
+        for i in range(len(acc) - 1):
+            if acc[i] <= d <= acc[i + 1]:
+                t = (d - acc[i]) / ((acc[i + 1] - acc[i]) or 1)
+                a, b = fine[i], fine[i + 1]
+                x, y, w = a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t
+                dx, dy = b[0] - a[0], b[1] - a[1]
+                ln = math.hypot(dx, dy) or 1
+                return x, y, w, -dy / ln, dx / ln
+        a = fine[-1]
+        return a[0], a[1], a[2], 0, 1
+    # the rows along her tail in proportion to the big tail's rows (the first starts a little into her hips)
+    tops = [r[0] for r in TB_ROWS] + [TB_END]
+    S0, S1 = 0.08, 0.98
+    sv = [S0 + (S1 - S0) * (y - TB_TOP) / (TB_END - TB_TOP) for y in tops]
+    cells = []
+    for j, (_, cnt) in enumerate(TB_ROWS):
+        for i in range(cnt):
+            # (wider than the tail at the edges: the game clips each strip to her tail's outline)
+            f0, f1 = (-0.7 if i == 0 else -0.5 + i / cnt), (0.7 if i == cnt - 1 else -0.5 + (i + 1) / cnt)
+            a, b = (0 if j == 0 else sv[j]), (1 if j == len(TB_ROWS) - 1 else sv[j + 1])
+            ss = [a + (b - a) * k / 8 for k in range(9)]
+            side = lambda s, f: (at(s)[0] + at(s)[3] * at(s)[2] * f, at(s)[1] + at(s)[4] * at(s)[2] * f)
+            poly = [side(s, f0) for s in ss] + [side(s, f1) for s in ss[::-1]]
+            cells.append("M" + " L".join(f"{n(x)},{n(y)}" for x, y in poly) + "Z")
+    # her tail's outline, the same as gen_mom.py draws it
+    L = len(pts)
+    left, right = [], []
+    for i in range(L):
+        a, b = pts[max(i - 1, 0)], pts[min(i + 1, L - 1)]
+        dx, dy = b[0] - a[0], b[1] - a[1]
+        d = math.hypot(dx, dy) or 1
+        nx, ny = -dy / d, dx / d
+        w = ws[i] / 2
+        left.append((pts[i][0] + nx * w, pts[i][1] + ny * w))
+        right.append((pts[i][0] - nx * w, pts[i][1] - ny * w))
+    def capp(p, q, w, sgn, cap=3):
+        dx, dy = p[0] - q[0], p[1] - q[1]
+        d = math.hypot(dx, dy) or 1
+        ux, uy = dx / d, dy / d
+        nx, ny = -uy, ux
+        return [(p[0] + (nx * math.cos(math.pi * k / cap) * sgn + ux * math.sin(math.pi * k / cap)) * w,
+                 p[1] + (ny * math.cos(math.pi * k / cap) * sgn + uy * math.sin(math.pi * k / cap)) * w) for k in range(1, cap)]
+    body = smooth(left + capp(pts[-1], pts[-2], ws[-1] / 2, 1) + right[::-1] + capp(pts[0], pts[1], ws[0] / 2, -1))
+    shine = taper_open([(600, 804), (500, 788), (400, 772), (310, 754), (240, 730), (192, 704), (166, 676)])
+    return body, cells, shine
+
+
+def taper_open(pts):
+    return smooth_open(pts)
+
+
+# her fluke (gen_mom.py fluke(): at (142, 660), turned 8 degrees): the two lobes in their own frame
+MOM_LOBE_L = "M6,6 C-30,-6 -112,-26 -150,-98 Q-120,-96 -104,-118 Q-84,-92 -62,-112 Q-48,-80 -26,-90 Q-14,-50 8,-16Z"
+MOM_LOBE_R = "M-6,6 C10,-30 40,-96 104,-142 Q110,-110 136,-108 Q124,-82 150,-66 Q120,-52 124,-30 Q60,-20 12,10Z"
+
+
+def write_tail_ts():
+    """src/core/seaTailArt.ts: the tail's shapes for the game (generated; do not edit by hand)."""
+    cells, lobes = tb_regions()
+    body, mcells, shine = mom_tail_regions()
+    q = lambda s: '"' + s + '"'
+    lines = ["// Generated by assets-src/images-b-sea/tools/gen_sea.py (mermaid PR 2): do not edit by hand.",
+             "// The big tail's areas (tail-big, 900 frame) and the same areas on Mom's own tail (her 800 frame, mom-mer-tail).",
+             "export interface TailArea { d: string; x: number; y: number; row: number; clip: boolean }",
+             f"export const TAIL_BIG_BODY = {q(tb_body())};",
+             "export const TAIL_BIG_AREAS: TailArea[] = ["]
+    for c in cells:
+        lines.append(f"  {{ d: {q(c['d'])}, x: {round(c['x'])}, y: {round(c['y'])}, row: {c['row']}, clip: true }},")
+    for c in lobes:
+        lines.append(f"  {{ d: {q(c['d'])}, x: {round(c['x'])}, y: {round(c['y'])}, row: {c['row']}, clip: false }},")
+    lines += ["];",
+              f"export const MOM_TAIL_BODY = {q(body)};",
+              "/** The big tail's areas in the same order, as strips along Mom's tail (clipped to MOM_TAIL_BODY); the last two are her lobes. */",
+              "export const MOM_TAIL_AREAS: string[] = ["]
+    lines += [f"  {q(c)}," for c in mcells]
+    lines += ["];",
+              f"export const MOM_TAIL_SHINE = {q(shine)};",
+              "/** Her fluke's lobes (gen_mom.py fluke()), drawn at `at` turned `angle` degrees. */",
+              f"export const MOM_LOBES = {{ at: {{ x: 142, y: 660 }}, angle: 8, left: {q(MOM_LOBE_L)}, right: {q(MOM_LOBE_R)} }};",
+              ""]
+    out = os.path.normpath(os.path.join(HERE, "..", "..", "..", "src", "core", "seaTailArt.ts"))
+    with open(out, "w", encoding="utf8") as f:
+        f.write("\n".join(lines))
+    print("wrote", out, len(cells) + len(lobes), "areas")
+
+
 ITEMS = {
     # mermaid PR 1: the lagoon
     "bg-lagoon": bg_lagoon, "lagoon-rock": lagoon_rock,
@@ -267,6 +608,10 @@ ITEMS = {
     "door-icon-tail": icon_tail, "door-icon-ride": icon_ride, "door-icon-clean": icon_clean, "door-icon-shells": icon_shells,
     "door-icon-song": icon_song, "chest-closed": lambda: chest(False), "chest-open": lambda: chest(True), "seaweed": seaweed,
     "lagoon-dolphin-far": dolphin_far, "photo-frame-sea": photo_frame_sea, "sea-done": sea_done,
+    # mermaid PR 2: the sparkly tail, the swim with Marina
+    "tail-big": tail_big, "tail-big-lines": tail_big_lines, "shell-paint": shell_paint, "paint-blob": paint_blob,
+    "shell-glitter": shell_glitter, "fx-sparkle": fx_sparkle, "ring-back": lambda: ring(False), "ring-front": lambda: ring(True),
+    "pearl": pearl, "little-fish": little_fish,
 }
 
 
@@ -283,4 +628,6 @@ if __name__ == "__main__":
     for k, fn in ITEMS.items():
         if not only or k in only:
             save(k, fn())
+    if not only or "tail-big" in only:  # mermaid PR 2
+        write_tail_ts()
     print("ART_SEA: doorHinge (150, 236), chestIn (150, 96), bg surface y 120, sand y 900, FRAME_WIN", FRAME_WIN)
