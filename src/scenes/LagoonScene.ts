@@ -15,6 +15,8 @@ import { Character } from '../steps/Character';
 import { Mom } from '../steps/Mom';
 import { assetsReady, loadImages, releaseImages } from './BootScene';
 import { breath, MARINA, marinaSwims } from './SeaGame';
+import { readMark, type TailMark } from '../core/sea'; // mermaid PR 2
+import { paintMomTail } from './SeaTail'; // mermaid PR 2
 
 /** What each shell door says when it opens (Mom, before the activity starts). */
 const PICK_LINE = {
@@ -36,15 +38,6 @@ export interface LagoonData {
   /** Set once Mom has spoken, so a rebuild at a new size (relayout) doesn't say it again. */
   spoken?: boolean;
 }
-
-/** mermaid PR 4: a lagoon mark an activity left (localStorage, kept for tomorrow too; never shown as a number). */
-const marked = (key: string) => {
-  try {
-    return !!localStorage.getItem(key);
-  } catch {
-    return false;
-  }
-};
 
 /** Every activity's own images and sounds (what is freed back in the lagoon; the lagoon's own stay). */
 const activityImages = () => {
@@ -95,7 +88,14 @@ export class LagoonScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#5fc9c3');
     this.add.image(L.cx, L.H, 'bg-lagoon').setOrigin(0.5, 1).setScale(Math.max(1, L.W / 2400)).setDepth(-100);
     seaLife(this, L, lg.seaweed);
-    this.add.image(lg.chest.x, lg.chest.y, 'chest-closed').setScale(lg.chest.scale).setDepth(-70);
+    // mermaid PR 2: after the swim with Marina the chest stays open, pearls shining in it
+    const pearls = !!readMark<boolean>('pearls');
+    const chest = this.add.image(lg.chest.x, lg.chest.y, pearls ? 'chest-open' : 'chest-closed').setScale(lg.chest.scale).setDepth(-70);
+    if (pearls) {
+      const sh = this.add.image(chest.x, chest.y - 30 * lg.chest.scale, FX_SOFT).setTint(0xfff4d0).setBlendMode(Phaser.BlendModes.ADD).setDepth(-69);
+      sh.setScale((220 * lg.chest.scale) / sh.frame.realWidth);
+      this.tweens.add({ targets: sh, alpha: { from: 0.25, to: 0.6 }, duration: 2600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    }
     touchRipples(this, L);
 
     // The rock (behind Mom: her tail lies on it), Mom the mermaid, Marina swimming beside her.
@@ -106,6 +106,9 @@ export class LagoonScene extends Phaser.Scene {
     assetsReady().then(() => {
       if (!this.scene.isActive()) return;
       const m = (mom = new Mom(this, S.mom, 'mermaid'));
+      // mermaid PR 2: Mom's tail the way she painted it
+      const tail = readMark<TailMark>('tail');
+      if (tail) paintMomTail(this, m, tail);
       m.followHand(() => hint?.active() ?? false);
       m.box.setAlpha(0);
       this.tweens.add({ targets: m.box, alpha: 1, duration: 300 });
@@ -155,7 +158,7 @@ export class LagoonScene extends Phaser.Scene {
 
     // mermaid PR 4: the song's mark, three little bell shells in a row at the foot of the song's shell door (the rock
     // Mom sits on is mostly below the screen at 4:3; here they show at every ratio), each rocking very gently
-    if (marked('lagoon.song')) {
+    if (readMark('song')) {
       const at = lg.door(SEA_DOORS.indexOf('song'));
       const ds = lg.doorScale;
       [[1, -82, 128], [3, 0, 134], [5, 82, 128]].forEach(([n, dx, dy], j) => {

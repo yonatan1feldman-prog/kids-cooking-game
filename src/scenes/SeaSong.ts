@@ -1,10 +1,9 @@
 import Phaser from 'phaser';
-import { keepPhoto } from '../core/album';
-import { music, voice, type VoiceKey } from '../core/audio';
+import { music, type VoiceKey } from '../core/audio';
 import { FX_SOFT } from '../core/assets';
 import { stars } from '../core/fx';
 import { tapMotion, type HandMotion } from '../core/hand';
-import { confetti } from '../core/juice';
+import { byVisit, writeMark } from '../core/sea'; // mermaid PR 4
 import { sfx } from '../core/sfx';
 import type { SoundKey } from '../core/assets';
 import type { P } from './MiniGame';
@@ -102,8 +101,7 @@ export class SeaSongScene extends SeaGame {
     const L = this.L;
     const S = this.S;
     const k = L.k;
-    this.cameras.main.setBackgroundColor('#5fc9c3');
-    this.add.image(L.cx, L.H, 'bg-lagoon').setOrigin(0.5, 1).setScale(Math.max(1, L.W / 2400)).setDepth(-100);
+    this.water(false);
 
     // Which tunes (they take turns visit by visit; MiniGame counted this visit already).
     let n = 1;
@@ -113,7 +111,7 @@ export class SeaSongScene extends SeaGame {
       /* no storage: the first set */
     }
     this.visit = (n - 1) % 3;
-    this.tunes = (this.level === 2 ? TUNES.hard : TUNES.easy)[this.visit];
+    this.tunes = byVisit<readonly (readonly number[])[]>(this.level === 2 ? TUNES.hard : TUNES.easy, this.visit);
     this.shown.visit = this.visit;
     this.shown.tunes = this.tunes;
 
@@ -381,20 +379,15 @@ export class SeaSongScene extends SeaGame {
     this.shown.done = true;
     const L = this.L;
     const k = L.k;
-    try {
-      localStorage.setItem('lagoon.song', '1');
-    } catch {
-      /* the lagoon simply shows no mark */
-    }
+    writeMark('song', true);
     music.party(true);
-    sfx(this, 'cheer-jingle');
-    this.mom?.celebrate();
+    this.mom?.happy();
     // every shell glows, one after the other, twice
     this.bells.forEach((b, j) => {
       this.time.delayedCall(j * 140, () => this.ring(b.i, { soft: true }));
       this.time.delayedCall(900 + j * 140, () => this.ring(b.i, { soft: true }));
     });
-    confetti(this, L.cx, L.Y(200), 22, 28 * k);
+    stars(this, L.cx, L.Y(400), 12, 60 * k);
     // Marina dances: a spin and a few happy hops
     const m = this.pipa;
     if (m) {
@@ -412,75 +405,8 @@ export class SeaSongScene extends SeaGame {
     const cx = (this.bells[0].at.x + this.bells[4].at.x) / 2;
     const side = Math.min(L.H * 0.8, this.bells[4].at.x - this.bells[0].at.x + 360 * k);
     const bottom = Math.min(L.H, this.rockTop + 120 * k);
-    const area = { x: Math.round(Math.max(0, cx - side / 2)), y: Math.round(Math.max(0, bottom - side)), w: Math.round(side), h: Math.round(side) };
-    sfx(this, 'camera', { vary: false });
-    let after = false;
-    const show = (src: HTMLImageElement | null) => {
-      if (after || this.leaving) return;
-      after = true;
-      const flash = this.add.rectangle(L.W / 2, L.H / 2, L.W * 1.2, L.H * 1.2, 0xffffff).setDepth(2000).setAlpha(0.9);
-      this.tweens.add({ targets: flash, alpha: 0, duration: 380, ease: 'Quad.easeOut', onComplete: () => flash.destroy() });
-      this.framePhoto(src, cx);
-    };
-    try {
-      this.game.renderer.snapshotArea(area.x, area.y, area.w, area.h, (img) => show(img instanceof HTMLImageElement ? img : null));
-    } catch {
-      show(null);
-    }
-    this.time.delayedCall(1200, () => show(null));
-  }
-
-  private framePhoto(src: HTMLImageElement | null, cx: number) {
-    const L = this.L;
-    const k = L.k;
-    const W = { x: 80, y: 80, w: 540, h: 540 };
-    const s = Math.min(0.7 * k, (L.H * 0.62) / 780);
-    const at = { x: cx, y: 30 * k + 390 * s };
-    const parts: Phaser.GameObjects.GameObject[] = [];
-    if (src) {
-      try {
-        const c = document.createElement('canvas');
-        c.width = c.height = 420;
-        c.getContext('2d')!.drawImage(src, 0, 0, 420, 420);
-        let data = c.toDataURL('image/webp', 0.75);
-        if (!data.startsWith('data:image/webp')) data = c.toDataURL('image/png');
-        this.shown.photo = data.length;
-        void keepPhoto('mermaid-song', data);
-      } catch {
-        /* the photo is simply not kept */
-      }
-      const key = 'sea-song-photo';
-      if (this.textures.exists(key)) this.textures.remove(key);
-      this.textures.addImage(key, src);
-      this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.textures.exists(key) && this.textures.remove(key));
-      const pic = new Phaser.GameObjects.Image(this, (W.x + W.w / 2 - 350) * s, (W.y + W.h / 2 - 390) * s, key);
-      pic.setScale((W.w * s) / pic.width, (W.h * s) / pic.height);
-      parts.push(pic);
-    }
-    parts.push(new Phaser.GameObjects.Image(this, 0, 0, 'photo-frame-sea').setScale(s));
-    const box = this.add.container(at.x, at.y, parts).setDepth(800).setScale(0.2).setAlpha(0);
-    this.tweens.add({ targets: box, scale: 1, alpha: 1, angle: { from: -8, to: -2 }, duration: 520, ease: 'Back.easeOut' });
-    this.time.delayedCall(700, () => {
-      stars(this, at.x, at.y - 200 * s, 14, 70 * k);
-      this.pipa?.cheer();
-      let gone = false;
-      const home = () => {
-        if (gone) return;
-        gone = true;
-        this.time.delayedCall(1500, () => this.leave('finale'));
-      };
-      this.say('vo-song-done', { ttlMs: 5000, done: home });
-      this.time.delayedCall(7000, home);
-    });
-  }
-
-  /** Back to the lagoon (where Mom asks "What shall we do next?"), whether from the home button or the end. */
-  protected leave(_from: 'recipe' | 'finale') {
-    if (this.leaving) return;
-    this.leaving = true;
-    this.shutdown();
-    voice.stop();
-    this.scene.start('Lagoon', { from: 'activity' });
+    const s = Math.min(0.62 * k, (L.H * 0.6) / 780);
+    this.seaPhoto('song', { x: cx - side / 2, y: bottom - side, w: side, h: side }, { x: cx, y: 30 * k + 390 * s }, () => this.goodbye('vo-song-done'));
   }
 
   // ---------------------------------------------------------------- Mom's hand, her help, the harness

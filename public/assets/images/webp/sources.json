@@ -1689,6 +1689,11 @@
   "w": 672,
   "h": 504
  },
+ "fx-sparkle": {
+  "sha1": "268308737c150e57673818c7b9f2e2d187474743",
+  "w": 80,
+  "h": 80
+ },
  "garden-basket": {
   "sha1": "a3e856ebd630822cbd7a867f2713518c32e48617",
   "w": 440,
@@ -2854,6 +2859,11 @@
   "w": 640,
   "h": 560
  },
+ "little-fish": {
+  "sha1": "140422c4971c7410726dc5654e94d54d74c7d3a3",
+  "w": 120,
+  "h": 80
+ },
  "marina-body": {
   "sha1": "b28d61431fc0d41661666b48d21eb6a7143aacc5",
   "w": 600,
@@ -3309,6 +3319,11 @@
   "w": 320,
   "h": 320
  },
+ "paint-blob": {
+  "sha1": "2574b622ff54808d1128d7cf073c60613767c231",
+  "w": 220,
+  "h": 220
+ },
  "pan": {
   "sha1": "a0a759b2b196e3d6bea6a78ce9c936102f2b1c4a",
   "w": 1240,
@@ -3343,6 +3358,11 @@
   "sha1": "0dcd999b1ddd2a57e9a8b7ee2daac61c8afe2aa1",
   "w": 680,
   "h": 680
+ },
+ "pearl": {
+  "sha1": "f97fbbeee12143ff7084c548c457a3958b3b1c8c",
+  "w": 110,
+  "h": 110
  },
  "peel-skin-carrot": {
   "sha1": "a9520c8f471ceeeb1642fe9a623b147dae3a5409",
@@ -3524,6 +3544,16 @@
   "w": 260,
   "h": 140
  },
+ "ring-back": {
+  "sha1": "0109c1321144620135b0ae7ef7b0b97d6be22c71",
+  "w": 260,
+  "h": 260
+ },
+ "ring-front": {
+  "sha1": "ca10fee2a4ef797ec53c1dc790986d29be56740e",
+  "w": 260,
+  "h": 260
+ },
  "rolling-pin": {
   "sha1": "56483e16c440d61675c0b7418c7baf6489e7c15f",
   "w": 640,
@@ -3649,10 +3679,20 @@
   "w": 200,
   "h": 150
  },
+ "shell-glitter": {
+  "sha1": "fcfda087f4de8437fd0ae8755c21283b3dd8cca3",
+  "w": 220,
+  "h": 220
+ },
  "shell-glow": {
   "sha1": "01d44ca6c89471d18b87d5c734f92aa9907bf27a",
   "w": 320,
   "h": 320
+ },
+ "shell-paint": {
+  "sha1": "09e2043c7d25cb7a62f0e1f291b9662d7beafe8e",
+  "w": 220,
+  "h": 220
  },
  "sick-bites": {
   "sha1": "177a5f7064e0303126c9912a09c490483e2e05c9",
@@ -3883,6 +3923,16 @@
   "sha1": "b58ee63cc72659706b24530ffdd4538806024d26",
   "w": 260,
   "h": 520
+ },
+ "tail-big": {
+  "sha1": "5846bf4552e93e4e769a9ec7c464f66ba10b0a60",
+  "w": 900,
+  "h": 900
+ },
+ "tail-big-lines": {
+  "sha1": "8959d6c908b37bdf203127cfd1350f4aff2418b9",
+  "w": 900,
+  "h": 900
  },
  "temp-glow": {
   "sha1": "a2f3b3e65a11ba081e13c28dd8211007cfea0724",

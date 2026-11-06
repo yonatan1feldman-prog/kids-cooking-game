@@ -1892,6 +1892,91 @@ window.__seaDoor = async (id, settle = 600) => {
   await __run(settle);
   return { ...window.__lagoonState, active: game.scene.getScenes(true).map((s) => s.scene.key) };
 };
+
+// ---- mermaid PR 2: the sparkly tail and the swim with Marina. __seaGo(id, level, {first}) goes in the way she does (the
+// title's card, the lagoon, the shell door); __seaPlay(id, level, {none, wrong, glitter}) plays it like a child (none:
+// no touch at all, Mom's hint and help finish it; wrong: hard, one colour out of the pattern / straight at a red ring
+// first; glitter: rubs glitter on a scale) and returns what happened once she is back in the lagoon.
+window.__seaGo = async (id, level = 1, opts = {}) => {
+  window.__level = level;
+  const key = { tail: 'sea-tail', ride: 'sea-ride' }[id];
+  const name = { tail: 'SeaTail', ride: 'SeaRide' }[id];
+  if (opts.first === false) localStorage.setItem('cooking.runs.' + key, '3'); else if (opts.first) localStorage.removeItem('cooking.runs.' + key);
+  if (!game.scene.isActive('Lagoon')) await __lagoon();
+  for (let i = 0; i < 100 && !window.__seaDoorAt; i++) await __run(50);
+  await __seaDoor(id, 200);
+  for (let i = 0; i < 400 && !game.scene.isActive(name); i++) { await __run(50); await new Promise((q) => setTimeout(q, 10)); }
+  await __run(opts.wait ?? 1500);
+  return game.scene.getScene(name);
+};
+window.__seaAt = (l, d) => {
+  const { pts, acc } = l;
+  if (d <= 0) return pts[0];
+  const L = acc[acc.length - 1];
+  if (d >= L) return pts[pts.length - 1];
+  let i = 1;
+  while (acc[i] < d) i++;
+  const t = (d - acc[i - 1]) / (acc[i] - acc[i - 1] || 1);
+  return { x: pts[i - 1].x + (pts[i].x - pts[i - 1].x) * t, y: pts[i - 1].y + (pts[i].y - pts[i - 1].y) * t };
+};
+window.__seaPlay = async (id, level = 1, opts = {}) => {
+  const m = await __seaGo(id, level, opts);
+  const log = [];
+  const t0 = __voice.now ? __voice.now() : 0;
+  const n0 = __voLog.length;
+  const k = m.L.k;
+  for (let i = 0; i < 4000 && m.scene.isActive() && !m.shown.done; i++) {
+    if (opts.none || m.helping) { await __run(250); continue; }
+    if (id === 'tail') {
+      if (!['paint', 'fin', 'done'].includes(m.phase)) { await __run(250); continue; }
+      if (opts.glitter && !m.__gl) {
+        m.__gl = true;
+        const sh = m.shells.find((q) => q.brush === 'glitter');
+        __tap(sh.x, sh.y); await __run(300);
+        const c = m.areaCentre(0);
+        __touch('start', 1, c.x, c.y);
+        for (let a = 0; a < 40; a++) { __touch('move', 1, c.x + Math.cos(a / 3) * 50 * k, c.y + Math.sin(a / 3) * 30 * k); __tick(30); }
+        __touch('end', 1, c.x, c.y);
+        log.push('glitter 0 ' + m.glitter[0]);
+        await __run(400);
+        continue;
+      }
+      if (m.phase === 'done' || (m.doneBtn && m.nextArea() < 0)) { if (m.doneBtn) { __tap(m.doneBtn.x, m.doneBtn.y); log.push('done'); } await __run(800); continue; }
+      const a = m.nextArea();
+      if (a < 0) { await __run(300); continue; }
+      let want = m.wanted(a) ?? ['pink', 'blue', 'purple', 'yellow', 'green', 'white'][a % 6];
+      if (opts.wrong && level === 2 && m.phase === 'paint' && !m.__wrong) { m.__wrong = true; want = m.pattern[(a + 1) % 2]; log.push('wrong ' + a + ' ' + want); }
+      if (m.brush !== want) { const sh = m.shells.find((q) => q.brush === want); __tap(sh.x, sh.y); await __run(350); }
+      const c = m.areaCentre(a);
+      __tap(c.x, c.y);
+      log.push('paint ' + a + ' ' + want);
+      await __run(900);
+    } else {
+      if (m.phase !== 'swim' || m.bumping || m.auto) { await __run(250); continue; }
+      const me = m.riderAt();
+      __touch('start', 1, me.x, me.y);
+      const wrongNow = opts.wrong && !m.__wrong;
+      for (let q = 0; q < 80; q++) {
+        const g = m.legs[m.li];
+        if (!g || m.phase !== 'swim' || m.bumping) break;
+        const ln = g.over ? (m.way2 === 'main' || (!m.way2 && wrongNow) ? g.main : g.over) : g.main;
+        const p = __seaAt(ln, m.s + 110 * k);
+        __touch('move', 1, p.x, p.y);
+        __tick(40);
+      }
+      const e = m.riderAt();
+      __touch('end', 1, e.x, e.y);
+      if (m.bumping) { m.__wrong = true; log.push('bump at fork ' + m.li); }
+      await __run(300);
+    }
+  }
+  for (let i = 0; i < 120 && !game.scene.isActive('Lagoon'); i++) await __run(250);
+  await __run(600);
+  const vlog = __voLog.slice(n0);
+  return { id, level, log, shown: m.shown, lagoon: game.scene.isActive('Lagoon'), secs: Math.round(((__voice.now ? __voice.now() : 0) - t0) / 1000),
+    helps: vlog.filter((x) => x.key === 'vo-help').length, check: __voCheck(vlog), keys: vlog.map((x) => x.key).join(' '), textures: game.textures.getTextureKeys().length };
+};
+
 // mermaid PR 4: the shell song
 /** Plays the shell song the way she would, from the lagoon's door: `level` 1 | 2; opts: wrong (one wrong shell per
  * tune, then twice in a row once), interrupt (taps a shell while Mom plays her tune), none (no touch at all: Mom's hand
