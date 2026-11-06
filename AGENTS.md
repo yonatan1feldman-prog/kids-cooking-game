@@ -696,6 +696,9 @@ Spec `/mnt/project-files/research/mermaid-spec.md` 3.3, 3.4 and 11 (Pipa = Marin
 - **Loading:** `SEA_ACTIVITY.clean/shells` list only the activity's own files. Never list core sounds there (count-*: the lagoon
   frees every activity sound on return, and listing a sound in RECIPE_ASSETS makes it a non-core sound).
 - **Harness:** `__seaRun(id, level, {none, wrong, first, gap, mid})` from the lagoon through the door to the lagoon again.
+- **Pitfall (round 13 QA):** Phaser reuses the scene object, so a field set in its declaration is set once per session.
+  `SeaClean.snapped` was not reset in `init()`: the second clean-up of a session never took its photo or went back to the
+  lagoon. Reset every per-visit field in `init()` / `build()`.
 - Art `assets-src/images-b-sea/tools/gen_sea3.py` (20 SVGs), effects in `make_sea_sfx.py` (PR 3 block), 27 lines in `make_vo.py`;
   not heard by a human.
 ### 00000000000000000000000000000000000000000. The mermaid world, PR 4 (the shell song, the lagoon's song mark)

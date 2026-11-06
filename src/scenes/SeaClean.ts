@@ -106,6 +106,8 @@ export class SeaClean extends SeaGame {
     this.held = null;
     this.said = new Set();
     this.inCount = this.total = 0;
+    // (the scene object is reused: without this the second clean-up of a session never took its photo or left)
+    this.snapped = false;
     Object.assign(this.shown, { total: 0, in: 0, wrong: 0, freed: [] as string[], found: 0, seahorse: false, murk: 1, order: [] as string[] });
   }
 
