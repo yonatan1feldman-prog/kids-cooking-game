@@ -17,6 +17,7 @@ import { assetsReady, loadImages, releaseImages } from './BootScene';
 import { breath, MARINA, marinaSwims } from './SeaGame';
 import { readMark, type TailMark } from '../core/sea'; // mermaid PR 2
 import { paintMomTail } from './SeaTail'; // mermaid PR 2
+import { cleanLagoonLife, hasMark, wearNecklace } from '../core/seaSort';
 
 /** What each shell door says when it opens (Mom, before the activity starts). */
 const PICK_LINE = {
@@ -96,6 +97,8 @@ export class LagoonScene extends Phaser.Scene {
       sh.setScale((220 * lg.chest.scale) / sh.frame.realWidth);
       this.tweens.add({ targets: sh, alpha: { from: 0.25, to: 0.6 }, duration: 2600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     }
+    // mermaid PR 3: once she has cleaned it, the lagoon stays clean (brighter water, a dolphin jumping far off)
+    if (hasMark('clean')) cleanLagoonLife(this, L);
     touchRipples(this, L);
 
     // The rock (behind Mom: her tail lies on it), Mom the mermaid, Marina swimming beside her.
@@ -114,6 +117,8 @@ export class LagoonScene extends Phaser.Scene {
       this.tweens.add({ targets: m.box, alpha: 1, duration: 300 });
       marina = new Character(this, MARINA, lg.friend, S.feedPet);
       marinaSwims(this, marina, lg.friend, k);
+      // mermaid PR 3: Marina wears the shell necklace she was given
+      if (hasMark('necklace')) wearNecklace(this, marina);
       marina.enter(150);
       tickles(this, () => [m, marina], () => !going && !busy);
       const look = () => {

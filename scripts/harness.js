@@ -1977,6 +1977,64 @@ window.__seaPlay = async (id, level = 1, opts = {}) => {
     helps: vlog.filter((x) => x.key === 'vo-help').length, check: __voCheck(vlog), keys: vlog.map((x) => x.key).join(' '), textures: game.textures.getTextureKeys().length };
 };
 
+// ---- mermaid PR 3: cleaning the lagoon ('clean') and the shell treasure ('shells'). __seaRun(id, level, opts) goes in by
+// its shell door in the lagoon (the real path: the activity's files load on the door) and plays it like a child, following
+// the scene's own plan() (a drag to the net / basket, circles on the dolphin's net, a tap on a seaweed / a heap of sand /
+// a basket), until she is back in the lagoon. opts: none (no touch at all: Mom helps to the end), wrong (once each: the
+// other net bag (hard), a shell in the wrong basket and one of the wrong size (hard), a shell off the pattern (hard)),
+// first (Mom's demos), gap (ms between actions), mid(label) (called before each action: screenshots).
+window.__seaRun = async (id, level = 1, opts = {}) => {
+  window.__level = level;
+  const key = 'cooking.runs.sea-' + id;
+  if (opts.first) localStorage.removeItem(key); else localStorage.setItem(key, '3');
+  if (!game.scene.isActive('Lagoon')) await __lagoon();
+  const name = { clean: 'SeaClean', shells: 'SeaShells' }[id];
+  await __seaDoor(id, 300);
+  for (let i = 0; i < 600 && !game.scene.isActive(name); i++) { await __run(50); await new Promise((r) => setTimeout(r, 10)); }
+  const m = game.scene.getScene(name);
+  await __run(1200);
+  const n0 = (window.__voLog || []).length;
+  const log = [];
+  const did = {};
+  const gap = opts.gap ?? 900;
+  const k = m.L.k;
+  for (let i = 0; i < (opts.max ?? 400) && m.scene.isActive(); i++) {
+    if (opts.none || m.helping) { await __run(500); continue; }
+    const p = m.plan();
+    if (!p) { await __run(300); continue; }
+    if (opts.mid) await opts.mid(m.shown.phase + ':' + p.kind);
+    if (p.kind === 'carry' || p.kind === 'bag') {
+      const item = p.kind === 'carry' ? (p.t ?? p.s).img : p.f.cover.img;
+      let to = p.to.at ?? p.to;
+      if (opts.wrong && m.level === 2 && !did.basket) {
+        // (clean: the other net bag; shells: a pink shell in the basket of the other size, else another kind's basket)
+        if (id === 'clean' && m.nets.length > 1) { did.basket = 1; to = m.nets.find((q) => q !== m.netFor(p.t ?? p.f.cover)).at; log.push('wrong net'); }
+        if (id === 'shells' && p.s && p.s.kind === 'fan') { did.basket = 1; to = m.baskets.find((q) => q.kind === 'fan' && q !== p.to).at; log.push('wrong size'); }
+      } else if (opts.wrong && id === 'shells' && !did.kind && p.s) {
+        did.kind = 1; to = m.baskets.find((q) => q.kind !== p.s.kind).at; log.push('wrong kind');
+      }
+      const s = [item.x, item.y];
+      await __drag([s, [(s[0] + to.x) / 2, Math.min(s[1], to.y) - 80 * k], [to.x, to.y - 60 * k]]);
+      log.push(p.kind + ' ' + (p.t?.key ?? p.s?.kind ?? p.f?.kind));
+    } else if (p.kind === 'rub') {
+      const c = p.f.cover.home; const pts = [[c.x, c.y]];
+      for (let a = 0; a < Math.PI * 2 * 7; a += 0.45) pts.push([c.x + Math.cos(a) * 60 * k, c.y + Math.sin(a) * 40 * k]);
+      await __drag(pts); log.push('rub ' + m.shown.rub);
+    } else if (p.kind === 'weed') { __tap(p.w.at.x, p.w.at.y); log.push('weed'); }
+    else if (p.kind === 'dig') { __tap(p.s.mound.x, p.s.mound.y); log.push('dig'); }
+    else if (p.kind === 'thread') {
+      let b = p.b;
+      if (opts.wrong && m.level === 2 && !did.thread && m.phase === 'thread') { did.thread = 1; b = m.baskets.find((q) => q.kind !== p.b.kind); log.push('wrong thread'); }
+      __tap(b.at.x, b.at.y); log.push('thread ' + b.kind);
+    }
+    await __run(gap);
+  }
+  for (let i = 0; i < 80 && !game.scene.isActive('Lagoon'); i++) await __run(250);
+  const vo = (window.__voLog || []).slice(n0);
+  return { id, level, log, shown: m.shown, lagoon: game.scene.isActive('Lagoon'), helps: vo.filter((e) => e.key === 'vo-help').length,
+    check: window.__voCheck ? __voCheck(vo) : null, keys: vo.map((e) => e.key).join(' '), textures: game.textures.getTextureKeys().length };
+};
+
 // mermaid PR 4: the shell song
 /** Plays the shell song the way she would, from the lagoon's door: `level` 1 | 2; opts: wrong (one wrong shell per
  * tune, then twice in a row once), interrupt (taps a shell while Mom plays her tune), none (no touch at all: Mom's hand

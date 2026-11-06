@@ -131,6 +131,96 @@ def ride_bump():
     return lp(out, 2500)
 
 
+# ---------------------------------------------------------------- mermaid PR 3: cleaning the lagoon, the shell treasure
+def splash_trash():
+    """A piece of rubbish dropping into the net bag: a soft watery plop, a few bubbles after it."""
+    n = int(0.8 * SR)
+    out = np.zeros(n)
+    w = int(0.25 * SR)
+    place(out, 0.6 * lp(bp(rng.standard_normal(w), 250, 3000), 2200) * env(w, 0.005, 0.06), 0.0)
+    place(out, 0.5 * blub(220, 0.12, 1.2), 0.01)
+    for i in range(3):
+        place(out, 0.25 * blub(rng.uniform(380, 560)), 0.16 + i * 0.1)
+    return out
+
+
+def murk_clear():
+    """The murky water clearing: a long soft rising shimmer (filtered noise opening up) and bell notes going up."""
+    n = int(2.2 * SR)
+    t = np.arange(n) / SR
+    noise = rng.standard_normal(n)
+    out = np.zeros(n)
+    for i, (lo, hi) in enumerate(((300, 900), (600, 1800), (1200, 3600), (2400, 7000))):
+        seg = bp(noise, lo, hi) * np.exp(-((t - 0.4 - i * 0.35) ** 2) / 0.08)
+        out += 0.18 * seg
+    for i, f in enumerate((523.3, 659.3, 784.0, 1046.5, 1318.5)):
+        place(out, 0.22 * glock(f, 1.0), 0.3 + i * 0.22)
+    return out
+
+
+def dolphin_click():
+    """A happy dolphin: a quick run of soft clicks and a short rising whistle (friendly, never shrill: low-passed)."""
+    n = int(0.9 * SR)
+    out = np.zeros(n)
+    for i in range(7):
+        m = int(0.012 * SR)
+        place(out, 0.5 * bp(rng.standard_normal(m), 1500, 5000) * env(m, 0.0005, 0.003), 0.02 + i * 0.035)
+    m = int(0.42 * SR)
+    t = np.arange(m) / SR
+    f = 1400 + 900 * (t / 0.42) ** 1.2 + 120 * np.sin(2 * np.pi * 9 * t)
+    whistle = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.sin(np.pi * t / 0.42) ** 1.5
+    place(out, 0.35 * whistle, 0.32)
+    return lp(out, 4500)
+
+
+def turtle_blub():
+    """The turtle: two slow low bubbles (a happy blub-blub)."""
+    n = int(0.7 * SR)
+    out = np.zeros(n)
+    place(out, 0.6 * blub(160, 0.16, 1.4), 0.02)
+    place(out, 0.5 * blub(200, 0.14, 1.6), 0.26)
+    return lp(out, 2500)
+
+
+def net_off():
+    """The net slipping off the dolphin's fin: a soft rope swish and a little pop of freedom."""
+    n = int(0.7 * SR)
+    out = np.zeros(n)
+    m = int(0.35 * SR)
+    t = np.arange(m) / SR
+    sw = bp(rng.standard_normal(m), 600, 3000) * np.sin(np.pi * t / 0.35) ** 2
+    place(out, 0.35 * sw, 0.0)
+    place(out, 0.4 * blub(420, 0.08, 2.0), 0.32)
+    place(out, 0.25 * glock(1568.0, 0.5), 0.36)
+    return out
+
+
+def basket_pop():
+    """A shell dropping into the woven basket: a soft woody tock with a little ring."""
+    n = int(0.45 * SR)
+    t = np.arange(n) / SR
+    tock = np.sin(2 * np.pi * 420 * t) * np.exp(-t / 0.03) + 0.5 * np.sin(2 * np.pi * 860 * t) * np.exp(-t / 0.02)
+    m = int(0.02 * SR)
+    click = np.zeros(n)
+    click[:m] = bp(rng.standard_normal(m), 1200, 5000) * env(m, 0.0005, 0.004)
+    out = 0.6 * tock + 0.3 * click
+    place(out, 0.15 * glock(1318.5, 0.35), 0.01)
+    return out
+
+
+def shell_thread():
+    """A shell sliding onto the necklace's string: a short slide and a bright little click, like a bead."""
+    n = int(0.4 * SR)
+    out = np.zeros(n)
+    m = int(0.12 * SR)
+    t = np.arange(m) / SR
+    place(out, 0.18 * bp(rng.standard_normal(m), 2000, 6000) * np.sin(np.pi * t / 0.12), 0.0)
+    place(out, 0.35 * glock(2093.0, 0.25), 0.11)
+    k = int(0.01 * SR)
+    place(out, 0.4 * bp(rng.standard_normal(k), 2500, 7000) * env(k, 0.0003, 0.002), 0.11)
+    return out
+
+
 def finish(name, x):
     meter = pyln.Meter(SR, block_size=0.1)
     x = pyln.normalize.loudness(x, meter.integrated_loudness(x), -18.0)
@@ -214,6 +304,9 @@ SOUNDS = [
     ("shell-open", shell_open), ("bubble-breath", bubble_breath),
     # mermaid PR 2
     ("shimmer", shimmer), ("glitter", glitter), ("ring-ding", ring_ding), ("pearl-plink", pearl_plink), ("ride-bump", ride_bump),
+    # mermaid PR 3
+    ("splash-trash", splash_trash), ("murk-clear", murk_clear), ("dolphin-click", dolphin_click), ("turtle-blub", turtle_blub),
+    ("net-off", net_off), ("basket-pop", basket_pop), ("shell-thread", shell_thread),
 ]
 
 ONLY = sys.argv[1:]

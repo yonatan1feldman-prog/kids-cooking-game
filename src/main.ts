@@ -18,6 +18,9 @@ import { TitleScene } from './scenes/TitleScene';
 import { LagoonScene } from './scenes/LagoonScene';
 import { SeaRide } from './scenes/SeaRide';
 import { SeaTail } from './scenes/SeaTail';
+// mermaid PR 3: cleaning the lagoon, the shell treasure
+import { SeaClean } from './scenes/SeaClean';
+import { SeaShells } from './scenes/SeaShells';
 // mermaid PR 4
 import { SeaSongScene } from './scenes/SeaSong';
 
@@ -42,7 +45,9 @@ function start() {
     // Three touch slots so a resting palm can't take the only slot. Which touch "owns" an
     // action is decided in Step / iconButton: the first finger rules until it is lifted.
     input: { activePointers: 3 },
-    scene: [BootScene, TitleScene, HomeScene, RecipeScene, AlbumScene, PuzzleScene, GardenScene, MarketScene, DishesScene, ArtScene, ClinicScene, FarmScene, LagoonScene, SeaTail, SeaRide, SeaSongScene],
+    scene: [BootScene, TitleScene, HomeScene, RecipeScene, AlbumScene, PuzzleScene, GardenScene, MarketScene, DishesScene, ArtScene, ClinicScene, FarmScene, LagoonScene, SeaTail, SeaRide, SeaSongScene,
+      // mermaid PR 3
+      SeaClean, SeaShells],
   });
 
   blockBrowserGestures();
