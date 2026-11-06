@@ -55,6 +55,31 @@ export const SEA_IMAGES = {
   'lagoon-dolphin-far': { size: [240, 120] },
   'photo-frame-sea': { size: [700, 780] },
   'sea-done': { size: [120, 120] },
+  // mermaid PR 3: cleaning the lagoon (images-b-sea/tools/gen_sea3.py): the murky water, the rubbish (green or blue: the
+  // hard level sorts it by colour), the two net bags, the dolphin and the turtle (the net and the bag over them are the
+  // real trash-net / trash-bag), the seaweed things hide behind, a seahorse
+  'murk': { size: [1200, 700] },
+  'trash-bottle': { size: [200, 200] },
+  'trash-can': { size: [200, 200] },
+  'trash-bag': { size: [200, 200] },
+  'trash-straw': { size: [200, 200] },
+  'trash-tyre': { size: [200, 200] },
+  'trash-net': { size: [200, 200] },
+  'net-basket-blue': { size: [420, 360] },
+  'net-basket-green': { size: [420, 360] },
+  'dolphin-free': { size: [520, 300] },
+  'turtle-free': { size: [360, 260] },
+  'seaweed-hide': { size: [240, 420] },
+  'sea-seahorse': { size: [160, 220] },
+  // mermaid PR 3: the shell treasure: the three kinds, the basket, the sand a shell hides under, the necklace's string,
+  // and the necklace on Marina (the lagoon shows it too, so it is loaded with the lagoon)
+  'shell-fan': { size: [200, 200] },
+  'shell-spiral': { size: [200, 200] },
+  'starfish': { size: [200, 200] },
+  'shell-basket': { size: [380, 300] },
+  'sand-mound': { size: [260, 120] },
+  'necklace-string': { size: [1400, 60] },
+  'necklace-marina': { size: [240, 130] },
 } as const;
 export type SeaImageKey = keyof typeof SEA_IMAGES;
 
@@ -62,6 +87,8 @@ export type SeaImageKey = keyof typeof SEA_IMAGES;
 export const SEA_SFX = [
   // mermaid PR 1: a shell door opening, Pipa's little breath of bubbles
   'shell-open', 'bubble-breath',
+  // mermaid PR 3: cleaning the lagoon and the shell treasure
+  'splash-trash', 'murk-clear', 'dolphin-click', 'turtle-blub', 'net-off', 'basket-pop', 'shell-thread',
 ] as const;
 
 /** Mom's lines in the mermaid world (make_vo.py, "The mermaid world"); the title's own line is core. */
@@ -69,6 +96,12 @@ export const SEA_VOICE = [
   'vo-world-mermaid',
   // mermaid PR 1: the lagoon
   'vo-sea-hello', 'vo-sea-again', 'vo-pick-tail', 'vo-pick-ride', 'vo-pick-clean', 'vo-pick-shells', 'vo-pick-song',
+  // mermaid PR 3: cleaning the lagoon
+  'vo-clean-start', 'vo-clean-sort', 'vo-clean-blue', 'vo-clean-green', 'vo-clean-hidden', 'vo-clean-dolphin', 'vo-fact-dolphin',
+  'vo-clean-turtle', 'vo-fact-turtle', 'vo-fact-seahorse', 'vo-clean-clearer', 'vo-clean-done', 'name-dolphin', 'name-turtle',
+  // mermaid PR 3: the shell treasure
+  'vo-shell-start', 'vo-shell-hidden', 'vo-shell-big', 'vo-shell-little', 'vo-shell-thread', 'vo-shell-pattern', 'vo-shell-next',
+  'vo-shell-marina', 'vo-shell-pretty', 'vo-fact-starfish', 'name-shell', 'name-swirly', 'name-starfish',
 ] as const;
 export type SeaVoiceKey = (typeof SEA_VOICE)[number];
 
@@ -85,6 +118,8 @@ export const SEA_LAGOON: { images: readonly SeaImageKey[]; sounds: readonly stri
     ...MOM_MERMAID, ...MARINA, 'bg-lagoon', 'lagoon-rock', 'door-shell', 'door-shell-open',
     'door-icon-tail', 'door-icon-ride', 'door-icon-clean', 'door-icon-shells', 'door-icon-song', 'chest-closed', 'chest-open',
     'seaweed', 'lagoon-dolphin-far', 'sea-done',
+    // mermaid PR 3: Marina's shell necklace (she wears it in the lagoon once she has it)
+    'necklace-marina',
   ],
   sounds: [...SEA_SFX, ...SEA_VOICE.filter((k) => k !== 'vo-world-mermaid'), ...SEA_SONG],
 };
@@ -100,8 +135,22 @@ export type SeaDoor = (typeof SEA_DOORS)[number];
 export const SEA_ACTIVITY: Record<SeaDoor, { scene?: string; images: readonly string[]; sounds: readonly string[] }> = {
   tail: { images: [], sounds: [] },
   ride: { images: [], sounds: [] },
-  clean: { images: [], sounds: [] },
-  shells: { images: [], sounds: [] },
+  // mermaid PR 3
+  clean: {
+    scene: 'SeaClean',
+    images: ['murk', 'trash-bottle', 'trash-can', 'trash-bag', 'trash-straw', 'trash-tyre', 'trash-net', 'net-basket-blue', 'net-basket-green',
+      'dolphin-free', 'turtle-free', 'seaweed-hide', 'sea-seahorse', 'photo-frame-sea'],
+    sounds: ['splash-trash', 'murk-clear', 'dolphin-click', 'turtle-blub', 'net-off', 'vo-clean-start', 'vo-clean-sort', 'vo-clean-blue',
+      'vo-clean-green', 'vo-clean-hidden', 'vo-clean-dolphin', 'vo-fact-dolphin', 'vo-clean-turtle', 'vo-fact-turtle', 'vo-fact-seahorse',
+      'vo-clean-clearer', 'vo-clean-done', 'name-dolphin', 'name-turtle', 'name-blue', 'name-green'],
+  },
+  shells: {
+    scene: 'SeaShells',
+    images: ['shell-fan', 'shell-spiral', 'starfish', 'shell-basket', 'sand-mound', 'necklace-string', 'photo-frame-sea'],
+    sounds: ['basket-pop', 'shell-thread', 'vo-shell-start', 'vo-shell-hidden', 'vo-shell-big', 'vo-shell-little', 'vo-shell-thread',
+      'vo-shell-pattern', 'vo-shell-next', 'vo-shell-marina', 'vo-shell-pretty', 'vo-fact-starfish', 'name-shell', 'name-swirly', 'name-starfish'],
+    // (Mom's counting, count-1..10, is core: never listed here, so going back to the lagoon never frees it)
+  },
   song: { images: [], sounds: [] },
 };
 

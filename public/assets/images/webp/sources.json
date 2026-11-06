@@ -1164,6 +1164,11 @@
   "w": 220,
   "h": 320
  },
+ "dolphin-free": {
+  "sha1": "9aa4543e08d8e619acf9d9c303734887bbd395e3",
+  "w": 520,
+  "h": 300
+ },
  "door-icon-clean": {
   "sha1": "efe4236fd8f675a5b455d6d63fa808cf9431d8cd",
   "w": 160,
@@ -3229,6 +3234,31 @@
   "w": 136,
   "h": 106
  },
+ "murk": {
+  "sha1": "6dfef2ea48491c9516c18d735c1b6716c2e42b52",
+  "w": 1200,
+  "h": 700
+ },
+ "necklace-marina": {
+  "sha1": "f800aa6bb8acf0e36495025ff9d401bbf536b29c",
+  "w": 240,
+  "h": 130
+ },
+ "necklace-string": {
+  "sha1": "6655eb25e24b147dcb02cdb662f7da62ca32c8e4",
+  "w": 1400,
+  "h": 60
+ },
+ "net-basket-blue": {
+  "sha1": "6f1825dd8faff1d02c5068f62fb58a2708528d74",
+  "w": 420,
+  "h": 360
+ },
+ "net-basket-green": {
+  "sha1": "bacdfad551a76a14116e6ff2fb46e56da5ec1b52",
+  "w": 420,
+  "h": 360
+ },
  "oil-bottle": {
   "sha1": "257930d1da6dc064088666f494d63323589583f6",
   "w": 300,
@@ -3544,6 +3574,11 @@
   "w": 260,
   "h": 400
  },
+ "sand-mound": {
+  "sha1": "7b35750648a41994b356a08b113948c66ee81de4",
+  "w": 260,
+  "h": 120
+ },
  "sauce-blob": {
   "sha1": "d5ba55b5a29b4ea30debd3fec70835cb0cd539fe",
   "w": 200,
@@ -3579,10 +3614,20 @@
   "w": 120,
   "h": 120
  },
+ "sea-seahorse": {
+  "sha1": "a21daaa70efa2a722e858f8318538117d5512db3",
+  "w": 160,
+  "h": 220
+ },
  "seaweed": {
   "sha1": "cb98392ea12f7a2f11e0e7f9ad743451ab0f64af",
   "w": 200,
   "h": 400
+ },
+ "seaweed-hide": {
+  "sha1": "dc1f898839271660e341c1ad5b4182e3701146b3",
+  "w": 240,
+  "h": 420
  },
  "seed-packet-carrot": {
   "sha1": "b5c0e8d6474c5ffd828a98af5a5560642db8ff39",
@@ -3618,6 +3663,21 @@
   "sha1": "7a3e6c7ff9d93df2e87cae212ff326c22f8b8ee7",
   "w": 200,
   "h": 150
+ },
+ "shell-basket": {
+  "sha1": "8eb1982596dd8de0747e1b67a313a6787f540152",
+  "w": 380,
+  "h": 300
+ },
+ "shell-fan": {
+  "sha1": "b9c6fd551a96979c99e7f04b94a50fdeacc05b2b",
+  "w": 200,
+  "h": 200
+ },
+ "shell-spiral": {
+  "sha1": "1fc19f2f79f14db744cb7c509ae80aa9fd097fd1",
+  "w": 200,
+  "h": 200
  },
  "sick-bites": {
   "sha1": "177a5f7064e0303126c9912a09c490483e2e05c9",
@@ -3801,6 +3861,11 @@
  },
  "star": {
   "sha1": "bc47a69307f49b63e072aceb13ce8e8a2f2b6a66",
+  "w": 200,
+  "h": 200
+ },
+ "starfish": {
+  "sha1": "7d256bd1c6747f6125c24fc24b1fbe2abb4c14c0",
   "w": 200,
   "h": 200
  },
@@ -4138,6 +4203,41 @@
   "sha1": "1a917c0851fdceda8b8ae50c8685f0526ac1e571",
   "w": 140,
   "h": 140
+ },
+ "trash-bag": {
+  "sha1": "3a0bd026bf8d95019880d71d7637b2f62f8f6270",
+  "w": 200,
+  "h": 200
+ },
+ "trash-bottle": {
+  "sha1": "af51fb212ea6a2e84ab172f9fe033a8593be9187",
+  "w": 200,
+  "h": 200
+ },
+ "trash-can": {
+  "sha1": "87b554ed16bcff7419071383106c544bdb7588a1",
+  "w": 200,
+  "h": 200
+ },
+ "trash-net": {
+  "sha1": "8227a893efd68057df4d7cca0855b6661ab53dcb",
+  "w": 200,
+  "h": 200
+ },
+ "trash-straw": {
+  "sha1": "a3ced797e9c7b8da9a4be3374b0d5110fe4ea57f",
+  "w": 200,
+  "h": 200
+ },
+ "trash-tyre": {
+  "sha1": "c2b269811057c4fd288016b8d21aacc72723444e",
+  "w": 200,
+  "h": 200
+ },
+ "turtle-free": {
+  "sha1": "931bbe389d1567f74e4b4feb3dc7a0c508731372",
+  "w": 360,
+  "h": 260
  },
  "veg-carrot-inside": {
   "sha1": "e31760dd81d009536f01c60b36e14e36e200ce09",

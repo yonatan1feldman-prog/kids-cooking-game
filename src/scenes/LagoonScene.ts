@@ -15,6 +15,7 @@ import { Character } from '../steps/Character';
 import { Mom } from '../steps/Mom';
 import { assetsReady, loadImages, releaseImages } from './BootScene';
 import { breath, MARINA, marinaSwims } from './SeaGame';
+import { cleanLagoonLife, hasMark, wearNecklace } from '../core/seaSort';
 
 /** What each shell door says when it opens (Mom, before the activity starts). */
 const PICK_LINE = {
@@ -31,8 +32,9 @@ const ACTIVITY_WATCHDOG_MS = 20000;
 const PLACEHOLDER_CLOSE_MS = 2600;
 
 export interface LagoonData {
-  /** 'title': she just came into the world (Mom says hello); 'activity': back from one (Mom asks what next). */
-  from?: 'title' | 'activity';
+  /** 'title': she just came into the world (Mom says hello); 'activity': back from one (Mom asks what next). An
+   * activity's home button and its end come back with MiniGame's 'recipe' / 'finale': those are "back from one" too. */
+  from?: 'title' | 'activity' | 'recipe' | 'finale';
   /** Set once Mom has spoken, so a rebuild at a new size (relayout) doesn't say it again. */
   spoken?: boolean;
 }
@@ -86,6 +88,8 @@ export class LagoonScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#5fc9c3');
     this.add.image(L.cx, L.H, 'bg-lagoon').setOrigin(0.5, 1).setScale(Math.max(1, L.W / 2400)).setDepth(-100);
     seaLife(this, L, lg.seaweed);
+    // mermaid PR 3: once she has cleaned it, the lagoon stays clean (brighter water, a dolphin jumping far off)
+    if (hasMark('clean')) cleanLagoonLife(this, L);
     this.add.image(lg.chest.x, lg.chest.y, 'chest-closed').setScale(lg.chest.scale).setDepth(-70);
     touchRipples(this, L);
 
@@ -102,6 +106,8 @@ export class LagoonScene extends Phaser.Scene {
       this.tweens.add({ targets: m.box, alpha: 1, duration: 300 });
       marina = new Character(this, MARINA, lg.friend, S.feedPet);
       marinaSwims(this, marina, lg.friend, k);
+      // mermaid PR 3: Marina wears the shell necklace she was given
+      if (hasMark('necklace')) wearNecklace(this, marina);
       marina.enter(150);
       tickles(this, () => [m, marina], () => !going && !busy);
       const look = () => {
@@ -113,7 +119,7 @@ export class LagoonScene extends Phaser.Scene {
       this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.events.off(Phaser.Scenes.Events.UPDATE, look));
       if (!data.spoken) {
         data.spoken = true;
-        if (data.from === 'activity') this.time.delayedCall(1500, () => !going && !busy && this.say('vo-sea-again', () => !going && !busy));
+        if (data.from && data.from !== 'title') this.time.delayedCall(1500, () => !going && !busy && this.say('vo-sea-again', () => !going && !busy));
         else {
           this.say('vo-sea-hello', () => !going);
           m.wave();

@@ -675,7 +675,30 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the mermaid world PR 1 (the lagoon), the clinic-open fix, the clinic round 6 (part 3, four patients), the clinic round 6 (part 2, seven ailments), the clinic round 6 (part 1, the bowl), the clinic round 5 (part 3, more challenge), the clinic round 5 (part 2, the care rooms), the farm, the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; the mermaid world PR 3 (cleaning, shells), the mermaid world PR 1 (the lagoon), the clinic-open fix, the clinic round 6 (part 3, four patients), the clinic round 6 (part 2, seven ailments), the clinic round 6 (part 1, the bowl), the clinic round 5 (part 3, more challenge), the clinic round 5 (part 2, the care rooms), the farm, the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 0000000000000000000000000000000000000000. The mermaid world, PR 3 (cleaning the lagoon, the shell treasure)
+Spec `/mnt/project-files/research/mermaid-spec.md` 3.3, 3.4 and 11 (Pipa = Marina there). Two shell doors now open real activities.
+- **Scenes:** `scenes/SeaClean.ts` (door 'clean') and `scenes/SeaShells.ts` (door 'shells'), both on `SeaGame`; numbers,
+  the lagoon marks, the shared room (`seaRoom`, `seaWork`) and the photo (`seaPhoto`, `mermaid-<id>` in the album, frame
+  `photo-frame-sea`) in `core/seaSort.ts` (its own file so PRs 2 and 4 never touch it). Each scene has `plan()`: what a
+  child would do next; Mom's hint (`way`), her help (`helpOnce`) and the harness all follow it.
+- **Clean:** drag rubbish to the net bag (easy: one bag, a tap works too; hard: blue and green bags by colour, a wrong one
+  hops out, the right one glows, `vo-clean-blue/green`); the murk fades a step per piece; rub the dolphin's net off
+  (`SEA3.clean.untangle`), it becomes a loose piece; hard also: two pieces behind seaweed (tap), the turtle's bag (touch it:
+  it comes off in her finger). A seaweed hides a seahorse (a fact). The net and the bag are the real `trash-net` / `trash-bag`
+  laid over `dolphin-free` / `turtle-free` (no "stuck" art; nobody looks sad).
+- **Shells:** sort into baskets in a row (easy fan + starfish; hard big fan, little fan, swirly, starfish; Mom counts what is
+  in the basket); heaps of sand hide some (tap). Then the necklace: tap (or drag from) a basket to thread; hard = Mom
+  threads shell, starfish, swirly once and she goes on; a shell off the pattern slides off. It ends on Marina (`wearNecklace`).
+- **Lagoon marks** (`localStorage` `cooking.lagoon.clean` / `.necklace`): brighter water + a far dolphin jumping every 20-40 s;
+  Marina wears `necklace-marina` (loaded with the lagoon). LagoonScene treats MiniGame's 'recipe' / 'finale' as "back from an
+  activity" (it said hello again before).
+- **Loading:** `SEA_ACTIVITY.clean/shells` list only the activity's own files. Never list core sounds there (count-*: the lagoon
+  frees every activity sound on return, and listing a sound in RECIPE_ASSETS makes it a non-core sound).
+- **Harness:** `__seaRun(id, level, {none, wrong, first, gap, mid})` from the lagoon through the door to the lagoon again.
+- Art `assets-src/images-b-sea/tools/gen_sea3.py` (20 SVGs), effects in `make_sea_sfx.py` (PR 3 block), 27 lines in `make_vo.py`;
+  not heard by a human.
+
 ### 000000000000000000000000000000000000000. The mermaid world, PR 1 (the title's third card, the lagoon, Mom the mermaid, Marina)
 Spec `/mnt/project-files/research/mermaid-spec.md` (read its "2026-11-06 change" note first). PR #47, master 9ff831f.
 - **Title:** three world cards in one row at every ratio (`S.world.kitchen/clinic/mermaid`, 438/354/265 wide at
