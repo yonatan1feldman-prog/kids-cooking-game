@@ -1,6 +1,6 @@
 # images-b-sea (the mermaid world, "Mermaid with Mom": research/mermaid-spec.md 8). Style B paper cut-out on the shared kit
 # (images-b/tools/pb.py and images-b-clinic/tools/gen_clinic.py, both read-only); writes into images-b-sea/ only.
-# Mermaid PR 1: the lagoon (background, rock, Pipa's bubble, the five shell doors and their pictures, the chest, the
+# Mermaid PR 1: the lagoon (background, rock, the five shell doors and their pictures, the chest, the
 # seaweed, the far dolphin, the photo frame, the done shell). Later PRs add their groups to ITEMS in their own block.
 # Run: python tools/gen_sea.py [names...]   then copy the SVGs into public/assets/images and bake the WebPs.
 # Palette (the 13 colours + the sea's 5): turquoise #5FC9C3, deep sea #2E7FA6, sand #F6E3B5, coral #F28C7A, pearl #F4F1EA.
@@ -126,18 +126,6 @@ def lagoon_rock():
     s += G(an + P(wob(760, 226, 40, 16, .08, 9, 14), CORALC_D), p + "sh")
     s += G(scallop(330, 132, 24, 26, SHELL, SHELL_D, SHELL_L, 6), p + "sh")
     return doc(p, 900, 400, s, "rough", seed=131, cut={"rim": 3, "rough": 5, "freq": .12})
-
-
-def pipa_bubble():
-    """420x420: Pipa's clear bubble (drawn over her, round her at 0.4): a faint fill, a light rim, a highlight."""
-    p = "pbb-"
-    s = C(210, 210, 196, "#E9FCFF", ' opacity="0.22"')
-    s += f'<circle cx="210" cy="210" r="196" fill="none" stroke="#F2FEFF" stroke-width="9" opacity="0.85"/>'
-    s += f'<circle cx="210" cy="210" r="186" fill="none" stroke="#9EE3EA" stroke-width="4" opacity="0.5"/>'
-    s += P("M70,160 Q90,80 170,52", "none", f' stroke="{WHITE}" stroke-width="18" stroke-linecap="round" opacity="0.85"')
-    s += C(196, 44, 9, WHITE, ' opacity="0.9"') + P("M330,330 Q360,290 368,240", "none", f' stroke="{WHITE}" stroke-width="8" stroke-linecap="round" opacity="0.5"')
-    s += sparkle(330, 96, 16, WHITE, ' opacity="0.9"')
-    return svg(420, 420, "", s)
 
 
 def door_shell(open_=False):
@@ -274,7 +262,7 @@ def sea_done():
 
 ITEMS = {
     # mermaid PR 1: the lagoon
-    "bg-lagoon": bg_lagoon, "lagoon-rock": lagoon_rock, "pipa-bubble": pipa_bubble,
+    "bg-lagoon": bg_lagoon, "lagoon-rock": lagoon_rock,
     "door-shell": lambda: door_shell(False), "door-shell-open": lambda: door_shell(True),
     "door-icon-tail": icon_tail, "door-icon-ride": icon_ride, "door-icon-clean": icon_clean, "door-icon-shells": icon_shells,
     "door-icon-song": icon_song, "chest-closed": lambda: chest(False), "chest-open": lambda: chest(True), "seaweed": seaweed,

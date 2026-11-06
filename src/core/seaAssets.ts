@@ -13,15 +13,35 @@
 export const SEA_IMAGES = {
   // the title's card (core: the title shows it before anything else)
   'world-card-mermaid': { size: [700, 760] },
-  // Mom the mermaid: her tail (behind mom-body's place), her top (in place of mom-body) and her starfish crown (after
-  // mom-hair); the same 800 frame as all her layers
+  // Mom the mermaid (gen_mom.py): her tail and her long hair behind everything, her shell top (in place of mom-body),
+  // her hair let down (in place of mom-hair), her tiara, and her arms with bare shoulders (in place of mom-arm-*); the
+  // same 800 frame as all her layers
   'mom-mer-tail': { size: [800, 800] },
+  'mom-mer-hair-back': { size: [800, 800] },
   'mom-mer-top': { size: [800, 800] },
+  'mom-mer-hair': { size: [800, 800] },
   'mom-mer-crown': { size: [800, 800] },
+  'mom-mer-arm-left': { size: [800, 800] },
+  'mom-mer-arm-right': { size: [800, 800] },
+  'mom-mer-arm-left-reach': { size: [800, 800] },
+  'mom-mer-arm-right-rest': { size: [800, 800] },
+  'mom-mer-arm-right-chin': { size: [800, 800] },
+  'mom-mer-arm-right-thumb': { size: [800, 800] },
+  'mom-mer-arm-left-clap': { size: [800, 800] },
+  'mom-mer-arm-right-clap': { size: [800, 800] },
+  'mom-mer-arm-left-open': { size: [800, 800] },
+  // Marina, the little mermaid girl beside Mom (images-b-sea/tools/gen_marina.py): the characters' 600x700 frame
+  'marina-body': { size: [600, 700] },
+  'marina-eyes-open': { size: [600, 700] },
+  'marina-eyes-blink': { size: [600, 700] },
+  'marina-eyes-happy': { size: [600, 700] },
+  'marina-eyes-surprised': { size: [600, 700] },
+  'marina-mouth-closed': { size: [600, 700] },
+  'marina-mouth-open': { size: [600, 700] },
+  'marina-mouth-chew': { size: [600, 700] },
   // the lagoon (mermaid PR 1)
   'bg-lagoon': { size: [2400, 1080] },
   'lagoon-rock': { size: [900, 400] },
-  'pipa-bubble': { size: [420, 420] },
   'door-shell': { size: [300, 260] },
   'door-shell-open': { size: [300, 260] },
   'door-icon-tail': { size: [160, 160] },
@@ -55,10 +75,14 @@ export type SeaVoiceKey = (typeof SEA_VOICE)[number];
 /** The world's song (make_music.py 'sea': 6/8, 108 dotted-quarter beats a minute). */
 export const SEA_SONG = ['music-sea-base', 'music-sea-tune', 'music-sea-party', 'music-sea-up'] as const;
 
+/** Mom the mermaid's layers and Marina's: every scene of the world shows them. */
+export const MOM_MERMAID = (Object.keys(SEA_IMAGES) as SeaImageKey[]).filter((k) => k.startsWith('mom-mer-'));
+export const MARINA = (Object.keys(SEA_IMAGES) as SeaImageKey[]).filter((k) => k.startsWith('marina-'));
+
 /** What going into the world loads: the lagoon and Mom's mermaid layers, the lagoon's sounds and the song. */
 export const SEA_LAGOON: { images: readonly SeaImageKey[]; sounds: readonly string[] } = {
   images: [
-    'mom-mer-tail', 'mom-mer-top', 'mom-mer-crown', 'bg-lagoon', 'lagoon-rock', 'pipa-bubble', 'door-shell', 'door-shell-open',
+    ...MOM_MERMAID, ...MARINA, 'bg-lagoon', 'lagoon-rock', 'door-shell', 'door-shell-open',
     'door-icon-tail', 'door-icon-ride', 'door-icon-clean', 'door-icon-shells', 'door-icon-song', 'chest-closed', 'chest-open',
     'seaweed', 'lagoon-dolphin-far', 'sea-done',
   ],

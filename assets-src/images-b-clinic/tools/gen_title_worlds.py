@@ -28,45 +28,36 @@ SEA = "#5FC9C3"; SEA_D = "#3FA9A6"; SEA_L = "#BFEDE8"; SEA_DEEP = "#7FCAD9"
 PUBLIC = os.path.normpath(os.path.join(HERE, "..", "..", "..", "public", "assets", "images"))
 # Mom the mermaid on the card is the game's own Mom: her layers (gen_mom.py) placed in the card as nested pictures, so she
 # is exactly the Mom she meets in the lagoon (run gen_mom.py first). Back to front, her waving arm and her open hand.
-MERMAID_LAYERS = ["mom-arm-right", "mom-mer-top", "mom-head", "mom-hair", "mom-mer-crown", "mom-eyes-happy",
-                  "mom-mouth-smile", "mom-arm-left-open"]
+MERMAID_LAYERS = ["mom-mer-tail", "mom-mer-hair-back", "mom-mer-arm-right", "mom-mer-top", "mom-head", "mom-mer-hair",
+                  "mom-mer-crown", "mom-eyes-happy", "mom-mouth-smile", "mom-mer-arm-left-open"]
+MARINA_LAYERS = ["marina-body", "marina-eyes-happy", "marina-mouth-open"]
 
 
-def nested(key, x, y, s):
-    """One of Mom's 800-frame layers as a nested picture at (x, y), scale s."""
+def nested(key, x, y, s, w=800, h=800):
+    """One of Mom's 800-frame layers (or Marina's 600x700) as a nested picture at (x, y), scale s."""
     src = open(os.path.join(PUBLIC, key + ".svg"), encoding="utf8").read()
     body = src[src.index(">") + 1: src.rindex("</svg>")]
-    return f'<svg x="{n(x)}" y="{n(y)}" width="{n(800 * s)}" height="{n(800 * s)}" viewBox="0 0 800 800" overflow="visible">{body}</svg>'
+    return f'<svg x="{n(x)}" y="{n(y)}" width="{n(w * s)}" height="{n(h * s)}" viewBox="0 0 {w} {h}" overflow="visible">{body}</svg>'
 
 
 def mermaid_picture():
-    """The sea under the lettering, Mom the mermaid (her tail curling left, waving), a rock in front of her waist, an
-    open pink shell with a pearl, bubbles."""
+    """The sea under the lettering, Mom the mermaid (long hair, shell top, her big tail curling left, waving) and Marina
+    the little mermaid girl beside her, a rock in front of Mom's waist, bubbles."""
     p = "wcme-"
     s = G(P(wr(66, 352, 568, 360, 40, 1.6, 21, step=30), SEA_DEEP), p + "sh")
     s += P("M66,420 Q200,400 340,420 T634,414 L634,400 L66,400Z", WHITE, ' opacity="0.35"')
     s += "".join(C(x, y, r, WHITE, ' opacity="0.25"') + f'<circle cx="{x}" cy="{y}" r="{r}" fill="none" stroke="{WHITE}" stroke-width="3" opacity="0.8"/>'
                  for x, y, r in ((110, 470, 14), (130, 430, 8), (590, 450, 16), (570, 410, 9), (610, 520, 7)))
-    sc = 0.4
     clip = f'<clipPath id="{p}pc"><path d="{wr(66, 352, 568, 360, 40, 1.6, 21, step=30)}"/></clipPath>'
-    s += clip + f'<g clip-path="url(#{p}pc)">' + "".join(nested(k, 410 - 500 * sc, 636 - 800 * sc, sc) for k in MERMAID_LAYERS)
-    # her big tail (the card's own: bigger than in the lagoon, so the card says "mermaid" from across the room): from her
-    # waist down, curling left over the rock, the pink fin up on the left
-    line = [(410, 612), (404, 660), (370, 694), (300, 704), (226, 684), (172, 640), (146, 590)]
-    body = gm.taper(line, [150, 140, 118, 96, 76, 58, 44], cap=3)
-    s += f'<clipPath id="{p}tl"><path d="{body}"/></clipPath>'
-    s += G(P(body, "#3FA9A6", ' transform="translate(0 4)"') + P(body, "#5FC9C3"), p + "cut")
-    s += gm.scales(f"{p}tl", 120, 560, 500, 720, 12, "#3FA9A6", "#A6E6DF", 0.8)
-    fx, fy = 146, 594
-    lobe_l = f"M{fx + 6},{fy + 6} C{fx - 24},{fy - 10} {fx - 70},{fy - 30} {fx - 84},{fy - 84} Q{fx - 64},{fy - 80} {fx - 54},{fy - 94} Q{fx - 40},{fy - 76} {fx - 26},{fy - 90} Q{fx - 12},{fy - 54} {fx + 8},{fy - 18}Z"
-    lobe_r = f"M{fx - 4},{fy + 4} C{fx + 4},{fy - 34} {fx + 2},{fy - 86} {fx + 28},{fy - 120} Q{fx + 38},{fy - 96} {fx + 56},{fy - 100} Q{fx + 52},{fy - 78} {fx + 70},{fy - 66} Q{fx + 36},{fy - 34} {fx + 12},{fy + 8}Z"
-    s += G(P(lobe_l, "#D9708F", ' transform="translate(0 4)"') + P(lobe_l, "#F59AB5") + P(lobe_r, "#D9708F", ' transform="translate(0 4)"') + P(lobe_r, "#F59AB5"), p + "cut")
-    s += "".join(stroke(f"M{fx},{fy - 4} L{n(fx + dx)},{n(fy + dy)}", "#FBC8D7", 4, ' opacity="0.9"') for dx, dy in ((-74, -72), (-50, -76), (30, -104), (52, -82)))
+    # Mom the mermaid (her own layers: long hair, shell top, the big tail lying left with its fluke up) and Marina, the
+    # little mermaid girl, beside her on the right
+    sc = 0.43
+    s += clip + f'<g clip-path="url(#{p}pc)">' + "".join(nested(k, 300 - 500 * sc, 724 - 800 * sc, sc) for k in MERMAID_LAYERS)
+    ms = 0.42
+    s += "".join(nested(k, 508 - 300 * ms, 556 - 350 * ms, ms, 600, 700) for k in MARINA_LAYERS)
     s += "</g>"
     rock = "M200,716 Q220,700 300,698 Q380,690 460,700 Q540,694 600,702 Q624,706 634,716Z"
     s += G(P(rock, "#6D8288", ' transform="translate(0 4)"') + P(rock, "#8FA3A8") + P("M230,698 Q330,684 440,698 Q330,694 240,708Z", "#B3C3C6", ' opacity="0.7"'), p + "cut")
-    shell = "".join(P(f"M560,664 L{n(560 + 48 * math.cos(math.radians(a)))},{n(664 + 48 * math.sin(math.radians(a)))} L{n(560 + 48 * math.cos(math.radians(a + 20)))},{n(664 + 48 * math.sin(math.radians(a + 20)))}Z", "#F7A7A8" if i % 2 else "#FCC0C0") for i, a in enumerate(range(-170, -10, 20)))
-    s += G(shell + P("M514,668 Q560,700 606,668 Q590,690 560,692 Q530,690 514,668Z", "#F7A7A8") + C(560, 668, 13, "#F4F1EA") + C(556, 664, 4, WHITE), p + "sh")
     return s
 
 W, H = 700, 760

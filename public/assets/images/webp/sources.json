@@ -2829,6 +2829,46 @@
   "w": 640,
   "h": 560
  },
+ "marina-body": {
+  "sha1": "b28d61431fc0d41661666b48d21eb6a7143aacc5",
+  "w": 600,
+  "h": 700
+ },
+ "marina-eyes-blink": {
+  "sha1": "b37f3ebca52a38dea9a8077041762ab5cbdac1f2",
+  "w": 600,
+  "h": 700
+ },
+ "marina-eyes-happy": {
+  "sha1": "865545e5169213fc431de6b85abf01314aa5717c",
+  "w": 600,
+  "h": 700
+ },
+ "marina-eyes-open": {
+  "sha1": "292a3f22c1012a3f66cc75e868111c91c68b48d9",
+  "w": 600,
+  "h": 700
+ },
+ "marina-eyes-surprised": {
+  "sha1": "bcfc10e8bdd596eab7eb23e29975ce2cff935ad3",
+  "w": 600,
+  "h": 700
+ },
+ "marina-mouth-chew": {
+  "sha1": "88f3ba70df13337a46c94f8c29a0392c4d3555da",
+  "w": 600,
+  "h": 700
+ },
+ "marina-mouth-closed": {
+  "sha1": "7753b49485113644e08d9ec116dc300ddbc18282",
+  "w": 600,
+  "h": 700
+ },
+ "marina-mouth-open": {
+  "sha1": "01f8788fd37c3da7189c452370d760f5aab5dd18",
+  "w": 600,
+  "h": 700
+ },
  "market-awning": {
   "sha1": "69eddb5d841411c8778a4c12fd8b8045d3685403",
   "w": 1600,
@@ -3074,18 +3114,73 @@
   "w": 800,
   "h": 800
  },
+ "mom-mer-arm-left": {
+  "sha1": "c0169e7272d978717ab56c0998dc7d34817fa107",
+  "w": 800,
+  "h": 800
+ },
+ "mom-mer-arm-left-clap": {
+  "sha1": "684ffef89d67ab83cc9ab5b3f2bd8bedb215cc84",
+  "w": 800,
+  "h": 800
+ },
+ "mom-mer-arm-left-open": {
+  "sha1": "b9c3591ca4842e0b404b644f36dae5135d9d0ffd",
+  "w": 800,
+  "h": 800
+ },
+ "mom-mer-arm-left-reach": {
+  "sha1": "19365128712dce2140bea36e932fc9de529ea976",
+  "w": 800,
+  "h": 800
+ },
+ "mom-mer-arm-right": {
+  "sha1": "48f636ec7707c5c0053155c660f03358cdd56b34",
+  "w": 800,
+  "h": 800
+ },
+ "mom-mer-arm-right-chin": {
+  "sha1": "293361c3eb6dc37111d821d82d131475b14c83d0",
+  "w": 800,
+  "h": 800
+ },
+ "mom-mer-arm-right-clap": {
+  "sha1": "d4a0fd20535a427d1c06fbdce7c88a3cd8e731bc",
+  "w": 800,
+  "h": 800
+ },
+ "mom-mer-arm-right-rest": {
+  "sha1": "e72f43409e22c909b66eb4a64c24fcc45e920e02",
+  "w": 800,
+  "h": 800
+ },
+ "mom-mer-arm-right-thumb": {
+  "sha1": "f6ea2c6232496a7ce22c694e87e7f03dd7dd164f",
+  "w": 800,
+  "h": 800
+ },
  "mom-mer-crown": {
-  "sha1": "047736f7e722d84faff3c4009db0670c187060d5",
+  "sha1": "88052112be6e68903a09bc89634e4356fbea293d",
+  "w": 800,
+  "h": 800
+ },
+ "mom-mer-hair": {
+  "sha1": "ff632f79a8c279cb26b23f3bb1ccdf59e243cf98",
+  "w": 800,
+  "h": 800
+ },
+ "mom-mer-hair-back": {
+  "sha1": "2430b0e1b32d1b9dc2730997c0fcfec8d5ca2017",
   "w": 800,
   "h": 800
  },
  "mom-mer-tail": {
-  "sha1": "7d4a31c9d33b6a0d99c949ccd9e8c10598fe50a4",
+  "sha1": "41c267368cd1dbaa32b9a6df6de8bb73b80bb6b5",
   "w": 800,
   "h": 800
  },
  "mom-mer-top": {
-  "sha1": "ac80921912c91b4f688150f6e1a67782cd95176d",
+  "sha1": "a9345ed72d5222a82d5359504bd14848114c974b",
   "w": 800,
   "h": 800
  },
@@ -3313,11 +3408,6 @@
   "sha1": "8e9c98a28eead9e15a9bb8a5c30e4ca83f44e5c2",
   "w": 140,
   "h": 140
- },
- "pipa-bubble": {
-  "sha1": "43fd6739d232cc8bcedacff4e576bf813eb4fde9",
-  "w": 420,
-  "h": 420
  },
  "pipa-scarf": {
   "sha1": "11e8ccac3fbb155af07bc274d88528307ec4019e",
@@ -4210,7 +4300,7 @@
   "h": 760
  },
  "world-card-mermaid": {
-  "sha1": "9f9750c18b5e066f474bdf2bf7a9dc05ebd46ec9",
+  "sha1": "26fdcdbe5aa7604c2fbe409667b2a85337c29a87",
   "w": 700,
   "h": 760
  },

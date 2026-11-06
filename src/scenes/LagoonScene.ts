@@ -11,11 +11,10 @@ import { SEA_ACTIVITY, SEA_DOORS, SEA_LAGOON, type SeaDoor } from '../core/seaAs
 import { sfx } from '../core/sfx';
 import { getStage } from '../core/stage';
 import { iconButton, otherPointerDown } from '../core/ui';
-import { RECIPES } from '../recipes';
 import { Character } from '../steps/Character';
 import { Mom } from '../steps/Mom';
 import { assetsReady, loadImages, releaseImages } from './BootScene';
-import { breath, pipaInBubble } from './SeaGame';
+import { breath, MARINA, marinaSwims } from './SeaGame';
 
 /** What each shell door says when it opens (Mom, before the activity starts). */
 const PICK_LINE = {
@@ -50,7 +49,7 @@ const activitySounds = () => {
 
 /**
  * The lagoon, the mermaid world's hub ("Mermaid with Mom", research/mermaid-spec.md 2): under the water, Mom the mermaid
- * on her rock on the right, Pipa in her bubble floating beside her, and on the sand five big closed shells, the doors to
+ * on her rock on the right, Marina the little mermaid girl swimming beside her, and on the sand five big closed shells, the doors to
  * the five activities, each with its picture above it (a sparkly tail, a bubble through a ring, a net with a dolphin, a
  * basket of shells, a shell with notes). Like the clinic's waiting room: nothing starts by itself, no order, no "all
  * done". A tap on a shell: it opens with a glow, Mom says what they will do, the activity's own pictures load (a small
@@ -90,10 +89,10 @@ export class LagoonScene extends Phaser.Scene {
     this.add.image(lg.chest.x, lg.chest.y, 'chest-closed').setScale(lg.chest.scale).setDepth(-70);
     touchRipples(this, L);
 
-    // The rock (behind Mom: her tail lies on it), Mom the mermaid, Pipa in her bubble.
+    // The rock (behind Mom: her tail lies on it), Mom the mermaid, Marina swimming beside her.
     this.add.image(lg.rock.x, lg.rock.y, 'lagoon-rock').setScale(lg.rock.scale).setDepth(2);
     let mom: Mom | null = null;
-    let pipa: Character | null = null;
+    let marina: Character | null = null;
     let hint: ReturnType<typeof screenHint> | undefined;
     assetsReady().then(() => {
       if (!this.scene.isActive()) return;
@@ -101,16 +100,14 @@ export class LagoonScene extends Phaser.Scene {
       m.followHand(() => hint?.active() ?? false);
       m.box.setAlpha(0);
       this.tweens.add({ targets: m.box, alpha: 1, duration: 300 });
-      if (lg.bubble) {
-        pipa = new Character(this, RECIPES[0].character, { ...lg.bubble, scale: lg.bubble.scale * 0.4 }, S.feedPet);
-        pipaInBubble(this, pipa, lg.bubble, k);
-        pipa.enter(150);
-      }
-      tickles(this, () => [m, pipa], () => !going && !busy);
+      marina = new Character(this, MARINA, lg.friend, S.feedPet);
+      marinaSwims(this, marina, lg.friend, k);
+      marina.enter(150);
+      tickles(this, () => [m, marina], () => !going && !busy);
       const look = () => {
         const p = this.input.manager.pointers.find((q) => q.isDown);
         m.lookAt(p ? p.worldX : L.cx, p ? p.worldY : lg.door(2).y);
-        pipa?.lookAt(p ? p.worldX : L.cx, p ? p.worldY : lg.door(2).y);
+        marina?.lookAt(p ? p.worldX : L.cx, p ? p.worldY : lg.door(2).y);
       };
       this.events.on(Phaser.Scenes.Events.UPDATE, look);
       this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.events.off(Phaser.Scenes.Events.UPDATE, look));
@@ -120,10 +117,12 @@ export class LagoonScene extends Phaser.Scene {
         else {
           this.say('vo-sea-hello', () => !going);
           m.wave();
-          // Pipa says hello too: a little breath of bubbles from her bubble.
-          if (lg.bubble) this.time.delayedCall(900, () => {
+          // Marina says hello too: a happy hop and a little breath of bubbles.
+          this.time.delayedCall(900, () => {
+            if (!marina?.box.active) return;
+            marina.cheer();
             sfx(this, 'bubble-breath');
-            breath(this, lg.bubble!.x + 40 * lg.bubble!.scale, lg.bubble!.y - 170 * lg.bubble!.scale, k, 4);
+            breath(this, marina.box.x + 60 * lg.friend.scale, marina.box.y - 40 * lg.friend.scale, k, 4);
           });
         }
       }

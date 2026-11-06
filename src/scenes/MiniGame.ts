@@ -9,6 +9,7 @@ import { AUTO_AFTER_HINT_MS, DEMO_MAX_MS, HELP_MAX_MS, helpAtMs, hintAfterMs } f
 import { iconButton, otherPointerDown } from '../core/ui';
 import { RECIPES } from '../recipes';
 import { Character } from '../steps/Character';
+import type { CharacterDef } from '../recipes/types';
 import { Mom, type MomOutfit } from '../steps/Mom';
 import { assetsReady } from './BootScene';
 
@@ -143,7 +144,7 @@ export abstract class MiniGame extends Phaser.Scene {
       this.mom.rest();
       this.mom.followHand(() => this.hand.active);
       if (S.pet && this.withPipa()) {
-        this.pipa = new Character(this, RECIPES[0].character, S.pet, S.feedPet);
+        this.pipa = new Character(this, this.companion(), S.pet, S.feedPet);
         this.pipa.enter(150);
       }
       tickles(this, () => [this.mom, this.pipa], () => !this.owner);
@@ -173,6 +174,11 @@ export abstract class MiniGame extends Phaser.Scene {
 
   /** Mom and Pipa are in (their art has loaded). */
   protected ready() {}
+
+  /** Who sits beside Mom (Pipa; the mermaid world's Marina). */
+  protected companion(): CharacterDef {
+    return RECIPES[0].character;
+  }
   /** The scene is going: stop loops. */
   protected shutdown() {}
 

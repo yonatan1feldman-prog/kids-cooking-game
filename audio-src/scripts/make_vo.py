@@ -667,10 +667,10 @@ MOM_LINES = {
     # The mermaid world (added 2026-11-06; Voice A only: python make_vo.py mom-a <names>): Mom the mermaid in her
     # lagoon (research/mermaid-spec.md 6). Mermaid PR 1: the title's card and the lagoon; later PRs add their block.
     "vo-world-mermaid": "Mermaid with Mom!",
-    "vo-sea-hello": "Welcome to our lagoon! What shall we do today?",
+    "vo-sea-hello": "Welcome to our lagoon! Say hello to Marina! What shall we do today?",
     "vo-sea-again": "What shall we do next?",
     "vo-pick-tail": "Let's make my tail sparkle!",
-    "vo-pick-ride": "Let's ride the bubble with Pipa!",
+    "vo-pick-ride": "Let's swim with Marina!",
     "vo-pick-clean": "Let's clean our lagoon!",
     "vo-pick-shells": "Let's find shells for a necklace!",
     "vo-pick-song": "Let's play the shell bells!",

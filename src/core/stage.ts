@@ -34,8 +34,8 @@ export interface Stage {
   worldScale: number;
   /**
    * The lagoon (the mermaid world's hub, LagoonScene): the five shell doors on the sand (`door(i)`, their scale), the
-   * picture over each one (`doorIcon(i)`, `iconScale`), the rock Mom sits on (in front of her waist), Pipa in her
-   * bubble (`bubble`, null where there is no room: 4:3) and the treasure chest by the wreck.
+   * picture over each one (`doorIcon(i)`, `iconScale`), the rock Mom sits on (in front of her waist), Marina the little
+   * mermaid girl beside her (`friend`) and the treasure chest by the wreck.
    */
   lagoon: {
     door: (i: number) => Pt;
@@ -43,7 +43,8 @@ export interface Stage {
     doorIcon: (i: number) => Pt;
     iconScale: number;
     rock: Spot;
-    bubble: Spot | null;
+    /** Marina, the little mermaid girl (the characters' 600x700 frame): her frame centre and scale. */
+    friend: Spot;
     chest: Spot;
     seaweed: Spot;
   };
@@ -236,7 +237,7 @@ const GUEST_OPAQUE_W = 500;
 const PET_MIN_W = 1700;
 /** The title's three game cards (world-card-kitchen / -clinic / -mermaid), native size. */
 const WORLD_CARD = { w: 700, h: 760 };
-/** The lagoon's shell doors (door-shell, 300x260), Pipa's bubble (pipa-bubble, 420 frame round Pipa at 0.4), and where
+/** The lagoon's shell doors (door-shell, 300x260), the round room Marina swims in (420 units at the old pet scale / 0.4), and where
  * Mom's mermaid tail starts on the left of her 800 frame (mom-mer-tail: the doors stay left of it). */
 const DOOR = { w: 300, h: 260 };
 const BUBBLE_W = 420;
@@ -540,7 +541,7 @@ export function getStage(L: Layout): Stage {
   // The lagoon: five shell doors on the sand, from the left thumb strip to just left of Mom's tail (it curls left over
   // the rock from LAGOON_TAIL_X0 of her frame), each with its picture above it; door and picture are one touch area.
   // One row where every door can be at least 200 units wide (20:9, 16:9), else three at the back and two in front (4:3).
-  // Pipa's bubble floats up in the water, left of Mom's face (where there is room for her: not at 4:3).
+  // Marina swims up in the water, left of Mom's face (at 4:3 right of the back row of doors).
   const doorsLeft = m + 24 * k;
   const doorsRight = momLeft + LAGOON_TAIL_X0 * s - 24 * k;
   const doorGap = 28 * k;
@@ -569,9 +570,13 @@ export function getStage(L: Layout): Stage {
   const iconScale = doorScale;
   const iconOver = (DOOR.h / 2) * doorScale + pictureH * (doorScale / k) - (ICON / 2) * iconScale;
   const bubbleScale = pet ? pet.scale / PET_SMALL : 0;
-  const bubble = pet
+  // (at 4:3 in the open water right of the back row of doors)
+  const backRight = doorAt(2).x + (DOOR.w / 2) * doorScale;
+  const room = pet
     ? { x: Math.min(momFace.x0 - (BUBBLE_W / 2 + 30) * bubbleScale, (doorsRight + momFace.x0) / 2), y: Y(370), scale: bubbleScale }
-    : null;
+    : { x: (backRight + W - m) / 2, y: Y(330), scale: Math.min(0.9 * k, (W - m - backRight - 40 * k) / BUBBLE_W) };
+  // (her 600x700 frame in that round room of 420: 0.6 of it)
+  const friend = { x: room.x, y: room.y + 10 * k, scale: room.scale * 0.6 };
   const lagoon = {
     door: doorAt,
     doorScale,
@@ -579,7 +584,7 @@ export function getStage(L: Layout): Stage {
     iconScale,
     // (the rock behind her, on her left: her tail lies over it; it reaches down past the screen's bottom edge)
     rock: { x: momLeft + 250 * s, y: L.H - (ROCK.h / 2 - 130) * 0.85 * s, scale: 0.85 * s },
-    bubble,
+    friend,
     chest: { x: Math.max(m + 220 * k, W * 0.18), y: Y(520), scale: 0.6 * k },
     seaweed: { x: W * 0.44, y: Y(560), scale: 0.9 * k },
   };
