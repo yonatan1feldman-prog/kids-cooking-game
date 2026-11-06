@@ -1871,3 +1871,24 @@ window.__farmVerify = async (level, opts = {}) => {
   return { level, opts: Object.keys(opts), secs: Math.round((__voice.now() - t0) / 1000), home: game.scene.isActive('Home'), log: r.log, shown: r.shown,
     helps: __voLog.filter((e) => e.key === 'vo-help').length, problems: vc.problems, keys: __voLog.map((e) => e.key).join(' ') };
 };
+
+// ---------------------------------------------------------------- the mermaid world (research/mermaid-spec.md)
+/** Into the lagoon the way she goes: the title's mermaid card, then stepping until the lagoon is up (its files load in
+ * real time). Returns how long it took and the textures in memory. */
+window.__lagoon = async () => {
+  if (!game.scene.isActive('Title')) { game.scene.getScenes(true).forEach((s) => s.scene.stop()); game.scene.start('Title'); await __run(900); }
+  const t = game.scene.getScene('Title');
+  const card = t.children.list.find((o) => o.texture?.key === 'world-card-mermaid');
+  const t0 = performance.now();
+  __tap(card.x, card.y);
+  for (let i = 0; i < 600 && !game.scene.isActive('Lagoon'); i++) { await __run(50); await new Promise((r) => setTimeout(r, 20)); }
+  await __run(1200);
+  return { lagoon: game.scene.isActive('Lagoon'), ms: Math.round(performance.now() - t0), textures: game.textures.getTextureKeys().length };
+};
+/** Taps one of the lagoon's shell doors ('tail' | 'ride' | 'clean' | 'shells' | 'song'); the lagoon's state after. */
+window.__seaDoor = async (id, settle = 600) => {
+  const at = window.__seaDoorAt(id);
+  __tap(at.x, at.y);
+  await __run(settle);
+  return { ...window.__lagoonState, active: game.scene.getScenes(true).map((s) => s.scene.key) };
+};

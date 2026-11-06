@@ -79,11 +79,11 @@ export function scanAssets(root: string) {
 
 /**
  * The worlds that are not precached (polish round, research/polish-spec.md P19): the service worker keeps their files in
- * a runtime cache instead, filled on the first visit (so the install is ~20 MB lighter). Only the files no other part of
+ * a runtime cache instead, filled on the first visit (the mermaid world too, research/mermaid-spec.md 9) (so the install is ~20 MB lighter). Only the files no other part of
  * the game lists (the clinic and the farm may share some): core art, the recipes' and the other games' files, the
  * guests' layers stay precached.
  */
-export const RUNTIME_WORLDS = ['clinic', 'farm'] as const;
+export const RUNTIME_WORLDS = ['clinic', 'farm', 'mermaid'] as const;
 
 /** For each runtime world, the files (relative to BASE_URL, as in the manifest) only it uses. */
 export function worldOnlyFiles(root: string) {

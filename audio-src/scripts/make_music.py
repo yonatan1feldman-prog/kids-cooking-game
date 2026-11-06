@@ -1,13 +1,13 @@
 """The game's music, synthesised here from notes (numpy + scipy + ffmpeg only; no samples, nothing downloaded).
 
-Four songs (the kitchen, outdoors, the art corner, the clinic), each 32 bars (A A' B A) that loop gaplessly, each as three synchronised stems the game mixes live
+Five songs (the kitchen, outdoors, the art corner, the clinic, the sea), each 32 bars (A A' B A) that loop gaplessly, each as three synchronised stems the game mixes live
 (core/audio.ts `music`):
   base   ukulele or marimba chords, bass, a light shaker or claps   always on      mono (polish round)
   tune   the melody (xylophone / whistle / glockenspiel)            on; out while Mom talks   mono
   party  kick, claps, tambourine, a counter-melody, fills           after each success, the whole finale   mono
 plus `-up`, a one-bar rising glockenspiel run in the song's key (the stinger when the party layer comes in).
 
-Usage (from audio-src/):  python3 scripts/make_music.py [kitchen outside art clinic] [--preview DIR]
+Usage (from audio-src/):  python3 scripts/make_music.py [kitchen outside art clinic sea] [--preview DIR]
 Writes work/music-gen/*.wav (scratch), final/music/music-<song>-<stem>.ogg, and with --preview one mp3 per song
 (base + tune, the party layer coming in mid-way, then going again). Research and spec:
 the project's research/music-spec.md. Mixing: every stem gets ONE gain per song, so the full mix (base + tune + party)
@@ -325,7 +325,34 @@ CLINIC = dict(
     up=["D6", "F#6", "A6", "D7", "F#7", "A7"],
 )
 
-SONGS = {"kitchen": KITCHEN, "outside": OUTSIDE, "art": ART, "clinic": CLINIC}
+# The sea (added 2026-11-06, research/mermaid-spec.md 5): the mermaid world's lagoon. 6/8, 108 dotted-quarter beats a
+# minute (the rocking of the waves; the other songs are in 4/4), F major pentatonic: soft marimba arpeggios rolling like
+# waves, a round bass, water drops; the tune an ocarina (the whistle) with a water-glockenspiel shimmer; the party layer a
+# hand drum, a shell shaker, a kalimba counter-melody and a bubble solo. A bar's melody here is in EIGHTHS (6 a bar):
+# 'C6/2 A5/1' = a quarter and an eighth. Rendered by render_sea (below render).
+SEA_A = [
+    "C6/2 A5/1 C6/2 D6/1",
+    "F6/3 D6/3",
+    "C6/2 A5/1 G5/2 A5/1",
+    "F5/3 r/3",
+    "C6/2 A5/1 C6/2 F6/1",
+    "D6/2 C6/1 A5/3",
+    "G5/2 A5/1 C6/2 D6/1",
+    "C6/3 r/2 C6/1",
+]
+SEA = dict(
+    bpm=108, meter=6, root="F",
+    chords=["F", "Bb", "C", "F", "F", "Dm", "C", "F"] * 2 + ["Dm", "Bb", "F", "C", "Dm", "Gm", "Bb", "C"]
+    + ["F", "Bb", "C", "F", "F", "Dm", "C", "F"],
+    melody=SEA_A
+    + SEA_A[:4] + ["A5/2 C6/1 D6/2 F6/1", "G6/3 F6/2 D6/1", "C6/2 D6/1 A5/2 G5/1", "F5/3 r/2 A5/1"]
+    + ["D6/2 F6/1 D6/2 C6/1", "D6/3 r/2 D6/1", "C6/2 A5/1 C6/2 F6/1", "G6/3 E6/3",
+       "F6/2 D6/1 C6/2 A5/1", "G5/2 A5/1 Bb5/2 D6/1", "D6/2 C6/1 A5/2 G5/1", "C6/3 r/2 C6/1"]
+    + SEA_A,
+    up=["F5", "A5", "C6", "F6", "A6", "C7"],
+)
+
+SONGS = {"kitchen": KITCHEN, "outside": OUTSIDE, "art": ART, "clinic": CLINIC, "sea": SEA}
 BARS = 32
 STRUMS = {
     # (beat, 'D' down / 'U' up / 'X' a chuck: muted, percussive, strength)
@@ -495,6 +522,99 @@ def render(song: dict):
     return out
 
 
+def parse_bar8(text: str, eighths: int = 6):
+    """The sea's bars: 'C6/2 A5/1 ...' in eighths -> [(start_eighth, eighths, midi | None)]."""
+    t, out = 0.0, []
+    for tok in text.split():
+        nm, d = tok.split("/")
+        d = float(d)
+        out.append((t, d, None if nm == "r" else midi(nm)))
+        t += d
+    assert abs(t - eighths) < 1e-6, f"bar of {t} eighths: {text}"
+    return out
+
+
+def drop(m: float):
+    """A water drop: a short sine gliding up, a quick decay (the sea's 'clap')."""
+    n = int(0.16 * SR)
+    t = np.arange(n) / SR
+    f = hz(m) * (1 + 0.9 * (t / 0.05).clip(0, 1))
+    return np.sin(2 * np.pi * np.cumsum(f) / SR) * env_ad(n, 0.002, 0.03)
+
+
+def blub(f0: float, secs: float = 0.08):
+    """One bubble of the bubble solo: a sine sweeping up fast."""
+    n = int(secs * SR)
+    t = np.arange(n) / SR
+    f = f0 * (1 + 1.8 * (t / secs) ** 1.5)
+    return np.sin(2 * np.pi * np.cumsum(f) / SR) * env_ad(n, 0.004, secs * 0.4)
+
+
+def render_sea(song: dict):
+    """The 6/8 song: a bar is 6 eighths, the beat the dotted quarter (two to a bar)."""
+    e8 = 60 / song["bpm"] / 3
+    bar = 6 * e8
+    loop_n = int(round(BARS * bar * SR))
+    n = loop_n + int(2 * bar * SR)
+    jit = np.random.default_rng(13)
+    J = lambda s=0.004: jit.uniform(-s, s)
+    base, tune, party = Track(n), Track(n), Track(n)
+    for b, sym in enumerate(song["chords"]):
+        t0 = b * bar
+        r, pcs = chord_pcs(sym)
+        lo = midi("F3") + ((r - midi("F3")) % 12)
+        tones = sorted({lo + ((pc - lo) % 12) for pc in pcs})[:3]
+        # base: the marimba's wave, up and back down the chord in eighths
+        for k, mm in enumerate((tones[0], tones[2], tones[0] + 12, tones[1] + 12, tones[0] + 12, tones[2])):
+            base.add(mallet("marimba", mm, 1.3), t0 + k * e8 + J(), 0.22 * (1.0 if k % 3 == 0 else 0.72), -0.2 + 0.07 * (k % 3))
+        # base: the bass on the two dotted quarters (root, then the fifth or the root)
+        bl = midi("E2") + ((r - midi("E2")) % 12)
+        base.add(bass(bl, 3, e8), t0 + J(0.003), 0.55, 0)
+        base.add(bass(bl + (7 if b % 2 == 0 else 12), 2.5, e8), t0 + 3 * e8 + J(0.003), 0.42, 0)
+        # base: a water drop on the second beat, and a soft shaker on the off eighths
+        base.add(drop(midi("C7") + (2 if b % 2 else 0)), t0 + 3 * e8 + J(0.003), 0.10, 0.3)
+        for k in (1, 2, 4, 5):
+            base.add(shaker(b * 6 + k), t0 + k * e8 + J(0.006), 0.035, 0.35)
+        # party: a hand drum on both beats (lower on the first), the shell shaker in eighths, the kalimba answering
+        party.add(kick(), t0, 0.42, 0)
+        party.add(kick(), t0 + 3 * e8, 0.28, 0)
+        for k in range(6):
+            party.add(shaker(5000 + b * 6 + k), t0 + k * e8 + J(0.004), 0.09 if k % 3 else 0.13, 0.4)
+        kal = midi("C5") + ((r - midi("C5")) % 12)
+        ktones = sorted({kal + ((pc - kal) % 12) for pc in pcs[:3]})
+        if b % 8 == 7:  # the bubble solo into the next section: a rising run of bubbles
+            for k in range(9):
+                party.add(blub(320 * 2 ** (k / 6)), t0 + 1.5 * e8 + k * e8 / 2, 0.16 + 0.01 * k, -0.2 + 0.05 * k)
+        else:
+            for k, mm in zip((1, 2, 4, 5), (ktones[2], ktones[0] + 12, ktones[1] + 12, ktones[2])):
+                party.add(mallet("xylo", mm, 0.8) * 0.8, t0 + k * e8 + J(0.003), 0.13, -0.3)
+    # tune: the ocarina, a soft glockenspiel shimmer doubling each long note an octave up
+    for b, text in enumerate(song["melody"]):
+        for at8, d, mm in parse_bar8(text):
+            if mm is None:
+                continue
+            at = b * bar + at8 * e8
+            tune.add(whistle(mm, d, e8), at + J(0.003), 0.30, 0.05)
+            if d >= 2:
+                tune.add(mallet("glock", mm + 12, 1.2), at + J(0.003), 0.10, 0.2)
+    out = {}
+    for name, tr, wet in (("base", base, 0.22), ("tune", tune, 0.26), ("party", party, 0.14)):
+        y = reverb(tr.y, wet)
+        y = sosfilt(butter(2, 35, "highpass", fs=SR, output="sos"), y, axis=0)
+        y[: n - loop_n] += y[loop_n:]
+        out[name] = y[:loop_n]
+    up = Track(int(2.2 * SR))
+    for k, nm in enumerate(song["up"]):
+        up.add(mallet("glock", midi(nm), 1.6), k * e8 / 2, 0.3 + 0.03 * k, -0.2 + 0.08 * k)
+    up.add(blub(500), 6 * e8 / 2, 0.2, 0.3)
+    out["up"] = reverb(up.y, 0.2)
+    return out
+
+
+def bar_secs(song: dict):
+    return (6 * 60 / song["bpm"] / 3) if song.get("meter") == 6 else 4 * 60 / song["bpm"]
+
+
 # ---------------------------------------------------------------- loudness, files, checks
 
 
@@ -536,7 +656,7 @@ def ogg(src: Path, dst: Path, mono: bool):
 
 def build(name: str, preview: Path | None):
     song = SONGS[name]
-    st = render(song)
+    st = (render_sea if song.get("meter") == 6 else render)(song)
     # balance: the melody 1 LU under the base; the party layer adds 2 LU to base + tune; all of it at -20 LUFS
     lb, _ = loudness(st["base"])
     lt, _ = loudness(st["tune"])
@@ -556,7 +676,7 @@ def build(name: str, preview: Path | None):
     report = {"bpm": song["bpm"], "seconds": round(st["base"].shape[0] / SR, 3), "samples": st["base"].shape[0]}
     report["full_lufs"], report["full_tp"] = loudness(full)
     report["base_tune_lufs"], report["base_tune_tp"] = loudness(st["base"] + st["tune"])
-    bar17 = int(round(16 * 4 * 60 / song["bpm"] * SR))  # an ordinary downbeat (the B section's first) to compare with
+    bar17 = int(round(16 * bar_secs(song) * SR))  # an ordinary downbeat (the B section's first) to compare with
     for k, y in (("base", st["base"]), ("tune", st["tune"]), ("party", st["party"]), ("full", full)):
         report[f"seam_{k}"] = {"join": seam(y), "bar17": seam(y, bar17)}
     base_mono = st["base"].mean(axis=1)
@@ -574,7 +694,7 @@ def build(name: str, preview: Path | None):
 
 def make_preview(name, song, st, out: Path):
     """About 45 s: base + tune for 12 bars, then the stinger and the party layer for 8 bars, then 4 bars without it."""
-    bar = int(round(4 * 60 / song["bpm"] * SR))
+    bar = int(round(bar_secs(song) * SR))
     n = 24 * bar + 2 * SR
     y = np.zeros((n, 2))
     reps = int(np.ceil(n / st["base"].shape[0]))

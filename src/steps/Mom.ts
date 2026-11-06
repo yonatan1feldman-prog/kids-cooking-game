@@ -5,6 +5,8 @@ import { burst } from '../core/fx';
 import { sfx } from '../core/sfx';
 import type { Spot } from '../core/stage';
 
+/** Her clothes in each world. */
+export type MomOutfit = 'home' | 'nurse' | 'mermaid';
 type Eyes = 'open' | 'blink' | 'happy' | 'surprised';
 type Mouth = 'smile' | 'talk' | 'open' | 'chew';
 /** The right arm's drawings (same pivot): hand on the hip, waving, chin on the hand, thumbs-up, clapping. */
@@ -78,14 +80,22 @@ export class Mom {
   private breath?: Phaser.Tweens.Tween;
   readonly s: number;
 
-  /** `outfit` 'nurse': the clinic's Mom (a nurse's dress and cap over the same layers, gen_mom.py). */
-  constructor(private scene: Phaser.Scene, at: Spot, outfit: 'home' | 'nurse' = 'home') {
+  /**
+   * `outfit` 'nurse': the clinic's Mom (a nurse's dress and cap over the same layers, gen_mom.py); 'mermaid': the
+   * mermaid world's Mom (her big tail and her long hair behind her, the tail lying left over the rock; a shell top in
+   * place of mom-body, her hair let down in place of mom-hair, a starfish tiara, bare-shouldered arms; her head and
+   * face exactly as ever, research/mermaid-spec.md, the change of 2026-11-06).
+   */
+  constructor(private scene: Phaser.Scene, at: Spot, outfit: MomOutfit = 'home') {
     this.s = at.scale;
     const { w, h, cx, pivotL, pivotR } = ART.mom;
     // The container sits on her body centre at the screen bottom; every layer hangs from there.
     const layer = (key: ImageKey) => new Phaser.GameObjects.Image(scene, 0, 0, key).setOrigin(cx / w, 1).setScale(this.s);
+    const mermaid = outfit === 'mermaid';
+    // (the mermaid's arms are the same arms with bare shoulders: mom-mer-arm-* in place of mom-arm-*)
     const arm = (key: ImageKey, pivot: { x: number; y: number }) =>
-      new Phaser.GameObjects.Image(scene, (pivot.x - cx) * this.s, (pivot.y - h) * this.s, key).setOrigin(pivot.x / w, pivot.y / h).setScale(this.s);
+      new Phaser.GameObjects.Image(scene, (pivot.x - cx) * this.s, (pivot.y - h) * this.s, mermaid ? (key.replace('mom-arm-', 'mom-mer-arm-') as ImageKey) : key)
+        .setOrigin(pivot.x / w, pivot.y / h).setScale(this.s);
     this.armR = arm('mom-arm-right', pivotR).setAlpha(0);
     this.eyes = layer('mom-eyes-open');
     this.mouth = layer('mom-mouth-smile');
@@ -109,8 +119,10 @@ export class Mom {
     const nurse = outfit === 'nurse';
     this.box = scene.add
       .container(at.x, at.y, [
-        R.wave, R.rest, R.thumb, layer(nurse ? 'mom-body-nurse' : 'mom-body'), layer('mom-head'), layer('mom-hair'),
-        ...(nurse ? [layer('mom-cap-nurse')] : []), this.eyes, this.mouth,
+        ...(mermaid ? [layer('mom-mer-tail'), layer('mom-mer-hair-back')] : []),
+        R.wave, R.rest, R.thumb, layer(nurse ? 'mom-body-nurse' : mermaid ? 'mom-mer-top' : 'mom-body'), layer('mom-head'),
+        layer(mermaid ? 'mom-mer-hair' : 'mom-hair'),
+        ...(nurse ? [layer('mom-cap-nurse')] : []), ...(mermaid ? [layer('mom-mer-crown')] : []), this.eyes, this.mouth,
         Lf.point, Lf.reach, Lf.open, Lf.clap, R.chin, R.clap,
       ])
       .setDepth(4);

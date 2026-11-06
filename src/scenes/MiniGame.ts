@@ -9,7 +9,8 @@ import { AUTO_AFTER_HINT_MS, DEMO_MAX_MS, HELP_MAX_MS, helpAtMs, hintAfterMs } f
 import { iconButton, otherPointerDown } from '../core/ui';
 import { RECIPES } from '../recipes';
 import { Character } from '../steps/Character';
-import { Mom } from '../steps/Mom';
+import type { CharacterDef } from '../recipes/types';
+import { Mom, type MomOutfit } from '../steps/Mom';
 import { assetsReady } from './BootScene';
 
 export type P = { x: number; y: number };
@@ -82,10 +83,11 @@ export abstract class MiniGame extends Phaser.Scene {
   protected abstract readonly id: string;
   /** The place's song (core/audio.ts `music`): the market is outdoors, washing up is in the kitchen. */
   protected readonly song: Song = 'kitchen';
-  /** Mom's clothes (the clinic: Mom the nurse). */
-  protected readonly momOutfit: 'home' | 'nurse' = 'home';
-  /** Where the home button and the finale go (the clinic is a world of its own: back to the title). */
-  protected readonly homeScene: 'Home' | 'Title' = 'Home';
+  /** Mom's clothes (the clinic: Mom the nurse; the mermaid world: Mom the mermaid). */
+  protected readonly momOutfit: MomOutfit = 'home';
+  /** Where the home button and the finale go (the clinic is a world of its own: back to the title; the mermaid
+   * world's activities: back to the lagoon). */
+  protected readonly homeScene: 'Home' | 'Title' | 'Lagoon' = 'Home';
   /** Pipa small beside Mom (the clinic leaves her out when she is one of the patients). */
   protected withPipa(): boolean {
     return true;
@@ -142,7 +144,7 @@ export abstract class MiniGame extends Phaser.Scene {
       this.mom.rest();
       this.mom.followHand(() => this.hand.active);
       if (S.pet && this.withPipa()) {
-        this.pipa = new Character(this, RECIPES[0].character, S.pet, S.feedPet);
+        this.pipa = new Character(this, this.companion(), S.pet, S.feedPet);
         this.pipa.enter(150);
       }
       tickles(this, () => [this.mom, this.pipa], () => !this.owner);
@@ -172,6 +174,11 @@ export abstract class MiniGame extends Phaser.Scene {
 
   /** Mom and Pipa are in (their art has loaded). */
   protected ready() {}
+
+  /** Who sits beside Mom (Pipa; the mermaid world's Marina). */
+  protected companion(): CharacterDef {
+    return RECIPES[0].character;
+  }
   /** The scene is going: stop loops. */
   protected shutdown() {}
 

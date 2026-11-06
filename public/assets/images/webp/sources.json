@@ -439,6 +439,11 @@
   "w": 2400,
   "h": 1080
  },
+ "bg-lagoon": {
+  "sha1": "818a00207ecbf7b2116273b10bf061419c525fd1",
+  "w": 2400,
+  "h": 1080
+ },
  "bg-market": {
   "sha1": "f272e9e7ca7aa37bc1fdc9b358edfcfad5054721",
   "w": 2400,
@@ -874,6 +879,16 @@
   "w": 80,
   "h": 44
  },
+ "chest-closed": {
+  "sha1": "95b759a836ac3ddf9e7ab080f67c284eb2e8ddb9",
+  "w": 300,
+  "h": 240
+ },
+ "chest-open": {
+  "sha1": "7bac82458bb4462bedb719ec6957089ff9556ea7",
+  "w": 300,
+  "h": 240
+ },
  "choc-chip": {
   "sha1": "ec78edf620c70fdcfcdcc4f24735eed34848fe16",
   "w": 140,
@@ -1148,6 +1163,41 @@
   "sha1": "989f44958f37bdffcc557f4724ca1c6bcb2db952",
   "w": 220,
   "h": 320
+ },
+ "door-icon-clean": {
+  "sha1": "efe4236fd8f675a5b455d6d63fa808cf9431d8cd",
+  "w": 160,
+  "h": 160
+ },
+ "door-icon-ride": {
+  "sha1": "e8007191cb507e79af6b98bd1b7ab7c594066d2f",
+  "w": 160,
+  "h": 160
+ },
+ "door-icon-shells": {
+  "sha1": "4108e7e3fee09d2ad58ae07183f715d900ee8e91",
+  "w": 160,
+  "h": 160
+ },
+ "door-icon-song": {
+  "sha1": "5008370af7a7d20dcdaab1a7508054c8373ff6fd",
+  "w": 160,
+  "h": 160
+ },
+ "door-icon-tail": {
+  "sha1": "a48cc8748f9321947219a8313b276a911476e213",
+  "w": 160,
+  "h": 160
+ },
+ "door-shell": {
+  "sha1": "22db5a25ea922f5dabed04bc7a9f8137c25fbfff",
+  "w": 300,
+  "h": 260
+ },
+ "door-shell-open": {
+  "sha1": "fa3cafa9320b7b728d8f428ba141b4304a598ea2",
+  "w": 300,
+  "h": 260
  },
  "dough-ball": {
   "sha1": "42282b854d76724b0efe3b1bec911f7ff23060b8",
@@ -2669,6 +2719,16 @@
   "w": 400,
   "h": 640
  },
+ "lagoon-dolphin-far": {
+  "sha1": "d77b8e199fae10b771ee0dd97b8e74ac594db02c",
+  "w": 240,
+  "h": 120
+ },
+ "lagoon-rock": {
+  "sha1": "17567def0c68bc4b890f278818a028c829c5e311",
+  "w": 900,
+  "h": 400
+ },
  "lemon-half-1": {
   "sha1": "f80e7bc60d8884a661875e1c55b595477bb2935c",
   "w": 520,
@@ -2768,6 +2828,46 @@
   "sha1": "73d3756f8a1227f6d373115d8588cede3d5e35aa",
   "w": 640,
   "h": 560
+ },
+ "marina-body": {
+  "sha1": "b28d61431fc0d41661666b48d21eb6a7143aacc5",
+  "w": 600,
+  "h": 700
+ },
+ "marina-eyes-blink": {
+  "sha1": "b37f3ebca52a38dea9a8077041762ab5cbdac1f2",
+  "w": 600,
+  "h": 700
+ },
+ "marina-eyes-happy": {
+  "sha1": "865545e5169213fc431de6b85abf01314aa5717c",
+  "w": 600,
+  "h": 700
+ },
+ "marina-eyes-open": {
+  "sha1": "292a3f22c1012a3f66cc75e868111c91c68b48d9",
+  "w": 600,
+  "h": 700
+ },
+ "marina-eyes-surprised": {
+  "sha1": "bcfc10e8bdd596eab7eb23e29975ce2cff935ad3",
+  "w": 600,
+  "h": 700
+ },
+ "marina-mouth-chew": {
+  "sha1": "88f3ba70df13337a46c94f8c29a0392c4d3555da",
+  "w": 600,
+  "h": 700
+ },
+ "marina-mouth-closed": {
+  "sha1": "7753b49485113644e08d9ec116dc300ddbc18282",
+  "w": 600,
+  "h": 700
+ },
+ "marina-mouth-open": {
+  "sha1": "01f8788fd37c3da7189c452370d760f5aab5dd18",
+  "w": 600,
+  "h": 700
  },
  "market-awning": {
   "sha1": "69eddb5d841411c8778a4c12fd8b8045d3685403",
@@ -3014,6 +3114,76 @@
   "w": 800,
   "h": 800
  },
+ "mom-mer-arm-left": {
+  "sha1": "c0169e7272d978717ab56c0998dc7d34817fa107",
+  "w": 800,
+  "h": 800
+ },
+ "mom-mer-arm-left-clap": {
+  "sha1": "684ffef89d67ab83cc9ab5b3f2bd8bedb215cc84",
+  "w": 800,
+  "h": 800
+ },
+ "mom-mer-arm-left-open": {
+  "sha1": "b9c3591ca4842e0b404b644f36dae5135d9d0ffd",
+  "w": 800,
+  "h": 800
+ },
+ "mom-mer-arm-left-reach": {
+  "sha1": "19365128712dce2140bea36e932fc9de529ea976",
+  "w": 800,
+  "h": 800
+ },
+ "mom-mer-arm-right": {
+  "sha1": "48f636ec7707c5c0053155c660f03358cdd56b34",
+  "w": 800,
+  "h": 800
+ },
+ "mom-mer-arm-right-chin": {
+  "sha1": "293361c3eb6dc37111d821d82d131475b14c83d0",
+  "w": 800,
+  "h": 800
+ },
+ "mom-mer-arm-right-clap": {
+  "sha1": "d4a0fd20535a427d1c06fbdce7c88a3cd8e731bc",
+  "w": 800,
+  "h": 800
+ },
+ "mom-mer-arm-right-rest": {
+  "sha1": "e72f43409e22c909b66eb4a64c24fcc45e920e02",
+  "w": 800,
+  "h": 800
+ },
+ "mom-mer-arm-right-thumb": {
+  "sha1": "f6ea2c6232496a7ce22c694e87e7f03dd7dd164f",
+  "w": 800,
+  "h": 800
+ },
+ "mom-mer-crown": {
+  "sha1": "88052112be6e68903a09bc89634e4356fbea293d",
+  "w": 800,
+  "h": 800
+ },
+ "mom-mer-hair": {
+  "sha1": "ff632f79a8c279cb26b23f3bb1ccdf59e243cf98",
+  "w": 800,
+  "h": 800
+ },
+ "mom-mer-hair-back": {
+  "sha1": "2430b0e1b32d1b9dc2730997c0fcfec8d5ca2017",
+  "w": 800,
+  "h": 800
+ },
+ "mom-mer-tail": {
+  "sha1": "41c267368cd1dbaa32b9a6df6de8bb73b80bb6b5",
+  "w": 800,
+  "h": 800
+ },
+ "mom-mer-top": {
+  "sha1": "a9345ed72d5222a82d5359504bd14848114c974b",
+  "w": 800,
+  "h": 800
+ },
  "mom-mouth-chew": {
   "sha1": "17085d2dd122f62f5bbbe7ed0d215f26bdf74e0d",
   "w": 800,
@@ -3201,6 +3371,11 @@
  },
  "photo-frame-salad": {
   "sha1": "7d60ad755f89f865fd1f7f3320ad3e81cf7bcce9",
+  "w": 700,
+  "h": 780
+ },
+ "photo-frame-sea": {
+  "sha1": "1fa7062414521135e99a094df08373b48fced028",
   "w": 700,
   "h": 780
  },
@@ -3398,6 +3573,16 @@
   "sha1": "ed449899ea240918e3b0ed457bf6f5b290bb53ce",
   "w": 640,
   "h": 520
+ },
+ "sea-done": {
+  "sha1": "7f45b1f791d9b2d2dc09312ffdb15c0b610d1894",
+  "w": 120,
+  "h": 120
+ },
+ "seaweed": {
+  "sha1": "cb98392ea12f7a2f11e0e7f9ad743451ab0f64af",
+  "w": 200,
+  "h": 400
  },
  "seed-packet-carrot": {
   "sha1": "b5c0e8d6474c5ffd828a98af5a5560642db8ff39",
@@ -4111,6 +4296,11 @@
  },
  "world-card-kitchen": {
   "sha1": "8ae8f93ab6141ec85ba9133f1558238fb375bbc7",
+  "w": 700,
+  "h": 760
+ },
+ "world-card-mermaid": {
+  "sha1": "26fdcdbe5aa7604c2fbe409667b2a85337c29a87",
   "w": 700,
   "h": 760
  },

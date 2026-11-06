@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import manifest from 'virtual:asset-manifest';
 import { RECIPE_SOUNDS } from './assets';
 import type { FarmVoiceKey } from './farmAssets';
+import type { SeaVoiceKey } from './seaAssets';
 
 /**
  * Every sound, on the one Web Audio context Phaser already made (game.sound.context).
@@ -41,7 +42,8 @@ export const MUSIC = {
 } as const;
 
 /** The songs (`music.play`); their tempo is set in make_music.py and copied here for the beat. */
-export const SONGS = { kitchen: { bpm: 128 }, outside: { bpm: 124 }, art: { bpm: 120 }, clinic: { bpm: 112 } } as const;
+// (the sea's song is in 6/8: its beat here is the dotted quarter, two to a bar, so "4 beats" are two of its bars)
+export const SONGS = { kitchen: { bpm: 128 }, outside: { bpm: 124 }, art: { bpm: 120 }, clinic: { bpm: 112 }, sea: { bpm: 108 } } as const;
 export type Song = keyof typeof SONGS;
 const STEMS = ['base', 'tune', 'party'] as const;
 type Stem = (typeof STEMS)[number];
@@ -134,6 +136,7 @@ export type VoiceKey =
   | 'vo-tool-sponge' | 'vo-tool-bugspray' | 'vo-rinse-foam' | 'vo-bugs-bye' | 'vo-all-clean' | 'vo-clinic-fixfirst'
   | 'vo-clinic-fixed' | 'vo-bug-hop' | 'vo-level-easy' | 'vo-level-hard'
   | FarmVoiceKey
+  | SeaVoiceKey
   // the clinic, round 5: eight more patients, the scratchy throat, the sunburn
   | 'vo-hi-cat' | 'vo-hi-panda' | 'vo-hi-bunny' | 'vo-hi-puppy' | 'vo-hi-ruby' | 'vo-hi-noah' | 'vo-hi-zoe' | 'vo-hi-max'
   | 'vo-hi-hippo' | 'vo-hi-beaver' | 'vo-hi-ava' | 'vo-hi-omar'
@@ -179,12 +182,12 @@ const ctx = () => (game?.sound as Phaser.Sound.WebAudioSoundManager | undefined)
 // ---------------------------------------------------------------- loading
 
 /**
- * The sounds the title and the home screen need first, decoded before any other: the taps, Mom's hello, the two
+ * The sounds the title and the home screen need first, decoded before any other: the taps, Mom's hello, the three
  * games' names, the level names, "What shall we make today?" and every card's pick line. Then the kitchen's song (it
  * starts with the first tap), then the other voice lines, the effects and the other music.
  */
 const FIRST_SOUNDS: readonly string[] = [
-  'tap', 'pop', 'vo-hello', 'vo-world-cooking', 'vo-world-doctor', 'vo-level-easy', 'vo-level-hard', 'vo-what-make',
+  'tap', 'pop', 'vo-hello', 'vo-world-cooking', 'vo-world-doctor', 'vo-world-mermaid', 'vo-level-easy', 'vo-level-hard', 'vo-what-make',
   'star', 'cheer-jingle',
 ];
 /** How many sounds are fetched and decoded at a time (decoding runs off the main thread). */
