@@ -675,7 +675,26 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the clinic-open fix, the clinic round 6 (part 3, four patients), the clinic round 6 (part 2, seven ailments), the clinic round 6 (part 1, the bowl), the clinic round 5 (part 3, more challenge), the clinic round 5 (part 2, the care rooms), the farm, the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; the mermaid world PR 1 (the lagoon), the clinic-open fix, the clinic round 6 (part 3, four patients), the clinic round 6 (part 2, seven ailments), the clinic round 6 (part 1, the bowl), the clinic round 5 (part 3, more challenge), the clinic round 5 (part 2, the care rooms), the farm, the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 000000000000000000000000000000000000000. The mermaid world, PR 1 (the title's third card, the lagoon, Mom the mermaid, Marina)
+Spec `/mnt/project-files/research/mermaid-spec.md` (read its "2026-11-06 change" note first). PR #47, master 9ff831f.
+- **Title:** three world cards in one row at every ratio (`S.world.kitchen/clinic/mermaid`, 438/354/265 wide at
+  20:9/16:9/4:3); `TitleScene.go(world)` serves all three; mermaid: `enterWorld` with `skip` = not in `SEA_LAGOON`.
+- **Assets:** `core/seaAssets.ts` is the world's contract (one line in assets.ts and audio.ts). `SEA_LAGOON` is what going
+  in loads (the lagoon, Mom's mermaid layers, Marina); `SEA_ACTIVITY[door]` is what each shell door loads (empty now;
+  PRs 2-4 fill `scene`, `images`, `sounds`; the lagoon frees them on return). `RUNTIME_WORLDS` has 'mermaid'.
+- **Mom the mermaid** (`new Mom(scene, at, 'mermaid')`): tail and long hair behind everything, `mom-mer-top` for the
+  body, `mom-mer-hair` for `mom-hair`, `mom-mer-crown`, and every `mom-arm-*` swapped for `mom-mer-arm-*` (bare
+  shoulders; same pivots and fingertip). Drawn by `gen_mom.py` (`MER` flag in `sleeve()`); the other layers unchanged.
+- **Marina** replaces Pipa everywhere in this world: `MARINA` (a CharacterDef, `marina-*`, `images-b-sea/tools/gen_marina.py`
+  on the clinic kids' kit) and `marinaSwims()` in `scenes/SeaGame.ts`; `MiniGame.companion()` (Pipa) is overridden by
+  `SeaGame`. In the lagoon her spot is `S.lagoon.friend` (4:3 too); in activities `S.pet` (none at 4:3, like Pipa).
+- **Harness:** `__lagoon()` (taps the card, waits for the lagoon), `__seaDoor(id)`, `window.__lagoonState`. Pitfall:
+  `__setup(w, h)` into portrait from inside a world (clinic or lagoon) crashes the render in the harness (also on master
+  before this PR); resize the `#game` element and dispatch `resize` to test a real rotation.
+- **Sounds:** song `sea` (`make_music.py`, 6/8: `render_sea`), `make_sea_sfx.py` (shell-open, bubble-breath), 8 lines in
+  `make_vo.py` ("The mermaid world"); run make_vo with `audio-src/.venv/bin/python`.
+
 ### 00000000000000000000000000000000000000. The clinic-open fix (the owner: "the doctor game does not open")
 - **What was wrong.** Nothing crashed in the cloud, but the clinic door was fragile: every visit loaded all 472 of its
   files (all 20 patients' layers, ~240 MB of pictures once decoded, 20% more than before round 6) behind a small
