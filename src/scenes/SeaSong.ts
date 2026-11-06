@@ -403,7 +403,7 @@ export class SeaSongScene extends SeaGame {
     const L = this.L;
     const k = L.k;
     const cx = (this.bells[0].at.x + this.bells[4].at.x) / 2;
-    const side = Math.min(L.H * 0.8, this.bells[4].at.x - this.bells[0].at.x + 360 * k);
+    const side = Math.min(L.H, this.bells[4].at.x - this.bells[0].at.x + 360 * k);
     const bottom = Math.min(L.H, this.rockTop + 120 * k);
     const s = Math.min(0.62 * k, (L.H * 0.6) / 780);
     this.seaPhoto('song', { x: cx - side / 2, y: bottom - side, w: side, h: side }, { x: cx, y: 30 * k + 390 * s }, () => this.goodbye('vo-song-done'));
