@@ -478,3 +478,45 @@ export function addScenery(scene: Phaser.Scene, bg: Phaser.GameObjects.Image, re
   scene.events.on(Phaser.Scenes.Events.UPDATE, update);
   scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => scene.events.off(Phaser.Scenes.Events.UPDATE, update));
 }
+
+/** The lagoon's light rays (drawn in code, like the kitchen's sunbeam): a soft wedge, bright at the top. */
+export const SEA_RAY_KEY = 'fx-sea-ray';
+
+/**
+ * The lagoon's sea life (the mermaid world, research/mermaid-spec.md 0; the kind of the living window): slow soft rays of
+ * light swaying over the water and the sand, and one tall seaweed rocking gently in the current. Quiet, slow, muted,
+ * silent, nothing in it can be tapped, all of it behind what she touches. (Pipa's little bubbles are SeaGame's
+ * `pipaInBubble`.) `seaweed`: where the seaweed stands (its foot) and its scale.
+ */
+export function seaLife(scene: Phaser.Scene, L: { W: number; H: number; k: number }, seaweed: { x: number; y: number; scale: number }) {
+  if (!scene.textures.exists(SEA_RAY_KEY)) {
+    const w = 160;
+    const h = 512;
+    const tex = scene.textures.createCanvas(SEA_RAY_KEY, w, h);
+    const c = tex?.getContext();
+    if (c && tex) {
+      const g = c.createLinearGradient(0, 0, 0, h);
+      g.addColorStop(0, 'rgba(255,255,240,0.9)');
+      g.addColorStop(0.6, 'rgba(255,255,240,0.35)');
+      g.addColorStop(1, 'rgba(255,255,240,0)');
+      c.fillStyle = g;
+      c.beginPath();
+      c.moveTo(w * 0.38, 0);
+      c.lineTo(w * 0.62, 0);
+      c.lineTo(w, h);
+      c.lineTo(0, h);
+      c.closePath();
+      c.fill();
+      tex.refresh();
+    }
+  }
+  const rays = [0.16, 0.34, 0.55, 0.78].map((fx, i) => {
+    const r = scene.add.image(L.W * fx, -20 * L.k, SEA_RAY_KEY).setOrigin(0.5, 0).setDepth(-90).setBlendMode(Phaser.BlendModes.ADD);
+    r.setScale((1.1 + 0.25 * (i % 2)) * L.k * 1.6, (L.H * 0.95) / 512).setAngle(-8 + i * 3).setAlpha(0.06);
+    scene.tweens.add({ targets: r, alpha: 0.16, angle: r.angle + 4, duration: 6000 + i * 1700, yoyo: true, repeat: -1, ease: 'Sine.easeInOut', delay: i * 900 });
+    return r;
+  });
+  const weed = scene.add.image(seaweed.x, seaweed.y, 'seaweed').setOrigin(0.5, 1).setScale(seaweed.scale).setDepth(-80);
+  scene.tweens.add({ targets: weed, angle: { from: -4, to: 4 }, duration: 3800, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+  return { rays, weed };
+}

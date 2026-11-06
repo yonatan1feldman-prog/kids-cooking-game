@@ -10,6 +10,7 @@
  */
 /** The guests' layers are made at this fraction of their native size (they are never shown bigger). */
 import { FARM_IMAGES, FARM_SFX, FARM_VOICE } from './farmAssets';
+import { SEA_ACTIVITY, SEA_IMAGES, SEA_LAGOON, SEA_SFX, SEA_WORLD_IMAGES } from './seaAssets';
 
 export const GUEST_RASTER = 0.75;
 
@@ -870,6 +871,8 @@ export const IMAGES = {
   'care-berry': { size: [160, 160] },
   // the farm (core/farmAssets.ts)
   ...FARM_IMAGES,
+  // the mermaid world (core/seaAssets.ts)
+  ...SEA_IMAGES,
 } as const satisfies Record<string, { size: readonly [number, number]; raster?: number }>;
 
 /** Texture size of an image: its native size, times its `raster` factor if it is shown bigger than native. */
@@ -920,7 +923,7 @@ export const SCENERY_KEYS: readonly ImageKey[] = [
 ];
 
 export const CORE_IMAGES: readonly ImageKey[] = [
-  'bg-kitchen-landscape', ...KITCHEN_KEYS, ...SCENERY_KEYS, 'star', 'world-card-kitchen', 'world-card-clinic', 'btn-home', 'btn-done',
+  'bg-kitchen-landscape', ...KITCHEN_KEYS, ...SCENERY_KEYS, 'star', 'world-card-kitchen', 'world-card-clinic', 'world-card-mermaid', 'btn-home', 'btn-done',
   'card-pizza', 'card-salad', 'card-cookies', 'card-smoothie', 'card-pancakes', 'card-soup', 'card-cake',
   'card-skewers', 'card-garden', 'card-market', 'card-dishes', 'card-art', 'card-farm',
   'character-body', 'character-eyes-open', 'character-eyes-blink', 'character-eyes-surprised', 'character-eyes-happy',
@@ -1234,6 +1237,12 @@ RECIPE_ASSETS.farm = {
     'name-yellow', 'name-white', 'brush', 'sticky', 'sparkle', 'spray', 'slurp', 'egg-crack', ...OUTSIDE_SONG,
   ],
 };
+/** The mermaid world (LagoonScene and its activities, research/mermaid-spec.md): every file of it here, for the manifest
+ * and the runtime cache; what is loaded when is SEA_LAGOON (going in) and SEA_ACTIVITY (each shell door), seaAssets.ts. */
+RECIPE_ASSETS.mermaid = {
+  images: SEA_WORLD_IMAGES as ImageKey[],
+  sounds: [...new Set([...SEA_LAGOON.sounds, ...Object.values(SEA_ACTIVITY).flatMap((a) => a.sounds)])],
+};
 /** A guest's own layers: loaded when the sharing starts (all three, the two not invited are freed at once). */
 export const GUEST_LAYERS: readonly ImageKey[] = IMAGE_KEYS.filter((k) => k.startsWith('guest-') && !k.startsWith('guest-card-'));
 
@@ -1271,6 +1280,8 @@ export const SOUND_KEYS = [
   'tink', 'hic',
   // the farm (core/farmAssets.ts)
   ...FARM_SFX,
+  // the mermaid world (core/seaAssets.ts)
+  ...SEA_SFX,
 ] as const;
 export type SoundKey = (typeof SOUND_KEYS)[number];
 

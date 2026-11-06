@@ -30,8 +30,23 @@ export interface Stage {
    * Title (clinic round 3): the two games, two big cards side by side, "Cooking with Mom" (`kitchen`, = `play`) and
    * "Doctor with Mom" (`clinic`); `worldScale` is their scale (world-card-*, 700x760).
    */
-  world: { kitchen: Pt; clinic: Pt };
+  world: { kitchen: Pt; clinic: Pt; mermaid: Pt };
   worldScale: number;
+  /**
+   * The lagoon (the mermaid world's hub, LagoonScene): the five shell doors on the sand (`door(i)`, their scale), the
+   * picture over each one (`doorIcon(i)`, `iconScale`), the rock Mom sits on (in front of her waist), Pipa in her
+   * bubble (`bubble`, null where there is no room: 4:3) and the treasure chest by the wreck.
+   */
+  lagoon: {
+    door: (i: number) => Pt;
+    doorScale: number;
+    doorIcon: (i: number) => Pt;
+    iconScale: number;
+    rock: Spot;
+    bubble: Spot | null;
+    chest: Spot;
+    seaweed: Spot;
+  };
   /**
    * Home: where recipe card i of n sits, and the cards' scale. A grid left of Mom (and Pipa): one row up to 3 cards,
    * else two or three rows, clear of Mom's pointing hand, every card as big as its cell allows, never scrolling.
@@ -219,8 +234,16 @@ const GUEST_SCALE = 0.75;
 const GUEST_OPAQUE_W = 500;
 /** Pipa beside Mom only where the screen is wide enough (16:9 and wider). */
 const PET_MIN_W = 1700;
-/** The title's two game cards (world-card-kitchen / -clinic), native size. */
+/** The title's three game cards (world-card-kitchen / -clinic / -mermaid), native size. */
 const WORLD_CARD = { w: 700, h: 760 };
+/** The lagoon's shell doors (door-shell, 300x260), Pipa's bubble (pipa-bubble, 420 frame round Pipa at 0.4), and where
+ * Mom's mermaid tail starts on the left of her 800 frame (mom-mer-tail: the doors stay left of it). */
+const DOOR = { w: 300, h: 260 };
+const BUBBLE_W = 420;
+const LAGOON_TAIL_X0 = 40;
+/** door-icon-* (160 square) and lagoon-rock (900x400), native size. */
+const ICON = 160;
+const ROCK = { h: 400 };
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
@@ -492,9 +515,10 @@ export function getStage(L: Layout): Stage {
   const guestAbove = { x: Math.min(neckX, boardLeft - 215 * guestScale), y: guest.y - 250 * guestScale, scale: guestScale };
   const guestRight = guestX + (GUEST_OPAQUE_W / 2) * guestScale;
 
-  // Title (clinic round 3): the two games as two big cards side by side, "Cooking with Mom" and "Doctor with Mom"
-  // (WORLD_CARD, their lettering is the title art), in the room left of Pipa, Mom's face and her pointing arm; the two
-  // chef hats in a row under them, between the cards, clear of the palm strip.
+  // Title (clinic round 3; mermaid round: three): the three games as three big cards in one row, "Cooking with Mom",
+  // "Doctor with Mom" and "Mermaid with Mom" (WORLD_CARD, their lettering is the title art), in the room left of Pipa,
+  // Mom's face and her pointing arm; the two level buttons in a row under the middle card, clear of the palm strip.
+  // (research/mermaid-spec.md 1: one row at every ratio, the cards 434 / 366 / 320 units wide at 20:9 / 16:9 / 4:3.)
   const levelScale = (205 / 240) * k;
   const levelR = 120 * levelScale;
   const titleLeft = m + 20 * k;
@@ -504,13 +528,61 @@ export function getStage(L: Layout): Stage {
   const hatY = Y(986) - levelR - 30 * k;
   const cardTop = Y(88);
   const cardBottom = hatY - levelR - 26 * k;
-  const worldGap = 44 * k;
-  const worldScale = Math.min(k, (cardBottom - cardTop) / WORLD_CARD.h, (titleRight - titleLeft - worldGap) / (2 * WORLD_CARD.w));
+  const worldGap = 36 * k;
+  const worldScale = Math.min(k, (cardBottom - cardTop) / WORLD_CARD.h, (titleRight - titleLeft - 2 * worldGap) / (3 * WORLD_CARD.w));
   const cardW = WORLD_CARD.w * worldScale;
   const titleX = (titleLeft + titleRight) / 2;
   const titleY = (cardTop + cardBottom) / 2;
-  const kitchenX = titleX - worldGap / 2 - cardW / 2;
-  const clinicX = titleX + worldGap / 2 + cardW / 2;
+  const kitchenX = titleX - worldGap - cardW;
+  const clinicX = titleX;
+  const mermaidX = titleX + worldGap + cardW;
+
+  // The lagoon: five shell doors on the sand, from the left thumb strip to just left of Mom's tail (it curls left over
+  // the rock from LAGOON_TAIL_X0 of her frame), each with its picture above it; door and picture are one touch area.
+  // One row where every door can be at least 200 units wide (20:9, 16:9), else three at the back and two in front (4:3).
+  // Pipa's bubble floats up in the water, left of Mom's face (where there is room for her: not at 4:3).
+  const doorsLeft = m + 24 * k;
+  const doorsRight = momLeft + LAGOON_TAIL_X0 * s - 24 * k;
+  const doorGap = 28 * k;
+  const pictureH = (ICON + 22) * k; // the picture over a door, and the space between them (at the door's scale)
+  const rowScale = Math.min(k, (doorsRight - doorsLeft - 4 * doorGap) / (5 * DOOR.w));
+  const oneRow = DOOR.w * rowScale >= 200;
+  const doorBottom = Y(986) - 30 * k;
+  let doorScale: number;
+  let doorAt: (i: number) => Pt;
+  if (oneRow) {
+    doorScale = rowScale;
+    const step = DOOR.w * doorScale + doorGap;
+    const x0 = doorsLeft + (doorsRight - doorsLeft - 4 * step) / 2;
+    doorAt = (i) => ({ x: x0 + i * step, y: doorBottom - (DOOR.h / 2) * doorScale });
+  } else {
+    // (two rows: each row a door and its picture high, the back row's door clear of the front row's picture)
+    const rowH = (h: number) => (DOOR.h + 30) * h + pictureH * (h / k);
+    const top = home.y + homeR + 20 * k;
+    doorScale = Math.min(k, (doorsRight - doorsLeft - 2 * doorGap) / (3 * DOOR.w), (doorBottom - top) / (2 * rowH(1) / 1));
+    const step = DOOR.w * doorScale + doorGap;
+    const x0 = doorsLeft + (doorsRight - doorsLeft - 2 * step) / 2;
+    const frontY = doorBottom - (DOOR.h / 2) * doorScale;
+    const backY = frontY - rowH(doorScale);
+    doorAt = (i) => (i < 3 ? { x: x0 + i * step, y: backY } : { x: x0 + (i - 3 + 0.5) * step, y: frontY });
+  }
+  const iconScale = doorScale;
+  const iconOver = (DOOR.h / 2) * doorScale + pictureH * (doorScale / k) - (ICON / 2) * iconScale;
+  const bubbleScale = pet ? pet.scale / PET_SMALL : 0;
+  const bubble = pet
+    ? { x: Math.min(momFace.x0 - (BUBBLE_W / 2 + 30) * bubbleScale, (doorsRight + momFace.x0) / 2), y: Y(370), scale: bubbleScale }
+    : null;
+  const lagoon = {
+    door: doorAt,
+    doorScale,
+    doorIcon: (i: number) => ({ x: doorAt(i).x, y: doorAt(i).y - iconOver }),
+    iconScale,
+    // (the rock behind her, on her left: her tail lies over it; it reaches down past the screen's bottom edge)
+    rock: { x: momLeft + 250 * s, y: L.H - (ROCK.h / 2 - 130) * 0.85 * s, scale: 0.85 * s },
+    bubble,
+    chest: { x: Math.max(m + 220 * k, W * 0.18), y: Y(520), scale: 0.6 * k },
+    seaweed: { x: W * 0.44, y: Y(560), scale: 0.9 * k },
+  };
   // (far enough apart that their touch circles never meet)
   const littleX = titleX - levelR - 34 * k;
   const bigX = titleX + levelR + 34 * k;
@@ -519,8 +591,9 @@ export function getStage(L: Layout): Stage {
     play: { x: kitchenX, y: titleY },
     levelPick: { 1: { x: littleX, y: hatY }, 2: { x: bigX, y: hatY } },
     levelScale,
-    world: { kitchen: { x: kitchenX, y: titleY }, clinic: { x: clinicX, y: titleY } },
+    world: { kitchen: { x: kitchenX, y: titleY }, clinic: { x: clinicX, y: titleY }, mermaid: { x: mermaidX, y: titleY } },
     worldScale,
+    lagoon,
     card,
     cardScale: (n) => (n === 1 ? k : cardScale(n)),
     home,

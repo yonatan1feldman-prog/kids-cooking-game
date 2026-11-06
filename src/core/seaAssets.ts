@@ -1,0 +1,97 @@
+/**
+ * The mermaid world's part of the asset contract ("Mermaid with Mom": LagoonScene and the activities, research/
+ * mermaid-spec.md), kept in its own file so the world touches assets.ts and audio.ts by one line each, like the farm.
+ * The art is made by assets-src/images-b-sea/tools/gen_sea.py (it prints the anchors in ART_SEA), Mom's mermaid layers
+ * by images-b/tools/gen_mom.py, the title's card by images-b-clinic/tools/gen_title_worlds.py; the sounds by
+ * audio-src/scripts/make_sea_sfx.py, make_music.py (the song 'sea') and make_vo.py (Mom's lines).
+ *
+ * Loading (spec 9, the lesson of the clinic-open fix: the phone's memory is the limit): `RECIPE_ASSETS.mermaid` lists
+ * every file of the world (the asset manifest and the runtime cache need them all), but going in loads only the
+ * lagoon (`SEA_LAGOON`); each activity loads its own (`SEA_ACTIVITY[id]`) when its shell door is tapped and frees it
+ * again back in the lagoon. Every later activity adds its block below, marked with its PR.
+ */
+export const SEA_IMAGES = {
+  // the title's card (core: the title shows it before anything else)
+  'world-card-mermaid': { size: [700, 760] },
+  // Mom the mermaid: her tail (behind mom-body's place), her top (in place of mom-body) and her starfish crown (after
+  // mom-hair); the same 800 frame as all her layers
+  'mom-mer-tail': { size: [800, 800] },
+  'mom-mer-top': { size: [800, 800] },
+  'mom-mer-crown': { size: [800, 800] },
+  // the lagoon (mermaid PR 1)
+  'bg-lagoon': { size: [2400, 1080] },
+  'lagoon-rock': { size: [900, 400] },
+  'pipa-bubble': { size: [420, 420] },
+  'door-shell': { size: [300, 260] },
+  'door-shell-open': { size: [300, 260] },
+  'door-icon-tail': { size: [160, 160] },
+  'door-icon-ride': { size: [160, 160] },
+  'door-icon-clean': { size: [160, 160] },
+  'door-icon-shells': { size: [160, 160] },
+  'door-icon-song': { size: [160, 160] },
+  'chest-closed': { size: [300, 240] },
+  'chest-open': { size: [300, 240] },
+  'seaweed': { size: [200, 400] },
+  'lagoon-dolphin-far': { size: [240, 120] },
+  'photo-frame-sea': { size: [700, 780] },
+  'sea-done': { size: [120, 120] },
+} as const;
+export type SeaImageKey = keyof typeof SEA_IMAGES;
+
+/** The world's own effects (synthesised, make_sea_sfx.py). */
+export const SEA_SFX = [
+  // mermaid PR 1: a shell door opening, Pipa's little breath of bubbles
+  'shell-open', 'bubble-breath',
+] as const;
+
+/** Mom's lines in the mermaid world (make_vo.py, "The mermaid world"); the title's own line is core. */
+export const SEA_VOICE = [
+  'vo-world-mermaid',
+  // mermaid PR 1: the lagoon
+  'vo-sea-hello', 'vo-sea-again', 'vo-pick-tail', 'vo-pick-ride', 'vo-pick-clean', 'vo-pick-shells', 'vo-pick-song',
+] as const;
+export type SeaVoiceKey = (typeof SEA_VOICE)[number];
+
+/** The world's song (make_music.py 'sea': 6/8, 108 dotted-quarter beats a minute). */
+export const SEA_SONG = ['music-sea-base', 'music-sea-tune', 'music-sea-party', 'music-sea-up'] as const;
+
+/** What going into the world loads: the lagoon and Mom's mermaid layers, the lagoon's sounds and the song. */
+export const SEA_LAGOON: { images: readonly SeaImageKey[]; sounds: readonly string[] } = {
+  images: [
+    'mom-mer-tail', 'mom-mer-top', 'mom-mer-crown', 'bg-lagoon', 'lagoon-rock', 'pipa-bubble', 'door-shell', 'door-shell-open',
+    'door-icon-tail', 'door-icon-ride', 'door-icon-clean', 'door-icon-shells', 'door-icon-song', 'chest-closed', 'chest-open',
+    'seaweed', 'lagoon-dolphin-far', 'sea-done',
+  ],
+  sounds: [...SEA_SFX, ...SEA_VOICE.filter((k) => k !== 'vo-world-mermaid'), ...SEA_SONG],
+};
+
+/** The five activities behind the shell doors, in the doors' order (left to right). */
+export const SEA_DOORS = ['tail', 'ride', 'clean', 'shells', 'song'] as const;
+export type SeaDoor = (typeof SEA_DOORS)[number];
+
+/**
+ * Each activity: its scene (registered in main.ts) and what it loads on its door. An activity without a scene yet is a
+ * closed door for now: the shell opens, Mom says its line, and it closes again (mermaid PR 1; PRs 2-4 add the scenes).
+ */
+export const SEA_ACTIVITY: Record<SeaDoor, { scene?: string; images: readonly string[]; sounds: readonly string[] }> = {
+  tail: { images: [], sounds: [] },
+  ride: { images: [], sounds: [] },
+  clean: { images: [], sounds: [] },
+  shells: { images: [], sounds: [] },
+  song: { images: [], sounds: [] },
+};
+
+/** Every image of the world but the title's card (that one is core): RECIPE_ASSETS.mermaid. */
+export const SEA_WORLD_IMAGES = (Object.keys(SEA_IMAGES) as SeaImageKey[]).filter((k) => k !== 'world-card-mermaid');
+
+/** Anchors in the world's art (gen_sea.py prints them): points in each image's own frame. */
+export const ART_SEA = {
+  /** door-shell / -open (300x260): the shell's hinge at the bottom, where the light comes from when it opens. */
+  doorHinge: { x: 150, y: 236 },
+  /** chest-open (300x240): where the pearls shine inside. */
+  chestIn: { x: 150, y: 96 },
+  /** bg-lagoon (2400x1080): the water's surface line, the sand's top line (things stand on it). */
+  surface: 120,
+  sand: 900,
+  photoWindow: { x: 80, y: 80, w: 540, h: 540 },
+} as const;

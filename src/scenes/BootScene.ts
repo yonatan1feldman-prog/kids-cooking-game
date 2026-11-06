@@ -14,7 +14,7 @@ const url = (p: string) => import.meta.env.BASE_URL + p;
 
 /**
  * Load groups (polish round, the loading time): each screen waits only for what it draws.
- * - EARLY: what the title draws at once (the background, the two game cards, the star; the level stars are drawn in
+ * - EARLY: what the title draws at once (the background, the three game cards, the star; the level stars are drawn in
  *   code). The title starts the moment these are in.
  * - TITLE_ART: Mom, Pipa and Mom's pointing hand. They fade in on the title when ready.
  * - HOME_ART: the living kitchen's pieces (they join the background as each comes in), the home screen's cards and
@@ -25,7 +25,7 @@ const url = (p: string) => import.meta.env.BASE_URL + p;
  * Everything goes through one queue, at most `PARALLEL` at a time, in this order (a recipe's own art goes before the
  * scenery), so the title keeps drawing and answering her taps while the pictures go to the GPU a few at a time.
  */
-const EARLY: ImageKey[] = ['bg-kitchen-landscape', 'world-card-kitchen', 'world-card-clinic', 'star'];
+const EARLY: ImageKey[] = ['bg-kitchen-landscape', 'world-card-kitchen', 'world-card-clinic', 'world-card-mermaid', 'star'];
 const TITLE_ART: ImageKey[] = [
   ...CORE_IMAGES.filter((k) => (k.startsWith('mom-') && !k.startsWith('mom-hand-')) || k.startsWith('character-')),
   'mom-hand-point',
@@ -115,8 +115,9 @@ export function recipeAssets(game: Phaser.Game, id: string, skip?: (key: string)
   if (current?.id === id) return current.ready;
   releaseRecipe(game);
   const all = RECIPE_ASSETS[id] ?? { images: [], sounds: [] };
-  // (`skip`: pictures this time doesn't need, the clinic's patients who are not coming: not loaded, no stand-ins)
-  const own = skip ? { images: all.images.filter((k) => !skip(k)), sounds: all.sounds } : all;
+  // (`skip`: what this time doesn't need, the clinic's patients who are not coming, the mermaid world's activities
+  // behind their shell doors: not loaded, no stand-ins; a skipped sound is not decoded)
+  const own = skip ? { images: all.images.filter((k) => !skip(k)), sounds: all.sounds.filter((k) => !skip(k)) } : all;
   const me: { id: string; ready: Promise<void>; done?: boolean } = { id, ready: Promise.resolve() };
   const t0 = performance.now();
   // Its sounds start at once (they don't compete with the pictures for the GPU); its pictures queue right behind

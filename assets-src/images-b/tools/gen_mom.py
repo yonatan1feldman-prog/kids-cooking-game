@@ -8,7 +8,7 @@
 import argparse, math, os, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from pb import (P, E, C, G, n, wob, wrect, smooth, smooth_open, svg, std_defs, mix, lum,  # noqa: E402
+from pb import (P, E, C, G, n, wob, wrect, smooth, smooth_open, svg, std_defs, mix, lum, stroke,  # noqa: E402
                 SH, EYE, TEAL, WOOD, WOOD_D, WOOD_L, SAUCE, SAUCE_L, SAUCE_D, CHEESE, CHEESE_L, CHEESE_D, OUT)
 
 # ---- change one line to restyle Mom ----
@@ -681,6 +681,116 @@ def mom_cap_nurse(c, pr):
 WHITE_C = "#FFFDF7"
 
 
+# ---------- the mermaid world: Mom the mermaid (research/mermaid-spec.md; the same Mom: head, hair, face and every arm kept) ----------
+SEA_T = "#5FC9C3"; SEA_T_D = "#3FA9A6"; SEA_T_L = "#A6E6DF"     # turquoise
+SEA_P = "#F59AB5"; SEA_P_D = "#D9708F"; SEA_P_L = "#FBC8D7"     # the tail's pink fin
+PEARL = "#F4F1EA"; PEARL_D = "#D9D2C4"
+STAR_O = "#F7A04B"; STAR_O_D = "#D9772E"; STAR_O_L = "#FFC98A"
+
+
+def scales(clip_id, x0, y0, x1, y1, r, col, col_l, op=0.9):
+    """Rows of little scallop scales (arches) over a box, clipped to `clip_id`."""
+    out = []
+    row = 0
+    y = y0
+    while y < y1 + r:
+        off = r if row % 2 else 0
+        x = x0 - r + off
+        while x < x1 + r:
+            out.append(f'<path d="M{n(x - r)},{n(y)} A{n(r)},{n(r)} 0 0 1 {n(x + r)},{n(y)}" fill="none" stroke="{col}" stroke-width="{n(r * .28)}" stroke-linecap="round"/>')
+            out.append(f'<path d="M{n(x - r * .45)},{n(y - r * .55)} A{n(r * .5)},{n(r * .5)} 0 0 1 {n(x + r * .2)},{n(y - r * .8)}" fill="none" stroke="{col_l}" stroke-width="{n(r * .16)}" stroke-linecap="round" opacity="0.8"/>')
+            x += 2 * r
+        y += r * 1.1
+        row += 1
+    return f'<g clip-path="url(#{clip_id})" opacity="{op}">{"".join(out)}</g>'
+
+
+# The tail's centre line in the 800 frame (from behind her hips at the bottom, curling left over the rock, the fin up and
+# out on the left: frame x 40-330, y 560-800, under her pointing arm and clear of it), and its half width along it.
+TAIL_LINE = [(470, 830), (420, 812), (350, 792), (280, 772), (220, 746), (176, 714), (150, 680)]
+TAIL_W = [190, 176, 152, 124, 98, 74, 56]
+
+
+def mom_mer_tail(c, pr):
+    """mom-mer-tail: behind every other layer. The turquoise tail with pink-edged scales, a band of shine, and the big fin
+    (two lobes, pink, with ribs) raised at its end."""
+    p = "mp-mtl-"
+    body = taper(TAIL_LINE, TAIL_W, cap=3)
+    s = f'<clipPath id="{p}tc"><path d="{body}"/></clipPath>'
+    s += G(P(body, SEA_T_D, ' transform="translate(0 5)"') + P(body, SEA_T), p + "cut")
+    s += scales(f"{p}tc", 120, 640, 520, 840, 15, SEA_T_D, SEA_T_L, 0.75)
+    s += P(taper([(440, 800), (360, 778), (280, 758), (220, 732), (180, 704)], [14, 14, 12, 9, 6], cap=2), SEA_T_L, ' opacity="0.55"')
+    # the fin: two lobes from the tail's end (150, 680), up-left and up-right, scalloped tips
+    fx, fy = 150, 680
+    lobe_l = f"M{fx + 6},{fy + 6} C{fx - 30},{fy - 10} {fx - 92},{fy - 34} {fx - 108},{fy - 96} Q{fx - 84},{fy - 92} {fx - 70},{fy - 108} Q{fx - 52},{fy - 88} {fx - 34},{fy - 104} Q{fx - 18},{fy - 64} {fx + 8},{fy - 20}Z"
+    lobe_r = f"M{fx - 4},{fy + 4} C{fx + 6},{fy - 40} {fx + 2},{fy - 100} {fx + 34},{fy - 140} Q{fx + 46},{fy - 112} {fx + 68},{fy - 116} Q{fx + 64},{fy - 92} {fx + 84},{fy - 78} Q{fx + 44},{fy - 40} {fx + 14},{fy + 10}Z"
+    fin = G(P(lobe_l, SEA_P_D, ' transform="translate(0 4)"') + P(lobe_l, SEA_P) + P(lobe_r, SEA_P_D, ' transform="translate(0 4)"') + P(lobe_r, SEA_P), p + "cut")
+    ribs = "".join(stroke(f"M{fx},{fy - 4} Q{n(fx + dx * .5)},{n(fy + dy * .5 - 6)} {n(fx + dx)},{n(fy + dy)}", SEA_P_L, 5, ' opacity="0.9"')
+                   for dx, dy in ((-96, -84), (-74, -92), (-50, -82), (34, -124), (56, -106), (72, -80)))
+    s += fin + ribs
+    # where the fin meets the tail: a little frill of turquoise
+    s += G(P(wob(fx + 4, fy - 2, 30, 16, .1, 7, 14, -30), SEA_T), p + "sh")
+    # sparkles
+    s += "".join(P(f"M{x},{y - 9} L{x + 3},{y - 3} L{x + 9},{y} L{x + 3},{y + 3} L{x},{y + 9} L{x - 3},{y + 3} L{x - 9},{y} L{x - 3},{y - 3}Z", WHITE_C, ' opacity="0.95"')
+                 for x, y in ((330, 770), (250, 748), (120, 600), (196, 560)))
+    return layer(p, s, "default", 51)
+
+
+def mom_mer_top(c, pr):
+    """mom-mer-top (in place of mom-body): the same blouse, and over it a turquoise sea wrap with scales, two little pink
+    scallop shells at the neckline and a pearl necklace; at the bottom her scales start (the tail behind takes them on)."""
+    p = "mp-mtp-"
+    L = [hx(hair_back(c, pr["hair_style"], p))]
+    torso = "M250,432 Q196,440 150,470 Q118,492 116,560 L112,810 L488,810 L484,560 Q482,492 450,470 Q404,440 350,432Z"
+    L.append(G(P(torso, c["shirt"]), p + "cut"))
+    dots = "".join(C(x + (20 if r % 2 else 0), 468 + r * 38, 6.5, c["dot"]) for r in range(9) for x in range(112, 500, 40))
+    L.append(f'<clipPath id="{p}tc"><path d="{torso}"/></clipPath>' + G(dots, None, f' clip-path="url(#{p}tc)" opacity="0.9"'))
+    nw = LOOK["neck"] / 2
+    L.append(G(P(f"M{n(300 - nw)},380 L{n(300 + nw)},380 L{n(304 + nw)},456 Q300,476 {n(296 - nw)},456Z", c["skin_sh"]), p + "sh"))
+    L.append(G(P("M232,436 Q300,478 368,436 Q352,428 340,430 Q300,470 260,430 Q248,428 232,436Z", c["trim"]), p + "sh"))
+    # the sea wrap: from under the collar, wider to the waist; scales over its lower part
+    wrap = "M198,500 Q250,480 300,516 Q350,480 402,500 Q424,560 430,640 Q440,720 456,810 L144,810 Q160,720 170,640 Q176,560 198,500Z"
+    L.append(G(P(wrap, SEA_T_D, ' transform="translate(0 4)"') + P(wrap, SEA_T), p + "cut"))
+    L.append(f'<clipPath id="{p}wc"><path d="{wrap}"/></clipPath>')
+    L.append(scales(f"{p}wc", 140, 600, 460, 820, 17, SEA_T_D, SEA_T_L, 0.8))
+    L.append(P("M206,512 Q250,494 300,528 Q350,494 394,512 Q400,530 404,548 Q350,520 300,552 Q250,520 196,548 Q200,530 206,512Z", SEA_T_L, ' opacity="0.55"'))
+    # the hip band where her tail starts: pink-edged, a row of bigger scales
+    band = "M150,742 Q300,724 450,742 L456,810 L144,810Z"
+    L.append(G(P(band, SEA_P_D, ' transform="translate(0 3)"') + P(band, SEA_P), p + "sh"))
+    L.append(f'<clipPath id="{p}bc"><path d="{band}"/></clipPath>' + scales(f"{p}bc", 140, 760, 460, 820, 20, SEA_P_D, SEA_P_L, 0.85))
+    # two little scallop shells at the neckline, a pearl necklace
+    def shell(x, y, k, rot):
+        fan = f"M{x},{y + 22 * k} L{n(x - 26 * k)},{n(y - 4 * k)} Q{n(x - 22 * k)},{n(y - 22 * k)} {x},{n(y - 26 * k)} Q{n(x + 22 * k)},{n(y - 22 * k)} {n(x + 26 * k)},{n(y - 4 * k)}Z"
+        rib = "".join(stroke(f"M{x},{n(y + 18 * k)} L{n(x + dx * k)},{n(y - 20 * k)}", SEA_P_D, 3, ' opacity="0.7"') for dx in (-16, -6, 6, 16))
+        return f'<g transform="rotate({rot} {x} {y})">' + P(fan, SEA_P) + rib + P(wr_(x - 8 * k, y + 16 * k, 16 * k, 8 * k), SEA_P_D) + "</g>"
+    L.append(G(shell(252, 520, 1.0, -14) + shell(348, 520, 1.0, 14), p + "sh"))
+    L.append(G("".join(C(300 + 64 * math.sin(a), 440 + 34 * math.cos(a) + 18, 7.5, PEARL) for a in [(-1.2 + i * 0.2) for i in range(13)]), p + "sh"))
+    L.append("".join(C(300 + 64 * math.sin(a) - 2, 440 + 34 * math.cos(a) + 16, 2.4, WHITE_C) for a in [(-1.2 + i * 0.2) for i in range(13)]))
+    return layer(p, shift("".join(L)), "default", 53)
+
+
+def wr_(x, y, w, h):
+    return f"M{n(x)},{n(y)} h{n(w)} v{n(h)} h{n(-w)}Z"
+
+
+def mom_mer_crown(c, pr):
+    """mom-mer-crown (after mom-hair): a pearl band over her hair with a big orange starfish in front of her bun."""
+    p = "mp-mcr-"
+    band = "M206,184 Q300,136 394,184 L390,196 Q300,152 210,196Z"
+    s = G(P(band, PEARL_D, ' transform="translate(0 3)"') + P(band, PEARL), p + "cut")
+    s += "".join(C(300 + 94 * math.sin(a), 186 - 40 * math.cos(a) + 4, 7, PEARL) for a in [(-1.3 + i * 0.26) for i in range(11)])
+    pts = []
+    for i in range(10):
+        a = math.radians(-90 + i * 36)
+        rr = 44 if i % 2 == 0 else 20
+        pts.append((300 + math.cos(a) * rr, 140 + math.sin(a) * rr))
+    star = smooth(pts, 1 / 9)
+    s += G(P(star, STAR_O_D, ' transform="translate(0 4)"') + P(star, STAR_O), p + "cut")
+    s += "".join(C(300 + math.cos(math.radians(-90 + i * 72)) * 22, 140 + math.sin(math.radians(-90 + i * 72)) * 22, 4.5, STAR_O_L) for i in range(5))
+    s += C(300, 140, 7, STAR_O_L)
+    return layer(p, shift(hx(s)), "default", 55)
+
+
 # ---------- demo hands (400x400, from the lower right, hovering) ----------
 def hand_file(p, inner, seed, extra=""):
     defs = std_defs(p, "smooth", seed, sh=(3, 2.5, .28), sh2=(6, 5, .25), cut=dict(dx=10, dy=16, blur=7, op=.3))
@@ -808,7 +918,8 @@ def build(out, pr):
              "mom-arm-right-chin": arm_right_chin(c, pr), "mom-arm-right-thumb": arm_right_thumb(c, pr),
              "mom-arm-left-clap": arm_clap(c, pr, "l"), "mom-arm-right-clap": arm_clap(c, pr, "r"),
              "mom-arm-left-open": arm_left_open(c, pr),
-             "mom-body-nurse": mom_body_nurse(c, pr), "mom-cap-nurse": mom_cap_nurse(c, pr)}
+             "mom-body-nurse": mom_body_nurse(c, pr), "mom-cap-nurse": mom_cap_nurse(c, pr),
+             "mom-mer-tail": mom_mer_tail(c, pr), "mom-mer-top": mom_mer_top(c, pr), "mom-mer-crown": mom_mer_crown(c, pr)}
     for k in ("open", "blink", "happy", "surprised"):
         files["mom-eyes-" + k] = eyes(c, pr, k)
     for k in ("smile", "open", "talk"):

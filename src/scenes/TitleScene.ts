@@ -18,19 +18,25 @@ import { enterWorld, releaseRecipe, titleArtLoaded, titleArtReady } from './Boot
 import { PATIENTS, patientArtPrefix, planNextVisit } from '../core/clinic';
 import { TUNING } from '../core/tuning';
 import { gameLevel } from './MiniGame';
+import { SEA_LAGOON } from '../core/seaAssets';
 
 /** The test harness's own visit (window.__clinicPlan, ClinicScene): then every patient's pictures are loaded. */
 const forcedVisit = () => !!(globalThis as { __clinicPlan?: unknown }).__clinicPlan;
+
+/** The three worlds on the title, and what Mom says on each card. */
+type World = 'kitchen' | 'clinic' | 'mermaid';
+const WORLD_LINE = { kitchen: 'vo-world-cooking', clinic: 'vo-world-doctor', mermaid: 'vo-world-mermaid' } as const;
 
 /** Mom says hello only on the very first tap of a session (coming back to the title from a world, she just smiles). */
 let greeted = false;
 
 /**
- * Opening screen: the two games as two big cards (there at once; clinic round 3): "Cooking with Mom" (a pot: the
- * kitchen's home screen, the recipes and the games) and "Doctor with Mom" (a nurse's bag with a heart: ClinicScene),
+ * Opening screen: the three games as three big cards (there at once; clinic round 3, the mermaid world): "Cooking with
+ * Mom" (a pot: the kitchen's home screen, the recipes and the games), "Doctor with Mom" (a nurse's bag with a heart:
+ * ClinicScene) and "Mermaid with Mom" (Mom the mermaid on her rock: LagoonScene),
  * then Mom and Pipa fading in as soon as their art is loaded. The chef hats under the cards choose the level for both. The first tap is the user gesture the browser needs: it resumes the audio context, asks for
  * fullscreen + landscape, and keeps the screen on (it fires on release: browsers only grant these from a completed
- * tap). Mom waves and says hello. Both worlds' home buttons come back here, so she can change worlds.
+ * tap). Mom waves and says hello. Every world's home button comes back here, so she can change worlds.
  * This is also the only place where a waiting new version is switched on (core/update.ts).
  */
 export class TitleScene extends Phaser.Scene {
@@ -53,8 +59,9 @@ export class TitleScene extends Phaser.Scene {
     this.leaving = false;
     titleShown();
 
-    // The two games, two big cards (clinic round 3): their touch area is the card itself (not a circle round it).
-    const card = (key: 'world-card-kitchen' | 'world-card-clinic', at: { x: number; y: number }, world: 'kitchen' | 'clinic') => {
+    // The three games, three big cards (clinic round 3; the mermaid world): their touch area is the card itself (not a
+    // circle round it).
+    const card = (key: 'world-card-kitchen' | 'world-card-clinic' | 'world-card-mermaid', at: { x: number; y: number }, world: World) => {
       const c: Phaser.GameObjects.Image = iconButton(this, L, key, at.x, at.y, () => this.go(c.x, c.y, world), { fireOn: 'up', scale: S.worldScale });
       c.input!.hitArea = new Phaser.Geom.Rectangle(0, 0, c.frame.realWidth, c.frame.realHeight);
       c.input!.hitAreaCallback = Phaser.Geom.Rectangle.Contains;
@@ -62,7 +69,8 @@ export class TitleScene extends Phaser.Scene {
     };
     const btn = card('world-card-kitchen', S.world.kitchen, 'kitchen');
     const clinic = card('world-card-clinic', S.world.clinic, 'clinic');
-    this.tweens.add({ targets: [btn, clinic], alpha: { from: 0, to: 1 }, duration: 400 });
+    const mermaid = card('world-card-mermaid', S.world.mermaid, 'mermaid');
+    this.tweens.add({ targets: [btn, clinic, mermaid], alpha: { from: 0, to: 1 }, duration: 400 });
     this.levelPick(L, S);
 
     const fadeIn = (t: { setAlpha: (a: number) => unknown }) => {
@@ -141,7 +149,7 @@ export class TitleScene extends Phaser.Scene {
     show(false);
   }
 
-  private go(x: number, y: number, world: 'kitchen' | 'clinic') {
+  private go(x: number, y: number, world: World) {
     // A new version is being switched on this very moment: the page reloads in a blink, the tap waits.
     if (this.leaving || updating()) return;
     this.leaving = true;
@@ -156,12 +164,14 @@ export class TitleScene extends Phaser.Scene {
     // The music starts with her tap and then runs on, softly, through every screen (the clinic has its own song,
     // which comes in as soon as it is loaded). Mom waves hello.
     if (world === 'clinic') music.play('clinic');
+    // (the sea's song is not decoded yet: it comes in as soon as the world's files are, like the clinic's)
+    if (world === 'mermaid') music.play('sea');
     music.start();
-    // Mom says the card's title ("Cooking with Mom!" / "Doctor with Mom!"; clinic round 3), the very first time after
-    // her hello.
+    // Mom says the card's title ("Cooking with Mom!" / "Doctor with Mom!" / "Mermaid with Mom!"; clinic round 3), the
+    // very first time after her hello.
     if (!greeted) voice.say('vo-hello', { ttlMs: 3000 });
     greeted = true;
-    voice.say(world === 'clinic' ? 'vo-world-doctor' : 'vo-world-cooking', { ttlMs: 3500 });
+    voice.say(WORLD_LINE[world], { ttlMs: 3500 });
     this.mom?.wave();
     if (world === 'kitchen') {
       this.time.delayedCall(900, () => this.scene.start('Home', { from: 'title' }));
@@ -195,12 +205,20 @@ export class TitleScene extends Phaser.Scene {
       this.tweens.add({ targets: arc, angle: 360, duration: 900, repeat: -1 });
     });
     const delay = new Promise((res) => this.time.delayedCall(900, res));
-    // Who comes this time is chosen now, so that only their pictures are loaded (clinic-open fix; ClinicScene takes it).
-    const visit = forcedVisit() ? null : planNextVisit(TUNING.clinic.patients, TUNING.clinic.problems[gameLevel() - 1]);
-    const coming = new Set(visit?.map((v) => patientArtPrefix(v.patient)));
-    const away = visit ? PATIENTS.map(patientArtPrefix).filter((x): x is string => !!x && !coming.has(x)) : [];
-    const skip = (key: string) => away.some((pre) => key.startsWith(pre));
-    enterWorld(this.game, 'clinic', (v) => {
+    // The clinic: who comes this time is chosen now, so that only their pictures are loaded (clinic-open fix;
+    // ClinicScene takes it). The mermaid world: only the lagoon is loaded now, each activity on its own shell door
+    // (research/mermaid-spec.md 9).
+    let skip: (key: string) => boolean;
+    if (world === 'clinic') {
+      const visit = forcedVisit() ? null : planNextVisit(TUNING.clinic.patients, TUNING.clinic.problems[gameLevel() - 1]);
+      const coming = new Set(visit?.map((v) => patientArtPrefix(v.patient)));
+      const away = visit ? PATIENTS.map(patientArtPrefix).filter((x): x is string => !!x && !coming.has(x)) : [];
+      skip = (key: string) => away.some((pre) => key.startsWith(pre));
+    } else {
+      const lagoon = new Set<string>([...SEA_LAGOON.images, ...SEA_LAGOON.sounds]);
+      skip = (key: string) => !lagoon.has(key);
+    }
+    enterWorld(this.game, world, (v) => {
       share = Math.max(share, v);
       drawRing();
     }, skip).then((ok) => {
@@ -210,13 +228,13 @@ export class TitleScene extends Phaser.Scene {
         shown.forEach((o) => o.destroy());
         this.leaving = false;
         music.play('kitchen');
-        const card = this.children.list.find((o) => (o as Phaser.GameObjects.Image).texture?.key === 'world-card-clinic');
+        const card = this.children.list.find((o) => (o as Phaser.GameObjects.Image).texture?.key === `world-card-${world}`);
         if (card) this.tweens.add({ targets: card, angle: { from: -3, to: 3 }, duration: 90, yoyo: true, repeat: 2, onComplete: () => (card as Phaser.GameObjects.Image).setAngle(0) });
         return;
       }
       delay.then(() => {
         spin.remove();
-        if (this.scene.isActive()) this.scene.start('Clinic');
+        if (this.scene.isActive()) this.scene.start(world === 'clinic' ? 'Clinic' : 'Lagoon');
       });
     });
   }
