@@ -15,6 +15,7 @@ import type { Spot } from '../core/stage';
 import { MiniGame, nearestIn, type P } from './MiniGame';
 import { ClinicCare, type CareHost } from './ClinicCare';
 import { addForeground, addLight } from '../core/scenery';
+import { addSecrets } from '../core/secrets';
 
 const T = TUNING.clinic;
 const C = ART.clinic;
@@ -362,6 +363,7 @@ export class ClinicScene extends MiniGame {
     // The waiting room: the bench, the patients on it, what is wrong with each over her head.
     this.waitRoom.push(this.backdrop('bg-clinic-wait'));
     addLight(this, L, { from: 'lamp' }); this.waitRoom.push(...addForeground(this, L, 'clinic')); // (premium PR 2: the lamp's light for every room; the desk's corner in the waiting room)
+    addSecrets(this, 'clinic'); // premium round: the world's two secrets (core/secrets.ts)
     const wl = L.m + 20 * k;
     const bs = Math.min(0.9 * k, (right - wl) / 1500);
     const benchX = (wl + right) / 2;

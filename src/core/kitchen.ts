@@ -3,6 +3,7 @@ import type { ImageKey, SoundKey } from './assets';
 import { burst, stars } from './fx';
 import { inNoTouchZone } from './layout';
 import type { Tappable } from './scenery';
+import { addSecrets } from './secrets';
 import { sfx } from './sfx';
 
 /**
@@ -85,6 +86,8 @@ export function addKitchenPieces(scene: Phaser.Scene, bg: Phaser.GameObjects.Ima
     scene.textures.once(event, join);
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => scene.textures.off(event, join));
   }
+  // (premium round: the kitchen's two secrets, the cupboard doors; core/secrets.ts)
+  addSecrets(scene, 'kitchen', { bg });
   return out;
 }
 

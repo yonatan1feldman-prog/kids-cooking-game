@@ -17,6 +17,32 @@ export type Spot = Pt & { scale: number };
  * Everything is placed relative to the side margins and the center, so it holds from
  * 4:3 (1440 wide) to 20:9 (2400 wide). The home button sits in the top-left corner.
  */
+/**
+ * The home screen's shelves (premium round, research/premium-spec.md 4.5). Each shelf is a row of cards standing on a
+ * plank; `cells` are the card centres before any swipe. A shelf whose cards need more room than `x0`..`x1` slides
+ * sideways (`slides`): its cards may go off the left edge of the screen and fade out past `x1` (where Pipa and Mom are).
+ */
+export interface Shelf {
+  cells: Pt[];
+  y: number;
+  /** The top of the plank the cards stand on (world y), and its height. */
+  plankY: number;
+  plankH: number;
+  /** The room the cards are fully shown in. */
+  x0: number;
+  x1: number;
+  /** How far the shelf can slide left (0: it never slides). */
+  travel: number;
+}
+export interface Shelves {
+  rows: Shelf[];
+  scale: number;
+  /** Width and height of one card at that scale, and the distance between two card centres. */
+  w: number;
+  h: number;
+  pitch: number;
+}
+
 export interface Stage {
   /** Title: the kitchen's card (the old play button's job: the harness taps it). */
   play: Pt;
@@ -49,11 +75,13 @@ export interface Stage {
     seaweed: Spot;
   };
   /**
-   * Home: where recipe card i of n sits, and the cards' scale. A grid left of Mom (and Pipa): one row up to 3 cards,
-   * else two or three rows, clear of Mom's pointing hand, every card as big as its cell allows, never scrolling.
+   * Home (premium round): where card i of n stands on the shelves (before any swipe), and the cards' scale. Two wooden
+   * shelves left of Mom (and Pipa), three on 4:3; a shelf too long for its room slides sideways (`shelves`).
    */
   card: (i: number, n: number) => Pt;
   cardScale: (n: number) => number;
+  /** Home: the shelves for n cards (top first): their cards, the plank under them and the room they slide in. */
+  shelves: (n: number) => Shelves;
   /** Recipe: the home button and its scale. */
   home: Pt;
   homeScale: number;
@@ -458,55 +486,54 @@ export function getStage(L: Layout): Stage {
   // Mom's pointing hand and forearm (her drawn pose on the home screen) reach left of her face, low on 4:3: no card
   // may sit under them (the garden card pushed the album button into the last cell there, under her finger).
   const arm = { x0: momLeft + 37 * s - 20 * k, y0: momTop + 378 * s - 80 * s, y1: momTop + 560 * s };
-  type Grid = { scale: number; cells: { x: number; y: number }[] };
-  // A grid over the whole room: a cell whose card would reach the home button's touch circle or Mom's hand is left
-  // empty, so only the top row gives up its first cell to the home button (polish round: before, every row started
-  // right of it and the cards were 192 units wide, under the 200 rule). The cards go in row by row; a last row that is
-  // not full is centred when nothing in it was left empty.
-  const gridOf = (n: number, rows: number, cols: number): Grid | null => {
-    const { x0, x1, y0, y1 } = cardArea;
-    const w = (x1 - x0) / cols;
-    const h = (y1 - y0) / rows;
-    const scale = Math.min(1.2 * k, (w - 30 * k) / CARD_W, (h - 30 * k) / CARD_H);
-    const hw = (CARD_W / 2) * scale, hh = (CARD_H / 2) * scale;
-    const free = (x: number, y: number) => {
-      if (x + hw > arm.x0 && y + hh > arm.y0 && y - hh < arm.y1) return false;
-      const nx = Phaser.Math.Clamp(home.x, x - hw, x + hw);
-      const ny = Phaser.Math.Clamp(home.y, y - hh, y + hh);
-      return Math.hypot(nx - home.x, ny - home.y) >= homeR + 10 * k;
-    };
-    const cells: { x: number; y: number }[] = [];
-    for (let r = 0; r < rows && cells.length < n; r++) {
-      const y = y0 + h * (r + 0.5);
-      const row: number[] = [];
-      for (let c = 0; c < cols; c++) if (free(x0 + w * (c + 0.5), y)) row.push(x0 + w * (c + 0.5));
-      const used = Math.min(row.length, n - cells.length);
-      if (used < row.length && row.length === cols) {
-        const left = (x0 + x1) / 2 - (used * w) / 2;
-        for (let j = 0; j < used; j++) cells.push({ x: left + w * (j + 0.5), y });
-      } else for (let j = 0; j < used; j++) cells.push({ x: row[j], y });
+  // Premium round (research/premium-spec.md 4.5): the cards stand on shelves like little books, two shelves on phones,
+  // three on 4:3. The cards are as big as the height allows (about 260 units wide at 20:9, under the home button's
+  // corner and above the palm strip); a shelf too long for the room left of Mom slides sideways under the finger (the
+  // easiest gesture at 3-5), the next card peeking at its end. The planks are drawn in HomeScene.
+  const shelvesMemo = new Map<number, Shelves>();
+  const shelves = (n: number): Shelves => {
+    const memo = shelvesMemo.get(n);
+    if (memo) return memo;
+    const rowsN = n <= 3 ? 1 : k < 1 ? 3 : 2;
+    const plankH = 26 * k;
+    const gapV = 14 * k;
+    const top = home.y + homeR + 4 * k;
+    // (the bottom row's touch areas, 20 beyond the cards (HomeScene CARD_PAD), end above the palm strip)
+    const bottom = Y(994) - 22 * k;
+    const x0 = cardArea.x0;
+    const x1base = cardArea.x1;
+    const perRow = Math.ceil(n / rowsN);
+    const byHeight = (bottom - top - (rowsN - 1) * (plankH + gapV)) / (rowsN * CARD_H);
+    let scale = Phaser.Math.Clamp(byHeight, 0.3 * k, 0.72 * k);
+    const gapH = 26 * k;
+    // When the cards would only just not fit in a row, they get a touch smaller and the shelf stands still.
+    const fitW = (x1base - x0 - (perRow - 1) * gapH) / (perRow * CARD_W);
+    if (fitW < scale && fitW >= scale * 0.8) scale = fitW;
+    const w = CARD_W * scale;
+    const h = CARD_H * scale;
+    const pitch = w + gapH;
+    const used = rowsN * h + (rowsN - 1) * (plankH + gapV);
+    const y0 = rowsN === 1 ? L.cy - h / 2 : bottom - used;
+    const rows: Shelf[] = [];
+    for (let r = 0; r < rowsN; r++) {
+      const count = Math.min(perRow, n - r * perRow);
+      if (count <= 0) break;
+      const y = y0 + r * (h + plankH + gapV) + h / 2;
+      // (Mom's pointing hand reaches left of her face, low on 4:3: a shelf at its height ends before it)
+      const x1 = y + h / 2 > arm.y0 && y - h / 2 < arm.y1 ? Math.min(x1base, arm.x0) : x1base;
+      const len = count * pitch - gapH;
+      const room = x1 - x0;
+      const travel = Math.max(0, len - room);
+      // A shelf that fits stands centred in its room; one that slides starts at the room's left edge.
+      const left = travel > 0 ? x0 : x0 + (room - len) / 2;
+      rows.push({ cells: Array.from({ length: count }, (_, j) => ({ x: left + w / 2 + j * pitch, y })), y, plankY: y + h / 2, plankH, x0, x1, travel });
     }
-    return cells.length === n ? { scale, cells } : null;
+    const out = { rows, scale, w, h, pitch };
+    shelvesMemo.set(n, out);
+    return out;
   };
-  // One row (up to 3 cards), two or three rows, whichever gives the biggest cards clear of her hand and the home button.
-  const grids = new Map<number, Grid>();
-  const grid = (n: number): Grid => {
-    let g = grids.get(n);
-    if (g) return g;
-    const all: Grid[] = [];
-    for (let rows = n <= 3 ? 1 : 2; rows <= (n > 6 ? 3 : 2); rows++) {
-      const c0 = Math.ceil(n / rows);
-      for (let cols = c0; cols <= c0 + 2; cols++) {
-        const t = gridOf(n, rows, cols);
-        if (t) all.push(t);
-      }
-    }
-    g = all.sort((a, b) => b.scale - a.scale)[0] ?? gridOf(n, 3, Math.ceil(n / 3) + 3)!;
-    grids.set(n, g);
-    return g;
-  };
-  const cardScale = (n: number) => grid(n).scale;
-  const card = (i: number, n: number) => (n === 1 ? { x: L.cx, y: L.cy } : grid(n).cells[i]);
+  const cardScale = (n: number) => shelves(n).scale;
+  const card = (i: number, n: number) => (n === 1 ? { x: L.cx, y: L.cy } : shelves(n).rows.flatMap((r) => r.cells)[i]);
 
   // The memory book: the cards' room, but starting right of the home button (it stays on screen there).
   const albumArea = { x0: home.x + homeR + 30 * k, x1: cardArea.x1, y0: Y(60), y1: Y(1000) };
@@ -629,6 +656,7 @@ export function getStage(L: Layout): Stage {
     lagoon,
     card,
     cardScale: (n) => (n === 1 ? k : cardScale(n)),
+    shelves,
     home,
     homeScale,
     dishHome,

@@ -236,7 +236,8 @@ export class TitleScene extends Phaser.Scene {
       }
       delay.then(() => {
         spin.remove();
-        if (this.scene.isActive()) this.scene.start(world === 'clinic' ? 'Clinic' : 'Lagoon');
+        // (premium round: through the paper page, the world's card growing; core/transition.ts)
+        if (this.scene.isActive()) go(this, world === 'clinic' ? 'Clinic' : 'Lagoon', undefined, { from: card });
       });
     });
   }

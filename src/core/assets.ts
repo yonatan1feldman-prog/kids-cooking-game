@@ -12,6 +12,7 @@
 import { FARM_IMAGES, FARM_SFX, FARM_VOICE } from './farmAssets';
 import { SEA_ACTIVITY, SEA_IMAGES, SEA_LAGOON, SEA_SFX, SEA_WORLD_IMAGES } from './seaAssets';
 import { DRESSING_BY_WORLD, DRESSING_IMAGES } from './dressingAssets';
+import { SECRET_IMAGES, SECRET_WORLD_IMAGES } from './secretAssets';
 
 export const GUEST_RASTER = 0.75;
 
@@ -876,6 +877,8 @@ export const IMAGES = {
   ...SEA_IMAGES,
   // the premium round's dressing (core/dressingAssets.ts)
   ...DRESSING_IMAGES,
+  // the premium round's shelf and secrets (core/secretAssets.ts)
+  ...SECRET_IMAGES,
 } as const satisfies Record<string, { size: readonly [number, number]; raster?: number }>;
 
 /** Texture size of an image: its native size, times its `raster` factor if it is shown bigger than native. */
@@ -1590,3 +1593,14 @@ export const SAUCE_BRUSH = 'sauce-brush';
 export const INK = 0x5b3a29;
 export const CREAM = 0xfff6e6;
 export const SAUCE_RED = 0xe4523b;
+
+// ---------------------------------------------------------------- premium round, PR 5: the shelf and the secrets
+// (core/secretAssets.ts, core/secrets.ts). The shelf is core (a `card-` key: it loads with the home screen's cards); the
+// kitchen's secrets are core too (the kitchen is everywhere); every other world's secrets load with that world only.
+(CORE_IMAGES as ImageKey[]).push('card-shelf', ...SECRET_WORLD_IMAGES.kitchen);
+for (const world of ['garden', 'market', 'farm', 'clinic', 'mermaid'] as const) {
+  const r = RECIPE_ASSETS[world];
+  RECIPE_ASSETS[world] = { ...r, images: [...new Set([...r.images, ...SECRET_WORLD_IMAGES[world]])] };
+}
+// (the lagoon loads SEA_LAGOON going in: its secrets with it)
+(SEA_LAGOON as { images: readonly string[] }).images = [...new Set([...SEA_LAGOON.images, ...SECRET_WORLD_IMAGES.mermaid])];
