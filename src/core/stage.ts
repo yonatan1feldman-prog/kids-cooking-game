@@ -228,6 +228,8 @@ const PET_OPAQUE_X0 = 30;
 const PET_OPAQUE_X1 = 574;
 const PET_OPAQUE_Y0 = 44;
 const PET_SMALL = 0.4;
+/** The premium round: on the phone (20:9) she sits a little bigger, 0.46, where the gap beside Mom allows it. */
+const PET_PHONE = 0.46;
 const PET_BIG = 0.62;
 const DOUGH_R = 336; // the pizza's opaque radius on the board (dough-flat opaque x 22-694)
 // A guest (600x700 frame like Pipa's; the widest, the turtle's shell, is opaque over about 484 of it) at most 0.75, a little bigger than Pipa at the board (she stands further back).
@@ -318,6 +320,8 @@ export function getStage(L: Layout): Stage {
   // Pipa small: on the counter between the pizza and Mom, feet at Y(984) (just above the palm strip).
   // Her opaque box stays clear of the pizza and of Mom's face; where that gap is narrow (16:9) she is smaller.
   let pet: Spot | null = null;
+  // (her size before the premium round: the lagoon's round room for Marina keeps that size)
+  let petRefScale = PET_SMALL * k;
   if (W >= PET_MIN_W) {
     const place = (ps: number) => {
       const top = Y(984) - PET_FOOT * ps;
@@ -328,6 +332,14 @@ export function getStage(L: Layout): Stage {
     let p = place(PET_SMALL * k);
     const need = (PET_OPAQUE_X1 - PET_OPAQUE_X0) * p.ps;
     if (p.right - p.left < need) p = place(Math.max(0.25 * k, (p.right - p.left) / (PET_OPAQUE_X1 - PET_OPAQUE_X0)));
+    petRefScale = p.ps;
+    if (p.ps >= PET_SMALL * k) {
+      // (as big as the gap allows, up to PET_PHONE; never smaller than she was)
+      const big = place(PET_PHONE * k);
+      const fit = Math.min(PET_PHONE * k, (big.right - big.left) / (PET_OPAQUE_X1 - PET_OPAQUE_X0));
+      const q = place(fit);
+      if (fit > p.ps && q.right - q.left >= (PET_OPAQUE_X1 - PET_OPAQUE_X0) * fit) p = q;
+    }
     // Preferred: centred in the gap between the board and Mom's body (the art agent's placement), then kept in bounds.
     const bodyLeft = mom.x - MOM_BODY_HALF * s;
     const pw = PET_W * p.ps;
@@ -569,7 +581,7 @@ export function getStage(L: Layout): Stage {
   }
   const iconScale = doorScale;
   const iconOver = (DOOR.h / 2) * doorScale + pictureH * (doorScale / k) - (ICON / 2) * iconScale;
-  const bubbleScale = pet ? pet.scale / PET_SMALL : 0;
+  const bubbleScale = pet ? petRefScale / PET_SMALL : 0;
   // (at 4:3 in the open water right of the back row of doors)
   const backRight = doorAt(2).x + (DOOR.w / 2) * doorScale;
   const room = pet

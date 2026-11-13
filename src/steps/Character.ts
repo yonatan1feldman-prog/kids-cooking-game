@@ -13,6 +13,9 @@ export type Mood = 'rest' | 'expect' | 'chew' | 'happy' | 'party' | 'react' | 's
 const LOOK_MAX = 14;
 /** Her feet in the frame, from its centre (feet at y 684 of 700): she breathes from there. */
 const FOOT = 334;
+/** The premium round's hop (frame units): how high a step's cheer takes her, and a party hop (one of three). */
+const HOP = 60;
+const PARTY_HOP = 177;
 
 /**
  * Pipa the hedgehog, the kitchen pet, who tastes the pizza at the end. Layers share one frame and are
@@ -137,7 +140,53 @@ export class Character {
     } else if (m === 'happy' || m === 'party') {
       this.eyes.setTexture(d.eyesHappy);
       this.mouth.setTexture(d.mouthOpen);
+      if (m === 'party') this.partyDance();
     }
+  }
+
+  /**
+   * One paper hop with squash and stretch (the premium round): she crouches (squash), springs up stretched, lands
+   * squashed with two paper bits at her feet, and settles. `height` in frame units; `spin` turns her round once in the air.
+   * Returns how long it takes (ms). Up and down only, from where she rests.
+   */
+  protected hop(height: number, opts: { delay?: number; spin?: boolean; air?: number } = {}) {
+    const sc = this.scene;
+    const box = this.box;
+    const s = this.scale;
+    const air = opts.air ?? 200;
+    const y0 = this.rest.y;
+    sc.tweens.chain({
+      targets: box,
+      delay: opts.delay ?? 0,
+      tweens: [
+        { scaleY: s * 0.9, scaleX: s * 1.1, y: y0, duration: 80, ease: 'Quad.easeOut' },
+        { scaleY: s * 1.08, scaleX: s * 0.94, y: y0 - height * s, duration: air, ease: 'Quad.easeOut' },
+        { scaleY: s, scaleX: s, y: y0, duration: air * 0.9, ease: 'Quad.easeIn' },
+        {
+          scaleY: s * 0.9,
+          scaleX: s * 1.1,
+          duration: 70,
+          ease: 'Quad.easeOut',
+          onStart: () => {
+            if (!box.active || !box.visible) return;
+            const k = s / 0.4;
+            burst(sc, this.rest.x, this.rest.y + (FOOT - 10) * s, { texture: 'fx-paper', count: 2, tint: [0xfff6e0, 0xf3d9b1], speed: 160 * k, size: 16 * k, gravityY: 700, lifespan: 450, depth: 6 });
+          },
+        },
+        { scaleY: s, scaleX: s, duration: 200, ease: 'Back.easeOut' },
+      ],
+    });
+    if (opts.spin) sc.tweens.add({ targets: box, angle: { from: 0, to: 360 }, delay: (opts.delay ?? 0) + 80, duration: air * 1.9, ease: 'Sine.easeInOut', onComplete: () => box.setAngle(0) });
+    return (opts.delay ?? 0) + 80 + air * 1.9 + 270;
+  }
+
+  /** The party (the finale, the candles out): three hops, a full turn in the air on the middle one. */
+  protected partyDance() {
+    if (!this.box.visible) return;
+    this.scene.tweens.killTweensOf(this.box);
+    this.box.setAngle(0).setScale(this.scale).setPosition(this.rest.x, this.rest.y);
+    let t = 0;
+    for (let i = 0; i < 3; i++) t = this.hop(PARTY_HOP, { delay: t + (i ? 60 : 0), spin: i === 1, air: 260 });
   }
 
   /**
@@ -409,6 +458,8 @@ export class Character {
       ],
     });
     burst(this.scene, this.rest.x, this.rest.y - 260 * s, { texture: 'fx-heart', count: 3, tint: [0xf06a8a, 0xf5a3b5], size: 30 * (s / 0.4), speed: 220, gravityY: -160, lifespan: 800, depth: 60 });
+    // (the premium round: two little stars pop up over her head as well)
+    burst(this.scene, this.rest.x, this.rest.y - 330 * s, { texture: 'star', count: 2, tint: [0xffe27a, 0xfff4b8], size: 26 * (s / 0.4), speed: 200, gravityY: -120, lifespan: 700, depth: 60 });
     this.scene.time.delayedCall(650, () => {
       if (this._mood !== 'rest' || !this.eyes.active) return;
       this.eyes.setTexture(d.eyesOpen);
@@ -416,11 +467,12 @@ export class Character {
     });
   }
 
-  /** A short burst of joy at the end of a step: happy face and a little hop. */
+  /** A short burst of joy at the end of a step: happy face and a little hop (squash, stretch, a sway in the air). */
   cheer() {
     if (this._mood !== 'rest' || !this.box.visible) return;
     this.setMood('happy');
-    this.scene.tweens.add({ targets: this.box, y: this.rest.y - 60 * this.scale, duration: 200, yoyo: true, ease: 'Quad.easeOut' });
+    this.hop(HOP);
+    this.scene.tweens.add({ targets: this.box, angle: { from: -4, to: 4 }, delay: 80, duration: 100, yoyo: true, repeat: 1, ease: 'Sine.easeInOut', onComplete: () => this.box.setAngle(0) });
     this.scene.time.delayedCall(900, () => {
       if (this._mood === 'happy') this.setMood('rest');
     });

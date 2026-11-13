@@ -35,6 +35,17 @@ const QUIET = /^(count-|temp-|name-)/;
 /** Scenes where Mom picks her poses by herself (title, home and album keep her pointing pose: the cards are laid out
  * around it). */
 const AUTO_SCENES = ['Recipe', 'Garden', 'Puzzle', 'Art', 'Clinic'];
+/** The premium round: her head turns around the base of her neck (800 frame), apart from her body. */
+const NECK = { x: 500, y: 420 };
+/** While she talks her head rises with the voice's loudness, this far at full loudness (frame units). If it reads as
+ * too much nodding on the phone, this is the one number to lower. */
+const HEAD_BOB = 5;
+/** At the start of a line she tilts her head toward the child (the side of the last finger), this many degrees. */
+const TALK_TILT = 2.5;
+/** After she lets go of something she was moving, she looks at what it was put on this long, then back to the finger. */
+const GLANCE_MS = 600;
+/** A touch held at least this long and then let go is something put down (not a tap). */
+const PUT_AFTER_MS = 150;
 
 /**
  * Mom, standing at the counter on the right for the whole recipe. Twelve layers share one 800x800
@@ -79,6 +90,27 @@ export class Mom {
   private chewing?: Phaser.Time.TimerEvent;
   private breath?: Phaser.Tweens.Tween;
   readonly s: number;
+  /**
+   * Her head's layers (head, hair, cap or crown, eyes, mouth) hang at the base of her neck (their origin), so they tilt and
+   * nod together while her body stays still. `hd` is what moves them (tweened), composed every frame in `update` with the
+   * talking bob. (Not a container inside her container: Phaser 4.2 draws a nested container under a turned parent with
+   * pieces missing, seen in every turned frame in the cloud's renderer.)
+   */
+  private head: Phaser.GameObjects.Image[];
+  private neck: { x: number; y: number };
+  private hd = { tilt: 0, nod: 0, dy: 0 };
+  private bob = 0;
+  private tiltTween?: Phaser.Tweens.Tween;
+  private gestTweens: Phaser.Tweens.Tween[] = [];
+  /** The line her head tilted for, and how long ago she last spoke (her head comes back after TALK_HOLD_MS). */
+  private talkLine: string | null = null;
+  private quietMs = 0;
+  /** Which side the child's last finger was on (-1 left of her, 1 right), and how long the first finger is held. */
+  private fingerSide = -1;
+  private holdMs = 0;
+  private lastUp = { x: 0, y: 0 };
+  private glance?: { x: number; y: number; until: number };
+  private startledAt = -Infinity;
 
   /**
    * `outfit` 'nurse': the clinic's Mom (a nurse's dress and cap over the same layers, gen_mom.py); 'mermaid': the
@@ -91,14 +123,17 @@ export class Mom {
     const { w, h, cx, pivotL, pivotR } = ART.mom;
     // The container sits on her body centre at the screen bottom; every layer hangs from there.
     const layer = (key: ImageKey) => new Phaser.GameObjects.Image(scene, 0, 0, key).setOrigin(cx / w, 1).setScale(this.s);
+    // (the head's layers hang from the base of her neck: they turn around it)
+    this.neck = { x: (NECK.x - cx) * this.s, y: (NECK.y - h) * this.s };
+    const headLayer = (key: ImageKey) => layer(key).setOrigin(NECK.x / w, NECK.y / h).setPosition(this.neck.x, this.neck.y);
     const mermaid = outfit === 'mermaid';
     // (the mermaid's arms are the same arms with bare shoulders: mom-mer-arm-* in place of mom-arm-*)
     const arm = (key: ImageKey, pivot: { x: number; y: number }) =>
       new Phaser.GameObjects.Image(scene, (pivot.x - cx) * this.s, (pivot.y - h) * this.s, mermaid ? (key.replace('mom-arm-', 'mom-mer-arm-') as ImageKey) : key)
         .setOrigin(pivot.x / w, pivot.y / h).setScale(this.s);
     this.armR = arm('mom-arm-right', pivotR).setAlpha(0);
-    this.eyes = layer('mom-eyes-open');
-    this.mouth = layer('mom-mouth-smile');
+    this.eyes = headLayer('mom-eyes-open');
+    this.mouth = headLayer('mom-mouth-smile');
     this.armL = arm('mom-arm-left', pivotL);
     // The wave, the hip and the thumbs-up hang behind her side; the chin and the clap come across her front.
     this.right = {
@@ -117,12 +152,16 @@ export class Mom {
     const R = this.right;
     const Lf = this.left;
     const nurse = outfit === 'nurse';
+    // (the mermaid's long hair at the back stays on her body; her hair in front, the cap and the crown turn with her head)
+    this.head = [
+      headLayer('mom-head'),
+      headLayer(mermaid ? 'mom-mer-hair' : 'mom-hair'),
+      ...(nurse ? [headLayer('mom-cap-nurse')] : []), ...(mermaid ? [headLayer('mom-mer-crown')] : []), this.eyes, this.mouth,
+    ];
     this.box = scene.add
       .container(at.x, at.y, [
         ...(mermaid ? [layer('mom-mer-tail'), layer('mom-mer-hair-back')] : []),
-        R.wave, R.rest, R.thumb, layer(nurse ? 'mom-body-nurse' : mermaid ? 'mom-mer-top' : 'mom-body'), layer('mom-head'),
-        layer(mermaid ? 'mom-mer-hair' : 'mom-hair'),
-        ...(nurse ? [layer('mom-cap-nurse')] : []), ...(mermaid ? [layer('mom-mer-crown')] : []), this.eyes, this.mouth,
+        R.wave, R.rest, R.thumb, layer(nurse ? 'mom-body-nurse' : mermaid ? 'mom-mer-top' : 'mom-body'), ...this.head,
         Lf.point, Lf.reach, Lf.open, Lf.clap, R.chin, R.clap,
       ])
       .setDepth(4);
@@ -258,6 +297,7 @@ export class Mom {
 
   /** Mouth follows the voice line's loudness, each shape held at least 90 ms so it reads as speech. */
   private update(_t: number, delta: number) {
+    this.updateHead(delta);
     if (this.handActive) {
       if (this.handActive()) this.handGone = 0;
       else this.handGone += delta;
@@ -277,8 +317,122 @@ export class Mom {
     this.setMouth(next);
   }
 
-  /** Eyes drift toward a world point (call every frame; eases by itself). */
+  /**
+   * The premium round: her head lives. While she talks it rises a little with the voice's loudness (`HEAD_BOB`), and at
+   * the start of a line it tilts toward the child (the side of her last finger), coming back once she has been quiet
+   * for TALK_HOLD_MS. A finger that held something and let go: she glances at where it was put (`lookAt`).
+   */
+  private updateHead(delta: number) {
+    const now = this.scene.time.now;
+    const p = this.scene.input.manager.pointers.find((q) => q.isDown);
+    if (p) {
+      this.fingerSide = p.worldX < this.box.x ? -1 : 1;
+      this.holdMs += delta;
+      this.lastUp = { x: p.worldX, y: p.worldY };
+    } else if (this.holdMs) {
+      if (this.holdMs >= PUT_AFTER_MS) {
+        // (in a recipe: the dish, where things are put; elsewhere: the spot it was let go)
+        const dish = (this.scene as unknown as { ctx?: { dish?: { x: number; y: number; visible?: boolean } } }).ctx?.dish;
+        const at = dish && dish.visible !== false ? dish : this.lastUp;
+        this.glance = { x: at.x, y: at.y, until: now + GLANCE_MS };
+      }
+      this.holdMs = 0;
+    }
+    const cur = voice.speaking ? voice.current : null;
+    if (cur) {
+      this.quietMs = 0;
+      if (cur !== this.talkLine) {
+        this.talkLine = cur;
+        if (!QUIET.test(cur)) this.tiltTo(TALK_TILT * this.fingerSide, 260);
+      }
+    } else if (this.talkLine !== null) {
+      this.quietMs += delta;
+      if (this.quietMs >= TALK_HOLD_MS) {
+        this.talkLine = null;
+        this.tiltTo(0, 360);
+      }
+    }
+    const want = cur ? -HEAD_BOB * Math.min(1, voice.level() * 1.6) : 0;
+    this.bob += (want - this.bob) * Math.min(1, delta / 70);
+    const s = this.s;
+    const y = this.neck.y + (this.bob + this.hd.dy) * s;
+    const a = this.hd.tilt + this.hd.nod;
+    for (const l of this.head) {
+      if (l === this.eyes) l.setPosition(this.neck.x + this.look.x, y + this.look.y);
+      else l.setPosition(this.neck.x, y);
+      l.setAngle(a);
+    }
+  }
+
+  /** Her head's resting tilt (talking toward the child, or upright again). */
+  private tiltTo(a: number, ms: number) {
+    if (this.hd.tilt === a && !this.tiltTween) return;
+    this.tiltTween?.remove();
+    this.tiltTween = this.scene.tweens.add({ targets: this.hd, tilt: a, duration: ms, ease: 'Sine.easeInOut', onComplete: () => (this.tiltTween = undefined) });
+  }
+
+  /** A head gesture over the resting tilt: `nod` degrees and `dy` frame units (up < 0), out and back. */
+  private headMove(o: { nod?: number; dy?: number; ms: number; hold?: number; repeat?: number; delay?: number; ease?: string }) {
+    this.gestTweens.forEach((t) => t.remove());
+    this.hd.nod = 0;
+    this.hd.dy = 0;
+    const t = this.scene.tweens.add({
+      targets: this.hd,
+      nod: o.nod ?? 0,
+      dy: o.dy ?? 0,
+      duration: o.ms,
+      hold: o.hold ?? 0,
+      delay: o.delay ?? 0,
+      yoyo: true,
+      repeat: o.repeat ?? 0,
+      ease: o.ease ?? 'Sine.easeOut',
+      onComplete: () => {
+        this.hd.nod = 0;
+        this.hd.dy = 0;
+      },
+    });
+    this.gestTweens = [t];
+  }
+
+  /** A nod (her head dips and comes back up), `times` times. */
+  nod(times = 1, delay = 0) {
+    this.headMove({ dy: 7, nod: 1.5 * this.fingerSide, ms: 110, repeat: times - 1, delay, ease: 'Sine.easeInOut' });
+  }
+
+  /** Her head tilts to one side for a moment (+ = toward her right) and comes back. */
+  tilt(deg: number, ms = 220, hold = 300) {
+    this.headMove({ nod: deg, ms, hold, ease: 'Sine.easeOut' });
+  }
+
+  /** A little start: her head jerks back and up, her body straightens (a surprise). */
+  private startle() {
+    const now = this.scene.time.now;
+    if (now - this.startledAt < 700 || !this.box.active) return;
+    this.startledAt = now;
+    // (back = away from the child: her work is on her left)
+    this.headMove({ nod: -3 * this.fingerSide, dy: -8, ms: 180, hold: 120, ease: 'Quad.easeOut' });
+    this.breath?.pause();
+    this.scene.tweens.add({
+      targets: this.box,
+      scaleY: 1.03,
+      duration: 180,
+      yoyo: true,
+      hold: 120,
+      ease: 'Quad.easeOut',
+      onComplete: () => {
+        this.box.setScale(1);
+        this.breath?.resume();
+      },
+    });
+  }
+
+  /** Eyes drift toward a world point (call every frame; eases by itself). Right after she put something down they
+   * look at where it was put for a moment first. */
   lookAt(x: number, y: number) {
+    if (this.glance) {
+      if (this.scene.time.now < this.glance.until && !this.scene.input.manager.pointers.some((q) => q.isDown)) ({ x, y } = this.glance);
+      else this.glance = undefined;
+    }
     const s = this.s;
     const ex = this.box.x;
     const ey = this.box.y - (IMAGES['mom-eyes-open'].size[1] - 270) * s;
@@ -288,14 +442,15 @@ export class Mom {
     const reach = Math.min(1, d / (300 * s));
     this.look.x += ((dx / d) * LOOK_MAX * reach * s - this.look.x) * 0.15;
     this.look.y += ((dy / d) * LOOK_MAX * 0.6 * reach * s - this.look.y) * 0.15;
-    this.eyes.setPosition(this.look.x, this.look.y);
+    this.eyes.x = this.neck.x + this.look.x;
+    this.eyes.y = this.head[0].y + this.look.y;
   }
 
   /** Happy eyes and a short happy bounce with a wave (end of a step). */
   cheer() {
     this.mood = 'happy';
     this.setEyes('happy');
-    this.joy(1);
+    this.bounce();
     // Visual round 6: a wave, a clap or a thumbs-up, in turn from a shuffled deck (never the same twice in a row).
     if (!this.cheers.length) {
       const last = this.lastCheer;
@@ -304,13 +459,18 @@ export class Mom {
     }
     const g = (this.lastCheer = this.cheers.pop()!);
     this.gesture(1100);
-    if (g === 'clap') this.clap(3);
-    else if (g === 'thumb') {
+    if (g === 'clap') {
+      this.clap(3);
+      // (her head nods with the claps: the hands meet at POSE_MS + 110 and + 330)
+      this.nod(2, POSE_MS);
+    } else if (g === 'thumb') {
+      this.tilt(4, 200, 380);
       this.setRight('thumb');
       this.setLeft('point');
       this.scene.tweens.add({ targets: this.right.thumb, angle: { from: 0, to: -8 }, duration: 180, yoyo: true, repeat: 1, ease: 'Back.easeOut', onComplete: () => this.right.thumb.setAngle(0) });
     } else {
       this.setWave(true);
+      this.tilt(4, 200, 420);
       this.scene.tweens.add({ targets: this.armR, angle: { from: -12, to: 12 }, duration: 150, yoyo: true, repeat: 2, onComplete: () => this.armR.setAngle(0) });
     }
     this.scene.time.delayedCall(1100, () => {
@@ -337,6 +497,29 @@ export class Mom {
     const { clap: r } = this.right;
     this.scene.tweens.add({ targets: l, angle: { from: 0, to: 7 }, duration: 110, yoyo: true, repeat: times - 1, delay: POSE_MS, ease: 'Sine.easeOut', onComplete: () => l.setAngle(0) });
     this.scene.tweens.add({ targets: r, angle: { from: 0, to: -7 }, duration: 110, yoyo: true, repeat: times - 1, delay: POSE_MS, ease: 'Sine.easeOut', onComplete: () => r.setAngle(0) });
+  }
+
+  /**
+   * The premium round's cheer: a short squash (she gathers herself), then a stretch up and settling back, never a jump
+   * (her frame is cut at the screen bottom). Her head does the rest (`tilt`, `nod`).
+   */
+  private bounce() {
+    this.breath?.pause();
+    this.leanTween?.remove();
+    this.box.setScale(1).setAngle(0);
+    this.lean = 0;
+    this.scene.tweens.chain({
+      targets: this.box,
+      tweens: [
+        { scaleY: 0.97, scaleX: 1.03, duration: 90, ease: 'Quad.easeOut' },
+        { scaleY: 1.04, scaleX: 0.985, duration: 170, ease: 'Quad.easeOut' },
+        { scaleY: 1, scaleX: 1, duration: 300, ease: 'Back.easeOut' },
+      ],
+      onComplete: () => {
+        this.box.setScale(1);
+        this.breath?.resume();
+      },
+    });
   }
 
   /**
@@ -380,7 +563,10 @@ export class Mom {
     this.setEyes('happy');
     this.mouthHeld = 'open';
     this.joy(0);
+    this.tilt(-5 * this.fingerSide, 160, 380);
     sfx(this.scene, 'pop', { volume: 0.5 });
+    // a short laugh in her own voice (never over a line of hers, never waiting for one)
+    if (!voice.speaking) voice.say('vo-laugh', { ttlMs: 300 });
     const { cx, h, mouth } = ART.mom;
     burst(this.scene, this.box.x + (mouth.x - cx + 120) * this.s, this.box.y + (mouth.y - h - 120) * this.s, { texture: 'fx-heart', count: 3, tint: [0xf06a8a, 0xf5a3b5], size: 34 * this.s, speed: 240, gravityY: -160, lifespan: 800, depth: 60 });
     this.scene.time.delayedCall(450, () => {
@@ -407,6 +593,7 @@ export class Mom {
   }
 
   surprised() {
+    if (this.mood !== 'surprised') this.startle();
     this.mood = 'surprised';
     this.setEyes('surprised');
   }
@@ -492,6 +679,7 @@ export class Mom {
     this.armTo(-12, 350);
     this.setWave(true);
     this.joy(3);
+    this.headMove({ nod: 3, ms: 170, repeat: 3, ease: 'Sine.easeInOut' });
     this.scene.tweens.add({ targets: this.armR, angle: { from: -14, to: 14 }, duration: 200, yoyo: true, repeat: 5, onComplete: () => this.armR.setAngle(0) });
   }
 

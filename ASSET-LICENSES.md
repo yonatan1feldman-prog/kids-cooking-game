@@ -668,6 +668,14 @@ drawn by `assets-src/images-b-sea/tools/gen_sea.py`.
 | vo-song-sing | Now I'll sing along! |
 | vo-song-done | We made up a song together! Look, Marina is dancing! |
 
+### New in the premium round, PR 3 (Mom's laugh; 1 line)
+
+Same engine, voice and processing (Kokoro af_heart, `make_vo.py mom-a`); no fix was needed.
+
+| Key | Line |
+|-----|------|
+| vo-laugh | Ha ha ha! |
+
 ## Graphics (`images/`)
 
 All SVG files in `images/` were drawn for this project by the art agent (style B, paper cut-out; generators in
