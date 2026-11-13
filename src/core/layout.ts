@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { addKitchenPieces } from './kitchen';
-import { addScenery } from './scenery';
+import { addScenery, dressKitchen } from './scenery';
 
 /**
  * Landscape world. The height is always 1080 world units. The width follows the screen:
@@ -110,5 +110,7 @@ export function addBackground(scene: Phaser.Scene, layout: Layout, recipeId?: st
   bg.setData('kitchen', addKitchenPieces(scene, bg));
   // Birds and a cloud outside the window, the sunbeam on the counter, the garden, the cat, the clock (core/scenery.ts).
   addScenery(scene, bg, recipeId);
+  // The window's light over it; in a recipe the oilcloth and the kitchen's front (the premium round, PR 2).
+  dressKitchen(scene, layout, recipeId);
   return bg.setDepth(-100);
 }

@@ -194,6 +194,11 @@ export interface Stage {
    * and left of Mom's face and Pipa, from just under the top edge down to above the palm strip.
    */
   albumArea: Box;
+  /**
+   * The premium round, PR 2 (light and depth): the oilcloth lying under the recipe's work area (counter-cloth,
+   * 1300x420), its centre and scale: under the board's lower half, its front edge just above the counter's front edge.
+   */
+  cloth: Spot;
 }
 
 /** Native sizes the layout reasons about (opaque extents of the art, in world units at k = 1). */
@@ -204,6 +209,9 @@ const OVEN_W = 636; // oven (opaque x 34-664 of its 700 frame, centred at 350: 2
 const LEFT_W = 480; // left column: two bin columns
 const GAP = 25;
 const BIN_TEX = 240; // topping-bin viewBox
+/** The oilcloth under the work area (counter-cloth, premium PR 2) and the y of its front edge (the counter's is 994). */
+const CLOTH = { w: 1300, h: 420 };
+const CLOTH_FRONT = 984;
 const BIN_REACH = 30; // a bin's touch area reaches this far beyond its drawing (DecorateStep)
 const POT_W = 1000; // pot-back / pot-front frame (round 9, README-soup.md)
 const POT_H = 760;
@@ -669,5 +677,6 @@ export function getStage(L: Layout): Stage {
     lidRest: { x: (pourRest.x + bowlLeft) / 2 + 40 * k, y: Y(930) },
     // (three spots side by side under the pizza, 140 apart: bins 108 wide; a fourth (the salad's) in a row above them)
     binWait: (i) => (prepWide ? { x: sideX + ((i % 3) - 1) * 140 * k, y: Y(895) - Math.floor(i / 3) * 150 * k, scale: 0.45 * k } : null),
+    cloth: { x: dishHome.x, y: Y(CLOTH_FRONT - CLOTH.h / 2), scale: k },
   };
 }
