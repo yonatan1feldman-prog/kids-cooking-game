@@ -751,9 +751,11 @@ Spec `/mnt/project-files/research/premium-spec.md` (PR 4: sections 4.1, 4.2, 4.4
   lagoon and HomeScene to the games / album (those files are PR 5's), Boot -> Title, ArtScene's own restart, the
   clinic's room fade. The harness: `__fullRun5` waits for the page (`__settle`) after the title tap.
 - **Sound:** `vo-tada` (Kokoro af_heart, `make_vo.py mom vo-tada`). Not heard by a human.
-- **Rotation mid page turn:** the next scene is then created while the screen is in portrait; `keepLayoutOnResize`
-  (relayout scenes: Title, Home, Lagoon) rebuilds it as soon as it runs again (it is still paused when the rotation
-  back is announced). Particles: `tada(..., { confetti })` lowers the 24 papers where a thing has its own sparkles.
+- **Rotation mid page turn (fixed in the round's QA):** the `Transition` scene is paused with every other scene and goes
+  on after the turn back, so the next scene is always created in landscape. (It used to end at once and start the next
+  scene while the screen was upright: a recipe, a game or the clinic, which keep their layout, were then laid out for
+  portrait and shown small after the turn back, camera zoom 0.34.) `keepLayoutOnResize`'s rebuild of a paused relayout
+  scene (Title, Home, Lagoon) stays as a safety net. Particles: `tada(..., { confetti })` lowers the 24 papers where a thing has its own sparkles.
 
 ### 00000000000000000000000000000000000000000000. The premium round, PR 3 (Mom and Pipa come alive)
 Spec `/mnt/project-files/research/premium-spec.md` sections 4.3 and 5 (PR 3). Tweens on existing layers only: no new texture,

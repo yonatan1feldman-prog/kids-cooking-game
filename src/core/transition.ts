@@ -1,5 +1,4 @@
 import Phaser from 'phaser';
-import { ORIENTATION_PAUSE } from './layout';
 import { FX_TORN, makeFxTextures } from './placeholders';
 import { sfx } from './sfx';
 
@@ -10,9 +9,9 @@ import { sfx } from './sfx';
  * under it). The home button: the same sheet the other way (down). About 0.7 s in all.
  *
  * It all lives in its own scene on top (`Transition`, added on first use), so the scenes themselves only call `go()`.
- * A rotation to portrait (ORIENTATION_PAUSE) mid-way ends it at once: the next scene is started if it was not yet and the
- * sheet goes, so it can never stay stuck on the screen. Only tweens on a Graphics rectangle and one small texture
- * (`fx-torn`, drawn in code), no filters.
+ * A rotation to portrait mid-way pauses it with everything else (core/orientation.ts) and it goes on after the turn back,
+ * so the next scene is always made in landscape; a 2 s guard after the swap means the sheet can never stay on the
+ * screen. Only tweens on a Graphics rectangle and one small texture (`fx-torn`, drawn in code), no filters.
  */
 
 export const TRANSITION = 'Transition';
@@ -72,9 +71,10 @@ class TransitionScene extends Phaser.Scene {
     paper.setInteractive(new Phaser.Geom.Rectangle(0, 0, W, H), Phaser.Geom.Rectangle.Contains);
     sfx(this, 'whoosh-soft', { pitch: 'vary', volume: 0.8 });
     this.tweens.add({ targets: this.sheet, y: 0, duration: TIMING.cover, ease: 'Quad.easeInOut', onComplete: () => this.swap() });
-    const onPause = () => this.finish();
-    this.game.events.on(ORIENTATION_PAUSE, onPause);
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.game.events.off(ORIENTATION_PAUSE, onPause));
+    // (a rotation to portrait meanwhile pauses this scene with all the others, core/orientation.ts: the page waits under
+    // the rotate screen and goes on when she turns back, so the next scene is always made in landscape. Ending it at
+    // once used to start the next scene while the screen was upright: the scenes that keep their layout, the recipes
+    // and every game, were then laid out for portrait and shown small after the turn back.)
   }
 
   /** Covered: the next scene starts under the sheet; once it has drawn its first frame the sheet slides away. */
@@ -108,15 +108,6 @@ class TransitionScene extends Phaser.Scene {
       ease: 'Quad.easeInOut',
       onComplete: () => this.scene.stop(),
     });
-  }
-
-  /** Ends it now (a rotation to portrait): the next scene starts if it didn't yet, the sheet goes. */
-  finish() {
-    if (!this.sys.isActive() && !this.sys.isPaused()) return;
-    this.tweens.killAll();
-    if (!this.started) this.swap();
-    this.sheet?.setVisible(false);
-    this.scene.stop();
   }
 }
 
