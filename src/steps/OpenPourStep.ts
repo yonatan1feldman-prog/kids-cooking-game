@@ -598,7 +598,8 @@ export class OpenPourStep extends Step<OpenPourParams> {
     const at = bowl.position;
     const img = this.own(this.scene.add.image(at.x, at.y, bowl.back.texture.key).setScale(bowl.scale).setDepth(6).setVisible(false));
     this.sources.push({ img, piece: this.params.piece, mouth: { x: 0, y: 0 }, tilt: this.params.tilt ?? TILT, rest: { ...at }, poured: 0, done: false });
-    const copy = (o: Phaser.GameObjects.Image) => new Phaser.GameObjects.Image(this.scene, 0, 0, o.texture.key);
+    // (with its tint: the smoothie takes the colour of her fruit, BlendStep.fruitColour)
+    const copy = (o: Phaser.GameObjects.Image) => new Phaser.GameObjects.Image(this.scene, 0, 0, o.texture.key).setTint(o.tintTopLeft);
     snapshotTexture(this.scene, 'jar-made', 800, [copy(bowl.back), copy(bowl.contents), copy(bowl.front)]).then((ok) => {
       if (this.aborted) return;
       if (ok) img.setTexture('jar-made');

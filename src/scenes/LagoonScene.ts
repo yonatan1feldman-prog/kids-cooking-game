@@ -18,6 +18,7 @@ import { breath, MARINA, marinaSwims } from './SeaGame';
 import { readMark, type TailMark } from '../core/sea'; // mermaid PR 2
 import { paintMomTail } from './SeaTail'; // mermaid PR 2
 import { cleanLagoonLife, hasMark, wearNecklace } from '../core/seaSort';
+import { addSecrets } from '../core/secrets';
 
 /** What each shell door says when it opens (Mom, before the activity starts). */
 const PICK_LINE = {
@@ -88,6 +89,7 @@ export class LagoonScene extends Phaser.Scene {
     // The water: the lagoon's picture, bottom-anchored like every room, then the light rays and the seaweed.
     this.cameras.main.setBackgroundColor('#5fc9c3');
     this.add.image(L.cx, L.H, 'bg-lagoon').setOrigin(0.5, 1).setScale(Math.max(1, L.W / 2400)).setDepth(-100);
+    addSecrets(this, 'mermaid'); // premium round: the world's two secrets (core/secrets.ts)
     seaLife(this, L, lg.seaweed);
     // mermaid PR 2: after the swim with Marina the chest stays open, pearls shining in it
     const pearls = !!readMark<boolean>('pearls');

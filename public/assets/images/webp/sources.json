@@ -1215,6 +1215,17 @@
   "w": 400,
   "h": 520
  },
+ "card-shelf": {
+  "sha1": "f8a021e604b3744f13f57a4d0e3f6a6b860c2497",
+  "w": 1600,
+  "h": 84,
+  "trim": {
+   "x": 0,
+   "y": 3,
+   "w": 1600,
+   "h": 74
+  }
+ },
  "card-skewers": {
   "sha1": "1fb25d6c8521f282e5be5fe039109d9e43bd2034",
   "w": 400,
@@ -7132,6 +7143,65 @@
   "sha1": "dc1f898839271660e341c1ad5b4182e3701146b3",
   "w": 240,
   "h": 420
+ },
+ "secret-bird": {
+  "sha1": "414b1e32a786149b78d696115576df11cc6cca34",
+  "w": 130,
+  "h": 110,
+  "trim": {
+   "x": 0,
+   "y": 12,
+   "w": 130,
+   "h": 98
+  }
+ },
+ "secret-butterfly": {
+  "sha1": "68cb769b62f9f2ed803b8bc363140de3d53bc2a4",
+  "w": 120,
+  "h": 100
+ },
+ "secret-fish": {
+  "sha1": "8b927bcf86626d67b0220e05f42bd74d0d445302",
+  "w": 120,
+  "h": 80
+ },
+ "secret-mouse": {
+  "sha1": "b606871379917c197a8cb3d419fe6255226b27af",
+  "w": 150,
+  "h": 130,
+  "trim": {
+   "x": 17,
+   "y": 3,
+   "w": 120,
+   "h": 127
+  }
+ },
+ "secret-pigeon": {
+  "sha1": "a3ec80f5747597bfe95cf59a3bb4200a340998fa",
+  "w": 150,
+  "h": 130,
+  "trim": {
+   "x": 0,
+   "y": 17,
+   "w": 150,
+   "h": 113
+  }
+ },
+ "secret-puppy": {
+  "sha1": "83a51e842fb873fe31f2cfa042d7ba3bd7b432fe",
+  "w": 150,
+  "h": 120,
+  "trim": {
+   "x": 1,
+   "y": 17,
+   "w": 148,
+   "h": 103
+  }
+ },
+ "secret-rooster": {
+  "sha1": "73592ea8c28880c713f2890933c21965cf472b27",
+  "w": 160,
+  "h": 160
  },
  "seed-packet-carrot": {
   "sha1": "b5c0e8d6474c5ffd828a98af5a5560642db8ff39",

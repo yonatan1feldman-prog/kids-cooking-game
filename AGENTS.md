@@ -677,7 +677,44 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the premium round PR 1 (cut WebPs, paper motion, scene changes, UI sounds), the mermaid world PR 4 (the shell song), the mermaid world PR 3 (cleaning, shells), the mermaid world PR 2 (the tail, the swim), the mermaid world PR 1 (the lagoon), the clinic-open fix, the clinic round 6 (part 3, four patients), the clinic round 6 (part 2, seven ailments), the clinic round 6 (part 1, the bowl), the clinic round 5 (part 3, more challenge), the clinic round 5 (part 2, the care rooms), the farm, the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; the premium round PR 5 (home shelves, her photos on the cards, Pipa's idea, secrets), the premium round PR 1 (cut WebPs, paper motion, scene changes, UI sounds), the mermaid world PR 4 (the shell song), the mermaid world PR 3 (cleaning, shells), the mermaid world PR 2 (the tail, the swim), the mermaid world PR 1 (the lagoon), the clinic-open fix, the clinic round 6 (part 3, four patients), the clinic round 6 (part 2, seven ailments), the clinic round 6 (part 1, the bowl), the clinic round 5 (part 3, more challenge), the clinic round 5 (part 2, the care rooms), the farm, the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 0000000000000000000000000000000000000000000. The premium round, PR 5 (the home shelves, her own dish on the cards, Pipa's idea, secrets)
+Spec `/mnt/project-files/research/premium-spec.md` 4.5 and PR 5. What she sees: the home screen is two wooden shelves (three
+on 4:3) with bigger cards; a card she has a photo of shows her dish; Pipa has an idea when she comes from the title; every
+world has two small secrets; the smoothie takes the colour of the fruit she chose.
+- **Shelves (`stage.ts` `shelves(n)`, `HomeScene`):** rows of cards standing on the plank `card-shelf` (a `card-` key so it
+  loads with the cards, BootScene `HOME_ART`). Two rows at k = 1 (cards ~257 units wide at 20:9, height-limited between the
+  home button's corner and the palm strip), three at 4:3 (no sliding there). A row too long for `x0..x1` (left of Mom's
+  face and Pipa) slides: `travel` is how far. Cards are NOT iconButtons: the scene decides between a slide (the first
+  finger moves >= 24 units: the row follows, a flick carries on and settles on a card edge) and a tap (opens on release).
+  Cards are `setInteractive` only so that a tap on one is never also a tickle or a secret; past `x1` they fade
+  (`fade()`), and below 0.8 alpha they are not tappable. `S.card(i, n)` / `S.cardScale(n)` still give cell positions
+  before any slide (the harness and `screenHint` use the images' live x/y). The album is the last card.
+- **Her photo (`album.ts` `latestPhotos()` / `latestPhotoFor(id)` / `cardOfPhoto`):** the newest photo per card (`art-*` ->
+  `art`, `mermaid-*` -> `mermaid`), drawn once into a 200 px canvas texture `home-photo-<id>` with round corners, over the
+  card's window (`WINDOW` in HomeScene), the card's tape drawn again over it (a `setCrop` copy of the card: no texture) and
+  `fx-heart` as a sticker. Parts follow their card every frame (`sync`), so `appear`, `go()`'s grow and the press work on the
+  card alone. The textures go one step after the home scene shuts down. Garden, market and washing up keep no photos.
+- **Pipa's idea:** from the title only, once per visit (`HomeData.wished`), 2.6 s after Mom's question: one fully shown card
+  in her thought bubble (`showWish`), "Look! Pipa wants..." (`vo-pipa-wants`, an existing line: no new voice in this PR);
+  a tap on the bubble opens it, a tap on another card lets it go (`hideWish`); Mom's 5 s hint points at that card.
+- **Secrets (`core/secrets.ts`, art `core/secretAssets.ts`, `assets-src/images-b-premium/tools/gen_secrets.py`):** two per
+  world, placed in the world background's 2400x1080 frame (`addSecrets(scene, world)`: one line in each world scene; the
+  kitchen's come with `addKitchenPieces`). Kitchen: the two cupboard doors (a crop of the background swings open on its
+  hinge, the dark inside behind it: the mouse with cheese / a butterfly / hearts). Garden: a bird on the middle tree, a
+  butterfly on the fence. Market: a pigeon on the teal roof, the pennants (crop). Farm: the rooster on the barn's roof, the
+  doghouse (a puppy pops up). Clinic waiting room: the fish picture, the rainbow picture (crops). Lagoon: the two fish
+  pairs in the water (crops). Each has three answers; `localStorage` `cooking.secret.<world>.<id>` is the next one's
+  index (each tap and each visit shows the next; never shown or counted). A tap only answers where `hitTestPointer` is
+  empty and not in the no-touch strips; a crop only ever grows (`swell`), so the background under it never shows double.
+  Positions are checked at 20:9; a secret whose box is off screen is simply not reachable. Avoid the lagoon's shell doors
+  and the farm's fence (the doghouse door is behind it) when moving one. Tests: the scene's data `secrets-<world>` lists
+  each secret's world centre.
+- **Smoothie colour (`BlendStep.fruitColour`):** the chosen fruits' `juice` colours (their chop steps), mixed with 25% milk,
+  are the whirling bits; the drawn smoothie (`blend-stage-*`, `glass-full`, also in the glasses she pours and shares, by
+  an `ADDED_TO_SCENE` listener) gets a multiply tint toward that mix (only darkening, part of the way).
+- Budgets measured: GPU on the title/home 40.2 MB (master 39.6; + up to ~1.6 MB with photos on 8 cards), precache +0.13 MB.
+
 ### 000000000000000000000000000000000000000000. The premium round, PR 1 (cut WebPs, the paper motion language, scene changes, UI sounds)
 Spec `/mnt/project-files/research/premium-spec.md` (PR 1, sections 3, 4.1, 4.2). Infrastructure for PRs 2-5; it changes
 almost nothing she sees but the scene changes and the home cards arriving.

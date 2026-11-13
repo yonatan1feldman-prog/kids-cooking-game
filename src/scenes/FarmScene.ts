@@ -12,6 +12,7 @@ import type { Spot } from '../core/stage';
 import type { CharacterDef } from '../recipes/types';
 import { Character } from '../steps/Character';
 import { MiniGame, nearestIn, type P } from './MiniGame';
+import { addSecrets } from '../core/secrets';
 
 /** The animals' frame (800x700, feet at y 684, facing left). */
 const FW = 800;
@@ -225,6 +226,7 @@ export class FarmScene extends MiniGame {
     const k = L.k;
     const bg = Math.max(1, L.W / 2400);
     this.add.image(L.W / 2, L.H, 'bg-farm').setOrigin(0.5, 1).setScale(bg).setDepth(-100);
+    addSecrets(this, 'farm'); // premium round: the world's two secrets (core/secrets.ts)
     // the fence across the whole farm, its foot on the grass: the animals peek over it
     const fenceFoot = L.H - (1080 - 880) * bg;
     this.add.image(L.W / 2, fenceFoot, 'farm-fence').setOrigin(0.5, 1).setScale(bg).setDepth(3.95); // (just under Mom, 4: she stands in front of it whatever the order they were added in)

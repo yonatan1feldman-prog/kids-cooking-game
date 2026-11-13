@@ -122,3 +122,26 @@ export async function countPhotos(): Promise<number> {
     req.onsuccess = () => done(req.result ?? 0);
   });
 }
+
+/**
+ * Premium round (research/premium-spec.md 4.5): the newest photo of each recipe or game, by its card (`pizza`, `farm`,
+ * `art` for any of the art corner's kinds, `mermaid` for any sea activity). The home screen's cards show her own dish
+ * instead of the drawn one. An empty map if there are none or the book cannot be read.
+ */
+export async function latestPhotos(): Promise<Map<string, AlbumPhoto>> {
+  const out = new Map<string, AlbumPhoto>();
+  // (newest first: the first one seen for a card is its newest)
+  for (const p of await listPhotos()) {
+    const card = cardOfPhoto(p.recipe);
+    if (!out.has(card)) out.set(card, p);
+  }
+  return out;
+}
+
+/** The newest photo of one recipe or game (see `latestPhotos`), or null. */
+export async function latestPhotoFor(id: string): Promise<AlbumPhoto | null> {
+  return (await latestPhotos()).get(id) ?? null;
+}
+
+/** The card a photo belongs to: the art corner's kinds (`art-trace`...) all to `art`, the sea's to `mermaid`. */
+export const cardOfPhoto = (recipe: string) => (recipe.startsWith('art-') ? 'art' : recipe.startsWith('mermaid-') ? 'mermaid' : recipe);

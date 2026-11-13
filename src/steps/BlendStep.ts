@@ -4,7 +4,7 @@ import { blenderLoop, voice } from '../core/audio';
 import { boing, burst } from '../core/fx';
 import { tapMotion, type HandMotion } from '../core/hand';
 import { sfx } from '../core/sfx';
-import type { BlendParams } from '../recipes/types';
+import { prepSteps, type BlendParams } from '../recipes/types';
 import { BOWL_DEPTH, PrepBowl } from './PrepBowl';
 import { Step } from './Step';
 
@@ -44,13 +44,18 @@ export class BlendStep extends Step<BlendParams> {
   /** Where the lid sits on the still jar. */
   private lidAt = { x: 0, y: 0 };
 
+  /** The colour of what she chose (premium round): the bits that whirl up, and the drink itself (see `fruitColour`). */
+  private bits = 0;
+
   start() {
     const p = this.params;
     this.k = this.layout.k;
+    this.bits = p.tint;
     this.stepLine = p.lidLine;
     this.workspace('none');
     this.bowl = PrepBowl.take(this.ctx) ?? new PrepBowl(this.ctx, p.bowl, p.from, undefined);
     if (!this.bowl.contents.visible) this.bowl.setContents(p.from);
+    this.fruitColour();
     this.button = this.bowl.stand[1] ?? this.own(this.scene.add.image(this.bowl.back.x, this.bowl.back.y, p.buttonOff));
     // The lid lies on the counter, left of the jar.
     const s = this.bowl.scale;
@@ -190,7 +195,7 @@ export class BlendStep extends Step<BlendParams> {
       this.sinceBit = 0;
       const o = this.bowl.opening();
       const y = o.y + (this.bowl.contents.displayHeight * 0.45) * Math.random();
-      burst(this.scene, o.x + (Math.random() - 0.5) * o.rx, y, { count: 2, size: 12 * k, tint: [this.params.tint, 0xffffff], speed: 160 * k, gravityY: 300, depth: BOWL_DEPTH.contents + 0.02 });
+      burst(this.scene, o.x + (Math.random() - 0.5) * o.rx, y, { count: 2, size: 12 * k, tint: [this.bits, 0xffffff], speed: 160 * k, gravityY: 300, depth: BOWL_DEPTH.contents + 0.02 });
     }
   }
 
@@ -230,6 +235,43 @@ export class BlendStep extends Step<BlendParams> {
   abort() {
     super.abort();
     blenderLoop.stop();
+  }
+
+  /**
+   * Premium round (research/premium-spec.md 4.5, "the result changes with what she chose"): the smoothie takes the
+   * colour of the fruit she picked. Their juice colours (each chosen fruit's cutting step) are mixed, with a little milk,
+   * into the bits that whirl up, and the drawn smoothie (pink: the jar's stages, then the full glasses she pours and
+   * shares) is tinted toward that mix: more red with strawberries, orange with mango and banana, greener with kiwi. A
+   * multiply tint can only darken, so the channel the mix wants most stays and the others go down. Without
+   * a choice (a test jumping here) nothing changes. Tints stay on the scene's images to the photo; the listener goes
+   * with the scene.
+   */
+  private fruitColour() {
+    const juices = this.ctx.run.chosen.flatMap((o) => prepSteps(o)).map((st) => (st.params as { juice?: number }).juice).filter((j): j is number => typeof j === 'number');
+    if (!juices.length) return;
+    const ch = (c: number, sh: number) => (c >> sh) & 0xff;
+    const avg = [16, 8, 0].map((sh) => juices.reduce((t, j) => t + ch(j, sh), 0) / juices.length);
+    const MILK = 0.25;
+    const mix = avg.map((v) => v * (1 - MILK) + 255 * MILK);
+    this.bits = (Math.round(mix[0]) << 16) | (Math.round(mix[1]) << 8) | Math.round(mix[2]);
+    // The drawn smoothie is one salmon pink (blend-stage-3, the glasses). A tint can only multiply (darken), so the
+    // channel the mix wants most stays as drawn and the others go down in proportion: a kiwi drink turns green,
+    // banana and mango a soft yellow, strawberry a deeper pink.
+    const DRAWN = [245, 171, 147];
+    const ratio = mix.map((v, i) => v / DRAWN[i]);
+    const top = Math.max(...ratio);
+    // (70% of the way: mixed fruit stays a warm drink, not a muddy one; the froth stays light)
+    const STRENGTH = 0.7;
+    const t = ratio.map((v) => Math.round(255 * (1 - STRENGTH * (1 - v / top)))).reduce((c, v) => (c << 8) | v, 0);
+    const SMOOTHIE = /^(blend-stage-|glass-full)/;
+    const paint = (o: Phaser.GameObjects.GameObject) => {
+      const img = o as Phaser.GameObjects.Image;
+      if (img.texture && SMOOTHIE.test(img.texture.key)) img.setTint(t);
+    };
+    if (this.bowl.contents) paint(this.bowl.contents);
+    const sc = this.scene;
+    sc.events.on(Phaser.Scenes.Events.ADDED_TO_SCENE, paint);
+    sc.events.once(Phaser.Scenes.Events.SHUTDOWN, () => sc.events.off(Phaser.Scenes.Events.ADDED_TO_SCENE, paint));
   }
 
   cancelGesture() {
