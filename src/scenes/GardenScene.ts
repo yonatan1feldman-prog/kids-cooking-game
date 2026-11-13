@@ -14,6 +14,7 @@ import { RECIPES } from '../recipes';
 import { Character } from '../steps/Character';
 import { Mom } from '../steps/Mom';
 import { assetsReady } from './BootScene';
+import { addForeground, addLight } from '../core/scenery';
 
 type P = { x: number; y: number };
 type Kind = 'tomato' | 'strawberry' | 'carrot';
@@ -290,6 +291,7 @@ export class GardenScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#cfe6ec');
     const bg = (this.bg = this.add.image(L.cx, L.H, 'bg-garden').setOrigin(0.5, 1).setDepth(-100));
     bg.setScale(Math.max(L.H / bg.frame.realHeight, L.W / bg.frame.realWidth));
+    addLight(this, L, { from: 'sun' }); addForeground(this, L, 'garden'); // (premium PR 2: the sun's light, the leaves in front)
 
     iconButton(this, L, 'btn-home', S.home.x, S.home.y, () => this.leave('recipe'), { confirm: true, scale: S.homeScale, hitPad: 30 }).setDepth(900);
     this.hand = new MomHandView(this, L);

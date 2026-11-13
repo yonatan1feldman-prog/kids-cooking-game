@@ -677,7 +677,41 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the premium round PR 1 (cut WebPs, paper motion, scene changes, UI sounds), the mermaid world PR 4 (the shell song), the mermaid world PR 3 (cleaning, shells), the mermaid world PR 2 (the tail, the swim), the mermaid world PR 1 (the lagoon), the clinic-open fix, the clinic round 6 (part 3, four patients), the clinic round 6 (part 2, seven ailments), the clinic round 6 (part 1, the bowl), the clinic round 5 (part 3, more challenge), the clinic round 5 (part 2, the care rooms), the farm, the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; the premium round PR 2 (light and depth), the premium round PR 1 (cut WebPs, paper motion, scene changes, UI sounds), the mermaid world PR 4 (the shell song), the mermaid world PR 3 (cleaning, shells), the mermaid world PR 2 (the tail, the swim), the mermaid world PR 1 (the lagoon), the clinic-open fix, the clinic round 6 (part 3, four patients), the clinic round 6 (part 2, seven ailments), the clinic round 6 (part 1, the bowl), the clinic round 5 (part 3, more challenge), the clinic round 5 (part 2, the care rooms), the farm, the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 0000000000000000000000000000000000000000000. The premium round, PR 2 (light and depth)
+Spec `/mnt/project-files/research/premium-spec.md` (sections 2, 3, PR 2). Nothing new to touch; every world looks lit and deep.
+- **Light (`core/scenery.ts` `addLight(scene, L, { from })`):** `'window' | 'sun' | 'water' | 'lamp'`. One vignette (`fx-vignette`
+  stretched over the screen, tinted ink, alpha 0.15-0.2, its clear middle moved toward the upper left where the light is)
+  and, outside the kitchen (it has its sunbeam), one wide soft glow (`fx-glow`, new in `makeFxTextures` and `FX_KEYS`,
+  SCREEN). Depth `LIGHT_DEPTH` -96: over the background, its pieces and the sunbeam, under everything else. Static.
+- **Front (`addForeground(scene, L, world)`):** one or two big pieces per world (`fg-lemons` + `fg-napkin` kitchen,
+  `fg-leaves` garden (both corners), `fg-basket` market, `fg-fence` farm, `fg-desk` clinic waiting room; the lagoon's
+  coral already is its front; `fg-lemons` only 16:9 and wider, `wide`), tinted a little darker, depth `FOREGROUND_DEPTH` 890 (over Mom and anything carried,
+  under the home button and the scene-change page), each image carries `getData('foreground')`. They are cut by the
+  screen's bottom edge; what shows above the palm strip stays in the corners. Not tappable.
+- **The kitchen** gets all of it through `addBackground` (layout.ts) -> `dressKitchen`: the light on every kitchen
+  screen; with a `recipeId` the kitchen's front too, and in a recipe the oilcloth `counter-cloth` (1300x420) at
+  `stage.cloth` under the board (depth -2). Washing up ('dishes'): the front only. The other worlds call it in one line
+  right after their background (Garden, Market, Farm, Clinic `build`, Lagoon, SeaGame `water`).
+- **Assets:** `core/dressingAssets.ts` (sizes, and which world loads which; assets.ts spreads it into `IMAGES` and adds
+  them to `RECIPE_ASSETS` in one block after the mermaid entry). Nothing is core: each loads with its world.
+  Art: `assets-src/images-b/tools/gen_dressing.py` -> `images-b/dressing/`.
+- **Calmer backgrounds:** `assets-src/images-b/tools/premium_bg.py` `calm()`: the background's paper grain at 60% (same
+  seed), the picture lifted 5% (feComponentTransfer), the old greyish sky top `#9FCBE0` -> `#8DCAEE` (farm, market,
+  garden). Every background generator returns `calm(...)` (clinic x3, farm, garden, market, lagoon). The kitchen keeps its
+  wall exactly (its tappable pieces are cut from it by gen_kitchen_live.py): only its counter has the quieter paper and
+  the lift, its wood grain at 60%, a light that grows toward the front edge (instead of the old darkening) and a light
+  band on the front row. Regenerate one background without touching the other files of its generator: call its `bg_*`
+  function and write that SVG only (the generators' `main` rewrites everything).
+- **Not done (decided):** the spec's mise-en-place on the counter's left: every step uses that column (bins, the pizza
+  aside, ingredients up to the backsplash), so static look-alikes there would collide and invite taps that do nothing.
+- **Harness:** `__fgBoxes(scene)` (the opaque box of each foreground piece, from its cut WebP), `__fgCheck('Garden')`
+  (foreground vs every interactive object and the strips), and `__audit` reports `foreground <key> over <item>`.
+- **Harness note:** since PR 1, `__audit`'s `box()` reads a cut WebP's source (only the cut box) as if it were the whole
+  frame, so it reports `cut: mom [...]` / `overlap: mom / <item>` on master too (checked 2026-11-13); not a layout change.
+- Measured (cloud, `__gpuMB`): recipe +2.8 MB (the cloth 2.2), the other worlds +0.5 at most, title/home/lagoon unchanged;
+  precache 30.2 -> 29.7 MB (the calmer backgrounds bake smaller). Before/after: research/screens-premium/pr2/.
+
 ### 000000000000000000000000000000000000000000. The premium round, PR 1 (cut WebPs, the paper motion language, scene changes, UI sounds)
 Spec `/mnt/project-files/research/premium-spec.md` (PR 1, sections 3, 4.1, 4.2). Infrastructure for PRs 2-5; it changes
 almost nothing she sees but the scene changes and the home cards arriving.

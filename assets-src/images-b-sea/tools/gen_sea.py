@@ -23,6 +23,8 @@ KELP = "#5FA35A"; KELP_D = "#457F43"; KELP_L = "#8CC67E"
 LILAC = "#B99BD8"; GOLD = "#F2C14E"; GOLD_D = "#D19A2A"
 
 
+from premium_bg import calm, SKY_SWAP  # noqa: E402,F401  (premium PR 2)
+
 def sparkle(x, y, r, fill=WHITE, extra=""):
     return P(f"M{n(x)},{n(y - r)} L{n(x + r * .3)},{n(y - r * .3)} L{n(x + r)},{n(y)} L{n(x + r * .3)},{n(y + r * .3)} L{n(x)},{n(y + r)} "
              f"L{n(x - r * .3)},{n(y + r * .3)} L{n(x - r)},{n(y)} L{n(x - r * .3)},{n(y - r * .3)}Z", fill, extra)
@@ -111,7 +113,7 @@ def bg_lagoon():
     # a few shells and starfish on the sand at the sides
     L.append(G(starfish(90, 1000, 34, "#F3A65A", -80) + starfish(2330, 990, 30, CORALC, -100)
                + scallop(560, 1040, 30, 34, SHELL, SHELL_D, SHELL_L, 7) + scallop(1860, 1046, 26, 30, LILAC, "#9A7EBA", "#E2D4F2", 7), p + "sh"))
-    return doc(p, 2400, 1080, "".join(L), "bg", seed=91, sh=(4, 4, .22), extra_defs=defs)
+    return calm(doc(p, 2400, 1080, "".join(L), "bg", seed=91, sh=(4, 4, .22), extra_defs=defs), p)  # (premium PR 2: calmer, brighter: images-b/tools/premium_bg.py)
 
 
 def lagoon_rock():

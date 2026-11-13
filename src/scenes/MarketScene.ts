@@ -11,6 +11,7 @@ import { TUNING } from '../core/tuning';
 import { Guest } from '../steps/Guest';
 import { loadImages } from './BootScene';
 import { MiniGame, type P } from './MiniGame';
+import { addForeground, addLight } from '../core/scenery';
 
 const T = TUNING.market;
 const G = ART.garden;
@@ -219,6 +220,7 @@ export class MarketScene extends MiniGame {
     this.cameras.main.setBackgroundColor('#cfe6ec');
     const bg = this.add.image(L.cx, L.H, 'bg-market').setOrigin(0.5, 1).setDepth(-100);
     bg.setScale(Math.max(L.H / bg.frame.realHeight, L.W / bg.frame.realWidth));
+    addLight(this, L, { from: 'sun' }); addForeground(this, L, 'market'); // (premium PR 2: the sun's light, a basket in front)
 
     // The room: from the thumb strip to Pipa (or Mom's face). The basket on the left, the stall on the right.
     const petLeft = S.pet ? S.pet.x - 270 * S.pet.scale : Infinity;
