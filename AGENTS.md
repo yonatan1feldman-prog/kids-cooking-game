@@ -690,6 +690,10 @@ almost nothing she sees but the scene changes and the home cards arriving.
   itself (2D canvas) goes through `fullSourceImage(textures, key)` (`svgRaster.ts`): `opaqueBounds`, `makeBrush`
   (placeholders.ts) and Mom's painted tail (`SeaTail.ts`). **Any new code that draws a texture's `getSourceImage()` onto a
   canvas must use `fullSourceImage`** (the source is only the cut box). The SVG fallback (no WebP) is never cut.
+  **Pitfall:** `setFlipX(true)` together with `setCrop` on a cut texture crops a different part than on an uncut one
+  (Phaser mirrors the crop inside the cut box); nothing in the game does both today (checked); if you need it, crop a
+  `fullSourceImage` copy or keep that key uncut. Origin, flip alone and crop alone match the uncut picture exactly
+  (all 899 WebPs rendered against master).
   Re-baking: `__bakeWebp()` as before (cuts what is worth cutting); `__bakeWebp(keys, { trimOnly: true })` bakes only the
   ones not cut yet that would be; `__compareWebp()` puts a cut WebP back in its frame and compares the whole frame.
 - **`__gpuMB()`** (harness): MB of every loaded texture (w x h x 4 of each texture source: what is really uploaded), the
