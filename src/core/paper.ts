@@ -58,7 +58,10 @@ export function lift(scene: Phaser.Scene, t: Thing, opts: { dir?: number; sound?
   const p = PAPER.lift;
   if (opts.sound !== false) sfx(scene, 'paper-lift', { pitch: 'vary', volume: 0.7 });
   shadowLift(scene, t, true);
-  return keep(t, scene.tweens.add({ targets: t, scaleX: sx * p.scale, scaleY: sy * p.scale, angle: p.angle * (opts.dir ?? 1), duration: p.ms, ease: 'Quad.easeOut' }));
+  // (the angle it lay at: `drop` puts it back at that angle, a topping's own tilt is kept)
+  if (t.getData('paperAngle') === undefined) t.setData('paperAngle', t.angle);
+  const a0 = t.getData('paperAngle') as number;
+  return keep(t, scene.tweens.add({ targets: t, scaleX: sx * p.scale, scaleY: sy * p.scale, angle: a0 + p.angle * (opts.dir ?? 1), duration: p.ms, ease: 'Quad.easeOut' }));
 }
 
 /** Put down: a quick squash (wide and low), then it settles to its size with a little overshoot; its shadow comes back. */
@@ -68,12 +71,16 @@ export function drop(scene: Phaser.Scene, t: Thing, opts: { sound?: boolean } = 
   const p = PAPER.drop;
   if (opts.sound !== false) sfx(scene, 'paper-drop', { pitch: 'vary' });
   shadowLift(scene, t, false);
+  // straight again if it was lifted (back to the angle it lay at); a thing put down for the first time keeps its own
+  const a0 = t.getData('paperAngle') as number | undefined;
+  t.setData('paperAngle', undefined);
+  const angle = a0 ?? t.angle;
   return keep(
     t,
     scene.tweens.chain({
       targets: t,
       tweens: [
-        { scaleX: sx * p.squashX, scaleY: sy * p.squashY, angle: 0, duration: p.squashMs, ease: 'Quad.easeOut' },
+        { scaleX: sx * p.squashX, scaleY: sy * p.squashY, angle, duration: p.squashMs, ease: 'Quad.easeOut' },
         { scaleX: sx, scaleY: sy, duration: p.settleMs, ease: 'Back.easeOut', easeParams: [p.back] },
       ],
     }),

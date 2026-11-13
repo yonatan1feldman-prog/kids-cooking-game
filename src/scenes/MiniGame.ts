@@ -1,7 +1,9 @@
 import Phaser from 'phaser';
 import { music, voice, type Song, type VoiceKey } from '../core/audio';
 import { MomHandView, type HandMotion } from '../core/hand';
-import { confetti, tickles, touchRipples } from '../core/juice';
+import { stepDone, tada } from '../core/finale';
+import { tickles, touchRipples } from '../core/juice';
+import { go } from '../core/transition';
 import { getLayout, inNoTouchZone, keepLayoutOnResize, ORIENTATION_PAUSE, type Layout } from '../core/layout';
 import { getLevel, type Level } from '../core/level';
 import { getStage, type Stage } from '../core/stage';
@@ -194,7 +196,19 @@ export abstract class MiniGame extends Phaser.Scene {
     this.leaving = true;
     this.shutdown();
     if (from === 'recipe') voice.stop();
-    this.scene.start(this.homeScene, { from });
+    // (the premium round's paper page: back home it slides down)
+    go(this, this.homeScene, { from }, { dir: 'down' });
+  }
+
+  /**
+   * The end of the whole game is a little show (core/finale.ts `tada`): the camera leans in on `at` (what she made: the
+   * basket, the rack, the drawing, the animal, the patient), the light passes, confetti, Mom and her friend cheer,
+   * "Ta-da! Look what you made!" (`line` false: only the sound, when the game's own line says it); `then` once the
+   * camera is back.
+   */
+  protected tada(at: P, opts: { target?: Phaser.GameObjects.Image | Phaser.GameObjects.Container | null; line?: boolean; confetti?: number; then?: () => void } = {}) {
+    music.party(true);
+    tada(this, at, { L: this.L, mom: this.mom, pipa: this.pipa, target: opts.target, line: opts.line, confetti: opts.confetti, valid: () => !this.leaving, then: opts.then });
   }
 
   protected setPhase(p: string) {
@@ -223,7 +237,8 @@ export abstract class MiniGame extends Phaser.Scene {
     music.party();
     this.mom?.happy();
     this.pipa?.cheer();
-    confetti(this, x, y, 14, 24 * L.k);
+    // (the premium round: the part answers with paper bits, a ring of light and the next bell of the scale)
+    stepDone(this, { x, y }, { k: L.k, size: 200 });
     this.time.delayedCall(900, () => this.mom?.rest());
     this.time.delayedCall(wait + 900, () => !this.leaving && then());
   }

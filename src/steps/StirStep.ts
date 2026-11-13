@@ -99,7 +99,9 @@ export class StirStep extends Step<StirParams> {
       const at = this.spoonAt(q.worldX, q.worldY);
       this.last = at;
       this.moveSpoon(at);
-      sfx(this.scene, this.sound, { minGapMs: 150, volume: 0.6 });
+      // (the paper motion: picked up, a little bigger; put down again when it rests)
+      this.paperHold(this.spoon);
+      sfx(this.scene, this.sound, { minGapMs: 150, volume: 0.6, pitch: 'vary' });
       this.drops(at.x, at.y, 4);
     });
     this.onMove((q) => {
@@ -138,7 +140,7 @@ export class StirStep extends Step<StirParams> {
     this.hand.stop();
     sfx(this.scene, 'click');
     this.knob?.setTexture(st.knobOn);
-    if (this.knob) boing(this.scene, this.knob, 0.12);
+    if (this.knob) this.paperPress(this.knob);
     const f = this.bowl.point(st.flameAt.x, st.flameAt.y);
     this.flame = this.own(this.scene.add.image(f.x, f.y, st.flame).setScale(this.bowl.scale).setDepth(BOWL_DEPTH.back - 0.04).setAlpha(0));
     this.scene.tweens.add({ targets: this.flame, alpha: 1, duration: 350 });
@@ -168,7 +170,8 @@ export class StirStep extends Step<StirParams> {
   }
 
   private restSpoon() {
-    this.scene.tweens.add({ targets: this.spoon, x: this.rest.x, y: this.rest.y, angle: this.rest.angle, duration: 300, ease: 'Sine.easeOut' });
+    const sp = this.spoon;
+    this.scene.tweens.add({ targets: sp, x: this.rest.x, y: this.rest.y, angle: this.rest.angle, duration: 300, ease: 'Sine.easeOut', onComplete: () => sp.active && this.paperDrop(sp) });
   }
 
   private drops(x: number, y: number, n: number) {

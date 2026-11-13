@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { go } from '../core/transition';
 import { listPhotos } from '../core/album';
 import { music, voice } from '../core/audio';
 import { burst, stars } from '../core/fx';
@@ -142,7 +143,7 @@ export class PuzzleScene extends Phaser.Scene {
   private back() {
     if (this.leaving) return;
     this.leaving = true;
-    this.scene.start('Album', { page: this.page });
+    go(this, 'Album', { page: this.page }, { dir: 'down' });
   }
 
   /** The photo as a texture (from the book's data URL). */

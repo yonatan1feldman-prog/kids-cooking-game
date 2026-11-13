@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { FX_SOFT } from '../core/assets';
 import { voice } from '../core/audio';
-import { boing, burst, stars } from '../core/fx';
+import { burst, stars } from '../core/fx';
 import { tapMotion, type HandMotion } from '../core/hand';
 import { opaqueBounds } from '../core/placeholders';
 import { sfx } from '../core/sfx';
@@ -86,21 +86,24 @@ export class FindStep extends Step<FindParams> {
     const rest = t.item.getData('rest') as number;
     this.scene.tweens.killTweensOf(t.item);
     t.item.setScale(rest).setY(t.itemY).setAngle(0);
+    this.paperRest(t.item);
     if (t.name) voice.say(t.name, { group: 'name', ttlMs: 2500 });
     if (!t.right) {
       // Not this one: it hops and wiggles, Mom says what it is. Never "no".
       this.miss();
-      sfx(this.scene, 'tap');
+      sfx(this.scene, 'tap', { pitch: 'vary' });
+      // (the paper motion's "not here": a little hop and a gentle wobble, never a sad sound)
       this.scene.tweens.add({ targets: t.item, y: t.itemY - 30 * k, duration: 140, yoyo: true, ease: 'Quad.easeOut' });
-      this.scene.tweens.add({ targets: t.item, angle: { from: -6, to: 6 }, duration: 90, yoyo: true, repeat: 1, onComplete: () => t.item.setAngle(0) });
-      boing(this.scene, t.bin, 0.08);
+      this.paperWrong(t.item);
+      this.paperPress(t.bin);
       return;
     }
     this.hit();
     this.done = true;
     this.setIdle(false);
     this.hand.stop();
-    sfx(this.scene, 'pop');
+    sfx(this.scene, 'pop', { pitch: 'vary' });
+    this.paperLift(t.item, 1, false);
     const glow = this.own(this.scene.add.image(t.x, t.itemY, FX_SOFT).setDepth(2.5).setTint(0xffe066).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0));
     glow.setScale((240 * this.ctx.stage.choiceScale(this.tools.length) * 1.4) / glow.frame.realWidth);
     this.scene.tweens.add({ targets: glow, alpha: 0.8, duration: 200 });

@@ -12,6 +12,7 @@ import type { DecorateParams } from '../recipes/types';
 import { IMAGES, type ImageKey } from '../core/assets';
 import type { VoiceKey } from '../core/audio';
 import { clampToRadius, MADE_KEY, snapshotTexture } from './Dish';
+import { PAPER } from '../core/paper';
 import { Step } from './Step';
 import { binIcon, binKey, moveBin, setBinVisible } from './ToppingBin';
 
@@ -124,11 +125,12 @@ export class DecorateStep extends Step<DecorateParams> {
       const b = this.binAt(p.worldX, p.worldY);
       if (!b) return;
       this.poke();
-      sfx(this.scene, 'tap');
-      boing(this.scene, b.bin, 0.15);
+      sfx(this.scene, 'tap', { pitch: 'vary' });
+      this.paperPress(b.bin);
       const key = this.puts(b.key);
-      const img = art(this.scene.add.image(p.worldX, p.worldY - LIFT_UP * this.k, key), L, 0.8).setDepth(40);
-      this.scene.tweens.add({ targets: img, scale: L.k * LIFT, duration: 160, ease: 'Back.easeOut' });
+      // (the paper motion: it comes out of its box lifted, a little bigger and tipped, and sways as it is carried)
+      const img = art(this.scene.add.image(p.worldX, p.worldY - LIFT_UP * this.k, key), L, LIFT / PAPER.lift.scale).setDepth(40);
+      this.paperLift(img, -1);
       this.held = { img, key };
     });
     this.onMove((p) => {
@@ -364,8 +366,8 @@ export class DecorateStep extends Step<DecorateParams> {
     this.dish.toppings.remove(t, true);
     this.placed = Math.max(0, this.placed - 1);
     this.poke();
-    sfx(this.scene, 'tap');
-    const img = art(this.scene.add.image(p.worldX, p.worldY - LIFT_UP * this.k, key), this.layout, LIFT).setDepth(40);
+    const img = art(this.scene.add.image(p.worldX, p.worldY - LIFT_UP * this.k, key), this.layout, LIFT / PAPER.lift.scale).setDepth(40);
+    this.paperLift(img, -1);
     this.held = { img, key };
   }
 
@@ -414,8 +416,9 @@ export class DecorateStep extends Step<DecorateParams> {
         img.destroy();
         const t = this.dish.addTopping(key, spot.x, spot.y);
         t.setScale(this.k * size).setData('on', on);
-        boing(this.scene, t, 0.35);
-        sfx(this.scene, iced ? 'icing' : 'pop');
+        // (the paper motion: put down, it squashes and settles with a soft paper sound under the food's own)
+        this.paperDrop(t);
+        sfx(this.scene, iced ? 'icing' : 'pop', { pitch: 'vary' });
         burst(this.scene, w.x, w.y, { count: 8, size: 18 * this.k, tint: [0xffffff, 0xffcb47], speed: 350 * this.k, gravityY: 400 });
         this.placed++;
         this.countWish(key);

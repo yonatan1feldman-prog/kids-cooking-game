@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { ART, IMAGES } from '../core/assets';
 import { countKey, voice } from '../core/audio';
-import { boing, stars } from '../core/fx';
+import { stars } from '../core/fx';
 import { settle, sway } from '../core/juice';
 import { tapMotion, type HandMotion } from '../core/hand';
 import { sfx } from '../core/sfx';
@@ -70,8 +70,8 @@ export class CandlesStep extends Step<CandlesParams> {
         if (!c) return this.miss();
         this.held = { img: c, dx: c.x - q.worldX, dy: c.y - q.worldY };
         c.setDepth(60);
-        this.scene.tweens.add({ targets: c, scale: this.cs * 1.12, duration: 120 });
-        sfx(this.scene, 'tap', { volume: 0.5 });
+        // (the paper motion: picked up, it grows a little and tips; a soft paper sound)
+        this.paperLift(c, 1);
         this.poke();
         return;
       }
@@ -92,7 +92,6 @@ export class CandlesStep extends Step<CandlesParams> {
       if (!h) return;
       this.held = null;
       settle(this.scene, h.img);
-      this.scene.tweens.add({ targets: h.img, scale: this.cs, duration: 120 });
       if (cancelled || this.dish.reach(h.img.x, h.img.y) > 1.35) return this.putBack(h.img);
       this.stand(h.img);
     });
@@ -104,7 +103,8 @@ export class CandlesStep extends Step<CandlesParams> {
     const i = this.waiting.indexOf(img);
     const at = this.ctx.stage.bin(Math.max(0, i), this.params.count);
     img.setDepth(20);
-    this.scene.tweens.add({ targets: img, x: at.x, y: at.y, duration: 280, ease: 'Sine.easeOut' });
+    // (back in its place, put down: the paper motion's squash and settle)
+    this.scene.tweens.add({ targets: img, x: at.x, y: at.y, duration: 280, ease: 'Sine.easeOut', onComplete: () => img.active && this.paperDrop(img) });
     this.miss();
   }
 
@@ -119,8 +119,9 @@ export class CandlesStep extends Step<CandlesParams> {
     // It stands ON the cake: its base anchor lands on the spot, so it looks planted, not lying on top.
     img.setOrigin(base.x / cw, base.y / ch).setPosition(w.x, w.y);
     img.setDepth(60 + this.placed.length * 0.01);
-    boing(this.scene, img, 0.14);
-    sfx(this.scene, 'pop');
+    // (stood on the cake: the paper motion's squash and settle, under the pop)
+    this.paperDrop(img);
+    sfx(this.scene, 'pop', { pitch: 'vary' });
     this.placed.push({ img, at: local, lit: false });
     this.poke();
     this.hit();

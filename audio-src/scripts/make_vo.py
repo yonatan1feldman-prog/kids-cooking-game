@@ -724,6 +724,8 @@ MOM_LINES = {
     "vo-song-yes": "That's my song!",
     "vo-song-sing": "Now I'll sing along!",
     "vo-song-done": "We made up a song together! Look, Marina is dancing!",
+    # premium PR 4: the finale's "ta-da" (a recipe, a game, a visit: the moment before the photo)
+    "vo-tada": "Ta-da! Look what you made!",
     # the premium round, PR 3: her short laugh when she is tickled (Mom.tickle)
     "vo-laugh": "Ha ha ha!",
 }

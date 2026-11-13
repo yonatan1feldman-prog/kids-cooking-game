@@ -1,10 +1,11 @@
 import Phaser from 'phaser';
+import { lift as paperLift, press as paperPress, setRest as paperRest } from '../core/paper';
 import { ART, type ImageKey } from '../core/assets';
-import { countKey, music, voice, type NameKey, type Song, type VoiceKey } from '../core/audio';
+import { countKey, voice, type NameKey, type Song, type VoiceKey } from '../core/audio';
 import { GUESTS, guestLayers, type GuestDef } from '../core/guests';
 import { boing, burst, stars } from '../core/fx';
 import { tapMotion, type HandMotion } from '../core/hand';
-import { confetti, settle, sway } from '../core/juice';
+import { settle, sway } from '../core/juice';
 import { opaqueBounds } from '../core/placeholders';
 import { sfx } from '../core/sfx';
 import { TUNING } from '../core/tuning';
@@ -1348,15 +1349,18 @@ export class MarketScene extends MiniGame {
         },
       });
     }
-    this.time.delayedCall(1700, () => {
-      sfx(this, 'cheer-jingle');
-      music.party(true); // on until home
-      stars(this, b.x, b.y - 60 * L.k, 14, 70 * L.k);
-      confetti(this, this.stall.cx, L.Y(260), 22, 28 * L.k);
-      this.mom?.celebrate();
-      this.pipa?.cheer();
-      this.goodbye('vo-market-done');
-    });
+    // (the premium round: the ta-da on her full basket first, then the cheer and the goodbye)
+    this.time.delayedCall(1700, () =>
+      this.tada({ x: b.x, y: b.y - 60 * L.k }, {
+        target: b.front,
+        then: () => {
+          sfx(this, 'cheer-jingle');
+          stars(this, b.x, b.y - 60 * L.k, 14, 70 * L.k);
+          this.mom?.celebrate();
+          this.goodbye('vo-market-done');
+        },
+      }),
+    );
   }
 
   // ---------------------------------------------------------------- Mom's hand
@@ -1543,15 +1547,15 @@ export class MarketScene extends MiniGame {
         if (!heap) return;
         const coin = this.add.image(at.x, at.y - 30 * k, heap.big ? 'market-coin-big' : 'market-coin').setScale(this.coinS(heap.big) * 1.1).setDepth(600);
         boing(this, heap.coins[heap.coins.length - 1], 0.1);
-        sfx(this, 'tap', { volume: 0.7 });
+        sfx(this, 'paper-lift', { pitch: 'vary', volume: 0.7 });
         this.coinHeld = { img: coin, from: { x: at.x, y: at.y }, moved: 0, big: heap.big };
         this.own(p);
         return;
       }
       if (pay.purse && this.near(at, pay.purse, Math.max(130 * k, pay.purse.displayWidth / 2 + 20 * k))) {
         const coin = this.add.image(at.x, at.y - 40 * k, 'market-coin').setScale(pay.coinScale).setDepth(600);
-        boing(this, pay.purse, 0.08);
-        sfx(this, 'tap', { volume: 0.7 });
+        paperPress(this, pay.purse);
+        sfx(this, 'paper-lift', { pitch: 'vary', volume: 0.7 });
         this.coinHeld = { img: coin, from: { x: at.x, y: at.y }, moved: 0, big: false };
         this.own(p);
       }
@@ -1574,8 +1578,10 @@ export class MarketScene extends MiniGame {
       return;
     }
     const img = this.lift(c);
-    this.tweens.add({ targets: img, scale: c.scale * 1.12, duration: 120 });
-    sfx(this, 'tap', { volume: 0.7 });
+    // (the paper motion: picked up, it grows a little and tips; the paper sound)
+    img.setScale(c.scale);
+    paperRest(img);
+    paperLift(this, img);
     this.held = { crate: c, img, from: { x: at.x, y: at.y }, moved: 0 };
     this.own(p);
   }

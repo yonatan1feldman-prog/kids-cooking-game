@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { FX_SOFT, IMAGES } from '../core/assets';
 import { countKey, voice } from '../core/audio';
-import { boing, puff, stars } from '../core/fx';
+import { puff, stars } from '../core/fx';
 import type { HandMotion } from '../core/hand';
 import { sfx } from '../core/sfx';
 import type { CutterParams } from '../recipes/types';
@@ -126,16 +126,21 @@ export class CuttersStep extends Step<CutterParams> {
   private pick(c: Cutter, byHelp = false) {
     this.poke();
     if (!byHelp) this.hand.stop();
-    sfx(this.scene, 'pop', { volume: 0.7 });
-    boing(this.scene, c.img, 0.12);
-    if (this.picked === c) return;
+    sfx(this.scene, 'pop', { volume: 0.7, pitch: 'vary' });
+    if (this.picked === c) {
+      this.paperPress(c.img);
+      return;
+    }
     this.hit();
     const old = this.picked;
     this.picked = c;
+    // (the paper motion: the one picked before is put down, squashes and settles; the new one lifts, tipped)
     if (old) {
       this.scene.tweens.add({ targets: old.img, y: old.y, duration: 200, ease: 'Sine.easeOut' });
+      this.paperDrop(old.img, false);
       this.scene.tweens.add({ targets: old.glow, alpha: 0, duration: 200 });
     }
+    this.paperLift(c.img, 1);
     this.scene.tweens.add({ targets: c.img, y: c.y - LIFT * this.k, duration: 220, ease: 'Back.easeOut' });
     this.scene.tweens.add({ targets: c.glow, alpha: 0.8, duration: 220 });
     voice.say(c.def.name, { group: 'name', ttlMs: 2500 });
@@ -202,7 +207,8 @@ export class CuttersStep extends Step<CutterParams> {
     const cookie = new Phaser.GameObjects.Image(this.scene, x, y - 3 * this.ss, key).setScale(this.ss);
     cookie.setData({ slot: j, key });
     this.dish.cookies.add([cut, cookie]);
-    boing(this.scene, cookie, 0.08);
+    // (cut out: it lands on the sheet, the paper motion's squash and settle)
+    this.paperDrop(cookie, false);
   }
 
   /** Every slot has its cookie: they hop onto the tray (the same slots), the rest of the dough goes. */

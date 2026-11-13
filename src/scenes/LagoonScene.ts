@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { go } from '../core/transition';
 import { loadRecipeSounds, music, releaseSounds, voice } from '../core/audio';
 import { FX_SOFT, type ImageKey } from '../core/assets';
 import { stars } from '../core/fx';
@@ -224,7 +225,8 @@ export class LagoonScene extends Phaser.Scene {
         }
         going = true;
         this.shown.started = act.scene!;
-        this.scene.start(act.scene!, { from: 'lagoon' });
+        // (the premium round's paper page: the shell she tapped grows toward the middle as the page comes up)
+        go(this, act.scene!, { from: 'lagoon' }, { from: d.shell });
       });
     };
 
@@ -247,7 +249,7 @@ export class LagoonScene extends Phaser.Scene {
       going = true;
       hint?.stop();
       voice.stop();
-      this.scene.start('Title');
+      go(this, 'Title', undefined, { dir: 'down' });
     }, { confirm: true, scale: S.homeScale, hitPad: 30 }).setDepth(900);
 
     // Idle 5 s: Mom's hand taps one of the shells (a different one each time).

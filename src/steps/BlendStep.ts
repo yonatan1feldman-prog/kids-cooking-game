@@ -159,7 +159,8 @@ export class BlendStep extends Step<BlendParams> {
     if (on) {
       this.runLeft = this.params.tapMs;
       this.poke();
-      sfx(this.scene, 'tap', { volume: 0.5 });
+      sfx(this.scene, 'tap', { volume: 0.5, pitch: 'vary' });
+      this.paperPress(this.button);
     }
     if (this.phase === 'blend') this.button.setTexture(on || this.runLeft > 0 ? this.params.buttonOn : this.params.buttonOff);
   }

@@ -164,6 +164,8 @@ export type VoiceKey =
   | 'vo-find-number' | 'vo-follow-arrows'
   // the recipe challenges (PR A): soap first, the pour order, Mom's oven number, Mom's model, find the tool
   | 'vo-soap' | 'vo-pour-first' | 'vo-this-first' | 'vo-temp-set' | 'vo-like-mine' | 'vo-same-as-mine' | 'vo-find-servers' | 'vo-find-stick'
+  // the premium round (PR 4): the finale's "Ta-da! Look what you made!"
+  | 'vo-tada'
   | CountKey | TempKey | NameKey;
 
 /** Mom counting (count-1..10) and saying the oven temperature (temp-50..250). */

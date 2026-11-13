@@ -1,9 +1,9 @@
 import Phaser from 'phaser';
 import { go } from '../core/transition';
 import { music, voice } from '../core/audio';
-import { boing, stars } from '../core/fx';
+import { stepDone, tada } from '../core/finale';
 import { MomHandView } from '../core/hand';
-import { confetti, tickles, touchRipples } from '../core/juice';
+import { tickles, touchRipples } from '../core/juice';
 import { addBackground, art, getLayout, keepLayoutOnResize, ORIENTATION_PAUSE } from '../core/layout';
 import { sfx } from '../core/sfx';
 import { liveKitchen } from '../core/kitchen';
@@ -154,13 +154,27 @@ export class RecipeScene extends Phaser.Scene {
       return;
     }
     const { dish, layout, mom, character } = this.ctx;
-    sfx(this, 'pop');
-    stars(this, dish.x, dish.y, 10, 80 * layout.k);
-    confetti(this, dish.x, dish.y, 22, 48 * layout.k);
-    boing(this, this.ctx.board, 0.06);
+    const at = { x: dish.x, y: dish.y };
+    music.party();
+    // The premium round: the last thing before the photo is the ta-da (the camera leans in on what she made, the light
+    // passes over it, "Ta-da! Look what you made!"); then the photo as before.
+    if (this.steps[i + 1]?.type === 'photo') {
+      const run = this.ctx.run;
+      tada(this, at, {
+        L: layout,
+        mom,
+        pipa: character,
+        target: this.ctx.board.visible ? this.ctx.board : null,
+        valid: () => this.ctx.run === run,
+        then: () => this.ctx.run === run && this.runStep(i + 1),
+      });
+      return;
+    }
+    // A step's end: the dish itself answers (a boing, paper bits, a ring of light) with the next bell of the scale.
+    sfx(this, 'pop', { pitch: 'vary' });
+    stepDone(this, at, { k: layout.k, target: this.ctx.board.visible ? this.ctx.board : undefined, size: (2 * dish.R) / layout.k });
     // (after Mom's help it waits behind "Let me help you!" and the step line)
     voice.praise({ ttlMs: 6000 });
-    music.party();
     mom.cheer();
     character.cheer();
     this.time.delayedCall(800, () => this.runStep(i + 1));

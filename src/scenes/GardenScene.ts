@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { lift as paperLift, setRest as paperRest } from '../core/paper';
 import { ART, type ImageKey } from '../core/assets';
 import { countKey, music, voice, waterLoop, type NameKey, type VoiceKey } from '../core/audio';
 import { boing, burst, puff, stars } from '../core/fx';
@@ -8,6 +9,8 @@ import { getLayout, inNoTouchZone, keepLayoutOnResize, ORIENTATION_PAUSE, type L
 import { sfx } from '../core/sfx';
 import { getLevel } from '../core/level';
 import { getStage } from '../core/stage';
+import { tada } from '../core/finale';
+import { go } from '../core/transition';
 import { DEMO_MAX_MS, HELP_MAX_MS, helpAtMs, hintAfterMs, TUNING } from '../core/tuning';
 import { iconButton, otherPointerDown } from '../core/ui';
 import { RECIPES } from '../recipes';
@@ -364,7 +367,8 @@ export class GardenScene extends Phaser.Scene {
     this.leaving = true;
     waterLoop.stop();
     if (from === 'recipe') voice.stop();
-    this.scene.start('Home', { from });
+    // (the premium round's paper page: back home it slides down)
+    go(this, 'Home', { from }, { dir: 'down' });
   }
 
   private setPhase(p: Phase) {
@@ -1981,13 +1985,20 @@ export class GardenScene extends Phaser.Scene {
         },
       });
     }
+    // (the premium round: the ta-da on her basket first, then the cheer and the goodbye)
     this.time.delayedCall(1600, () => {
-      sfx(this, 'cheer-jingle');
       music.party(true); // on until home
+      tada(this, { x: b.x, y: b.y - 60 * L.k }, { L, mom: this.mom, pipa: this.pipa, target: b.front, valid: () => !this.leaving, then: () => this.cheerAndBye(b) });
+    });
+  }
+
+  /** After the ta-da: the cheer, "We grew it ourselves!" and "bye bye", then home. */
+  private cheerAndBye(b: Basket) {
+    const L = this.L;
+    {
+      sfx(this, 'cheer-jingle');
       stars(this, b.x, b.y - 60 * L.k, 14, 70 * L.k);
-      confetti(this, this.bed.x, L.Y(260), 22, 28 * L.k);
       this.mom?.celebrate();
-      this.pipa?.cheer();
       let gone = false;
       const bye = () => {
         if (gone) return;
@@ -1997,7 +2008,7 @@ export class GardenScene extends Phaser.Scene {
       };
       this.say('vo-garden-done', { ttlMs: 5000, done: bye });
       this.time.delayedCall(7000, bye);
-    });
+    }
   }
 
   // ---------------------------------------------------------------- Mom's hand: the demo, the hint, her help
@@ -2666,8 +2677,13 @@ export class GardenScene extends Phaser.Scene {
         if (!best) return;
         this.tweens.killTweensOf(best.img);
         best.img.setDepth(600);
-        sfx(this, 'pop', { volume: 0.6 });
-        if (!best.carrot) this.tweens.add({ targets: best.img, scale: best.scale * 1.15, duration: 120 });
+        sfx(this, 'pop', { volume: 0.6, pitch: 'vary' });
+        // (the paper motion: picked, it grows a little and tips)
+        if (!best.carrot) {
+          best.img.setScale(best.scale);
+          paperRest(best.img);
+          paperLift(this, best.img, { sound: false });
+        }
         this.held = { what: 'fruit', img: best.img, fruit: best, dx: best.img.x - at.x, dy: best.img.y - at.y, x0: at.y };
         this.owner = p;
         return;
@@ -2680,6 +2696,8 @@ export class GardenScene extends Phaser.Scene {
     this.owner = p;
     this.held = { what, img, dx, dy, x0: img.x };
     if (what !== 'cloud' && what !== 'rain') img.setDepth(600);
+    // (the paper sound of a thing picked up)
+    if (what === 'seed' || what === 'can' || what === 'leaf' || what === 'cater') sfx(this, 'paper-lift', { pitch: 'vary', volume: 0.6 });
   }
 
   private onMove(p: Phaser.Input.Pointer) {
