@@ -156,9 +156,12 @@ export class RecipeScene extends Phaser.Scene {
     const { dish, layout, mom, character } = this.ctx;
     const at = { x: dish.x, y: dish.y };
     music.party();
-    // The premium round: the last thing before the photo is the ta-da (the camera leans in on what she made, the light
-    // passes over it, "Ta-da! Look what you made!"); then the photo as before.
-    if (this.steps[i + 1]?.type === 'photo') {
+    // The premium round: the ta-da (the camera leans in on what she made, the light passes over it, "Ta-da! Look what
+    // you made!") comes when her dish is finished and still whole, right before it is shared (premium QA: before the
+    // photo the board is already empty, every piece eaten); a recipe without a share has it before the photo.
+    const next = this.steps[i + 1]?.type;
+    const shares = this.steps.some((s) => s.type === 'share');
+    if (next === 'share' || (next === 'photo' && !shares)) {
       const run = this.ctx.run;
       tada(this, at, {
         L: layout,

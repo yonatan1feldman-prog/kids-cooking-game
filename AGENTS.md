@@ -740,7 +740,9 @@ Spec `/mnt/project-files/research/premium-spec.md` (PR 4: sections 4.1, 4.2, 4.4
   kitchen) slides over once, 24 confetti, `tada` sfx, `vo-tada` "Ta-da! Look what you made!" (`line: false`: sound only),
   Mom and her friend cheer. `TADA` has the timings. `flyTo(scene, things, to, then)` shrinks pictures into a corner.
 - **Where:** RecipeScene `stepDone` (no stars at a step's end any more: `stepDone` on the dish/board), and before the
-  `photo` step a `tada` on the dish (the photo starts when the camera is back). PhotoStep: frame and photo `appear`, and
+  `share` step a `tada` on the finished dish, still whole (the share starts when the camera is back; premium QA moved it
+  from before the photo, where every piece had been eaten and the camera leaned in on an empty board; a recipe without
+  a share would still have it before the photo). PhotoStep: frame and photo `appear`, and
   after "bye bye" they fly to the home button's corner (`flyTo`) before home. MiniGame: `praise` uses `stepDone`;
   `this.tada(at, { target, line, then })`; market (basket), dishes (rack), garden (basket), farm (the cart, before its line
   and photo), clinic (the patients, before "Let's take a picture!"), art (the picture coming alive, sound only; its capture
@@ -751,9 +753,11 @@ Spec `/mnt/project-files/research/premium-spec.md` (PR 4: sections 4.1, 4.2, 4.4
   lagoon and HomeScene to the games / album (those files are PR 5's), Boot -> Title, ArtScene's own restart, the
   clinic's room fade. The harness: `__fullRun5` waits for the page (`__settle`) after the title tap.
 - **Sound:** `vo-tada` (Kokoro af_heart, `make_vo.py mom vo-tada`). Not heard by a human.
-- **Rotation mid page turn:** the next scene is then created while the screen is in portrait; `keepLayoutOnResize`
-  (relayout scenes: Title, Home, Lagoon) rebuilds it as soon as it runs again (it is still paused when the rotation
-  back is announced). Particles: `tada(..., { confetti })` lowers the 24 papers where a thing has its own sparkles.
+- **Rotation mid page turn (fixed in the round's QA):** the `Transition` scene is paused with every other scene and goes
+  on after the turn back, so the next scene is always created in landscape. (It used to end at once and start the next
+  scene while the screen was upright: a recipe, a game or the clinic, which keep their layout, were then laid out for
+  portrait and shown small after the turn back, camera zoom 0.34.) `keepLayoutOnResize`'s rebuild of a paused relayout
+  scene (Title, Home, Lagoon) stays as a safety net. Particles: `tada(..., { confetti })` lowers the 24 papers where a thing has its own sparkles.
 
 ### 00000000000000000000000000000000000000000000. The premium round, PR 3 (Mom and Pipa come alive)
 Spec `/mnt/project-files/research/premium-spec.md` sections 4.3 and 5 (PR 3). Tweens on existing layers only: no new texture,

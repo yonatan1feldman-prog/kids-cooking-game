@@ -390,7 +390,7 @@ export class SeaRide extends SeaGame {
       r.front.setTint(0xffffff);
       r.back.setTint(0xffffff);
       this.time.delayedCall(160, () => (r.front.setTint(RING_TINTS[i % RING_TINTS.length]), r.back.setTint(RING_TINTS[i % RING_TINTS.length])));
-      stars(this, r.at.x, r.at.y, 8, 40 * k);
+      stars(this, r.at.x, r.at.y, 5, 40 * k); // (5: with a pearl, Marina's cheer and her bubbles at once the swim stays under 40 particles; premium QA)
       if (!this.told.ring) (this.told.ring = true), this.say('vo-ride-ring', { ttlMs: 2500 });
     });
     for (const q of this.pearls) {
@@ -419,7 +419,7 @@ export class SeaRide extends SeaGame {
     sfx(this, 'pearl-plink', { rate: 1 + (n - 1) * 0.06, vary: false });
     const b = this.rider.box;
     this.tweens.add({ targets: q.img, x: b.x, y: b.y + 20 * this.L.k, scale: 0.2 * this.L.k, duration: 360, ease: 'Quad.easeIn', onComplete: () => q.img.setVisible(false) });
-    burst(this, q.at.x, q.at.y, { texture: 'fx-sparkle', count: 5, tint: [0xffffff, 0xffe7ec], size: 26 * this.L.k, speed: 240, gravityY: -60, lifespan: 500, depth: 60 });
+    burst(this, q.at.x, q.at.y, { texture: 'fx-sparkle', count: 3, tint: [0xffffff, 0xffe7ec], size: 26 * this.L.k, speed: 240, gravityY: -60, lifespan: 500, depth: 60 });
     voice.say(countKey(n), { group: 'count', ttlMs: 2500, valid: () => this.scene.isActive() && !this.leaving });
     this.rider.cheer();
   }
