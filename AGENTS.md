@@ -677,8 +677,8 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the premium round PR 5 (home shelves, her photos on the cards, Pipa's idea, secrets), the premium round PR 1 (cut WebPs, paper motion, scene changes, UI sounds), the mermaid world PR 4 (the shell song), the mermaid world PR 3 (cleaning, shells), the mermaid world PR 2 (the tail, the swim), the mermaid world PR 1 (the lagoon), the clinic-open fix, the clinic round 6 (part 3, four patients), the clinic round 6 (part 2, seven ailments), the clinic round 6 (part 1, the bowl), the clinic round 5 (part 3, more challenge), the clinic round 5 (part 2, the care rooms), the farm, the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
-### 0000000000000000000000000000000000000000000. The premium round, PR 5 (the home shelves, her own dish on the cards, Pipa's idea, secrets)
+## Handoff notes (written for the next agent; the premium round PR 5 (home shelves, her photos on the cards, Pipa's idea, secrets), the premium round PR 3 (living characters), the premium round PR 2 (light and depth), the premium round PR 1 (cut WebPs, paper motion, scene changes, UI sounds), the mermaid world PR 4 (the shell song), the mermaid world PR 3 (cleaning, shells), the mermaid world PR 2 (the tail, the swim), the mermaid world PR 1 (the lagoon), the clinic-open fix, the clinic round 6 (part 3, four patients), the clinic round 6 (part 2, seven ailments), the clinic round 6 (part 1, the bowl), the clinic round 5 (part 3, more challenge), the clinic round 5 (part 2, the care rooms), the farm, the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 000000000000000000000000000000000000000000000. The premium round, PR 5 (the home shelves, her own dish on the cards, Pipa's idea, secrets)
 Spec `/mnt/project-files/research/premium-spec.md` 4.5 and PR 5. What she sees: the home screen is two wooden shelves (three
 on 4:3) with bigger cards; a card she has a photo of shows her dish; Pipa has an idea when she comes from the title; every
 world has two small secrets; the smoothie takes the colour of the fruit she chose.
@@ -714,6 +714,71 @@ world has two small secrets; the smoothie takes the colour of the fruit she chos
   are the whirling bits; the drawn smoothie (`blend-stage-*`, `glass-full`, also in the glasses she pours and shares, by
   an `ADDED_TO_SCENE` listener) gets a multiply tint toward that mix (only darkening, part of the way).
 - Budgets measured: GPU on the title/home 40.2 MB (master 39.6; + up to ~1.6 MB with photos on 8 cards), precache +0.13 MB.
+
+### 00000000000000000000000000000000000000000000. The premium round, PR 3 (Mom and Pipa come alive)
+Spec `/mnt/project-files/research/premium-spec.md` sections 4.3 and 5 (PR 3). Tweens on existing layers only: no new texture,
+`__gpuMB` unchanged (title 39.7, pizza 84.3 on master 56230e3).
+- **Mom's head (`steps/Mom.ts`):** her head layers (`mom-head`, the hair, the nurse's cap or the mermaid's crown, eyes, mouth;
+  `this.head`) hang from the base of her neck (`NECK` (500, 420) of the 800 frame is their origin), so they tilt and nod
+  together while her body stays still. **Not a Container inside her container** (tried first: see the renderer pitfall
+  below; plain images also keep `SeaTail`'s `box.addAt(…, 1|2)` indices). `hd` {tilt, nod, dy} is tweened and composed every
+  frame in `updateHead` with the talking bob: while a line plays the head rises `HEAD_BOB` (5 frame units) x loudness; at the
+  start of a line (not count/temp/name) it tilts `TALK_TILT` 2.5 deg toward the side of the child's last finger, back after
+  TALK_HOLD_MS of quiet. `surprised()` startles once (head back 3 deg and up 8, body scaleY 1.03, 180 ms). `cheer()` is now
+  `bounce()` (squash .97/1.03, stretch 1.04, settle) + a head tilt of 4 deg to the waving side, or 2 nods with the claps.
+  `tickle()` tilts the head and says `vo-laugh` ("Ha ha ha!", 0.93 s, only when she is not already speaking). `celebrate()`
+  sways the head. After a finger held >= 150 ms lifts (something put down) her eyes glance 600 ms at the dish (Recipe) or
+  where it was let go. Public: `nod(times)`, `tilt(deg)`. The mermaid's back hair stays on her body.
+- **Pipa (`steps/Character.ts`, also guests, patients, Marina, farm animals):** `hop(height)` = squash .9/1.1 (80 ms),
+  stretch 1.08/.94 up, land squash + 2 paper bits, Back.easeOut. `cheer()` = a 60-unit hop with a ±4 deg sway in the air.
+  `partyDance(spin)` = three 177-unit hops; `spin` turns her once on the middle one: FeedStep (big Pipa) passes true,
+  PhotoStep false (beside Mom's face and the photo); setMood('party') itself no longer moves her (CandlesStep stays still).
+  `tickle()` adds two little stars over her head.
+- **Pipa's size (`core/stage.ts`):** `PET_PHONE` 0.46 where the screen has the room (20:9); she grows up and to the right
+  only, her opaque left edge stays where 0.4 put it, so the work area, photo, prep bowl, cards and title keep their room
+  (`__auditRun5` on 8 recipes at 20:9 = master's list). 16:9 stays gap-limited (0.362), 4:3 has no small Pipa. The lagoon's
+  round room for Marina keeps the 0.4 size (`petRefScale`).
+- **Demo hand (`core/hand.ts`):** comes in from 0.85 with a slight overshoot (`appear` of the paper language), every loop.
+- **Renderer pitfall (cloud only):** in the cloud's software WebGL (SwiftShader), a turned image in a batch of several
+  textures draws with holes (blocks of the layer missing, what is behind shows), at random. Phaser's shader picks the texture
+  with `outTexDatum == float(i)` and the interpolated value is not exact there. Master shows it too (Mom's lean). It is not
+  in the game; for screenshots of anything turned, run Chromium with MAX_TEXTURE_IMAGE_UNITS reported as 1 (an init script
+  overriding `getParameter(0x8872)`), which makes Phaser use one texture per batch.
+- Not checked by a human: how much the head moves on the phone (`HEAD_BOB`, `TALK_TILT`), the laugh, the hops' feel.
+
+### 0000000000000000000000000000000000000000000. The premium round, PR 2 (light and depth)
+Spec `/mnt/project-files/research/premium-spec.md` (sections 2, 3, PR 2). Nothing new to touch; every world looks lit and deep.
+- **Light (`core/scenery.ts` `addLight(scene, L, { from })`):** `'window' | 'sun' | 'water' | 'lamp'`. One vignette (`fx-vignette`
+  stretched over the screen, tinted ink, alpha 0.15-0.2, its clear middle moved toward the upper left where the light is)
+  and, outside the kitchen (it has its sunbeam), one wide soft glow (`fx-glow`, new in `makeFxTextures` and `FX_KEYS`,
+  SCREEN). Depth `LIGHT_DEPTH` -96: over the background, its pieces and the sunbeam, under everything else. Static.
+- **Front (`addForeground(scene, L, world)`):** one or two big pieces per world (`fg-lemons` + `fg-napkin` kitchen,
+  `fg-leaves` garden (both corners), `fg-basket` market, `fg-fence` farm, `fg-desk` clinic waiting room; the lagoon's
+  coral already is its front; `fg-lemons` only 16:9 and wider, `wide`), tinted a little darker, depth `FOREGROUND_DEPTH` 890 (over Mom and anything carried,
+  under the home button and the scene-change page), each image carries `getData('foreground')`. They are cut by the
+  screen's bottom edge; what shows above the palm strip stays in the corners. Not tappable.
+- **The kitchen** gets all of it through `addBackground` (layout.ts) -> `dressKitchen`: the light on every kitchen
+  screen; with a `recipeId` the kitchen's front too, and in a recipe the oilcloth `counter-cloth` (1300x420) at
+  `stage.cloth` under the board (depth -2). Washing up ('dishes'): the front only. The other worlds call it in one line
+  right after their background (Garden, Market, Farm, Clinic `build`, Lagoon, SeaGame `water`).
+- **Assets:** `core/dressingAssets.ts` (sizes, and which world loads which; assets.ts spreads it into `IMAGES` and adds
+  them to `RECIPE_ASSETS` in one block after the mermaid entry). Nothing is core: each loads with its world.
+  Art: `assets-src/images-b/tools/gen_dressing.py` -> `images-b/dressing/`.
+- **Calmer backgrounds:** `assets-src/images-b/tools/premium_bg.py` `calm()`: the background's paper grain at 60% (same
+  seed), the picture lifted 5% (feComponentTransfer), the old greyish sky top `#9FCBE0` -> `#8DCAEE` (farm, market,
+  garden). Every background generator returns `calm(...)` (clinic x3, farm, garden, market, lagoon). The kitchen keeps its
+  wall exactly (its tappable pieces are cut from it by gen_kitchen_live.py): only its counter has the quieter paper and
+  the lift, its wood grain at 60%, a light that grows toward the front edge (instead of the old darkening) and a light
+  band on the front row. Regenerate one background without touching the other files of its generator: call its `bg_*`
+  function and write that SVG only (the generators' `main` rewrites everything).
+- **Not done (decided):** the spec's mise-en-place on the counter's left: every step uses that column (bins, the pizza
+  aside, ingredients up to the backsplash), so static look-alikes there would collide and invite taps that do nothing.
+- **Harness:** `__fgBoxes(scene)` (the opaque box of each foreground piece, from its cut WebP), `__fgCheck('Garden')`
+  (foreground vs every interactive object and the strips), and `__audit` reports `foreground <key> over <item>`.
+- **Harness note:** since PR 1, `__audit`'s `box()` reads a cut WebP's source (only the cut box) as if it were the whole
+  frame, so it reports `cut: mom [...]` / `overlap: mom / <item>` on master too (checked 2026-11-13); not a layout change.
+- Measured (cloud, `__gpuMB`): recipe +2.8 MB (the cloth 2.2), the other worlds +0.5 at most, title/home/lagoon unchanged;
+  precache 30.2 -> 29.7 MB (the calmer backgrounds bake smaller). Before/after: research/screens-premium/pr2/.
 
 ### 000000000000000000000000000000000000000000. The premium round, PR 1 (cut WebPs, the paper motion language, scene changes, UI sounds)
 Spec `/mnt/project-files/research/premium-spec.md` (PR 1, sections 3, 4.1, 4.2). Infrastructure for PRs 2-5; it changes

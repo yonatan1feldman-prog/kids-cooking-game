@@ -6,7 +6,7 @@ import { screenHint } from '../core/hand';
 import { tickles, touchRipples } from '../core/juice';
 import { getLayout, inNoTouchZone, keepLayoutOnResize } from '../core/layout';
 import { ensurePlaceholders } from '../core/placeholders';
-import { seaLife } from '../core/scenery';
+import { addLight, seaLife } from '../core/scenery';
 import { SEA_ACTIVITY, SEA_DOORS, SEA_LAGOON, type SeaDoor } from '../core/seaAssets';
 import { sfx } from '../core/sfx';
 import { getStage } from '../core/stage';
@@ -91,6 +91,7 @@ export class LagoonScene extends Phaser.Scene {
     this.add.image(L.cx, L.H, 'bg-lagoon').setOrigin(0.5, 1).setScale(Math.max(1, L.W / 2400)).setDepth(-100);
     addSecrets(this, 'mermaid'); // premium round: the world's two secrets (core/secrets.ts)
     seaLife(this, L, lg.seaweed);
+    addLight(this, L, { from: 'water' }); // (premium PR 2: the light from the surface; the coral is its front)
     // mermaid PR 2: after the swim with Marina the chest stays open, pearls shining in it
     const pearls = !!readMark<boolean>('pearls');
     const chest = this.add.image(lg.chest.x, lg.chest.y, pearls ? 'chest-open' : 'chest-closed').setScale(lg.chest.scale).setDepth(-70);

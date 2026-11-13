@@ -11,6 +11,7 @@ import { TUNING } from '../core/tuning';
 import { Guest } from '../steps/Guest';
 import { loadImages } from './BootScene';
 import { MiniGame, type P } from './MiniGame';
+import { addForeground, addLight } from '../core/scenery';
 import { addSecrets } from '../core/secrets';
 
 const T = TUNING.market;
@@ -220,6 +221,7 @@ export class MarketScene extends MiniGame {
     this.cameras.main.setBackgroundColor('#cfe6ec');
     const bg = this.add.image(L.cx, L.H, 'bg-market').setOrigin(0.5, 1).setDepth(-100);
     bg.setScale(Math.max(L.H / bg.frame.realHeight, L.W / bg.frame.realWidth));
+    addLight(this, L, { from: 'sun' }); addForeground(this, L, 'market'); // (premium PR 2: the sun's light, a basket in front)
     addSecrets(this, 'market'); // premium round: the world's two secrets (core/secrets.ts)
 
     // The room: from the thumb strip to Pipa (or Mom's face). The basket on the left, the stall on the right.

@@ -222,6 +222,11 @@ export interface Stage {
    * and left of Mom's face and Pipa, from just under the top edge down to above the palm strip.
    */
   albumArea: Box;
+  /**
+   * The premium round, PR 2 (light and depth): the oilcloth lying under the recipe's work area (counter-cloth,
+   * 1300x420), its centre and scale: under the board's lower half, its front edge just above the counter's front edge.
+   */
+  cloth: Spot;
 }
 
 /** Native sizes the layout reasons about (opaque extents of the art, in world units at k = 1). */
@@ -232,6 +237,9 @@ const OVEN_W = 636; // oven (opaque x 34-664 of its 700 frame, centred at 350: 2
 const LEFT_W = 480; // left column: two bin columns
 const GAP = 25;
 const BIN_TEX = 240; // topping-bin viewBox
+/** The oilcloth under the work area (counter-cloth, premium PR 2) and the y of its front edge (the counter's is 994). */
+const CLOTH = { w: 1300, h: 420 };
+const CLOTH_FRONT = 984;
 const BIN_REACH = 30; // a bin's touch area reaches this far beyond its drawing (DecorateStep)
 const POT_W = 1000; // pot-back / pot-front frame (round 9, README-soup.md)
 const POT_H = 760;
@@ -256,6 +264,8 @@ const PET_OPAQUE_X0 = 30;
 const PET_OPAQUE_X1 = 574;
 const PET_OPAQUE_Y0 = 44;
 const PET_SMALL = 0.4;
+/** The premium round: on the phone (20:9) she sits a little bigger, 0.46, where the gap beside Mom allows it. */
+const PET_PHONE = 0.46;
 const PET_BIG = 0.62;
 const DOUGH_R = 336; // the pizza's opaque radius on the board (dough-flat opaque x 22-694)
 // A guest (600x700 frame like Pipa's; the widest, the turtle's shell, is opaque over about 484 of it) at most 0.75, a little bigger than Pipa at the board (she stands further back).
@@ -346,6 +356,8 @@ export function getStage(L: Layout): Stage {
   // Pipa small: on the counter between the pizza and Mom, feet at Y(984) (just above the palm strip).
   // Her opaque box stays clear of the pizza and of Mom's face; where that gap is narrow (16:9) she is smaller.
   let pet: Spot | null = null;
+  // (her size before the premium round: the lagoon's round room for Marina keeps that size)
+  let petRefScale = PET_SMALL * k;
   if (W >= PET_MIN_W) {
     const place = (ps: number) => {
       const top = Y(984) - PET_FOOT * ps;
@@ -356,11 +368,27 @@ export function getStage(L: Layout): Stage {
     let p = place(PET_SMALL * k);
     const need = (PET_OPAQUE_X1 - PET_OPAQUE_X0) * p.ps;
     if (p.right - p.left < need) p = place(Math.max(0.25 * k, (p.right - p.left) / (PET_OPAQUE_X1 - PET_OPAQUE_X0)));
+    petRefScale = p.ps;
     // Preferred: centred in the gap between the board and Mom's body (the art agent's placement), then kept in bounds.
     const bodyLeft = mom.x - MOM_BODY_HALF * s;
+    const opaqueX0 = (q: typeof p) => {
+      const x0 = (boardRight + bodyLeft) / 2 - (PET_W * q.ps) / 2 + PET_OPAQUE_X0 * q.ps;
+      return Math.min(Math.max(x0, q.left), q.right - (PET_OPAQUE_X1 - PET_OPAQUE_X0) * q.ps);
+    };
+    let x0 = opaqueX0(p);
+    if (p.ps >= PET_SMALL * k) {
+      // (the premium round: as big as the room up to Mom's face allows, up to PET_PHONE, growing up and to the right only:
+      // her left edge stays where it was, so the work area, the photo and the prep bowl keep their room)
+      const big = place(PET_PHONE * k);
+      const fit = Math.min(PET_PHONE * k, (big.right - Math.max(big.left, x0)) / (PET_OPAQUE_X1 - PET_OPAQUE_X0));
+      const q = place(fit);
+      const qx0 = Math.max(x0, q.left);
+      if (fit > p.ps && qx0 + (PET_OPAQUE_X1 - PET_OPAQUE_X0) * fit <= q.right) {
+        p = q;
+        x0 = qx0;
+      }
+    }
     const pw = PET_W * p.ps;
-    let x0 = (boardRight + bodyLeft) / 2 - pw / 2 + PET_OPAQUE_X0 * p.ps;
-    x0 = Math.min(Math.max(x0, p.left), p.right - (PET_OPAQUE_X1 - PET_OPAQUE_X0) * p.ps);
     const frameLeft = x0 - PET_OPAQUE_X0 * p.ps;
     pet = { x: frameLeft + pw / 2, y: p.top + (PET_H / 2) * p.ps, scale: p.ps };
   }
@@ -596,7 +624,7 @@ export function getStage(L: Layout): Stage {
   }
   const iconScale = doorScale;
   const iconOver = (DOOR.h / 2) * doorScale + pictureH * (doorScale / k) - (ICON / 2) * iconScale;
-  const bubbleScale = pet ? pet.scale / PET_SMALL : 0;
+  const bubbleScale = pet ? petRefScale / PET_SMALL : 0;
   // (at 4:3 in the open water right of the back row of doors)
   const backRight = doorAt(2).x + (DOOR.w / 2) * doorScale;
   const room = pet
@@ -697,5 +725,6 @@ export function getStage(L: Layout): Stage {
     lidRest: { x: (pourRest.x + bowlLeft) / 2 + 40 * k, y: Y(930) },
     // (three spots side by side under the pizza, 140 apart: bins 108 wide; a fourth (the salad's) in a row above them)
     binWait: (i) => (prepWide ? { x: sideX + ((i % 3) - 1) * 140 * k, y: Y(895) - Math.floor(i / 3) * 150 * k, scale: 0.45 * k } : null),
+    cloth: { x: dishHome.x, y: Y(CLOTH_FRONT - CLOTH.h / 2), scale: k },
   };
 }

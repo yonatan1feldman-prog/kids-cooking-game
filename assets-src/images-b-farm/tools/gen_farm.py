@@ -50,6 +50,8 @@ HEN = {"white": dict(body="#FFF8EE", d="#E6DACA", l="#FFFFFF", wing="#F1E6D6"),
 COMB = "#E2483A"; COMB_D = "#B8302A"; BEAK = "#F4A23C"; BEAK_D = "#D87F22"
 
 
+from premium_bg import calm, SKY_SWAP  # noqa: E402,F401  (premium PR 2)
+
 def wr(x, y, w, h, rad, j=1.5, seed=1, step=40):
     return pb.wrect(x, y, w, h, rad, j, seed, step)
 
@@ -743,7 +745,7 @@ def bg_farm():
         fl += "".join(C(x + math.cos(a) * 8, y + math.sin(a) * 8, 6, col) for a in [k * 1.2566 for k in range(5)]) + C(x, y, 5, MUSTARD)
     L.append(G(fl, p + "sh"))
     defs = std_defs(p, "bg", seed=73, sh=(3, 3, .16), sh2=(4, 4, .18), blur=4) + grad
-    return svg(2400, 1080, defs, G("".join(L), p + "gr"))
+    return calm(svg(2400, 1080, defs, G("".join(L), p + "gr")), p, swap=SKY_SWAP)  # (premium PR 2: calmer, brighter: images-b/tools/premium_bg.py)
 
 
 PUDDLE = (980, 900)   # in the 2400x1080 background

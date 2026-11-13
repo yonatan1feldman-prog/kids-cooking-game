@@ -192,9 +192,8 @@ export class PhotoStep extends Step<PhotoParams> {
     const pet = this.ctx.character;
     pet.setMood('party');
     const k = this.k;
-    const hop = 110 * k * (pet.scale / (0.62 * k));
-    // Happy hops (no sway: beside Mom's face and the photo there is no room for it).
-    this.scene.tweens.add({ targets: pet.box, y: pet.rest.y - hop, duration: 260, yoyo: true, repeat: 5, ease: 'Quad.easeOut' });
+    // Happy hops (no turn and no sway: beside Mom's face and the photo there is no room for it).
+    pet.partyDance();
     if (this.frame) boing(this.scene, this.frame, 0.06);
     const bye = () =>
       !this.aborted &&

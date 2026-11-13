@@ -12,6 +12,7 @@ import type { Spot } from '../core/stage';
 import type { CharacterDef } from '../recipes/types';
 import { Character } from '../steps/Character';
 import { MiniGame, nearestIn, type P } from './MiniGame';
+import { addForeground, addLight } from '../core/scenery';
 import { addSecrets } from '../core/secrets';
 
 /** The animals' frame (800x700, feet at y 684, facing left). */
@@ -226,6 +227,7 @@ export class FarmScene extends MiniGame {
     const k = L.k;
     const bg = Math.max(1, L.W / 2400);
     this.add.image(L.W / 2, L.H, 'bg-farm').setOrigin(0.5, 1).setScale(bg).setDepth(-100);
+    addLight(this, L, { from: 'sun' }); addForeground(this, L, 'farm'); // (premium PR 2: the sun's light, a fence post in front)
     addSecrets(this, 'farm'); // premium round: the world's two secrets (core/secrets.ts)
     // the fence across the whole farm, its foot on the grass: the animals peek over it
     const fenceFoot = L.H - (1080 - 880) * bg;

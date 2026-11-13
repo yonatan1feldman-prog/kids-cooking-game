@@ -55,6 +55,8 @@ export type VoiceKey =
   | 'vo-pick-pizza' | 'vo-watch-me' | 'vo-your-turn' | 'vo-roll' | 'vo-sauce' | 'vo-cheese' | 'vo-toppings'
   | 'vo-done-hint' | 'vo-oven' | 'vo-baking' | 'vo-ready' | 'vo-feed' | 'vo-help' | 'vo-finale' | 'vo-bye'
   | 'vo-praise-1' | 'vo-praise-2' | 'vo-praise-3' | 'vo-praise-4' | 'vo-praise-5' | 'vo-praise-6' | 'vo-praise-7'
+  // the premium round, PR 3: Mom's short laugh when she is tickled
+  | 'vo-laugh'
   | 'vo-hello' | 'vo-what-make' | 'vo-wash' | 'vo-wash-rub' | 'vo-wash-done' | 'vo-knead' | 'vo-crush' | 'vo-stir' | 'vo-grate'
   // part B (round 5)
   | 'vo-choose' | 'vo-cut' | 'vo-cut-careful' | 'vo-open-can' | 'vo-open-jar' | 'vo-pour' | 'vo-temp' | 'vo-temp-more'
