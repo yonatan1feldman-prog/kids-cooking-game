@@ -208,11 +208,12 @@ export class PhotoStep extends Step<PhotoParams> {
     if (f) {
       const pop = () => {
         if (this.aborted) return;
-        confetti(this.scene, f.x0 + (f.x1 - f.x0) * 0.1, f.y0, 22, 34 * k);
-        confetti(this.scene, f.x0 + (f.x1 - f.x0) * 0.9, f.y0, 22, 34 * k);
+        // (12 a corner: with the premium round's particle budget, at most 40 alive on a phone)
+        confetti(this.scene, f.x0 + (f.x1 - f.x0) * 0.1, f.y0, 12, 34 * k);
+        confetti(this.scene, f.x0 + (f.x1 - f.x0) * 0.9, f.y0, 12, 34 * k);
       };
       pop();
-      this.scene.time.delayedCall(1300, pop);
+      this.scene.time.delayedCall(1650, pop);
     }
   }
 

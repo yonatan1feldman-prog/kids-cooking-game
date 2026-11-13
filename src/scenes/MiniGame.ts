@@ -206,9 +206,9 @@ export abstract class MiniGame extends Phaser.Scene {
    * "Ta-da! Look what you made!" (`line` false: only the sound, when the game's own line says it); `then` once the
    * camera is back.
    */
-  protected tada(at: P, opts: { target?: Phaser.GameObjects.Image | Phaser.GameObjects.Container | null; line?: boolean; then?: () => void } = {}) {
+  protected tada(at: P, opts: { target?: Phaser.GameObjects.Image | Phaser.GameObjects.Container | null; line?: boolean; confetti?: number; then?: () => void } = {}) {
     music.party(true);
-    tada(this, at, { L: this.L, mom: this.mom, pipa: this.pipa, target: opts.target, line: opts.line, valid: () => !this.leaving, then: opts.then });
+    tada(this, at, { L: this.L, mom: this.mom, pipa: this.pipa, target: opts.target, line: opts.line, confetti: opts.confetti, valid: () => !this.leaving, then: opts.then });
   }
 
   protected setPhase(p: string) {

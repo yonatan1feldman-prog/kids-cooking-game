@@ -134,7 +134,7 @@ export abstract class SeaGame extends MiniGame {
    */
   protected seaPhoto(id: string, area: { x: number; y: number; w: number; h: number }, at: { x: number; y: number }, then: (photo: Phaser.GameObjects.Container) => void) {
     // (the premium round: first the ta-da on what she made, the camera back where it rests; then the photo)
-    this.tada({ x: area.x + area.w / 2, y: area.y + area.h / 2 }, { then: () => this.snapSea(id, area, at, then) });
+    this.tada({ x: area.x + area.w / 2, y: area.y + area.h / 2 }, { confetti: 18, then: () => this.snapSea(id, area, at, then) });
   }
 
   private snapSea(id: string, area: { x: number; y: number; w: number; h: number }, at: { x: number; y: number }, then: (photo: Phaser.GameObjects.Container) => void) {

@@ -70,12 +70,25 @@ export function art<T extends Phaser.GameObjects.Image>(img: T, layout: Layout, 
  * the new size instead, once the screen is landscape again.
  */
 export function keepLayoutOnResize(scene: Phaser.Scene, layout: Layout, opts: { relayout?: boolean; canRelayout?: () => boolean } = {}) {
+  let waiting = false;
   const onResize = () => {
     const { width, height } = scene.scale;
     // (`canRelayout` false: the scene is on its way out, e.g. the play tap's fullscreen resize; just zoom.)
     if (opts.relayout && (opts.canRelayout?.() ?? true)) {
       if (height > width || (Math.abs(width - layout.W) < 2 && Math.abs(height - layout.H) < 2)) return;
-      queueMicrotask(() => scene.scene.isActive() && scene.scene.restart());
+      // (a scene created while the screen was in portrait, e.g. the next scene of a page turn cut short by a rotation, is
+      // still paused when the rotation back is announced: it is rebuilt as soon as it runs again)
+      queueMicrotask(() => {
+        if (scene.scene.isActive()) scene.scene.restart();
+        else if (scene.scene.isPaused() && !waiting) {
+          waiting = true;
+          scene.events.once(Phaser.Scenes.Events.RESUME, () => {
+            waiting = false;
+            const { width: w, height: h } = scene.scale;
+            if (h <= w && (Math.abs(w - layout.W) >= 2 || Math.abs(h - layout.H) >= 2)) scene.scene.restart();
+          });
+        }
+      });
       return;
     }
     const cam = scene.cameras.main;

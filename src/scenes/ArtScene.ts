@@ -1700,14 +1700,11 @@ export class ArtScene extends MiniGame {
     this.doneBtn = undefined;
     // the party layer until the easel wall comes back (its music.play('art') calms it)
     music.party(true);
-    const L = this.L;
-    const k = L.k;
     const mid = { x: this.sheet.x + this.sheet.w / 2, y: this.sheet.y + this.sheet.h / 2 };
     // (the premium round: the ta-da on her picture as it comes alive: the camera leans in, the light passes, confetti;
     // Mom's own lines for the picture follow, so only the warm sound here, not "Ta-da! Look what you made!")
-    this.tada(mid, { line: false });
+    this.tada(mid, { line: false, confetti: 12 });
     sfx(this, 'cheer-jingle');
-    stars(this, mid.x, mid.y, 14, 70 * k);
     this.mom?.happy();
     this.pipa?.hideWish();
     const kind = this.kind!;
@@ -1811,7 +1808,7 @@ export class ArtScene extends MiniGame {
         break;
       case 'twinkle': {
         tw({ scale: 1.1, angle: 8, duration: ms / 6, yoyo: true, repeat: 1, ease: 'Sine.easeInOut', onComplete: () => img.setAngle(0) });
-        for (let i = 0; i < 3; i++) this.time.delayedCall(i * 420, () => stars(this, this.sheet.x + img.x, this.sheet.y + img.y, 6, 40 * k));
+        for (let i = 0; i < 3; i++) this.time.delayedCall(i * 420, () => stars(this, this.sheet.x + img.x, this.sheet.y + img.y, 4, 40 * k));
         break;
       }
       case 'swim': {

@@ -67,6 +67,8 @@ export interface TadaOpts {
   pipa?: { cheer(): void } | null;
   /** What she made, if it is one thing: it boings when the light passes. */
   target?: Boingable | null;
+  /** How many confetti papers (default 24; fewer where the thing has its own sparkles, as a picture coming alive). */
+  confetti?: number;
   /** Say "Ta-da! Look what you made!" (default true). */
   line?: boolean;
   /** Still the same visit (not left by the home button meanwhile). */
@@ -131,7 +133,7 @@ export function tada(scene: Phaser.Scene, at: P, o: TadaOpts) {
     scene.tweens.add({ targets: ring, scale: s, alpha: 0, duration: 900, ease: 'Quad.easeOut', onComplete: () => ring.destroy() });
   }
   if (o.target?.active) scene.time.delayedCall(450, () => o.target?.active && boing(scene, o.target, 0.1));
-  confetti(scene, at.x, at.y - 60 * k, 24, 30 * k);
+  confetti(scene, at.x, at.y - 60 * k, o.confetti ?? 24, 30 * k);
   o.mom?.cheer();
   o.pipa?.cheer();
   return { end };
