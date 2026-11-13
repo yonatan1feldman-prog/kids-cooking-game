@@ -740,7 +740,9 @@ Spec `/mnt/project-files/research/premium-spec.md` (PR 4: sections 4.1, 4.2, 4.4
   kitchen) slides over once, 24 confetti, `tada` sfx, `vo-tada` "Ta-da! Look what you made!" (`line: false`: sound only),
   Mom and her friend cheer. `TADA` has the timings. `flyTo(scene, things, to, then)` shrinks pictures into a corner.
 - **Where:** RecipeScene `stepDone` (no stars at a step's end any more: `stepDone` on the dish/board), and before the
-  `photo` step a `tada` on the dish (the photo starts when the camera is back). PhotoStep: frame and photo `appear`, and
+  `share` step a `tada` on the finished dish, still whole (the share starts when the camera is back; premium QA moved it
+  from before the photo, where every piece had been eaten and the camera leaned in on an empty board; a recipe without
+  a share would still have it before the photo). PhotoStep: frame and photo `appear`, and
   after "bye bye" they fly to the home button's corner (`flyTo`) before home. MiniGame: `praise` uses `stepDone`;
   `this.tada(at, { target, line, then })`; market (basket), dishes (rack), garden (basket), farm (the cart, before its line
   and photo), clinic (the patients, before "Let's take a picture!"), art (the picture coming alive, sound only; its capture
