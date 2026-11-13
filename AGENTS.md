@@ -677,7 +677,38 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the premium round PR 2 (light and depth), the premium round PR 1 (cut WebPs, paper motion, scene changes, UI sounds), the mermaid world PR 4 (the shell song), the mermaid world PR 3 (cleaning, shells), the mermaid world PR 2 (the tail, the swim), the mermaid world PR 1 (the lagoon), the clinic-open fix, the clinic round 6 (part 3, four patients), the clinic round 6 (part 2, seven ailments), the clinic round 6 (part 1, the bowl), the clinic round 5 (part 3, more challenge), the clinic round 5 (part 2, the care rooms), the farm, the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; the premium round PR 3 (living characters), the premium round PR 2 (light and depth), the premium round PR 1 (cut WebPs, paper motion, scene changes, UI sounds), the mermaid world PR 4 (the shell song), the mermaid world PR 3 (cleaning, shells), the mermaid world PR 2 (the tail, the swim), the mermaid world PR 1 (the lagoon), the clinic-open fix, the clinic round 6 (part 3, four patients), the clinic round 6 (part 2, seven ailments), the clinic round 6 (part 1, the bowl), the clinic round 5 (part 3, more challenge), the clinic round 5 (part 2, the care rooms), the farm, the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 00000000000000000000000000000000000000000000. The premium round, PR 3 (Mom and Pipa come alive)
+Spec `/mnt/project-files/research/premium-spec.md` sections 4.3 and 5 (PR 3). Tweens on existing layers only: no new texture,
+`__gpuMB` unchanged (title 39.7, pizza 84.3 on master 56230e3).
+- **Mom's head (`steps/Mom.ts`):** her head layers (`mom-head`, the hair, the nurse's cap or the mermaid's crown, eyes, mouth;
+  `this.head`) hang from the base of her neck (`NECK` (500, 420) of the 800 frame is their origin), so they tilt and nod
+  together while her body stays still. **Not a Container inside her container** (tried first: see the renderer pitfall
+  below; plain images also keep `SeaTail`'s `box.addAt(…, 1|2)` indices). `hd` {tilt, nod, dy} is tweened and composed every
+  frame in `updateHead` with the talking bob: while a line plays the head rises `HEAD_BOB` (5 frame units) x loudness; at the
+  start of a line (not count/temp/name) it tilts `TALK_TILT` 2.5 deg toward the side of the child's last finger, back after
+  TALK_HOLD_MS of quiet. `surprised()` startles once (head back 3 deg and up 8, body scaleY 1.03, 180 ms). `cheer()` is now
+  `bounce()` (squash .97/1.03, stretch 1.04, settle) + a head tilt of 4 deg to the waving side, or 2 nods with the claps.
+  `tickle()` tilts the head and says `vo-laugh` ("Ha ha ha!", 0.93 s, only when she is not already speaking). `celebrate()`
+  sways the head. After a finger held >= 150 ms lifts (something put down) her eyes glance 600 ms at the dish (Recipe) or
+  where it was let go. Public: `nod(times)`, `tilt(deg)`. The mermaid's back hair stays on her body.
+- **Pipa (`steps/Character.ts`, also guests, patients, Marina, farm animals):** `hop(height)` = squash .9/1.1 (80 ms),
+  stretch 1.08/.94 up, land squash + 2 paper bits, Back.easeOut. `cheer()` = a 60-unit hop with a ±4 deg sway in the air.
+  `partyDance(spin)` = three 177-unit hops; `spin` turns her once on the middle one: FeedStep (big Pipa) passes true,
+  PhotoStep false (beside Mom's face and the photo); setMood('party') itself no longer moves her (CandlesStep stays still).
+  `tickle()` adds two little stars over her head.
+- **Pipa's size (`core/stage.ts`):** `PET_PHONE` 0.46 where the screen has the room (20:9); she grows up and to the right
+  only, her opaque left edge stays where 0.4 put it, so the work area, photo, prep bowl, cards and title keep their room
+  (`__auditRun5` on 8 recipes at 20:9 = master's list). 16:9 stays gap-limited (0.362), 4:3 has no small Pipa. The lagoon's
+  round room for Marina keeps the 0.4 size (`petRefScale`).
+- **Demo hand (`core/hand.ts`):** comes in from 0.85 with a slight overshoot (`appear` of the paper language), every loop.
+- **Renderer pitfall (cloud only):** in the cloud's software WebGL (SwiftShader), a turned image in a batch of several
+  textures draws with holes (blocks of the layer missing, what is behind shows), at random. Phaser's shader picks the texture
+  with `outTexDatum == float(i)` and the interpolated value is not exact there. Master shows it too (Mom's lean). It is not
+  in the game; for screenshots of anything turned, run Chromium with MAX_TEXTURE_IMAGE_UNITS reported as 1 (an init script
+  overriding `getParameter(0x8872)`), which makes Phaser use one texture per batch.
+- Not checked by a human: how much the head moves on the phone (`HEAD_BOB`, `TALK_TILT`), the laugh, the hops' feel.
+
 ### 0000000000000000000000000000000000000000000. The premium round, PR 2 (light and depth)
 Spec `/mnt/project-files/research/premium-spec.md` (sections 2, 3, PR 2). Nothing new to touch; every world looks lit and deep.
 - **Light (`core/scenery.ts` `addLight(scene, L, { from })`):** `'window' | 'sun' | 'water' | 'lamp'`. One vignette (`fx-vignette`

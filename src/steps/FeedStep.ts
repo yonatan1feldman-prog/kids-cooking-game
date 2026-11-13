@@ -270,7 +270,8 @@ export class FeedStep extends Step<FeedParams> {
       });
     voice.say('vo-finale', { ttlMs: 5000, done: () => !this.aborted && sfxThen(this.scene, 'cheer', bye) });
     this.showerStars();
-    // (her party hops, one with a turn in the air, are her own: Character.setMood('party'))
+    // (her party: three paper hops, a turn in the air on the middle one; she is big in the middle here, with room for it)
+    this.ctx.character.partyDance(true);
   }
 
   /**

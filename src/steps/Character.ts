@@ -140,7 +140,6 @@ export class Character {
     } else if (m === 'happy' || m === 'party') {
       this.eyes.setTexture(d.eyesHappy);
       this.mouth.setTexture(d.mouthOpen);
-      if (m === 'party') this.partyDance();
     }
   }
 
@@ -180,13 +179,16 @@ export class Character {
     return (opts.delay ?? 0) + 80 + air * 1.9 + 270;
   }
 
-  /** The party (the finale, the candles out): three hops, a full turn in the air on the middle one. */
-  protected partyDance() {
+  /**
+   * The party (the finale): three paper hops; with `spin` a full turn in the air on the middle one (only where she has room
+   * for it: big in the feeding step, not small beside Mom's face and the photo).
+   */
+  partyDance(spin = false) {
     if (!this.box.visible) return;
     this.scene.tweens.killTweensOf(this.box);
     this.box.setAngle(0).setScale(this.scale).setPosition(this.rest.x, this.rest.y);
     let t = 0;
-    for (let i = 0; i < 3; i++) t = this.hop(PARTY_HOP, { delay: t + (i ? 60 : 0), spin: i === 1, air: 260 });
+    for (let i = 0; i < 3; i++) t = this.hop(PARTY_HOP, { delay: t + (i ? 60 : 0), spin: spin && i === 1, air: 260 });
   }
 
   /**

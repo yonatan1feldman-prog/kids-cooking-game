@@ -341,18 +341,26 @@ export function getStage(L: Layout): Stage {
     const need = (PET_OPAQUE_X1 - PET_OPAQUE_X0) * p.ps;
     if (p.right - p.left < need) p = place(Math.max(0.25 * k, (p.right - p.left) / (PET_OPAQUE_X1 - PET_OPAQUE_X0)));
     petRefScale = p.ps;
-    if (p.ps >= PET_SMALL * k) {
-      // (as big as the gap allows, up to PET_PHONE; never smaller than she was)
-      const big = place(PET_PHONE * k);
-      const fit = Math.min(PET_PHONE * k, (big.right - big.left) / (PET_OPAQUE_X1 - PET_OPAQUE_X0));
-      const q = place(fit);
-      if (fit > p.ps && q.right - q.left >= (PET_OPAQUE_X1 - PET_OPAQUE_X0) * fit) p = q;
-    }
     // Preferred: centred in the gap between the board and Mom's body (the art agent's placement), then kept in bounds.
     const bodyLeft = mom.x - MOM_BODY_HALF * s;
+    const opaqueX0 = (q: typeof p) => {
+      const x0 = (boardRight + bodyLeft) / 2 - (PET_W * q.ps) / 2 + PET_OPAQUE_X0 * q.ps;
+      return Math.min(Math.max(x0, q.left), q.right - (PET_OPAQUE_X1 - PET_OPAQUE_X0) * q.ps);
+    };
+    let x0 = opaqueX0(p);
+    if (p.ps >= PET_SMALL * k) {
+      // (the premium round: as big as the room up to Mom's face allows, up to PET_PHONE, growing up and to the right only:
+      // her left edge stays where it was, so the work area, the photo and the prep bowl keep their room)
+      const big = place(PET_PHONE * k);
+      const fit = Math.min(PET_PHONE * k, (big.right - Math.max(big.left, x0)) / (PET_OPAQUE_X1 - PET_OPAQUE_X0));
+      const q = place(fit);
+      const qx0 = Math.max(x0, q.left);
+      if (fit > p.ps && qx0 + (PET_OPAQUE_X1 - PET_OPAQUE_X0) * fit <= q.right) {
+        p = q;
+        x0 = qx0;
+      }
+    }
     const pw = PET_W * p.ps;
-    let x0 = (boardRight + bodyLeft) / 2 - pw / 2 + PET_OPAQUE_X0 * p.ps;
-    x0 = Math.min(Math.max(x0, p.left), p.right - (PET_OPAQUE_X1 - PET_OPAQUE_X0) * p.ps);
     const frameLeft = x0 - PET_OPAQUE_X0 * p.ps;
     pet = { x: frameLeft + pw / 2, y: p.top + (PET_H / 2) * p.ps, scale: p.ps };
   }
