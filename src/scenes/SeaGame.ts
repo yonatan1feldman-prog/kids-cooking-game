@@ -4,7 +4,7 @@ import { music, voice, type Song, type VoiceKey } from '../core/audio';
 import { FX_SOFT } from '../core/assets';
 import { stars } from '../core/fx';
 import { confetti } from '../core/juice';
-import { seaLife } from '../core/scenery';
+import { addLight, seaLife } from '../core/scenery';
 import { ART_SEA } from '../core/seaAssets';
 import { sfx } from '../core/sfx';
 import type { Spot } from '../core/stage';
@@ -104,6 +104,7 @@ export abstract class SeaGame extends MiniGame {
     this.cameras.main.setBackgroundColor('#5fc9c3');
     this.add.image(L.cx, L.H, 'bg-lagoon').setOrigin(0.5, 1).setScale(Math.max(1, L.W / 2400)).setDepth(-100);
     if (seaweed) seaLife(this, L, this.S.lagoon.seaweed);
+    addLight(this, L, { from: 'water' }); // (premium PR 2: the light from the surface)
   }
 
   /** Back to the lagoon, which asks "What shall we do next?" (never its hello again), from the home button too. */

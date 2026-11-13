@@ -11,6 +11,7 @@
 /** The guests' layers are made at this fraction of their native size (they are never shown bigger). */
 import { FARM_IMAGES, FARM_SFX, FARM_VOICE } from './farmAssets';
 import { SEA_ACTIVITY, SEA_IMAGES, SEA_LAGOON, SEA_SFX, SEA_WORLD_IMAGES } from './seaAssets';
+import { DRESSING_BY_WORLD, DRESSING_IMAGES } from './dressingAssets';
 
 export const GUEST_RASTER = 0.75;
 
@@ -873,6 +874,8 @@ export const IMAGES = {
   ...FARM_IMAGES,
   // the mermaid world (core/seaAssets.ts)
   ...SEA_IMAGES,
+  // the premium round's dressing (core/dressingAssets.ts)
+  ...DRESSING_IMAGES,
 } as const satisfies Record<string, { size: readonly [number, number]; raster?: number }>;
 
 /** Texture size of an image: its native size, times its `raster` factor if it is shown bigger than native. */
@@ -1243,6 +1246,12 @@ RECIPE_ASSETS.mermaid = {
   images: SEA_WORLD_IMAGES as ImageKey[],
   sounds: [...new Set([...SEA_LAGOON.sounds, ...Object.values(SEA_ACTIVITY).flatMap((a) => a.sounds)])],
 };
+/** The premium round, PR 2: each world loads its own dressing (core/dressingAssets.ts; the eight recipes share theirs). */
+// (the recipes are the entries that share the guests' cards: every recipe ends by sharing)
+for (const [id, r] of Object.entries(RECIPE_ASSETS)) {
+  const add = DRESSING_BY_WORLD[id] ?? (r.images.includes(GUEST_CARDS[0]) ? DRESSING_BY_WORLD.recipe : []);
+  r.images = [...r.images, ...add];
+}
 /** A guest's own layers: loaded when the sharing starts (all three, the two not invited are freed at once). */
 export const GUEST_LAYERS: readonly ImageKey[] = IMAGE_KEYS.filter((k) => k.startsWith('guest-') && !k.startsWith('guest-card-'));
 

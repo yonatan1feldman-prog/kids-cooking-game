@@ -301,6 +301,17 @@ export function makeFxTextures(game: Phaser.Game) {
     c.fillStyle = g;
     c.fillRect(0, 0, 256, 256);
   });
+  // A soft round glow (white: tinted to the light's colour, stretched, SCREEN), the premium round PR 2's light
+  // (core/scenery.ts addLight): bright in the middle, fading smoothly to nothing at the rim.
+  canvasTex(game, FX_GLOW, 128, 128, (c) => {
+    const g = c.createRadialGradient(64, 64, 0, 64, 64, 64);
+    g.addColorStop(0, 'rgba(255,255,255,1)');
+    g.addColorStop(0.35, 'rgba(255,255,255,0.6)');
+    g.addColorStop(0.7, 'rgba(255,255,255,0.18)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    c.fillStyle = g;
+    c.fillRect(0, 0, 128, 128);
+  });
   // The torn edge of a sheet of cream paper (the scene-change page, core/transition.ts): paper below a ragged line, a
   // faint darker fibre edge along it. Seeded, so it is the same tear every time; stretched to the screen's width.
   canvasTex(game, FX_TORN, 512, 48, (c) => {
@@ -337,7 +348,8 @@ export function makeFxTextures(game: Phaser.Game) {
 export const FX_SHADOW = 'fx-shadow';
 export const FX_VIGNETTE = 'fx-vignette';
 export const FX_TORN = 'fx-torn';
-export const FX_KEYS = [FX_DOT, FX_SOFT, 'fx-heart', 'fx-ring', 'fx-paper', FX_SHADOW, FX_VIGNETTE, FX_TORN] as const;
+export const FX_GLOW = 'fx-glow';
+export const FX_KEYS = [FX_DOT, FX_SOFT, 'fx-heart', 'fx-ring', 'fx-paper', FX_SHADOW, FX_VIGNETTE, FX_TORN, FX_GLOW] as const;
 
 function canvasTex(game: Phaser.Game, key: string, w: number, h: number, draw: (c: CanvasRenderingContext2D) => void) {
   if (game.textures.exists(key)) return;

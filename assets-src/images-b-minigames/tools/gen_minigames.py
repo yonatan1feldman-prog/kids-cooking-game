@@ -22,6 +22,8 @@ COLOURS = {"blue": (BLUE, BLUE_D, BLUE_L), "yellow": (YEL, YEL_D, YEL_L), "pink"
 SPONGE = "#FFD35C"; SPONGE_D = "#E4A92C"; SCRUB = "#62AE48"; SCRUB_D = "#468A34"
 
 
+from premium_bg import calm, SKY_SWAP  # noqa: E402,F401  (premium PR 2)
+
 def wr(x, y, w, h, rad, j=1.5, seed=1, step=40):
     return pb.wrect(x, y, w, h, rad, j, seed, step)
 
@@ -87,7 +89,7 @@ def bg_market():
             stones += P(wr(x + 5, y + 5, 170, 70, 18, 1.2, x * 7 + y, step=60), STONE_L if (x // 180 + row) % 3 else STONE_D, ' opacity="0.7"')
     L.append(stones)
     defs = std_defs(p, "bg", seed=73, sh=(3, 3, .16), sh2=(4, 4, .18), blur=4) + grad
-    return svg(2400, 1080, defs, G("".join(L), p + "gr"))
+    return calm(svg(2400, 1080, defs, G("".join(L), p + "gr")), p, swap=SKY_SWAP)  # (premium PR 2: calmer, brighter: images-b/tools/premium_bg.py)
 
 
 def market_awning():

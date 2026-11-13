@@ -1,5 +1,8 @@
 import Phaser from 'phaser';
 import { FX_SOFT } from './assets';
+import type { Layout } from './layout';
+import { getStage } from './stage';
+import { FX_GLOW, FX_VIGNETTE } from './placeholders';
 import { sfx } from './sfx';
 import { WALL_DRAWING } from './artWall';
 
@@ -519,4 +522,100 @@ export function seaLife(scene: Phaser.Scene, L: { W: number; H: number; k: numbe
   const weed = scene.add.image(seaweed.x, seaweed.y, 'seaweed').setOrigin(0.5, 1).setScale(seaweed.scale).setDepth(-80);
   scene.tweens.add({ targets: weed, angle: { from: -4, to: 4 }, duration: 3800, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
   return { rays, weed };
+}
+
+// ---------------------------------------------------------------- light and depth (the premium round, PR 2)
+/**
+ * "A lit paper book" (research/premium-spec.md section 2): every world has one soft light, from the upper left (the
+ * kitchen's window, the sun outside, the water's surface in the lagoon, a lamp in the clinic), and its own front.
+ * - `addLight`: one vignette over the background (`fx-vignette`, tinted ink, stretched over the screen, its clear middle
+ *   a little toward the light, so the light's corner stays bright and the far corners settle) and, outside the kitchen
+ *   (which has its sunbeam), one wide soft glow from the light (`fx-glow`, SCREEN). Both sit just over the background and
+ *   its own pieces and under everything the game puts on it; neither moves (wellbeing rule 5). Two quads.
+ * - `addForeground`: one or two big things in the very front of a world (assets-src/images-b/tools/gen_dressing.py),
+ *   a little darker than the play things, cut by the screen's bottom edge and kept in the no-touch strips (the bottom
+ *   8%, the side 4%); never tappable, over the characters, under the buttons and the scene-change page.
+ */
+export type LightFrom = 'window' | 'sun' | 'water' | 'lamp';
+/** The vignette's and the glow's depth: over the background (-100), its pieces and the kitchen's sunbeam (-98). */
+export const LIGHT_DEPTH = -96;
+/** The foreground's depth: over the characters and anything carried, under the home button (900) and the page. */
+export const FOREGROUND_DEPTH = 890;
+const LIGHTS: Record<LightFrom, { ink: number; alpha: number; glow?: { x: number; y: number; w: number; h: number; tint: number; alpha: number } }> = {
+  window: { ink: 0x3a2216, alpha: 0.17 },
+  sun: { ink: 0x3a2216, alpha: 0.15, glow: { x: 0.12, y: 0.02, w: 1.1, h: 1.25, tint: 0xfff0c8, alpha: 0.32 } },
+  water: { ink: 0x0b3a50, alpha: 0.2, glow: { x: 0.45, y: -0.08, w: 1.7, h: 0.8, tint: 0xeefff6, alpha: 0.22 } },
+  lamp: { ink: 0x2e3a3a, alpha: 0.15, glow: { x: 0.3, y: 0.0, w: 1.0, h: 1.0, tint: 0xfff6e2, alpha: 0.26 } },
+};
+
+export function addLight(scene: Phaser.Scene, L: Pick<Layout, 'W' | 'H'>, opts: { from: LightFrom }): Phaser.GameObjects.Image[] {
+  const out: Phaser.GameObjects.Image[] = [];
+  const spec = LIGHTS[opts.from];
+  if (scene.textures.exists(FX_VIGNETTE)) {
+    // (the clear middle moved a little up and to the left, toward the light)
+    out.push(scene.add.image(L.W * 0.46, L.H * 0.44, FX_VIGNETTE).setDisplaySize(L.W * 1.16, L.H * 1.24).setTint(spec.ink).setAlpha(spec.alpha).setDepth(LIGHT_DEPTH));
+  }
+  const g = spec.glow;
+  if (g && scene.textures.exists(FX_GLOW)) {
+    out.push(scene.add.image(L.W * g.x, L.H * g.y, FX_GLOW).setDisplaySize(L.W * g.w, L.H * g.h).setTint(g.tint).setAlpha(g.alpha)
+      .setBlendMode(Phaser.BlendModes.SCREEN).setDepth(LIGHT_DEPTH + 0.5));
+  }
+  return out;
+}
+
+export type ForegroundWorld = 'kitchen' | 'garden' | 'market' | 'farm' | 'clinic';
+/** Slightly darker than the play things (they are nearer and out of the light). */
+const FOREGROUND_TINT = 0xe4dbd0;
+/**
+ * Each piece: its key, the corner it stands in (`left`: its frame's bottom-left at the screen's bottom-left, else
+ * bottom-right, mirrored), how far its frame pokes past the screen's side and bottom (frame units), and its scale.
+ * Kept low: what shows above the palm strip stays at the screen's very edge (checked by the harness, `__fgCheck`).
+ * `wide`: only on screens 16:9 and wider.
+ */
+const FOREGROUND: Record<ForegroundWorld, { key: string; side: 'left' | 'right'; dx: number; dy: number; scale: number; flip?: boolean; wide?: boolean }[]> = {
+  kitchen: [
+    { key: 'fg-napkin', side: 'right', dx: 10, dy: 74, scale: 0.86 },
+    { key: 'fg-lemons', side: 'right', dx: -150, dy: 62, scale: 0.9, wide: true },
+  ],
+  garden: [
+    { key: 'fg-leaves', side: 'left', dx: 60, dy: 150, scale: 0.8 },
+    { key: 'fg-leaves', side: 'right', dx: 90, dy: 120, scale: 0.62, flip: true },
+  ],
+  market: [{ key: 'fg-basket', side: 'left', dx: 40, dy: 104, scale: 0.86 }],
+  farm: [{ key: 'fg-fence', side: 'left', dx: 75, dy: 24, scale: 0.9 }],
+  clinic: [{ key: 'fg-desk', side: 'left', dx: 60, dy: 52, scale: 0.86 }],
+};
+
+export function addForeground(scene: Phaser.Scene, L: Pick<Layout, 'W' | 'H' | 'k'>, world: ForegroundWorld): Phaser.GameObjects.Image[] {
+  const out: Phaser.GameObjects.Image[] = [];
+  for (const f of FOREGROUND[world]) {
+    // (`wide`: only where Pipa sits beside Mom, 16:9 and wider; on narrower screens the work reaches that corner)
+    if (!scene.textures.exists(f.key) || (f.wide && L.W < 1700)) continue;
+    const s = f.scale * L.k;
+    const left = f.side === 'left';
+    const img = scene.add.image(left ? -f.dx * s : L.W + f.dx * s, L.H + f.dy * s, f.key).setOrigin(left ? 0 : 1, 1).setScale(s)
+      .setTint(FOREGROUND_TINT).setDepth(FOREGROUND_DEPTH);
+    if (f.flip) img.setFlipX(true);
+    img.setData('foreground', true);
+    out.push(img);
+  }
+  return out;
+}
+
+/** Under the board (-1), over the light. */
+const CLOTH_DEPTH = -2;
+
+/**
+ * The kitchen's light and depth (called by addBackground, so every kitchen screen has it): the window's light on all
+ * of them; in a recipe (`recipeId`) also the oilcloth under the work area (`stage.cloth`) and the kitchen's front
+ * (a checked napkin with a bowl of lemons on it, in front of Mom); washing up gets the front only (its sink is the work area).
+ */
+export function dressKitchen(scene: Phaser.Scene, L: Layout, recipeId?: string) {
+  addLight(scene, L, { from: 'window' });
+  if (!recipeId) return;
+  if (recipeId !== 'dishes' && scene.textures.exists('counter-cloth')) {
+    const c = getStage(L).cloth;
+    scene.add.image(c.x, c.y, 'counter-cloth').setScale(c.scale).setDepth(CLOTH_DEPTH);
+  }
+  addForeground(scene, L, 'kitchen');
 }
