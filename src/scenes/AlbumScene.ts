@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { go } from '../core/transition';
 import { listPhotos, type AlbumPhoto } from '../core/album';
 import { IMAGES, type ImageKey } from '../core/assets';
 import { voice } from '../core/audio';
@@ -82,7 +83,7 @@ export class AlbumScene extends Phaser.Scene {
     makePuzzleIcon(this.game);
 
     // Home: two taps, like everywhere else, so a resting palm can't close the book.
-    iconButton(this, L, 'btn-home', S.home.x, S.home.y, () => this.scene.start('Home', { from: 'album' }), {
+    iconButton(this, L, 'btn-home', S.home.x, S.home.y, () => go(this, 'Home', { from: 'album' }, { dir: 'down' }), {
       confirm: true,
       scale: S.homeScale,
       hitPad: 30,
@@ -254,7 +255,7 @@ export class AlbumScene extends Phaser.Scene {
     objs.forEach((o) => (o as Phaser.GameObjects.Image).setDepth((o as Phaser.GameObjects.Image).depth + 100));
     if (key) {
       const bx = Math.min(A.x1 - btnW / 2, cx + (fw * s) / 2 + btnW / 2);
-      const btn = iconButton(this, L, PUZZLE_ICON, bx, (A.y0 + A.y1) / 2, () => this.scene.start('Puzzle', { photoId: p.id, page: this.page }), {
+      const btn = iconButton(this, L, PUZZLE_ICON, bx, (A.y0 + A.y1) / 2, () => go(this, 'Puzzle', { photoId: p.id, page: this.page }, { from: objs[0] as Phaser.GameObjects.Image }), {
         scale: 0.95 * L.k,
         hitPad: 20,
       }).setDepth(170);

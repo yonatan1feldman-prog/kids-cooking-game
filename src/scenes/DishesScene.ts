@@ -1,9 +1,10 @@
 import Phaser from 'phaser';
+import { drop as paperDrop, lift as paperLift } from '../core/paper';
 import { ART, FX_DOT, type ImageKey } from '../core/assets';
-import { music, voice, waterLoop, type NameKey, type VoiceKey } from '../core/audio';
+import { voice, waterLoop, type NameKey, type VoiceKey } from '../core/audio';
 import { boing, burst, puff, stars } from '../core/fx';
 import { type HandMotion } from '../core/hand';
-import { confetti, sway } from '../core/juice';
+import { sway } from '../core/juice';
 import { addBackground } from '../core/layout';
 import { sfx } from '../core/sfx';
 import { TUNING } from '../core/tuning';
@@ -335,7 +336,7 @@ export class DishesScene extends MiniGame {
       this.owner = null;
     }
     this.tweens.killTweensOf(this.sponge);
-    this.tweens.add({ targets: this.sponge, x: this.spongeRest.x, y: this.spongeRest.y, angle: -12, duration: 300 });
+    this.tweens.add({ targets: this.sponge, x: this.spongeRest.x, y: this.spongeRest.y, angle: -12, duration: 300, onComplete: () => this.sponge.active && paperDrop(this, this.sponge.setData('paperAngle', undefined), { sound: false }) });
     // the rinse
     const f = this.faucet;
     const h = d.box.y - 40 * k - f.out.y;
@@ -697,15 +698,18 @@ export class DishesScene extends MiniGame {
         },
       });
     }
-    this.time.delayedCall(1800, () => {
-      sfx(this, 'cheer-jingle');
-      music.party(true); // on until home
-      stars(this, this.rack.x, this.rack.y, 14, 70 * k);
-      confetti(this, this.rack.x, L.Y(260), 22, 28 * k);
-      this.mom?.celebrate();
-      this.pipa?.cheer();
-      this.goodbye('vo-dishes-done');
-    });
+    // (the premium round: the ta-da on the full rack first, then the cheer and the goodbye)
+    this.time.delayedCall(1800, () =>
+      this.tada({ x: this.rack.x, y: this.rack.y }, {
+        target: null,
+        then: () => {
+          sfx(this, 'cheer-jingle');
+          stars(this, this.rack.x, this.rack.y, 14, 70 * k);
+          this.mom?.celebrate();
+          this.goodbye('vo-dishes-done');
+        },
+      }),
+    );
   }
 
   // ---------------------------------------------------------------- Mom's hand
@@ -888,7 +892,7 @@ export class DishesScene extends MiniGame {
   private grabDish(p: Phaser.Input.Pointer, d: Dish, at: P) {
     this.tweens.killTweensOf(d.box);
     d.box.setDepth(600);
-    sfx(this, 'tap', { volume: 0.7 });
+    sfx(this, 'paper-lift', { pitch: 'vary', volume: 0.7 });
     this.cur = d;
     this.held = { what: 'dish', from: at, moved: 0, last: at, dx: d.box.x - at.x, dy: d.box.y - at.y };
     this.own(p);
@@ -923,8 +927,9 @@ export class DishesScene extends MiniGame {
           // The sponge: it follows the finger (and takes the stubborn spots off).
           this.tweens.killTweensOf(this.sponge);
           this.sponge.setAngle(0);
-          boing(this, this.sponge, 0.1);
-          sfx(this, 'squish', { volume: 0.5 });
+          // (the paper motion: picked up, it grows a little and tips)
+          paperLift(this, this.sponge, { sound: false });
+          sfx(this, 'squish', { volume: 0.5, pitch: 'vary' });
           this.held = { what: 'sponge', from: at, moved: 0, last: at, dx: this.sponge.x - at.x, dy: this.sponge.y - at.y };
           this.own(p);
           return;
@@ -1024,7 +1029,8 @@ export class DishesScene extends MiniGame {
     if (!h) return;
     const k = this.L.k;
     if (h.what === 'sponge') {
-      if (this.phase === 'scrub') this.tweens.add({ targets: this.sponge, x: this.spongeRest.x, y: this.spongeRest.y, angle: -12, duration: 300, ease: 'Back.easeOut' });
+      // (back in its place, put down: the paper motion's squash and settle)
+      if (this.phase === 'scrub') this.tweens.add({ targets: this.sponge, x: this.spongeRest.x, y: this.spongeRest.y, angle: -12, duration: 300, ease: 'Back.easeOut', onComplete: () => this.sponge.active && paperDrop(this, this.sponge.setData('paperAngle', undefined)) });
       return;
     }
     if (h.what === 'finger' || h.what === 'rub') return;

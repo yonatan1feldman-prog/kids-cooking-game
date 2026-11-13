@@ -668,6 +668,13 @@ drawn by `assets-src/images-b-sea/tools/gen_sea.py`.
 | vo-song-sing | Now I'll sing along! |
 | vo-song-done | We made up a song together! Look, Marina is dancing! |
 
+### Premium round, PR 4 (the finale's "ta-da")
+Same engine, voice and processing (Kokoro af_heart, `make_vo.py mom vo-tada`); no fix was needed. Not heard by a human yet.
+
+| Key | Line |
+|---|---|
+| vo-tada | Ta-da! Look what you made! |
+
 ## Graphics (`images/`)
 
 All SVG files in `images/` were drawn for this project by the art agent (style B, paper cut-out; generators in

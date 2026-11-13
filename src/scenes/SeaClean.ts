@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { lift as paperLift, setRest as paperRest } from '../core/paper';
 import { FX_SOFT, type ImageKey } from '../core/assets';
 import { voice, type VoiceKey } from '../core/audio';
 import { boing, puff, stars } from '../core/fx';
@@ -584,8 +585,10 @@ export class SeaClean extends SeaGame {
 
   private grab(p: Phaser.Input.Pointer, t: Trash, at: P) {
     this.tweens.killTweensOf(t.img);
-    t.img.setDepth(600).setScale(t.scale * 1.12);
-    sfx(this, 'tap', { volume: 0.7 });
+    // (the paper motion: picked up, it grows a little and tips; the paper sound)
+    t.img.setDepth(600).setScale(t.scale);
+    paperRest(t.img);
+    paperLift(this, t.img);
     this.held = { what: 'item', t, from: at, moved: 0, dx: t.img.x - at.x, dy: t.img.y - at.y };
     this.own(p);
   }

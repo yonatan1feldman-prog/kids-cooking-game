@@ -99,7 +99,8 @@ export class ChopStep extends Step<ChopParams> {
       this.scene.tweens.killTweensOf(this.knife);
       this.follow(q.worldX, q.worldY, true);
       this.showGuide(true);
-      sfx(this.scene, 'tap', { volume: 0.5 });
+      // (the paper motion: picked up, the knife grows a little and tips; a soft paper sound)
+      this.paperLift(this.knife, 1);
       this.poke();
     });
     this.onMove((q) => {
@@ -138,7 +139,7 @@ export class ChopStep extends Step<ChopParams> {
   /** A gentle "not like that": the vegetable wiggles (a miss; three in a row show Mom's hand). */
   private wobble() {
     this.miss();
-    this.scene.tweens.add({ targets: this.veg, angle: { from: -2, to: 2 }, duration: 70, yoyo: true, repeat: 1, onComplete: () => this.veg.setAngle(0) });
+    this.paperWrong(this.veg);
   }
 
   /** The next cut line: from just above the body down through it, at the next cut. */
@@ -201,7 +202,8 @@ export class ChopStep extends Step<ChopParams> {
   private restKnife() {
     if (!this.knife.active) return;
     const r = this.restPoint();
-    this.scene.tweens.add({ targets: this.knife, x: r.x, y: r.y, duration: 280, ease: 'Sine.easeOut' });
+    // (back to its place above the next cut, and put down: the paper motion's squash and settle)
+    this.scene.tweens.add({ targets: this.knife, x: r.x, y: r.y, duration: 280, ease: 'Sine.easeOut', onComplete: () => this.knife.active && this.paperDrop(this.knife, false) });
   }
 
   /** The vegetable's zone (or the knife itself) grabs the knife. */

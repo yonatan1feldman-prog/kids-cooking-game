@@ -192,7 +192,7 @@ export class FlipStep extends Step<FlipParams> {
     this.hand.stop();
     this.poke();
     this.knob!.setTexture(p.knobOn);
-    boing(this.scene, this.knob!, 0.12);
+    this.paperPress(this.knob!);
     sfx(this.scene, p.sound);
     this.scene.tweens.add({ targets: this.flame!, alpha: 1, scale: this.s, duration: 450, ease: 'Back.easeOut' });
     this.stepLine = this.params.ladleLine;

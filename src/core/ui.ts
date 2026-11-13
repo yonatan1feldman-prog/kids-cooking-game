@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { press } from './paper';
 import { art, inNoTouchZone, type Layout } from './layout';
 import type { SoundKey } from './assets';
 import { sfx } from './sfx';
@@ -84,7 +85,7 @@ export function iconButton(
     // Presses that start where the palm or the thumbs rest, or while another finger is down, never count.
     if (inNoTouchZone(scene, p.x, p.y)) return;
     if (otherPointerDown(scene, p)) return;
-    if (opts.sound !== null) sfx(scene, opts.sound ?? 'tap');
+    if (opts.sound !== null) sfx(scene, opts.sound ?? 'tap', { pitch: 'vary' });
     if (opts.confirm) {
       if (!armed) return arm();
       armed.timer.remove();
@@ -93,7 +94,9 @@ export function iconButton(
       img.setAngle(0);
       return fire();
     }
-    scene.tweens.add({ targets: img, scale: { from: rest * 0.86, to: rest }, duration: 320, ease: 'Back.easeOut' });
+    // (the premium round's paper motion: a pressed button sinks and springs back, the same everywhere)
+    if (img.getData('restScaleX') === undefined) img.setData({ restScaleX: rest, restScaleY: rest });
+    press(scene, img);
     if (fireOn === 'down') fire();
     else pressed = p;
   });

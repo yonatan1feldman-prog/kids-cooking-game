@@ -4,6 +4,7 @@ import { keepPhoto } from '../core/album';
 import { ART, IMAGES } from '../core/assets';
 import { music, voice } from '../core/audio';
 import { boing } from '../core/fx';
+import { flyTo } from '../core/finale';
 import { confetti } from '../core/juice';
 import type { HandMotion } from '../core/hand';
 import { sfx, sfxThen } from '../core/sfx';
@@ -80,12 +81,9 @@ export class PhotoStep extends Step<PhotoParams> {
     this.frame = this.own(this.scene.add.image(S.photo.x, S.photo.y, this.params.frame).setScale(fs).setDepth(61));
     const b = this.frame.getBounds();
     this.frameBox = { x0: b.x, y0: b.y, x1: b.right, y1: b.bottom };
-    for (const o of [this.frame, this.photo]) {
-      if (!o) continue;
-      const s = o.scale;
-      o.setScale(s * 0.6).setAlpha(0);
-      this.scene.tweens.add({ targets: o, scale: s, alpha: 1, duration: 450, delay: 150, ease: 'Back.easeOut' });
-    }
+    // (the paper motion's arrival: from small, with an overshoot; the frame and its photo together)
+    for (const o of [this.frame, this.photo]) if (o) this.paperAppear(o);
+    sfx(this.scene, 'paper-drop', { pitch: 'vary', volume: 0.8 });
     this.scene.time.delayedCall(900, () => this.party());
   }
 
@@ -200,7 +198,7 @@ export class PhotoStep extends Step<PhotoParams> {
       !this.aborted &&
       voice.say(this.params.bye, {
         ttlMs: 4000,
-        done: () => !this.aborted && this.scene.time.delayedCall(Math.max(300, PARTY_MIN_MS - (this.scene.time.now - t0)), () => this.complete()),
+        done: () => !this.aborted && this.scene.time.delayedCall(Math.max(300, PARTY_MIN_MS - (this.scene.time.now - t0)), () => this.keepAndGo()),
       });
     voice.say(this.params.finale, { ttlMs: 5000, done: () => !this.aborted && sfxThen(this.scene, 'cheer', bye) });
     this.showerStars();
@@ -216,6 +214,16 @@ export class PhotoStep extends Step<PhotoParams> {
       pop();
       this.scene.time.delayedCall(1300, pop);
     }
+  }
+
+  /**
+   * The premium round: the photo (in its frame) shrinks and flies to the home button's corner, where the memory book is
+   * reached from: "it is kept", without a word. Then home.
+   */
+  private keepAndGo() {
+    if (this.aborted) return;
+    const h = this.ctx.stage.home;
+    flyTo(this.scene, [this.frame, this.photo], h, () => !this.aborted && this.complete());
   }
 
   /** Stars pop in one after another, drift down a little and fade: never over a face, the photo or the home button. */

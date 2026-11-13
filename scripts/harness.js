@@ -800,7 +800,7 @@ window.__fullRun5 = async (demos, mode = 'child', picks = ['tomato', 'corn', 'ol
   const T = () => game.loop.time;
   try {
     const b = game.scene.getScene('Title').children.list.find((o) => ['btn-play', 'btn-world-kitchen', 'world-card-kitchen'].includes(o.texture?.key));
-    __tap(b.x, b.y); await __run(mode === 'child' ? 2500 : 1600);
+    __tap(b.x, b.y); await __run(mode === 'child' ? 2500 : 1600); await __settle();
     const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === `card-${window.__recipe || 'pizza'}`);
     const n0 = __voLog.length; const t0 = T(); const steps = []; const at = {};
     __tap(c.x, c.y); await __run(1800); await __waitRecipe();

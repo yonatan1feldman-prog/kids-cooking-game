@@ -98,7 +98,8 @@ export class PeelStep extends Step<PeelParams> {
       this.last = { x: q.worldX, y: q.worldY };
       this.scene.tweens.killTweensOf(this.peeler);
       this.follow(q.worldX, q.worldY, true);
-      sfx(this.scene, 'tap', { volume: 0.5 });
+      // (the paper motion: picked up, a little bigger, the paper sound; put down again when it rests)
+      this.paperHold(this.peeler);
       this.poke();
     });
     this.onMove((q) => {
@@ -122,7 +123,7 @@ export class PeelStep extends Step<PeelParams> {
       // A tap with no stroke: the vegetable only wobbles (a try; after three of them the hand shows the stroke).
       if (!cancelled && this.moved < 10 && !this.finishing) {
         this.miss();
-        this.scene.tweens.add({ targets: this.veg, angle: { from: -2, to: 2 }, duration: 70, yoyo: true, repeat: 1, onComplete: () => this.veg.setAngle(0) });
+        this.paperWrong(this.veg);
       }
       this.restPeeler();
     });
@@ -157,7 +158,8 @@ export class PeelStep extends Step<PeelParams> {
   private restPeeler() {
     if (!this.peeler.active) return;
     const r = this.restPoint();
-    this.scene.tweens.add({ targets: this.peeler, x: r.x, y: r.y, duration: 280, ease: 'Sine.easeOut' });
+    const pl = this.peeler;
+    this.scene.tweens.add({ targets: pl, x: r.x, y: r.y, duration: 280, ease: 'Sine.easeOut', onComplete: () => pl.active && this.paperDrop(pl, false) });
   }
 
   /** Generously over the vegetable: its body plus a wide margin all round (small fingers wander). */

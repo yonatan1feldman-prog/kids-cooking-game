@@ -11,6 +11,7 @@ import type { Spot } from '../core/stage';
 import type { Character } from '../steps/Character';
 import type { CharacterDef } from '../recipes/types';
 import { MiniGame } from './MiniGame';
+import { go } from '../core/transition';
 
 /** How far Marina floats up and down (world units at k 1) and how long one float takes. */
 const BOB = 12;
@@ -111,7 +112,8 @@ export abstract class SeaGame extends MiniGame {
     this.leaving = true;
     this.shutdown();
     if (from === 'recipe') voice.stop();
-    this.scene.start(this.homeScene, { from: 'activity' });
+    // (the premium round's paper page: back to the lagoon it slides down)
+    go(this, this.homeScene, { from: 'activity' }, { dir: 'down' });
   }
 
   /** The warm ending in the sea: the activity's line, then quietly back to the lagoon (no "bye bye": she stays here). */
@@ -131,6 +133,11 @@ export abstract class SeaGame extends MiniGame {
    * (photo-frame-sea) kept as `mermaid-<id>`, the cheer; then `then()`.
    */
   protected seaPhoto(id: string, area: { x: number; y: number; w: number; h: number }, at: { x: number; y: number }, then: (photo: Phaser.GameObjects.Container) => void) {
+    // (the premium round: first the ta-da on what she made, the camera back where it rests; then the photo)
+    this.tada({ x: area.x + area.w / 2, y: area.y + area.h / 2 }, { then: () => this.snapSea(id, area, at, then) });
+  }
+
+  private snapSea(id: string, area: { x: number; y: number; w: number; h: number }, at: { x: number; y: number }, then: (photo: Phaser.GameObjects.Container) => void) {
     const L = this.L;
     const k = L.k;
     const a = { x: Math.round(Math.max(0, area.x)), y: Math.round(Math.max(0, area.y)), w: Math.round(area.w), h: Math.round(area.h) };

@@ -445,7 +445,7 @@ export class ClinicCare {
     if (it.tool) it.img.setScale(this.toolScale());
     this.tipTo(it, it.tool ? this.fingerTip(at) : { x: at.x, y: at.y - 40 * this.k });
     boing(this.sc, it.img, 0.08);
-    sfx(this.sc, 'tap', { volume: 0.7 });
+    sfx(this.sc, 'paper-lift', { volume: 0.7, pitch: 'vary' });
     for (const q of this.items) this.sc.tweens.add({ targets: q.glow, alpha: 0, duration: 200 });
     this.held = { it, from: at, t0: this.sc.time.now, moved: 0, last: this.tip(it) };
     this.h.own(p);

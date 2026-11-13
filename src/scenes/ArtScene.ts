@@ -10,12 +10,12 @@ import {
 import { countKey, music, voice, type NameKey, type Song, type VoiceKey } from '../core/audio';
 import { boing, burst, stars } from '../core/fx';
 import { tapMotion, type HandKey, type HandMotion } from '../core/hand';
-import { confetti } from '../core/juice';
 import { addBackground } from '../core/layout';
 import { sfx } from '../core/sfx';
 import { TUNING } from '../core/tuning';
 import { iconButton } from '../core/ui';
 import { MiniGame, visits, type P } from './MiniGame';
+import { TADA } from '../core/finale';
 
 const T = TUNING.art;
 /** The longest a finished picture may take to come alive and go back to the easel wall (normally about 6-9 s). */
@@ -1703,11 +1703,12 @@ export class ArtScene extends MiniGame {
     const L = this.L;
     const k = L.k;
     const mid = { x: this.sheet.x + this.sheet.w / 2, y: this.sheet.y + this.sheet.h / 2 };
+    // (the premium round: the ta-da on her picture as it comes alive: the camera leans in, the light passes, confetti;
+    // Mom's own lines for the picture follow, so only the warm sound here, not "Ta-da! Look what you made!")
+    this.tada(mid, { line: false });
     sfx(this, 'cheer-jingle');
     stars(this, mid.x, mid.y, 14, 70 * k);
-    confetti(this, mid.x, this.sheet.y + 40 * k, 20, 26 * k);
     this.mom?.happy();
-    this.pipa?.cheer();
     this.pipa?.hideWish();
     const kind = this.kind!;
     let name: NameKey | null = null;
@@ -1730,7 +1731,9 @@ export class ArtScene extends MiniGame {
     const goBack = () => {
       if (back || this.leaving) return;
       back = true;
-      this.time.delayedCall(Math.max(0, ms + 300 - (this.time.now - t0)), () => this.capture(() => this.time.delayedCall(700, () => this.backToWall())));
+      // (the picture is captured once the camera is back where it rests)
+      const wait = Math.max(ms + 300, TADA.inMs + TADA.holdMs + TADA.outMs + 100);
+      this.time.delayedCall(Math.max(0, wait - (this.time.now - t0)), () => this.capture(() => this.time.delayedCall(700, () => this.backToWall())));
     };
     const t0 = this.time.now;
     if (kind === 'dots' || kind === 'mirror' || kind === 'stamps') this.say(line, { ttlMs: 4000, done: () => (name ? this.say(name, { ttlMs: 3000, done: goBack }) : goBack()) });
