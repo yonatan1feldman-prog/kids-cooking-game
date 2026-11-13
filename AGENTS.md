@@ -677,8 +677,8 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the premium round PR 5 (home shelves, her photos on the cards, Pipa's idea, secrets), the premium round PR 3 (living characters), the premium round PR 2 (light and depth), the premium round PR 1 (cut WebPs, paper motion, scene changes, UI sounds), the mermaid world PR 4 (the shell song), the mermaid world PR 3 (cleaning, shells), the mermaid world PR 2 (the tail, the swim), the mermaid world PR 1 (the lagoon), the clinic-open fix, the clinic round 6 (part 3, four patients), the clinic round 6 (part 2, seven ailments), the clinic round 6 (part 1, the bowl), the clinic round 5 (part 3, more challenge), the clinic round 5 (part 2, the care rooms), the farm, the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
-### 000000000000000000000000000000000000000000000. The premium round, PR 5 (the home shelves, her own dish on the cards, Pipa's idea, secrets)
+## Handoff notes (written for the next agent; the premium round PR 5 (home shelves, her photos on the cards, Pipa's idea, secrets), the premium round PR 4 (paper motion in every step, ta-da endings, scene changes), the premium round PR 3 (living characters), the premium round PR 2 (light and depth), the premium round PR 1 (cut WebPs, paper motion, scene changes, UI sounds), the mermaid world PR 4 (the shell song), the mermaid world PR 3 (cleaning, shells), the mermaid world PR 2 (the tail, the swim), the mermaid world PR 1 (the lagoon), the clinic-open fix, the clinic round 6 (part 3, four patients), the clinic round 6 (part 2, seven ailments), the clinic round 6 (part 1, the bowl), the clinic round 5 (part 3, more challenge), the clinic round 5 (part 2, the care rooms), the farm, the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 0000000000000000000000000000000000000000000000. The premium round, PR 5 (the home shelves, her own dish on the cards, Pipa's idea, secrets)
 Spec `/mnt/project-files/research/premium-spec.md` 4.5 and PR 5. What she sees: the home screen is two wooden shelves (three
 on 4:3) with bigger cards; a card she has a photo of shows her dish; Pipa has an idea when she comes from the title; every
 world has two small secrets; the smoothie takes the colour of the fruit she chose.
@@ -716,6 +716,44 @@ world has two small secrets; the smoothie takes the colour of the fruit she chos
   the mix wants most stays as drawn, the others go down 70% of the way (kiwi turns it green, strawberry a deeper pink,
   banana/mango a warm beige). A multiply cannot make the drawn pink lighter; MULTIPLY_TWO did not render here.
 - Budgets measured: GPU on the title/home 40.2 MB (master 39.6; + up to ~1.6 MB with photos on 8 cards), precache +0.13 MB.
+
+### 000000000000000000000000000000000000000000000. The premium round, PR 4 (paper motion in every step, the ta-da endings, scene changes everywhere)
+Spec `/mnt/project-files/research/premium-spec.md` (PR 4: sections 4.1, 4.2, 4.4).
+- **Steps use the paper motion as services** (`steps/Step.ts`): `paperLift(t, dir)`, `paperDrop(t)`, `paperPress(t)`,
+  `paperHold(t)` (a tool whose tweens are killed on every move: spoon, rolling pin, peeler, grater block: lifted at once),
+  `paperWrong(t)`, `paperAppear`, `paperVanish`, `paperLand`, `paperShadow`, `paperRest(t)` (after a deliberate resize).
+  Prefixed so they never clash with a step's own `press`/`land`/`landed`. Wired in Decorate, Choose, Chop (knife, the
+  vegetable's "not like that"), OpenPour (the can/jar/bin: pressed to open, lifted to pour, put down), Thread, Cutters,
+  Candles, Share (slices: lift sound, put back with a drop), Find, Bake (dish to the oven, mitts, the panel's buttons),
+  Stir/Roll/Peel/Grate/Sprinkle (the tool held and put down), Wash/Flip/Stir knobs/Blend button (press), Photo (appear).
+  **Pitfall:** the paper motions keep the resting scale in the same data as fx.ts `boing` (`restScaleX/Y`): a thing
+  first lifted at its held size and later shown at another size needs `paperRest` after `setScale`, or a later
+  `boing`/`drop` settles it at the old size (ThreadStep `land` does it).
+- `core/paper.ts` `drop` now puts a thing back at the angle it had when it was lifted (`paperAngle`), and a thing put
+  down for the first time keeps its own angle (toppings keep their random tilt). `core/ui.ts` `iconButton`: a press is
+  `paper.press` everywhere (rest data set at the first press), the tap sound varies its pitch.
+- **`core/finale.ts`** (new): `stepDone(scene, at, { k, target, tints, size })` = the finished thing boings, 10 paper bits
+  fly, a ring of light grows, and `chime(scene)` rings the next bell (`chime-1..5`, from 1 again; counted per scene run).
+  `tada(scene, at, { L, mom, pipa, target, line, valid, then })` = the camera leans in x1.12 toward `at` (900 ms), holds
+  500, leans back 600 to exactly where it rests (the layout's centre at the fit zoom, as `keepLayoutOnResize` sets it;
+  a 400 ms guard after that always restores it and calls `then`), the kitchen sunbeam (or a ring of light outside the
+  kitchen) slides over once, 24 confetti, `tada` sfx, `vo-tada` "Ta-da! Look what you made!" (`line: false`: sound only),
+  Mom and her friend cheer. `TADA` has the timings. `flyTo(scene, things, to, then)` shrinks pictures into a corner.
+- **Where:** RecipeScene `stepDone` (no stars at a step's end any more: `stepDone` on the dish/board), and before the
+  `photo` step a `tada` on the dish (the photo starts when the camera is back). PhotoStep: frame and photo `appear`, and
+  after "bye bye" they fly to the home button's corner (`flyTo`) before home. MiniGame: `praise` uses `stepDone`;
+  `this.tada(at, { target, line, then })`; market (basket), dishes (rack), garden (basket), farm (the cart, before its line
+  and photo), clinic (the patients, before "Let's take a picture!"), art (the picture coming alive, sound only; its capture
+  waits until the camera is back), every sea activity (`seaPhoto` does the ta-da first, then the snap).
+- **Scene changes:** `go()` (core/transition.ts) instead of `scene.start` in MiniGame.leave (market, dishes, art, farm,
+  clinic), SeaGame.leave, GardenScene.leave (all `dir: 'down'`), LagoonScene (a door: its shell grows; home: down),
+  AlbumScene (home: down; the puzzle: up), PuzzleScene (back to the book: down). Still direct: TitleScene to the clinic /
+  lagoon and HomeScene to the games / album (those files are PR 5's), Boot -> Title, ArtScene's own restart, the
+  clinic's room fade. The harness: `__fullRun5` waits for the page (`__settle`) after the title tap.
+- **Sound:** `vo-tada` (Kokoro af_heart, `make_vo.py mom vo-tada`). Not heard by a human.
+- **Rotation mid page turn:** the next scene is then created while the screen is in portrait; `keepLayoutOnResize`
+  (relayout scenes: Title, Home, Lagoon) rebuilds it as soon as it runs again (it is still paused when the rotation
+  back is announced). Particles: `tada(..., { confetti })` lowers the 24 papers where a thing has its own sparkles.
 
 ### 00000000000000000000000000000000000000000000. The premium round, PR 3 (Mom and Pipa come alive)
 Spec `/mnt/project-files/research/premium-spec.md` sections 4.3 and 5 (PR 3). Tweens on existing layers only: no new texture,

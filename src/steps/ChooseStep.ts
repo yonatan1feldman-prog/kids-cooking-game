@@ -139,14 +139,14 @@ export class ChooseStep extends Step<ChooseParams> {
     }
     this.scene.tweens.killTweensOf([c.item, c.glow]);
     c.item.setScale(rest);
+    this.paperRest(c.item);
     if (c.picked) {
-      // Back on its bin: nothing is lost, no counting.
+      // Back on its bin: nothing is lost, no counting. (the paper motion: it is put down, squashes and settles)
       c.picked = false;
       this.picks = this.picks.filter((q) => q !== c);
-      sfx(this.scene, 'whoosh', { volume: 0.35 });
-      this.scene.tweens.add({ targets: c.item, y: c.itemY, duration: 260, ease: 'Sine.easeOut' });
+      this.scene.tweens.add({ targets: c.item, y: c.itemY, duration: 200, ease: 'Quad.easeIn', onComplete: () => this.paperDrop(c.item) });
       this.scene.tweens.add({ targets: c.glow, alpha: 0, duration: 200 });
-      boing(this.scene, c.bin, 0.1);
+      this.paperPress(c.bin);
       return;
     }
     // Pipa's order: her second (or third) thing before the one it comes after is not picked yet. It wiggles, Mom says "Pipa wants this one
@@ -155,9 +155,9 @@ export class ChooseStep extends Step<ChooseParams> {
     const wj = this.wished.indexOf(c);
     const before = this.wished.find((w, j) => j < wj && !this.found.has(w));
     if (order && wj > 0 && before) {
-      sfx(this.scene, 'tap');
-      this.scene.tweens.add({ targets: c.item, angle: { from: -7, to: 7 }, duration: 90, yoyo: true, repeat: 1, onComplete: () => c.item.setAngle(0) });
-      boing(this.scene, c.bin, 0.08);
+      // ("not this one yet": the paper motion's gentle wobble, never a sad sound)
+      this.paperWrong(c.item);
+      sfx(this.scene, 'tap', { pitch: 'vary' });
       voice.say(order.first, { ttlMs: 3000 });
       const f = before;
       if (f.opt.name) voice.say(f.opt.name, { ttlMs: 4500 });
@@ -166,9 +166,11 @@ export class ChooseStep extends Step<ChooseParams> {
     }
     c.picked = true;
     this.picks.push(c);
-    sfx(this.scene, 'pop');
+    sfx(this.scene, 'pop', { pitch: 'vary' });
     burst(this.scene, c.x, c.itemY - 60 * k, { count: 8, size: 18 * k, tint: [0xffffff, 0xffcb47], speed: 320 * k, gravityY: 400 });
-    // A hop, then it stays a little lifted, glowing softly, so she sees what she has chosen.
+    // A hop, then it stays a little lifted, glowing softly, so she sees what she has chosen (the paper motion's lift:
+    // a little bigger and tipped while it is chosen).
+    this.paperLift(c.item, 1, false);
     this.scene.tweens.add({
       targets: c.item,
       y: c.itemY - 70 * k,
@@ -177,7 +179,7 @@ export class ChooseStep extends Step<ChooseParams> {
       onComplete: () => this.scene.tweens.add({ targets: c.item, y: c.itemY - LIFTED * k, duration: 260, ease: 'Bounce.easeOut' }),
     });
     this.scene.tweens.add({ targets: c.glow, alpha: 0.75, duration: 200 });
-    boing(this.scene, c.bin, 0.12);
+    this.paperPress(c.bin);
     // Mom names it ("Cucumber!"); a newer name cuts the one playing, never another line. Options without a name: she counts.
     if (c.opt.name) voice.say(c.opt.name, { group: 'name', ttlMs: 2500 });
     else voice.say(countKey(this.picks.length), { group: 'count', sequence: true, ttlMs: 5000 });

@@ -233,8 +233,8 @@ export class WashStep extends Step<WashParams> {
     this.phase = 'rub';
     this.poke();
     this.hit();
-    boing(this.scene, this.faucet, 0.08);
-    sfx(this.scene, 'click');
+    this.paperPress(this.faucet);
+    sfx(this.scene, 'click', { pitch: 'vary' });
     waterLoop.start();
     this.stream.setVisible(true).setScale(this.k, 0);
     this.scene.tweens.add({ targets: this.stream, scaleY: this.streamScaleY, duration: 350, ease: 'Quad.easeIn' });
@@ -318,8 +318,8 @@ export class WashStep extends Step<WashParams> {
       if (closed || !this.stream.active) return;
       closed = true;
       waterLoop.stop();
-      sfx(this.scene, 'click');
-      boing(this.scene, this.faucet, 0.06);
+      sfx(this.scene, 'click', { pitch: 'vary' });
+      this.paperPress(this.faucet);
       this.scene.tweens.add({ targets: this.stream, scaleY: 0, y: this.stream.y + 30 * this.k, alpha: 0, duration: 300, ease: 'Quad.easeIn' });
       this.scene.time.delayedCall(350, () => this.complete());
     };

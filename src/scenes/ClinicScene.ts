@@ -2997,9 +2997,15 @@ export class ClinicScene extends MiniGame {
     this.setPhase('done');
     this.shown.done = true;
     for (const v of this.visit) v.view.setMood('happy');
-    this.say('vo-clinic-photo', {
-      ttlMs: 5000,
-      done: () => this.time.delayedCall(300, () => this.snap()),
+    // (the premium round: first the ta-da on her patients, all better; then "Let's take a picture!" as before)
+    const xs = this.visit.map((v) => v.view.box.x);
+    const at = { x: (Math.min(...xs) + Math.max(...xs)) / 2, y: this.L.Y(640) };
+    this.tada(at, {
+      then: () =>
+        this.say('vo-clinic-photo', {
+          ttlMs: 5000,
+          done: () => this.time.delayedCall(300, () => this.snap()),
+        }),
     });
   }
 
@@ -3479,7 +3485,7 @@ export class ClinicScene extends MiniGame {
         t.img.setScale(this.room.toolS);
         this.tipTo(t, this.fingerTip(at));
         boing(this, t.img, 0.08);
-        sfx(this, 'tap', { volume: 0.7 });
+        sfx(this, 'paper-lift', { volume: 0.7, pitch: 'vary' });
         if (!this.lineSaid.has(i)) {
           this.lineSaid.add(i);
           const line = this.lineOf(st);

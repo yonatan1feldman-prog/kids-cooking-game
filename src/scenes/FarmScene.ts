@@ -666,7 +666,7 @@ export class FarmScene extends MiniGame {
     const tp = this.fingerTip(at, role);
     img.setPosition(tp.x - tip.x, tp.y - tip.y);
     boing(this, img, 0.08);
-    sfx(this, 'tap', { volume: 0.7 });
+    sfx(this, 'paper-lift', { volume: 0.7, pitch: 'vary' });
     for (const s of this.tray) this.tweens.add({ targets: s.glow, alpha: 0, duration: 200 });
     this.held = { img, key, slot, role, tip, from: at, moved: 0, last: tp, t0: this.time.now, back, backScale };
   }
@@ -2158,10 +2158,15 @@ export class FarmScene extends MiniGame {
     sfx(this, 'whoosh', { volume: 0.5 });
     this.tweens.add({ targets: [c.img, ...c.items], x: `+=${dx}`, duration: 1100, ease: 'Sine.easeInOut' });
     this.tweens.add({ targets: c.img, angle: { from: -1.5, to: 1.5 }, duration: 160, yoyo: true, repeat: 3, onComplete: () => c.img.setAngle(0) });
+    // (the premium round: the ta-da on the full cart first, then the farm's line and the photo as before)
     this.time.delayedCall(1200, () =>
-      this.say('vo-farm-done', {
-        ttlMs: 5000,
-        done: () => this.time.delayedCall(300, () => this.snap()),
+      this.tada({ x: to.x, y: c.img.y - 60 * c.s }, {
+        target: c.img,
+        then: () =>
+          this.say('vo-farm-done', {
+            ttlMs: 5000,
+            done: () => this.time.delayedCall(300, () => this.snap()),
+          }),
       }),
     );
     void k;

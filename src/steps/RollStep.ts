@@ -59,7 +59,9 @@ export class RollStep extends Step<RollParams> {
       this.rubbing = true;
       this.last = { x: p.worldX, y: p.worldY };
       this.movePin(p.worldX, p.worldY);
-      sfx(this.scene, 'squish', { minGapMs: 200 });
+      // (the paper motion: picked up, a little bigger; put down again when it rests)
+      this.paperHold(this.pin);
+      sfx(this.scene, 'squish', { minGapMs: 200, pitch: 'vary' });
       puff(this.scene, p.worldX, p.worldY, 0xfff6e6, 3, 70 * this.k);
     });
     this.onMove((p) => {
@@ -85,7 +87,8 @@ export class RollStep extends Step<RollParams> {
   }
 
   private restPin(duration: number) {
-    this.scene.tweens.add({ targets: this.pin, x: this.pinRest.x, y: this.pinRest.y, angle: this.pinAngle, duration, ease: 'Back.easeOut' });
+    const pin = this.pin;
+    this.scene.tweens.add({ targets: pin, x: this.pinRest.x, y: this.pinRest.y, angle: this.pinAngle, duration, ease: 'Back.easeOut', onComplete: () => pin.active && this.paperDrop(pin) });
   }
 
   private addRub(dist: number, x: number, y: number) {

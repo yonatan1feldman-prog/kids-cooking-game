@@ -146,7 +146,8 @@ export class ShareStep extends Step<ShareParams> {
       const s = this.sliceAt(p.worldX, p.worldY);
       if (!s) return;
       this.poke();
-      sfx(this.scene, 'tap');
+      // (the paper motion's sound: a slice lifted like paper; its pose is the carry pose below)
+      sfx(this.scene, 'paper-lift', { pitch: 'vary', volume: 0.7 });
       this.scene.tweens.killTweensOf(s.img);
       s.img.setDepth(30);
       const pose = this.carryPose(s, p.worldX, p.worldY);
@@ -670,8 +671,22 @@ export class ShareStep extends Step<ShareParams> {
   }
 
   private sendHome(s: Slice) {
-    sfx(this.scene, 'whoosh', { volume: 0.4 });
-    this.scene.tweens.add({ targets: s.img, x: s.home.x, y: s.home.y, angle: s.def.restAngle, scale: this.sliceScale, duration: 420, ease: 'Sine.easeOut', onComplete: () => s.img.setDepth(20) });
+    // (back in its place, put down: the paper motion's squash and settle)
+    this.scene.tweens.add({
+      targets: s.img,
+      x: s.home.x,
+      y: s.home.y,
+      angle: s.def.restAngle,
+      scale: this.sliceScale,
+      duration: 380,
+      ease: 'Sine.easeOut',
+      onComplete: () => {
+        s.img.setDepth(20);
+        if (!s.img.active || s.eaten) return;
+        this.paperRest(s.img);
+        this.paperDrop(s.img);
+      },
+    });
   }
 
   private feed(s: Slice, who: Who) {

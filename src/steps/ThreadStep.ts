@@ -8,6 +8,7 @@ import { sfx } from '../core/sfx';
 import { TUNING } from '../core/tuning';
 import type { ThreadParams } from '../recipes/types';
 import { MADE_KEY, snapshotTexture } from './Dish';
+import { PAPER } from '../core/paper';
 import { Step } from './Step';
 import { binIcon, binKey, makeBin, moveBin, setBinVisible } from './ToppingBin';
 
@@ -125,10 +126,11 @@ export class ThreadStep extends Step<ThreadParams> {
       const b = this.binAt(p.worldX, p.worldY);
       if (!b) return;
       this.poke();
-      sfx(this.scene, 'tap');
-      boing(this.scene, b.bin, 0.12);
-      const img = this.scene.add.image(p.worldX, p.worldY - LIFT_UP * this.k, b.key).setDepth(40).setScale(this.pieceScale * 0.8);
-      this.scene.tweens.add({ targets: img, scale: this.pieceScale * LIFT, duration: 150, ease: 'Back.easeOut' });
+      sfx(this.scene, 'tap', { pitch: 'vary' });
+      this.paperPress(b.bin);
+      // (the paper motion: it comes out of its box lifted, a little bigger and tipped)
+      const img = this.scene.add.image(p.worldX, p.worldY - LIFT_UP * this.k, b.key).setDepth(40).setScale((this.pieceScale * LIFT) / PAPER.lift.scale);
+      this.paperLift(img, 1);
       this.held = { img, bin: b, x0: p.worldX, y0: p.worldY, moved: false };
     });
     this.onMove((p) => {
@@ -333,8 +335,10 @@ export class ThreadStep extends Step<ThreadParams> {
     img.setDepth(6 + i * 0.01).setScale(this.pieceScale);
     row.pieces[i] = img;
     row.keys[i] = b.key;
-    sfx(this.scene, this.params.sound, { volume: 0.8, minGapMs: 50 });
-    boing(this.scene, img, 0.2);
+    sfx(this.scene, this.params.sound, { volume: 0.8, minGapMs: 50, pitch: 'vary' });
+    // (on the stick: the paper motion's squash and settle at its size on the stick)
+    this.paperRest(img);
+    this.paperDrop(img, false);
     burst(this.scene, img.x, img.y, { count: 6, size: 16 * this.k, tint: [0xffffff, 0xffcb47], speed: 260 * this.k, gravityY: 400 });
     if (b.name) voice.say(b.name, { group: 'name', ttlMs: 2500 });
     // Copying: the piece above lights up when hers matches it.

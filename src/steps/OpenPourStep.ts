@@ -142,8 +142,8 @@ export class OpenPourStep extends Step<OpenPourParams> {
       this.start0 = this.last = { x: q.worldX, y: q.worldY };
       this.poke();
       if (this.phase === 'open') {
-        sfx(this.scene, 'tap');
-        boing(this.scene, this.box, 0.08);
+        sfx(this.scene, 'tap', { pitch: 'vary' });
+        this.paperPress(this.box);
         if (p.kind === 'can') {
           if (++this.taps >= p.taps) this.open();
         } else this.addTwist(p.twist / 4);
@@ -153,7 +153,8 @@ export class OpenPourStep extends Step<OpenPourParams> {
       this.grab = { dx: this.box.x - q.worldX, dy: this.box.y - q.worldY };
       this.scene.tweens.killTweensOf(this.box);
       this.box.setDepth(12);
-      sfx(this.scene, 'tap');
+      // (the paper motion: picked up, it grows a little and tips; a soft paper sound)
+      this.paperLift(this.box, this.box.x < this.opening().x ? 1 : -1);
     });
     this.onMove((q) => {
       if (!this.held) return;
@@ -426,8 +427,9 @@ export class OpenPourStep extends Step<OpenPourParams> {
   private putBack() {
     this.setOver(false);
     const r = this.cur.rest;
-    sfx(this.scene, 'whoosh', { volume: 0.35 });
-    this.scene.tweens.add({ targets: this.box, x: r.x, y: r.y, angle: 0, duration: 380, ease: 'Sine.easeOut', onComplete: () => this.box.setDepth(6) });
+    const box = this.box;
+    // (back to its place and put down: the paper motion's squash and settle)
+    this.scene.tweens.add({ targets: box, x: r.x, y: r.y, angle: 0, duration: 340, ease: 'Sine.easeOut', onComplete: () => (box.setDepth(6), box.active && this.paperDrop(box)) });
   }
 
   /** The mouth of the tipped can or jar (its top centre, turned with it). */
@@ -563,7 +565,8 @@ export class OpenPourStep extends Step<OpenPourParams> {
     this.helping = false;
     const r = this.ctx.stage.pourRest;
     this.scene.tweens.killTweensOf(this.box);
-    this.scene.tweens.add({ targets: this.box, x: r.x, y: r.y, angle: 0, duration: 450, ease: 'Sine.easeInOut', onComplete: () => this.box.setDepth(6) });
+    const box = this.box;
+    this.scene.tweens.add({ targets: box, x: r.x, y: r.y, angle: 0, duration: 450, ease: 'Sine.easeInOut', onComplete: () => (box.setDepth(6), box.active && this.paperDrop(box)) });
     this.scene.time.delayedCall(700, () => {
       const p = this.params;
       const o = this.opening();

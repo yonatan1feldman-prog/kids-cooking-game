@@ -803,8 +803,10 @@ window.__fullRun5 = async (demos, mode = 'child', picks = ['tomato', 'corn', 'ol
   const T = () => game.loop.time;
   try {
     const b = game.scene.getScene('Title').children.list.find((o) => ['btn-play', 'btn-world-kitchen', 'world-card-kitchen'].includes(o.texture?.key));
-    __tap(b.x, b.y); await __run(mode === 'child' ? 2500 : 1600);
+    __tap(b.x, b.y); await __run(mode === 'child' ? 2500 : 1600); await __settle();
     const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === `card-${window.__recipe || 'pizza'}`);
+    // (premium round: the home cards arrive one after the other; tap once hers has arrived)
+    for (let i = 0; i < 60 && c.alpha < 1; i++) await __run(100);
     const n0 = __voLog.length; const t0 = T(); const steps = []; const at = {};
     __tap(c.x, c.y); await __run(1800); await __waitRecipe();
     for (let g = 0; g < 12000 && game.scene.isActive('Recipe'); g++) {
@@ -1398,8 +1400,9 @@ window.__gardenRun = async (level = 1, mode = 'child', w = 900, h = 405, demos =
   const T = () => __T;
   try {
     const b = game.scene.getScene('Title').children.list.find((o) => ['btn-play', 'btn-world-kitchen', 'world-card-kitchen'].includes(o.texture?.key));
-    __tap(b.x, b.y); await __run(2500);
+    __tap(b.x, b.y); await __run(2500); await __settle();
     const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === 'card-garden');
+    for (let i = 0; i < 60 && c.alpha < 1; i++) await __run(100);
     const n0 = __voLog.length, t0 = T(), l0 = game.loop.time, at = {}, gest = {};
     __tap(c.x, c.y);
     for (let i = 0; i < 300 && !game.scene.isActive('Garden'); i++) { await __run(50); await new Promise((r) => setTimeout(r, 20)); }

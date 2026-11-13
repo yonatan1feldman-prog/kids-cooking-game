@@ -10,6 +10,8 @@ import type { Mom } from './Mom';
 
 import { AUTO_AFTER_HINT_MS, DEMO_MAX_MS, DEMO_WAIT_MS, HINT_AFTER_MS, TUNING } from '../core/tuning';
 import { isBigChef } from '../core/level';
+import * as paper from '../core/paper';
+import { sfx } from '../core/sfx';
 
 // (The idle and demo timings live in the tuning table, core/tuning.ts.)
 export { AUTO_AFTER_HINT_MS, DEMO_MAX_MS, HINT_AFTER_MS };
@@ -58,6 +60,9 @@ export interface StepContext {
     untouched?: boolean;
   };
 }
+
+type PaperThing = Phaser.GameObjects.GameObject & Phaser.GameObjects.Components.Transform & Phaser.GameObjects.Components.Alpha;
+type PaperSized = PaperThing & { displayWidth: number; displayHeight: number; depth: number; visible: boolean };
 
 export type PointerFn = (p: Phaser.Input.Pointer) => void;
 /** `cancelled` is true when the touch was lost (pointercancel, released off the screen). */
@@ -350,6 +355,67 @@ export abstract class Step<P> {
     to(dish, f);
     // (The board's resting scale for boing() follows it.)
     board.setData({ restScaleX: layout.k * f, restScaleY: layout.k * f });
+  }
+
+  // ---------------------------------------------------------------- the paper motion (premium round, core/paper.ts)
+  // One motion language for every step: what she picks up lifts like paper, what she puts down squashes and settles,
+  // buttons sink and spring back, things arrive with an overshoot and leave shrinking, a "not here" is a gentle wobble.
+  // The numbers live in `PAPER`; a step calls these instead of its own tweens.
+
+  /** Picked up: it grows a little and tips toward `dir` (-1 left / 1 right); its shadow stays on the table. */
+  protected paperLift(t: PaperThing, dir = 1, sound = true) {
+    return paper.lift(this.scene, t, { dir, sound });
+  }
+
+  /** Put down: a quick squash, then it settles at its resting size; its shadow comes back. */
+  protected paperDrop(t: PaperThing, sound = true) {
+    return paper.drop(this.scene, t, { sound });
+  }
+
+  /** A button or a thing tapped: it sinks and springs back. */
+  protected paperPress(t: PaperThing) {
+    return paper.press(this.scene, t);
+  }
+
+  /** Arrives from small with an overshoot (`i`: its place in a list, 40 ms apart). */
+  protected paperAppear(t: PaperThing, i = 0, alpha = 1) {
+    return paper.appear(this.scene, t, i, { alpha });
+  }
+
+  /** Leaves shrinking and fading (destroyed by default). */
+  protected paperVanish(t: PaperThing, opts: { destroy?: boolean; then?: () => void } = {}) {
+    return paper.vanish(this.scene, t, opts);
+  }
+
+  /** Something that fell or was thrown lands: a boing and a few paper bits in its colour. */
+  protected paperLand(t: PaperThing, tint?: number) {
+    return paper.land(this.scene, t, tint, this.layout.k);
+  }
+
+  /** "Not here": a gentle wobble and back, never a sad sound. */
+  protected paperWrong(t: PaperThing) {
+    return paper.wrong(this.scene, t);
+  }
+
+  /** A soft contact shadow under a thing lying on the counter (removed with it). */
+  protected paperShadow(t: PaperSized, opts: { surfaceY?: number; width?: number; alpha?: number } = {}) {
+    return paper.shadowFor(this.scene, t, opts);
+  }
+
+  /**
+   * A tool that follows the finger every frame (its tweens are killed on every move: the spoon, the rolling pin, the
+   * peeler): it is lifted at once, a little bigger, with the paper sound; `paperDrop` puts it down again when it rests.
+   */
+  protected paperHold(t: PaperThing, sound = true) {
+    if (t.getData('restScaleX') === undefined) paper.setRest(t);
+    const s = paper.PAPER.lift.scale;
+    t.setScale((t.getData('restScaleX') as number) * s, (t.getData('restScaleY') as number) * s);
+    if (sound) sfx(this.scene, 'paper-lift', { pitch: 'vary', volume: 0.6 });
+  }
+
+  /** After a deliberate resize: later paper motions rest at the new size. */
+  protected paperRest(t: PaperThing) {
+    paper.setRest(t);
   }
 
   protected own<T extends Phaser.GameObjects.GameObject>(obj: T): T {

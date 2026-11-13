@@ -9,6 +9,7 @@ import type { VoiceKey } from '../core/audio';
 import type { SprinkleParams } from '../recipes/types';
 import { clampToRadius } from './Dish';
 import { BOWL_DEPTH, PrepBowl } from './PrepBowl';
+import { PAPER } from '../core/paper';
 import { Step } from './Step';
 
 /**
@@ -112,7 +113,9 @@ export class SprinkleStep extends Step<SprinkleParams> {
       if (this.tool.scale < 0.1) this.tool.setPosition(this.toolRest.x, this.toolRest.y);
       if (this.source) boing(this.scene, this.source, 0.08);
     }
-    this.tool.setScale(this.k).setAlpha(1);
+    // (the paper motion: held, the shaker is a little bigger; picked up with the paper sound)
+    this.tool.setScale(this.k * (this.handful ? 1 : PAPER.lift.scale)).setAlpha(1);
+    if (animate && !this.handful) sfx(this.scene, 'paper-lift', { pitch: 'vary', volume: 0.6 });
     if (animate) this.scene.tweens.add({ targets: this.tool, x, y: ty, angle, duration: 140, ease: 'Quad.easeOut' });
     else this.tool.setPosition(x, ty).setAngle(angle);
   }
@@ -120,7 +123,22 @@ export class SprinkleStep extends Step<SprinkleParams> {
   private rest() {
     this.scene.tweens.killTweensOf(this.tool);
     const scale = this.handful ? 0 : this.k;
-    this.scene.tweens.add({ targets: this.tool, x: this.toolRest.x, y: this.toolRest.y, angle: 0, scale, duration: 350, ease: this.handful ? 'Quad.easeIn' : 'Back.easeOut' });
+    const tool = this.tool;
+    this.scene.tweens.add({
+      targets: tool,
+      x: this.toolRest.x,
+      y: this.toolRest.y,
+      angle: 0,
+      scale,
+      duration: 330,
+      ease: this.handful ? 'Quad.easeIn' : 'Quad.easeOut',
+      // (put down in its place: the paper motion's squash and settle)
+      onComplete: () => {
+        if (this.handful || !tool.active || this.active) return;
+        this.paperRest(tool);
+        this.paperDrop(tool);
+      },
+    });
   }
 
   private shake() {

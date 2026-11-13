@@ -197,7 +197,8 @@ export class HomeScene extends Phaser.Scene {
               }
               delay.then(() => {
                 spin.remove();
-                if (this.scene.isActive()) this.scene.start(g.scene);
+                // (premium round: through the paper page, the card growing; core/transition.ts)
+                if (this.scene.isActive()) go(this, g.scene, undefined, { from: c.img });
               });
             });
           },
@@ -211,7 +212,7 @@ export class HomeScene extends Phaser.Scene {
           key: ALBUM_ICON,
           open: (c) => {
             leave(c, null);
-            this.scene.start('Album');
+            go(this, 'Album', undefined, { from: c.img });
           },
         });
       }

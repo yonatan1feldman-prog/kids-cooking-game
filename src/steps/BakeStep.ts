@@ -96,8 +96,11 @@ export class BakeStep extends Step<BakeParams> {
         this.dragging = true;
         this.grab = { dx: this.dish.x - p.worldX, dy: this.dish.y - p.worldY };
         this.scene.tweens.killTweensOf(this.dish);
-        this.dish.setAlpha(1).setScale(1.06);
-        sfx(this.scene, 'tap');
+        this.dish.setAlpha(1).setScale(1);
+        // (the paper motion: picked up, it grows a little; never tipped, the dish is never rotated)
+        const d = this.dish as unknown as Phaser.GameObjects.Image;
+        this.paperRest(d);
+        this.paperLift(d, 0);
         this.poke();
       } else if (this.phase === 'mitts' && this.onMitts(p.worldX, p.worldY)) {
         this.grabMitts(p.worldX, p.worldY);
@@ -131,8 +134,8 @@ export class BakeStep extends Step<BakeParams> {
         this.intoOven();
       } else {
         if (!cancelled) this.miss();
-        sfx(this.scene, 'whoosh', { volume: 0.4 });
-        this.scene.tweens.add({ targets: this.dish, x: this.rest.x, y: this.rest.y, scale: 1, duration: 420, ease: 'Sine.easeOut' });
+        // (back on the counter, put down: the paper motion's squash and settle)
+        this.scene.tweens.add({ targets: this.dish, x: this.rest.x, y: this.rest.y, scale: 1, duration: 380, ease: 'Sine.easeOut', onComplete: () => this.phase === 'toOven' && this.paperDrop(this.dish as unknown as Phaser.GameObjects.Image) });
       }
     });
 
@@ -265,10 +268,12 @@ export class BakeStep extends Step<BakeParams> {
     this.poke();
     // (her press ends any hand that was pointing at a button; Mom's own help keeps her hand)
     if (!byHelp) this.hand.stop();
-    sfx(this.scene, 'click', { minGapMs: 40 });
+    sfx(this.scene, 'click', { minGapMs: 40, pitch: 'vary' });
+    // (the paper motion: a pressed button sinks and springs back)
+    this.paperPress(btn);
     if (v === this.temp) {
       // Already at the end: the button only wiggles (and at the hot end Mom points down again).
-      boing(this.scene, btn, 0.1);
+      this.paperWrong(btn);
       if (v === P.max) this.hintAt(this.btnDown!);
       return;
     }
@@ -301,8 +306,9 @@ export class BakeStep extends Step<BakeParams> {
     const P = this.params.panel!;
     if (this.temp !== P.target) {
       // Not there yet: it only wiggles (a try; the hint shows which way).
-      sfx(this.scene, 'tap', { volume: 0.6 });
-      boing(this.scene, this.btnStart!, 0.1);
+      sfx(this.scene, 'tap', { volume: 0.6, pitch: 'vary' });
+      this.paperPress(this.btnStart!);
+      this.paperWrong(this.btnStart!);
       this.miss();
       return;
     }
@@ -312,7 +318,7 @@ export class BakeStep extends Step<BakeParams> {
     this.hand.stop();
     sfx(this.scene, 'beep');
     this.btnStart!.setTexture(P.startOn);
-    boing(this.scene, this.btnStart!, 0.15);
+    this.paperPress(this.btnStart!);
     burst(this.scene, this.btnStart!.x, this.btnStart!.y, { count: 10, size: 20 * this.k, tint: [0xffe066, 0xff9a4a], speed: 360 * this.k, gravityY: 300 });
     this.setIdle(false);
     this.phase = 'baking';
@@ -417,8 +423,10 @@ export class BakeStep extends Step<BakeParams> {
     this.carry = 'mitts';
     this.grab = { dx: this.mitts.x - x, dy: this.mitts.y - y };
     this.scene.tweens.killTweensOf(this.mitts);
-    this.mitts.setScale(this.ctx.stage.mitts.scale * 1.1).setAngle(-6).setDepth(25);
-    sfx(this.scene, 'tap');
+    this.mitts.setScale(this.ctx.stage.mitts.scale).setAngle(-6).setDepth(25);
+    // (the paper motion: picked up, they grow a little and tip; a soft paper sound)
+    this.paperRest(this.mitts);
+    this.paperLift(this.mitts, 1);
   }
 
   /** Where the pizza sits in the oven, and how far it has come out of it (0 in the oven .. 1 on the board). */
@@ -473,8 +481,9 @@ export class BakeStep extends Step<BakeParams> {
         this.mittsOn();
       } else {
         if (!cancelled) this.miss();
-        sfx(this.scene, 'whoosh', { volume: 0.4 });
-        this.scene.tweens.add({ targets: this.mitts, x: m.x, y: m.y, scale: m.scale, duration: 380, ease: 'Sine.easeOut', onComplete: () => this.mitts?.setDepth(12) });
+        // (back on the counter, put down: the paper motion's squash and settle)
+        const mt = this.mitts;
+        this.scene.tweens.add({ targets: mt, x: m.x, y: m.y, scale: m.scale, duration: 340, ease: 'Sine.easeOut', onComplete: () => (mt.setDepth(12), mt.active && this.paperDrop(mt)) });
       }
       return;
     }

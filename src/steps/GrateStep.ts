@@ -54,8 +54,10 @@ export class GrateStep extends Step<GrateParams> {
       this.scene.tweens.killTweensOf(this.block);
       this.scene.tweens.add({ targets: this.block, x: p.worldX, y: p.worldY, duration: 90 });
       this.block.setScale(this.currentBlockScale());
-      boing(this.scene, this.block, 0.1);
-      sfx(this.scene, this.params.sound, { minGapMs: 600, volume: 0.8 });
+      // (the paper motion: picked up, a little bigger and the paper sound; the block shrinks as she grates)
+      this.paperRest(this.block);
+      this.paperHold(this.block);
+      sfx(this.scene, this.params.sound, { minGapMs: 600, volume: 0.8, pitch: 'vary' });
       if (this.onTool(p.worldX, p.worldY, 0)) this.shred(p.worldX);
     });
     this.onMove((p) => {
@@ -93,7 +95,11 @@ export class GrateStep extends Step<GrateParams> {
   }
 
   private restBlock() {
-    this.scene.tweens.add({ targets: this.block, x: this.rest.x, y: this.rest.y, duration: 300, ease: 'Back.easeOut' });
+    // (back in its place and put down at its size now: the paper motion's squash and settle)
+    const b = this.block;
+    b.setScale(this.currentBlockScale());
+    this.paperRest(b);
+    this.scene.tweens.add({ targets: b, x: this.rest.x, y: this.rest.y, duration: 300, ease: 'Back.easeOut', onComplete: () => b.active && !this.finishing && this.paperDrop(b) });
   }
 
   private rub(d: number, x: number) {
