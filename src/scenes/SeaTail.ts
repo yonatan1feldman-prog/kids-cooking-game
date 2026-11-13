@@ -5,6 +5,7 @@ import { tapMotion, type HandMotion } from '../core/hand';
 import { byVisit, SEA_PAINT_HEX, SEA_PAINTS, TAIL, writeMark, type SeaPaint, type TailMark } from '../core/sea';
 import { MOM_LOBES, MOM_TAIL_AREAS, MOM_TAIL_BODY, TAIL_BIG_AREAS, TAIL_BIG_BODY } from '../core/seaTailArt';
 import { sfx } from '../core/sfx';
+import { fullSourceImage } from '../core/svgRaster';
 import { iconButton } from '../core/ui';
 import type { Mom } from '../steps/Mom';
 import { visits, type P } from './MiniGame';
@@ -556,7 +557,7 @@ export function paintMomTail(scene: Phaser.Scene, mom: Mom, mark: TailMark) {
   if (!tex) return;
   scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => scene.textures.exists(key) && scene.textures.remove(key));
   const g = tex.context;
-  const src = scene.textures.get('mom-mer-tail').getSourceImage() as CanvasImageSource;
+  const src = fullSourceImage(scene.textures, 'mom-mer-tail');
   const body = new Path2D(MOM_TAIL_BODY);
   const areas = [...MOM_TAIL_AREAS.map((d) => ({ d, lobe: 0 })), { d: MOM_LOBES.left, lobe: 1 }, { d: MOM_LOBES.right, lobe: 1 }];
   const grey = 'filter' in g;

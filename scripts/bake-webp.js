@@ -22,6 +22,40 @@
   // (QUALITY -> QUALITY_MID -> lossless). The paper grain alone gives 2-5, invisible on the phone; this only catches
   // outliers (the thin cut-face strips lose their edges' colour in 4:2:0).
   const MAX_MEAN = 4;
+  // Premium round PR 1: the transparent margin is cut off (most layers are big frames with a small drawing in them: Mom's
+  // 800x800 layers fill 1-26% of theirs). The file keeps only the opaque box plus TRIM_PAD px; sources.json records it as
+  // `trim: {x, y, w, h}` inside the full frame `w` x `h`, and the loader (svgRaster.ts) puts the frame back with
+  // Phaser's `Frame.setTrim`, so sizes, origins, pivots and hit areas stay those of the full frame. A file is cut only
+  // when that saves at least TRIM_MIN of its pixels (the rest stay as they were).
+  const TRIM_PAD = 2;
+  const TRIM_MIN = 0.1;
+  /** The opaque box of a canvas (alpha > 0) with TRIM_PAD around it, or null when cutting saves too little. */
+  const trimBox = (c) => {
+    const { width: w, height: h } = c;
+    const d = c.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, w, h).data;
+    let x0 = w, y0 = h, x1 = -1, y1 = -1;
+    for (let y = 0; y < h; y++) {
+      const row = y * w * 4;
+      for (let x = 0; x < w; x++) {
+        if (!d[row + x * 4 + 3]) continue;
+        if (x < x0) x0 = x;
+        if (x > x1) x1 = x;
+        if (y < y0) y0 = y;
+        if (y > y1) y1 = y;
+      }
+    }
+    if (x1 < 0) return null; // nothing drawn: keep it as it is
+    x0 = Math.max(0, x0 - TRIM_PAD); y0 = Math.max(0, y0 - TRIM_PAD);
+    x1 = Math.min(w - 1, x1 + TRIM_PAD); y1 = Math.min(h - 1, y1 + TRIM_PAD);
+    const t = { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
+    return t.w * t.h <= (1 - TRIM_MIN) * w * h ? t : null;
+  };
+  const crop = (c, t) => {
+    const o = document.createElement('canvas');
+    o.width = t.w; o.height = t.h;
+    o.getContext('2d').drawImage(c, -t.x, -t.y);
+    return o;
+  };
 
   // Same steps as src/core/svgRaster.ts: native box, aspect kept, drawn once onto a canvas.
   const rasterize = async (key, w, h) => {
@@ -52,21 +86,35 @@
 
   const list = async () => (await fetch('/__bake/list')).json();
 
-  window.__bakeWebp = async (only) => {
+  /**
+   * Bakes every SVG (or the keys in `only`). `opts.trimOnly`: bake only the ones whose transparent margin is worth
+   * cutting and that are not cut yet (the premium round's one-off pass; every other file stays byte for byte).
+   */
+  window.__bakeWebp = async (only, opts = {}) => {
     const out = [];
-    for (const { key, sha1, w, h } of await list()) {
+    for (const { key, sha1, w, h, trim: had } of await list()) {
       if (only && !only.includes(key)) continue;
-      const c = await rasterize(key, w, h);
+      if (opts.trimOnly && had) continue;
+      const full = await rasterize(key, w, h);
+      const t = trimBox(full);
+      if (opts.trimOnly && !t) continue;
+      const c = t ? crop(full, t) : full;
       const encode = (q) => new Promise((r) => c.toBlob(r, 'image/webp', q));
       let blob = await encode(1); // quality 1 = lossless in Chrome
-      if (blob.size > LOSSLESS_MAX) {
-        let lossy = await encode(blob.size > BIG ? QUALITY : QUALITY_MID);
-        if (blob.size > BIG && (await __diffBlob(c, lossy)).mean > MAX_MEAN) lossy = await encode(QUALITY_MID);
-        if (lossy.size < blob.size && (await __diffBlob(c, lossy)).mean <= MAX_MEAN) blob = lossy;
+      // A cut file is judged as the whole frame would be (the same choices as before cutting): its tier by the full
+      // frame's lossless size, its pixel difference spread over the full frame (the cut-off margin differs by 0).
+      const tier = t ? (await new Promise((r) => full.toBlob(r, 'image/webp', 1))).size : blob.size;
+      const share = t ? (t.w * t.h) / (full.width * full.height) : 1;
+      const meanOf = async (b) => (await __diffBlob(c, b)).mean * share;
+      if (tier > LOSSLESS_MAX) {
+        let lossy = await encode(tier > BIG ? QUALITY : QUALITY_MID);
+        if (tier > BIG && (await meanOf(lossy)) > MAX_MEAN) lossy = await encode(QUALITY_MID);
+        if (lossy.size < blob.size && (await meanOf(lossy)) <= MAX_MEAN) blob = lossy;
       }
-      const q = new URLSearchParams({ key, sha1, w: String(c.width), h: String(c.height) });
+      const q = new URLSearchParams({ key, sha1, w: String(full.width), h: String(full.height) });
+      if (t) for (const k of ['x', 'y', 'w', 'h']) q.set('t' + k, String(t[k]));
       const res = await fetch(`/__bake/put?${q}`, { method: 'POST', body: blob });
-      out.push(`${key} ${c.width}x${c.height} ${Math.round(blob.size / 1024)}KB ${res.ok ? '' : 'FAILED'}`);
+      out.push(`${key} ${full.width}x${full.height}${t ? ` cut ${t.w}x${t.h}@${t.x},${t.y}` : ''} ${Math.round(blob.size / 1024)}KB ${res.ok ? '' : 'FAILED'}`);
     }
     return out;
   };
@@ -100,14 +148,24 @@
     try { return diff(c, await loadImg(url)); } finally { URL.revokeObjectURL(url); }
   };
 
-  /** Pixel difference between each SVG (rasterized now) and its committed WebP: mean and 99th percentile, 0-255. */
+  /**
+   * Pixel difference between each SVG (rasterized now) and its committed WebP: mean and 99th percentile, 0-255. A cut
+   * WebP is put back at its place in the full frame first, so the whole frame is compared (what was cut off must be
+   * transparent in the SVG too).
+   */
   window.__compareWebp = async (only) => {
     const out = {};
-    for (const { key, w, h } of await list()) {
+    for (const { key, w, h, trim } of await list()) {
       if (only && !only.includes(key)) continue;
       const a = await rasterize(key, w, h);
-      const img = await loadImg(`assets/images/webp/${key}.webp?${Date.now()}`);
-      if (img.naturalWidth !== a.width || img.naturalHeight !== a.height) { out[key] = 'SIZE MISMATCH'; continue; }
+      let img = await loadImg(`assets/images/webp/${key}.webp?${Date.now()}`);
+      if (trim) {
+        if (img.naturalWidth !== trim.w || img.naturalHeight !== trim.h) { out[key] = 'SIZE MISMATCH (cut)'; continue; }
+        const f = document.createElement('canvas');
+        f.width = a.width; f.height = a.height;
+        f.getContext('2d').drawImage(img, trim.x, trim.y);
+        img = f;
+      } else if (img.naturalWidth !== a.width || img.naturalHeight !== a.height) { out[key] = 'SIZE MISMATCH'; continue; }
       out[key] = diff(a, img);
     }
     return out;

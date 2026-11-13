@@ -1282,6 +1282,8 @@ export const SOUND_KEYS = [
   ...FARM_SFX,
   // the mermaid world (core/seaAssets.ts)
   ...SEA_SFX,
+  // the premium round's paper language (core/paper.ts, core/transition.ts; synthesised: audio-src/scripts/make_ui_sfx.py)
+  'paper-lift', 'paper-drop', 'whoosh-soft', 'chime-1', 'chime-2', 'chime-3', 'chime-4', 'chime-5', 'tada',
 ] as const;
 export type SoundKey = (typeof SOUND_KEYS)[number];
 

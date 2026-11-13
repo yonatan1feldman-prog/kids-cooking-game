@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { go } from '../core/transition';
 import { music, voice } from '../core/audio';
 import { requestWakeLock, resumeAudio } from '../core/device';
 import { FX_SOFT } from '../core/assets';
@@ -62,7 +63,7 @@ export class TitleScene extends Phaser.Scene {
     // The three games, three big cards (clinic round 3; the mermaid world): their touch area is the card itself (not a
     // circle round it).
     const card = (key: 'world-card-kitchen' | 'world-card-clinic' | 'world-card-mermaid', at: { x: number; y: number }, world: World) => {
-      const c: Phaser.GameObjects.Image = iconButton(this, L, key, at.x, at.y, () => this.go(c.x, c.y, world), { fireOn: 'up', scale: S.worldScale });
+      const c: Phaser.GameObjects.Image = iconButton(this, L, key, at.x, at.y, () => this.go(c.x, c.y, world, c), { fireOn: 'up', scale: S.worldScale });
       c.input!.hitArea = new Phaser.Geom.Rectangle(0, 0, c.frame.realWidth, c.frame.realHeight);
       c.input!.hitAreaCallback = Phaser.Geom.Rectangle.Contains;
       return c;
@@ -149,7 +150,7 @@ export class TitleScene extends Phaser.Scene {
     show(false);
   }
 
-  private go(x: number, y: number, world: World) {
+  private go(x: number, y: number, world: World, card?: Phaser.GameObjects.Image) {
     // A new version is being switched on this very moment: the page reloads in a blink, the tap waits.
     if (this.leaving || updating()) return;
     this.leaving = true;
@@ -174,7 +175,8 @@ export class TitleScene extends Phaser.Scene {
     voice.say(WORLD_LINE[world], { ttlMs: 3500 });
     this.mom?.wave();
     if (world === 'kitchen') {
-      this.time.delayedCall(900, () => this.scene.start('Home', { from: 'title' }));
+      // (premium round: through the paper page, the card she tapped growing toward the middle; core/transition.ts)
+      this.time.delayedCall(900, () => this.scene.isActive() && go(this, 'Home', { from: 'title' }, { from: card }));
       return;
     }
     // The clinic: its art and sounds load (a small spinner over the card if it takes a moment, with a ring round it

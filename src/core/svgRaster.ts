@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import manifest from 'virtual:asset-manifest';
 
 /**
  * Loads an SVG and rasterizes it at its native contract size (`box`), keeping the
@@ -93,10 +94,38 @@ export async function loadWebpTexture(textures: Phaser.Textures.TextureManager, 
     await img.decode();
     if (!img.naturalWidth) return false;
     if (textures.exists(key)) textures.remove(key);
-    textures.addImage(key, img);
+    const tex = textures.addImage(key, img);
+    // Premium round PR 1: a WebP cut to its opaque box at the bake gets its full frame back here, so its size, origin,
+    // pivots, crop and hit area are those of the full picture (Phaser draws the box at its offset in the frame); only
+    // the box goes to the GPU. A file that doesn't match its record (an old cache) is used as it is.
+    const t = manifest.trim?.[key];
+    if (tex && t && img.naturalWidth === t[4] && img.naturalHeight === t[5]) tex.get().setTrim(t[0], t[1], t[2], t[3], t[4], t[5]);
     return true;
   } catch (err) {
     console.warn(`[assets] webp "${key}" failed, trying the svg`, err);
     return false;
   }
+}
+
+const fullSources = new WeakMap<object, HTMLCanvasElement>();
+
+/**
+ * A texture's picture at its full frame size, for code that reads its pixels on a 2D canvas (`getSourceImage()` is only
+ * the cut box of a WebP trimmed at the bake): the box drawn at its place in a canvas of the frame's size, made once per
+ * texture source. An untrimmed texture's own source is returned as it is.
+ */
+export function fullSourceImage(textures: Phaser.Textures.TextureManager, key: string): CanvasImageSource & { width: number; height: number } {
+  const tex = textures.get(key);
+  const src = tex.getSourceImage() as CanvasImageSource & { width: number; height: number };
+  const f = tex.get();
+  if (!(f as unknown as { data: { trim?: boolean } }).data.trim) return src;
+  let c = fullSources.get(src);
+  if (!c) {
+    c = document.createElement('canvas');
+    c.width = f.realWidth;
+    c.height = f.realHeight;
+    c.getContext('2d')?.drawImage(src, f.x, f.y);
+    fullSources.set(src, c);
+  }
+  return c;
 }

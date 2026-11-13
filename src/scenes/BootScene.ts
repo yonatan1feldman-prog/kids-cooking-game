@@ -2,9 +2,9 @@ import Phaser from 'phaser';
 import manifest from 'virtual:asset-manifest';
 import { refreshAlbumCount } from '../core/album';
 import { refreshWallDrawing, WALL_DRAWING } from '../core/artWall';
-import { CORE_IMAGES, FX_DOT, KITCHEN_KEYS, FX_SOFT, IMAGES, RECIPE_ASSETS, SCENERY_KEYS, textureSize, unlistedImages, type ImageKey } from '../core/assets';
+import { CORE_IMAGES, KITCHEN_KEYS, IMAGES, RECIPE_ASSETS, SCENERY_KEYS, textureSize, unlistedImages, type ImageKey } from '../core/assets';
 import { loadRecipeSounds, loadSounds, releaseSounds } from '../core/audio';
-import { ensurePlaceholders, makeFxTextures, makeUiTextures } from '../core/placeholders';
+import { ensurePlaceholders, FX_KEYS, makeFxTextures, makeUiTextures } from '../core/placeholders';
 import { SUNBEAM_KEY } from '../core/scenery';
 import { loadSvgTexture, loadWebpTexture } from '../core/svgRaster';
 import { worldReady } from '../core/worldCache';
@@ -204,7 +204,7 @@ export function releaseRecipe(game: Phaser.Game) {
   if (!current) return;
   const own = RECIPE_ASSETS[current.id];
   current = null;
-  const keep = new Set<string>([...CORE_IMAGES, FX_DOT, FX_SOFT, 'fx-heart', 'fx-ring', 'fx-paper', SUNBEAM_KEY, WALL_DRAWING]);
+  const keep = new Set<string>([...CORE_IMAGES, ...FX_KEYS, SUNBEAM_KEY, WALL_DRAWING]);
   for (const key of game.textures.getTextureKeys()) if (!keep.has(key)) game.textures.remove(key);
   if (own) releaseSounds(own.sounds);
 }

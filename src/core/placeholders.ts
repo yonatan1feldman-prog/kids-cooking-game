@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { CREAM, FX_DOT, FX_SOFT, INK, LOADED_KEYS, SAUCE_BRUSH, SAUCE_RED, textureSize, type ImageKey } from './assets';
+import { fullSourceImage } from './svgRaster';
 
 /**
  * Temporary art drawn in code for every image that is missing on disk (all 52 are delivered now).
@@ -280,6 +281,73 @@ export function makeFxTextures(game: Phaser.Game) {
   // (the polish round, core/juice.ts: the touch ring and a strip of confetti paper)
   if (!game.textures.exists('fx-ring')) bake(game, 'fx-ring', 64, 64, (g) => g.lineStyle(8, 0xffffff).strokeCircle(32, 32, 28));
   if (!game.textures.exists('fx-paper')) bake(game, 'fx-paper', 28, 16, (g) => g.fillStyle(0xffffff).fillRect(0, 0, 28, 16));
+  // (the premium round, research/premium-spec.md 2 and 4: core/paper.ts, core/transition.ts, the light of PR 2)
+  // A soft contact shadow: an ellipse, opaque in the middle, fading to nothing at its rim (white: tinted ink).
+  canvasTex(game, FX_SHADOW, 128, 64, (c) => {
+    const g = c.createRadialGradient(64, 32, 0, 64, 32, 64);
+    g.addColorStop(0, 'rgba(255,255,255,1)');
+    g.addColorStop(0.55, 'rgba(255,255,255,0.75)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    c.setTransform(1, 0, 0, 0.5, 0, 16);
+    c.fillStyle = g;
+    c.fillRect(0, 0, 128, 128);
+  });
+  // A vignette: clear in the middle, the corners gently shaded (white: tinted ink, stretched over the screen).
+  canvasTex(game, FX_VIGNETTE, 256, 256, (c) => {
+    const g = c.createRadialGradient(128, 128, 60, 128, 128, 182);
+    g.addColorStop(0, 'rgba(255,255,255,0)');
+    g.addColorStop(0.6, 'rgba(255,255,255,0.35)');
+    g.addColorStop(1, 'rgba(255,255,255,1)');
+    c.fillStyle = g;
+    c.fillRect(0, 0, 256, 256);
+  });
+  // The torn edge of a sheet of cream paper (the scene-change page, core/transition.ts): paper below a ragged line, a
+  // faint darker fibre edge along it. Seeded, so it is the same tear every time; stretched to the screen's width.
+  canvasTex(game, FX_TORN, 512, 48, (c) => {
+    let seed = 11;
+    const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    const pts: [number, number][] = [];
+    for (let x = 0; x <= 512; x += 6 + rnd() * 10) pts.push([x, 14 + rnd() * 16]);
+    pts.push([512, 14 + rnd() * 16]);
+    const edge = () => {
+      c.beginPath();
+      c.moveTo(0, 48);
+      for (const [x, y] of pts) c.lineTo(x, y);
+      c.lineTo(512, 48);
+      c.closePath();
+    };
+    c.fillStyle = 'rgba(120,80,50,0.35)';
+    c.save();
+    c.translate(0, -3);
+    edge();
+    c.fill();
+    c.restore();
+    c.fillStyle = '#fbf0da';
+    edge();
+    c.fill();
+    c.strokeStyle = 'rgba(255,255,255,0.7)';
+    c.lineWidth = 1.5;
+    c.beginPath();
+    pts.forEach(([x, y], i) => (i ? c.lineTo(x, y + 1.5) : c.moveTo(x, y + 1.5)));
+    c.stroke();
+  });
+}
+
+/** The code-drawn effect textures (kept when a recipe's art is released, BootScene `releaseRecipe`). */
+export const FX_SHADOW = 'fx-shadow';
+export const FX_VIGNETTE = 'fx-vignette';
+export const FX_TORN = 'fx-torn';
+export const FX_KEYS = [FX_DOT, FX_SOFT, 'fx-heart', 'fx-ring', 'fx-paper', FX_SHADOW, FX_VIGNETTE, FX_TORN] as const;
+
+function canvasTex(game: Phaser.Game, key: string, w: number, h: number, draw: (c: CanvasRenderingContext2D) => void) {
+  if (game.textures.exists(key)) return;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  draw(ctx);
+  game.textures.addCanvas(key, canvas);
 }
 
 /** Style-matched UI textures made in code: the solid sauce brush. */
@@ -295,7 +363,7 @@ export function makeBrush(game: Phaser.Game, blob: string, colour: number, key: 
   const scene = { textures: game.textures };
   if (scene.textures.exists(key)) scene.textures.remove(key);
   if (!scene.textures.exists(blob)) return key;
-  const src = scene.textures.get(blob).getSourceImage() as CanvasImageSource & { width: number; height: number };
+  const src = fullSourceImage(scene.textures, blob);
   const canvas = document.createElement('canvas');
   canvas.width = src.width;
   canvas.height = src.height;
@@ -335,7 +403,8 @@ export function makeBrush(game: Phaser.Game, blob: string, colour: number, key: 
 /** Opaque bounds of a texture (from its source canvas), used to find e.g. the mouth. */
 export function opaqueBounds(scene: Phaser.Scene, key: string) {
   try {
-    const src = scene.textures.get(key).getSourceImage() as CanvasImageSource & { width: number; height: number };
+    // (the full frame: a WebP cut at the bake is put back at its place, so the bounds are in frame coordinates)
+    const src = fullSourceImage(scene.textures, key);
     const canvas = document.createElement('canvas');
     canvas.width = src.width;
     canvas.height = src.height;

@@ -25,8 +25,11 @@ const SOUND_EXT = ['.ogg', '.mp3'];
 
 export interface WebpSource {
   sha1: string;
+  /** the full frame (the texture size the game sees) */
   w: number;
   h: number;
+  /** premium round PR 1: the file holds only this box of the frame (its transparent margin cut off at the bake) */
+  trim?: { x: number; y: number; w: number; h: number };
 }
 
 export const sha1 = (buf: Buffer | string) => crypto.createHash('sha1').update(buf).digest('hex');
@@ -46,6 +49,8 @@ export function scanAssets(root: string) {
 
   const images: Record<string, string> = {};
   const webp: Record<string, string> = {};
+  /** key -> [frame w, frame h, x, y, w, h] for the WebPs cut at the bake (svgRaster.ts puts the frame back) */
+  const trim: Record<string, [number, number, number, number, number, number]> = {};
   const stale: string[] = [];
   for (const file of list(imgDir)) {
     if (path.extname(file).toLowerCase() !== '.svg') continue;
@@ -53,8 +58,10 @@ export function scanAssets(root: string) {
     images[key] = `assets/images/${file}`;
     const src = sources[key];
     if (!src || !fs.existsSync(path.join(webpDir, `${key}.webp`))) continue;
-    if (src.sha1 === sha1(fs.readFileSync(path.join(imgDir, file)))) webp[key] = `assets/images/webp/${key}.webp`;
-    else stale.push(key);
+    if (src.sha1 === sha1(fs.readFileSync(path.join(imgDir, file)))) {
+      webp[key] = `assets/images/webp/${key}.webp`;
+      if (src.trim) trim[key] = [src.w, src.h, src.trim.x, src.trim.y, src.trim.w, src.trim.h];
+    } else stale.push(key);
   }
 
   const sounds: Record<string, string[]> = {};
@@ -74,7 +81,7 @@ export function scanAssets(root: string) {
   // ogg first, mp3 as fallback (Phaser picks the first format the browser can play)
   for (const key of Object.keys(sounds)) sounds[key].sort((a) => (a.endsWith('.ogg') ? -1 : 1));
 
-  return { images, webp, sounds, stale };
+  return { images, webp, trim, sounds, stale };
 }
 
 /**
@@ -121,7 +128,7 @@ export function assetManifest(): Plugin {
     },
     load(id) {
       if (id !== RESOLVED_ID) return null;
-      const { images, webp, sounds, stale } = scanAssets(root);
+      const { images, webp, trim, sounds, stale } = scanAssets(root);
       if (stale.length) this.warn(`pre-rendered WebP out of date (the SVG is used instead): ${stale.join(', ')}. Run scripts/bake-webp.js.`);
       // In the build, the runtime-cached worlds' files carry their content hash (?v=), so a changed file is a new URL
       // and the cache-first runtime cache never serves an old one. (Precached files have their own revisions.)
@@ -134,7 +141,7 @@ export function assetManifest(): Plugin {
         for (const k of Object.keys(sounds)) sounds[k] = sounds[k].map(v);
         for (const id of Object.keys(world)) world[id] = world[id].map(v);
       }
-      return `export default ${JSON.stringify({ images, webp, sounds, world })};`;
+      return `export default ${JSON.stringify({ images, webp, trim, sounds, world })};`;
     },
     configureServer(server) {
       const assetsDir = path.join(root, 'public', 'assets');
@@ -155,11 +162,20 @@ export function assetManifest(): Plugin {
         const url = new URL(req.url ?? '/', 'http://x');
         const imgDir = path.join(assetsDir, 'images');
         if (url.pathname === '/list') {
+          let known: Record<string, WebpSource> = {};
+          try {
+            known = JSON.parse(fs.readFileSync(sourcesFile, 'utf8'));
+          } catch {
+            /* nothing baked yet */
+          }
           const out = Object.entries(IMAGES as Record<string, { size: readonly number[]; raster?: number }>)
             .filter(([key]) => fs.existsSync(path.join(imgDir, `${key}.svg`)))
             .map(([key, v]) => {
               const f = v.raster ?? 1;
-              return { key, sha1: sha1(fs.readFileSync(path.join(imgDir, `${key}.svg`))), w: Math.round(v.size[0] * f), h: Math.round(v.size[1] * f) };
+              const sum = sha1(fs.readFileSync(path.join(imgDir, `${key}.svg`)));
+              // (`trim`: how its current WebP is cut, if it is up to date and cut)
+              const trim = known[key]?.sha1 === sum ? known[key].trim : undefined;
+              return { key, sha1: sum, w: Math.round(v.size[0] * f), h: Math.round(v.size[1] * f), trim };
             });
           res.setHeader('Content-Type', 'application/json');
           return res.end(JSON.stringify(out));
@@ -178,7 +194,9 @@ export function assetManifest(): Plugin {
             } catch {
               /* first file */
             }
-            sources[key] = { sha1: url.searchParams.get('sha1') ?? '', w: Number(url.searchParams.get('w')), h: Number(url.searchParams.get('h')) };
+            const q = url.searchParams;
+            sources[key] = { sha1: q.get('sha1') ?? '', w: Number(q.get('w')), h: Number(q.get('h')) };
+            if (q.has('tx')) sources[key].trim = { x: Number(q.get('tx')), y: Number(q.get('ty')), w: Number(q.get('tw')), h: Number(q.get('th')) };
             const sorted = Object.fromEntries(Object.keys(sources).sort().map((k) => [k, sources[k]]));
             fs.writeFileSync(sourcesFile, JSON.stringify(sorted, null, 1) + '\n');
             const mod = server.moduleGraph.getModuleById(RESOLVED_ID);
