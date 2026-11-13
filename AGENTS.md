@@ -505,6 +505,8 @@ fallback if the capture fails.
   renders each SVG exactly like the game does, at its texture size (native x `raster`), to `images/webp/<key>.webp`
   (lossless only when that is under 8 KB, else lossy 0.95, or 0.85 when the lossless file would be over 64 KB; a file
   whose mean pixel difference is over 4/255 goes one step up), recording the SVG's sha1 in `images/webp/sources.json`.
+  Since the premium round a WebP is cut to its opaque box (+2 px) when that saves 10% of its pixels, and the loader puts
+  the full frame back with `setTrim` (Handoff notes, the premium round PR 1): code sees the full frame as before.
   The build uses a WebP only if that sha1 matches the SVG on disk; otherwise it warns and the game rasterizes the SVG.
   **After changing or adding an SVG, re-run the bake** (open the dev page, then in the JS tool:
   `eval(await (await fetch('scripts/bake-webp.js')).text()); await __bakeWebp(); await __compareWebp();`),
@@ -675,7 +677,48 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the mermaid world PR 4 (the shell song), the mermaid world PR 3 (cleaning, shells), the mermaid world PR 2 (the tail, the swim), the mermaid world PR 1 (the lagoon), the clinic-open fix, the clinic round 6 (part 3, four patients), the clinic round 6 (part 2, seven ailments), the clinic round 6 (part 1, the bowl), the clinic round 5 (part 3, more challenge), the clinic round 5 (part 2, the care rooms), the farm, the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; the premium round PR 1 (cut WebPs, paper motion, scene changes, UI sounds), the mermaid world PR 4 (the shell song), the mermaid world PR 3 (cleaning, shells), the mermaid world PR 2 (the tail, the swim), the mermaid world PR 1 (the lagoon), the clinic-open fix, the clinic round 6 (part 3, four patients), the clinic round 6 (part 2, seven ailments), the clinic round 6 (part 1, the bowl), the clinic round 5 (part 3, more challenge), the clinic round 5 (part 2, the care rooms), the farm, the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 000000000000000000000000000000000000000000. The premium round, PR 1 (cut WebPs, the paper motion language, scene changes, UI sounds)
+Spec `/mnt/project-files/research/premium-spec.md` (PR 1, sections 3, 4.1, 4.2). Infrastructure for PRs 2-5; it changes
+almost nothing she sees but the scene changes and the home cards arriving.
+- **Cut WebPs (`frame.setTrim`):** most art is a big frame with a small drawing in it (Mom's 800x800 layers are 1-26% ink).
+  `scripts/bake-webp.js` now cuts each WebP to its opaque box + 2 px when that saves at least 10% of its pixels, and
+  `sources.json` records `trim: {x, y, w, h}` inside the full frame `w` x `h`. The manifest passes it on (`manifest.trim`),
+  and `loadWebpTexture` (`core/svgRaster.ts`) calls `texture.get().setTrim(...)`: the frame's `realWidth/realHeight`,
+  origins, `displayWidth`, pivots, `setCrop`, flips, hit areas and `getBounds` stay those of the full picture; Phaser draws
+  the box at its offset; only the box goes to the GPU. **No game code changed for it.** The only code that reads pixels
+  itself (2D canvas) goes through `fullSourceImage(textures, key)` (`svgRaster.ts`): `opaqueBounds`, `makeBrush`
+  (placeholders.ts) and Mom's painted tail (`SeaTail.ts`). **Any new code that draws a texture's `getSourceImage()` onto a
+  canvas must use `fullSourceImage`** (the source is only the cut box). The SVG fallback (no WebP) is never cut.
+  **Pitfall:** `setFlipX(true)` together with `setCrop` on a cut texture crops a different part than on an uncut one
+  (Phaser mirrors the crop inside the cut box); nothing in the game does both today (checked); if you need it, crop a
+  `fullSourceImage` copy or keep that key uncut. Origin, flip alone and crop alone match the uncut picture exactly
+  (all 899 WebPs rendered against master).
+  Re-baking: `__bakeWebp()` as before (cuts what is worth cutting); `__bakeWebp(keys, { trimOnly: true })` bakes only the
+  ones not cut yet that would be; `__compareWebp()` puts a cut WebP back in its frame and compares the whole frame.
+- **`__gpuMB()`** (harness): MB of every loaded texture (w x h x 4 of each texture source: what is really uploaded), the
+  number of textures, the 8 biggest. `__settle()` steps until a scene change's paper page has gone.
+- **`core/paper.ts`:** the motion language, numbers in `PAPER`: `lift` (x1.06, -3 deg, 120 ms, `paper-lift`), `drop` (squash
+  1.08/0.88 90 ms, then Back.easeOut 260 ms, `paper-drop`), `press` (0.92 / 1.04 / 1), `appear` (from 0.6 + alpha 0, 320 ms
+  Back.easeOut, stagger 40 ms), `vanish` (0.8 + alpha 0, 180 ms), `land` (boing + 4 paper bits), `wrong` (a gentle wobble,
+  no sad sound), `shadowFor` (a soft ink ellipse `fx-shadow` under a thing, following it; on `lift` it stays on the surface,
+  lighter and wider). Scales are relative to the rest scale kept in the same data as fx.ts `boing` (`setRest` after a
+  deliberate resize). Wired only on the home cards (`appear`); PR 4 puts it in every step.
+- **`core/transition.ts`:** `go(scene, key, data, { from, dir })`: the tapped thing grows x1.15 toward the middle (300 ms),
+  a cream paper sheet with torn edges (`fx-torn`) slides over (380 ms, `whoosh-soft`), the next scene starts under it and
+  the sheet slides on (320 ms) once that scene has been created. `dir: 'down'` for going back. Its own scene `Transition`
+  (added on first use, on top); the sheet swallows taps only while covering; a second `go` meanwhile is ignored
+  (`changing(game)`); ORIENTATION_PAUSE ends it at once (the next scene is started, the sheet goes); a 2 s guard uncovers
+  if the next scene never reports `create`. Wired: title -> home (kitchen card), home -> recipe (cards), home -> title,
+  recipe -> home (home button and the finale). PR 4 wires the rest.
+- **Effect textures** (`makeFxTextures`, drawn in code on 2D canvases): `fx-shadow` 128x64, `fx-vignette` 256x256 (clear
+  middle, shaded corners: white, tint it ink, for PR 2's light), `fx-torn` 512x48. All in `FX_KEYS`, which
+  `releaseRecipe` keeps (removing a texture under a shown image crashes WebGL).
+- **Sounds:** `sfx(scene, key, { pitch: 'vary' })` = rate 0.94-1.06 (the old default `vary` stays 0.92-1.1;
+  `pitch: 'fixed'` = none). Nine core UI sounds synthesised by `audio-src/scripts/make_ui_sfx.py` (it also copies them to
+  `public/assets/sounds/sfx/`): `paper-lift`, `paper-drop`, `whoosh-soft`, `chime-1..5` (C5 D5 E5 G5 A5 bells, for step after
+  step in PR 4), `tada`; 4-10 KB each, -18 LUFS. Not heard by a human.
+
 ### 00000000000000000000000000000000000000000. The mermaid world, PR 3 (cleaning the lagoon, the shell treasure)
 Spec `/mnt/project-files/research/mermaid-spec.md` 3.3, 3.4 and 11 (Pipa = Marina there). Two shell doors now open real activities.
 - **Scenes:** `scenes/SeaClean.ts` (door 'clean') and `scenes/SeaShells.ts` (door 'shells'), both on `SeaGame`; numbers,

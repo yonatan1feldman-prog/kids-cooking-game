@@ -268,10 +268,29 @@
     const btn = t.children.list.find((o) => ['btn-play', 'btn-world-kitchen', 'world-card-kitchen'].includes(o.texture?.key));
     if (btn) { __tap(btn.x, btn.y); await __run(1300); }
     if (!game.scene.isActive('Home')) { game.scene.getScenes(true).forEach((s) => s.scene.stop()); game.scene.start('Home'); await __run(1300); }
+    await __settle();
     const h = game.scene.getScene('Home');
     const card = h.children.list.find((o) => o.texture?.key === `card-${window.__recipe || 'pizza'}`);
     __tap(card.x, card.y); await __run(1600);
     await __waitRecipe();
+  };
+  /** Premium round: steps until the paper page of a scene change (core/transition.ts) has gone. */
+  window.__settle = async () => {
+    for (let i = 0; i < 100 && game.scene.isActive('Transition'); i++) await __run(50);
+  };
+  /**
+   * Premium round PR 1: the GPU memory of every texture loaded now, MB (width x height x 4 of each texture source: a WebP
+   * cut at the bake counts only its cut box, which is what is uploaded), the number of textures, and the 8 biggest.
+   */
+  window.__gpuMB = () => {
+    let b = 0, n = 0;
+    const by = {};
+    for (const k of game.textures.getTextureKeys()) {
+      if (k.startsWith('__')) continue;
+      n++;
+      for (const s of game.textures.get(k).source) { const v = (s.width || 0) * (s.height || 0) * 4; b += v; by[k] = (by[k] || 0) + v; }
+    }
+    return { MB: +(b / 1e6).toFixed(1), textures: n, top: Object.entries(by).sort((x, y) => y[1] - x[1]).slice(0, 8).map(([k, v]) => `${k} ${(v / 1e6).toFixed(1)}`) };
   };
   /** Round 8: a recipe's own art loads on the card tap, in real time: keep stepping until its scene and first step are up. */
   window.__waitRecipe = async () => {

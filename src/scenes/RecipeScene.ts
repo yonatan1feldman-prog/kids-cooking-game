@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { go } from '../core/transition';
 import { music, voice } from '../core/audio';
 import { boing, stars } from '../core/fx';
 import { MomHandView } from '../core/hand';
@@ -149,7 +150,7 @@ export class RecipeScene extends Phaser.Scene {
     if (ins.length) this.steps.splice(i + 1, 0, ...ins);
     const last = i >= this.steps.length - 1;
     if (last) {
-      this.scene.start('Home', { from: 'finale' });
+      go(this, 'Home', { from: 'finale' }, { dir: 'down' });
       return;
     }
     const { dish, layout, mom, character } = this.ctx;
@@ -168,7 +169,7 @@ export class RecipeScene extends Phaser.Scene {
   private goHome() {
     this.step?.abort();
     voice.stop();
-    this.scene.start('Home', { from: 'recipe' });
+    go(this, 'Home', { from: 'recipe' }, { dir: 'down' });
   }
 
   update(_time: number, delta: number) {

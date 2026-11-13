@@ -40,8 +40,14 @@ const unloadedTold = new Set<string>();
  * Plays a contract sound if it was loaded. A missing sound is silently skipped.
  * Same-key calls closer than `minGapMs` are dropped so rapid rubbing doesn't turn into noise.
  * `volume` is relative (1 = the normal effect level, LEVEL.sfx ~0.65 of Mom's voice); `rate` pitches it (a guest's voice).
+ * Every play is pitched a little at random (`vary`, on by default) so a repeated tap never sounds the same twice;
+ * `pitch: 'vary'` (the premium round's paper language) is the narrower 0.94-1.06, `pitch: 'fixed'` none at all.
  */
-export function sfx(scene: Phaser.Scene, key: SoundKey, opts: { volume?: number; minGapMs?: number; vary?: boolean; rate?: number } = {}) {
+export function sfx(
+  scene: Phaser.Scene,
+  key: SoundKey,
+  opts: { volume?: number; minGapMs?: number; vary?: boolean; rate?: number; pitch?: 'vary' | 'fixed' } = {},
+) {
   if (!scene.cache.audio.exists(key)) {
     // (an effect some other recipe lists but this one doesn't: never loaded here)
     if (RECIPE_SOUNDS.has(key) && !unloadedTold.has(key)) {
@@ -55,10 +61,11 @@ export function sfx(scene: Phaser.Scene, key: SoundKey, opts: { volume?: number;
   if (now - (lastPlayed.get(key) ?? -Infinity) < gap) return;
   lastPlayed.set(key, now);
   try {
-    const vary = opts.vary ?? true;
+    const vary = opts.pitch ? opts.pitch === 'vary' : (opts.vary ?? true);
+    const [lo, hi] = opts.pitch === 'vary' ? [0.94, 1.06] : [0.92, 1.1];
     scene.sound.play(key, {
       volume: gainOf(key, opts.volume),
-      rate: (opts.rate ?? 1) * (vary ? Phaser.Math.FloatBetween(0.92, 1.1) : 1),
+      rate: (opts.rate ?? 1) * (vary ? Phaser.Math.FloatBetween(lo, hi) : 1),
     });
   } catch (err) {
     console.warn(`[sfx] ${key}`, err);

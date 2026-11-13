@@ -1,4 +1,6 @@
 import Phaser from 'phaser';
+import { appear } from '../core/paper';
+import { go } from '../core/transition';
 import { tickles, touchRipples } from '../core/juice';
 import { albumCount } from '../core/album';
 import { music, voice } from '../core/audio';
@@ -116,10 +118,11 @@ export class HomeScene extends Phaser.Scene {
           const spin = this.time.delayedCall(250, () => loading(card.x, card.y + card.displayHeight * 0.1));
           Promise.all([recipeAssets(this.game, recipe.id), new Promise((r) => this.time.delayedCall(350, r))]).then(() => {
             spin.remove();
-            if (this.scene.isActive()) this.scene.start('Recipe', { id: recipe.id });
+            if (this.scene.isActive()) go(this, 'Recipe', { id: recipe.id }, { from: card });
           });
         }, { hitPad: cells === 1 ? 120 : 30, scale: S.cardScale(cells) });
-        this.tweens.add({ targets: card, alpha: { from: 0, to: 1 }, duration: 400 });
+        // (premium round: the cards arrive like paper, one after the other; core/paper.ts)
+        appear(this, card, i);
         cards.push(card);
       });
       // The games that are not cooking, after the recipes: the garden (plant, water, pick), the market (a picture list),
@@ -153,7 +156,7 @@ export class HomeScene extends Phaser.Scene {
             });
           });
         }, { hitPad: 30, scale: S.cardScale(cells) });
-        this.tweens.add({ targets: card, alpha: { from: 0, to: 1 }, duration: 400 });
+        appear(this, card, n + j);
         cards.push(card);
       });
       if (cells > n + PLAY.length) {
@@ -174,7 +177,7 @@ export class HomeScene extends Phaser.Scene {
         if (going) return;
         going = true;
         hint?.stop();
-        this.scene.start('Title');
+        go(this, 'Title', undefined, { dir: 'down' });
       }, { confirm: true, scale: S.homeScale, hitPad: 30 }).setDepth(900);
       hint = screenHint(this, L, () => (going || !cards[0] ? null : { x: cards[0].x, y: cards[0].y }), () => true);
     });
