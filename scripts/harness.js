@@ -784,6 +784,19 @@ window.__voCheck = (log) => {
  * the recipe's length, the voice log (key, start s, end s, cut) and its problems.
  * Takes about 20-60 s of real time: start it without awaiting and read window.__fr5.
  */
+/**
+ * Premium round PR 5: a home card past the shelf's end is faded and not tappable (HomeScene slides a long row). Slides
+ * its row left, a finger at a time, until the card is fully shown. Returns the card.
+ */
+window.__showCard = async (c) => {
+  const h = game.scene.getScene('Home');
+  for (let i = 0; i < 6 && c.alpha < 0.99; i++) {
+    const x = h.scale.width * 0.45, y = c.y;
+    await __drag([[x, y], [x - 330, y]]); await __run(900);
+  }
+  return c;
+};
+
 window.__fullRun5 = async (demos, mode = 'child', picks = ['tomato', 'corn', 'olive'], w = 900, h = 405) => {
   const drag0 = window.__drag0 || (window.__drag0 = __drag);
   // (the virtual clock runs far ahead of real time: wait until every voice file is decoded, or early lines are skipped)
@@ -807,6 +820,7 @@ window.__fullRun5 = async (demos, mode = 'child', picks = ['tomato', 'corn', 'ol
     const c = game.scene.getScene('Home').children.list.find((o) => o.texture?.key === `card-${window.__recipe || 'pizza'}`);
     // (premium round: the home cards arrive one after the other; tap once hers has arrived)
     for (let i = 0; i < 60 && c.alpha < 1; i++) await __run(100);
+    await __showCard(c);
     const n0 = __voLog.length; const t0 = T(); const steps = []; const at = {};
     __tap(c.x, c.y); await __run(1800); await __waitRecipe();
     for (let g = 0; g < 12000 && game.scene.isActive('Recipe'); g++) {
