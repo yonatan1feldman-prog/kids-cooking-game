@@ -712,7 +712,9 @@ world has two small secrets; the smoothie takes the colour of the fruit she chos
   each secret's world centre.
 - **Smoothie colour (`BlendStep.fruitColour`):** the chosen fruits' `juice` colours (their chop steps), mixed with 25% milk,
   are the whirling bits; the drawn smoothie (`blend-stage-*`, `glass-full`, also in the glasses she pours and shares, by
-  an `ADDED_TO_SCENE` listener) gets a multiply tint toward that mix (only darkening, part of the way).
+  an `ADDED_TO_SCENE` listener; `OpenPourStep`'s jar snapshot copies the contents' tint) gets a multiply tint: the channel
+  the mix wants most stays as drawn, the others go down 70% of the way (kiwi turns it green, strawberry a deeper pink,
+  banana/mango a warm beige). A multiply cannot make the drawn pink lighter; MULTIPLY_TWO did not render here.
 - Budgets measured: GPU on the title/home 40.2 MB (master 39.6; + up to ~1.6 MB with photos on 8 cards), precache +0.13 MB.
 
 ### 00000000000000000000000000000000000000000000. The premium round, PR 3 (Mom and Pipa come alive)
