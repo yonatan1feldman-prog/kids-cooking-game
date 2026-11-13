@@ -23,6 +23,8 @@ INK = "#3A2A22"
 STICK = "#E7C38A"; STICK_D = "#B98A4C"
 
 
+from premium_bg import calm, SKY_SWAP  # noqa: E402,F401  (premium PR 2)
+
 def wr(x, y, w, h, rad, j=1.5, seed=1, step=40):
     return pb.wrect(x, y, w, h, rad, j, seed, step)
 
@@ -132,7 +134,7 @@ def bg_clinic():
     cab += "".join(P(wr(x, 105, 44, 66, 10, 1, x), c) for x, c in ((1850, HEART_L), (1910, "#FFE6A8"), (1970, AQUA_L), (2100, "#E6D8F2"), (2170, HEART_L)))
     cab += "".join(C(x, 280, 22, c) for x, c in ((1870, WHITE), (1920, "#FFE6A8"), (2120, AQUA_L), (2180, WHITE), (2240, HEART_L)))
     L.append(G(cab, p + "sh"))
-    return doc(p, 2400, 1080, "".join(L), "bg", seed=71, sh=(4, 4, .22))
+    return calm(doc(p, 2400, 1080, "".join(L), "bg", seed=71, sh=(4, 4, .22)), p)  # (premium PR 2: calmer, brighter: images-b/tools/premium_bg.py)
 
 
 def bg_clinic_wait():
@@ -172,7 +174,7 @@ def bg_clinic_wait():
     plant = P(wr(1020, 520, 110, 110, 18, 1, 61), MUSTARD) + "".join(P(wob(1075 + dx, 470 + dy, 40, 18, .1, 62 + i, 12, a), GREEN if i % 2 else GREEN_L)
                                                                    for i, (dx, dy, a) in enumerate(((-40, 20, -30), (40, 10, 30), (-20, -40, -70), (25, -50, 70), (0, -90, 90))))
     L.append(G(plant, p + "sh"))
-    return doc(p, 2400, 1080, "".join(L), "bg", seed=81, sh=(4, 4, .22))
+    return calm(doc(p, 2400, 1080, "".join(L), "bg", seed=81, sh=(4, 4, .22)), p)  # (premium PR 2: calmer, brighter: images-b/tools/premium_bg.py)
 
 
 # ================================================================ furniture

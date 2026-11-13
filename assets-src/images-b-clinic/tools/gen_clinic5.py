@@ -14,6 +14,8 @@ import gen_clinic as gc
 TICKLES = [(196, 268), (324, 268), (260, 318), (214, 352), (306, 352), (260, 376)]
 
 
+from premium_bg import calm, SKY_SWAP  # noqa: E402,F401  (premium PR 2)
+
 def lens_throat():
     """A mouth open wide (not tinted): the lips, the teeth's edges, the deep pink throat, the uvula hanging in the middle,
     the tonsils' soft cushions at the sides, the tongue low down. The tickles sit in the throat (TICKLES)."""
@@ -160,7 +162,7 @@ def bg_clinic_care():
     toy = P(wr(120, 560, 220, 130, 14, 1.2, 111), AQUA) + rect(120, 590, 220, 12, AQUA_D, ' opacity="0.6"')
     toy += C(200, 540, 34, WOOD) + C(200, 504, 28, WOOD) + C(182, 482, 10, WOOD) + C(218, 482, 10, WOOD) + C(193, 500, 3.5, INK) + C(207, 500, 3.5, INK)
     L.append(G(toy, p + "sh"))
-    return doc(p, 2400, 1080, "".join(L), "bg", seed=181, sh=(4, 4, .22))
+    return calm(doc(p, 2400, 1080, "".join(L), "bg", seed=181, sh=(4, 4, .22)), p)  # (premium PR 2: calmer, brighter: images-b/tools/premium_bg.py)
 
 
 # ---- the medicine room: a big bottle, three fruit syrups, the spoon (tool-syrup)

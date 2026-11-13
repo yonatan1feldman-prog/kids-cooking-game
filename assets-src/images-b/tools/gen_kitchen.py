@@ -4,6 +4,7 @@ import sys, os, math, random
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from pb import *
 import pb
+from premium_bg import paper_soft, lift_filter  # (premium PR 2)
 
 def wrect(x, y, w, h, rad, j=1.5, seed=1, step=60):
     """pb.wrect with a coarser point step (keeps files small; big shapes don't need 26-unit points)."""
@@ -444,6 +445,9 @@ def bg_kitchen():
     L.append(G(ut, p + "sh"))
 
     # ---- counter ----
+    # (the premium round, PR 2: from here on the counter has its own, quieter paper and is lit a little; the wall above,
+    # with its tappable pieces cut from it by gen_kitchen_live.py, stays exactly as it was)
+    ci = len(L)
     L.append(G(P("M-10,380 L2410,380 L2410,414 L-10,414Z", BG_WOOD_D), p + "sh2"))
     L.append(P("M-10,382 L2410,382 L2410,390 L-10,390Z", BG_WOOD_L, ' opacity="0.45"'))
     ys = [414, 530, 648, 766, 884]
@@ -472,17 +476,22 @@ def bg_kitchen():
         x = r.uniform(80, 2320); y = r.choice(ys) + r.uniform(35, 80)
         gr += (P(wob(x, y, 24, 10, .08, 600 + i, 14), BG_WOOD_D, ' opacity="0.28"') + P(wob(x + 2, y, 12, 5, .1, 620 + i, 12), mix(BG_WOOD_D, "#8F5E3A", .4), ' opacity="0.35"')
                + P(f"M{n(x - 60)},{n(y - 14)} Q{n(x)},{n(y - 30)} {n(x + 64)},{n(y - 12)} Q{n(x)},{n(y - 26)} {n(x - 60)},{n(y - 14)}Z", BG_WOOD_D, ' opacity="0.25"'))
-    L.append(G(gr, p + "sh", ' opacity="0.9"'))
+    L.append(G(gr, p + "sh", ' opacity="0.54"'))                          # (premium PR 2: the wood's grain at 60%)
     # soft shade under the back strip + darker front-edge vignette framing the scene
     defs += (f'<linearGradient id="{p}vt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{SH}" stop-opacity="0.16"/>'
              f'<stop offset="1" stop-color="{SH}" stop-opacity="0"/></linearGradient>'
-             f'<linearGradient id="{p}vg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{SH}" stop-opacity="0"/>'
-             f'<stop offset="0.6" stop-color="{SH}" stop-opacity="0.04"/><stop offset="1" stop-color="{SH}" stop-opacity="0.1"/></linearGradient>'
+             # (premium PR 2: the planks lighten toward the front edge, where the light falls, instead of darkening:
+             # the game's own vignette, core/scenery.ts addLight, now settles the corners)
+             f'<linearGradient id="{p}vg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF6E6" stop-opacity="0"/>'
+             f'<stop offset="1" stop-color="#FFF6E6" stop-opacity="0.16"/></linearGradient>'
+             f'<linearGradient id="{p}fb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF6E6" stop-opacity="0"/>'
+             f'<stop offset="0.7" stop-color="#FFF6E6" stop-opacity="0.26"/><stop offset="1" stop-color="#FFF6E6" stop-opacity="0.12"/></linearGradient>'
              f'<linearGradient id="{p}lt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF6E6" stop-opacity="0"/>'
              f'<stop offset="0.35" stop-color="#FFF6E6" stop-opacity="0.22"/><stop offset="1" stop-color="#FFF6E6" stop-opacity="0"/></linearGradient>')
     L.append(rect(0, 414, 2400, 46, f"url(#{p}vt)"))
     L.append(rect(0, 700, 2400, 304, f"url(#{p}vg)"))
     L.append(rect(0, 440, 2400, 420, f"url(#{p}lt)"))                     # light falling on the worktop
+    L.append(rect(0, 930, 2400, 64, f"url(#{p}fb)"))                      # (premium PR 2) the front row's light band
     # front lip + lower cabinets
     L.append(G(P("M-10,994 L2410,994 L2410,1030 L-10,1030Z", BG_WOOD_D), p + "sh2"))           # the edge's face
     L.append(P("M-10,994 L2410,994 L2410,1004 L-10,1004Z", BG_WOOD_L, ' opacity="0.9"'))      # the rounded top of the edge
@@ -500,7 +509,8 @@ def bg_kitchen():
     L.append(G(P(tw, "#F6EEDD") + G(stripes, None, f' clip-path="url(#{p}tw)"'), p + "sh2"))
 
     d = std_defs(p, "bg", seed=61, sh=(3, 2.5, .22), sh2=(6, 5, .24), blur=6)
-    return svg(2400, 1080, d + defs, G("".join(L), p + "gr"))
+    d += paper_soft(p + "grc", 61) + lift_filter(p + "liftc")
+    return svg(2400, 1080, d + defs, G("".join(L[:ci]), p + "gr") + G(G("".join(L[ci:]), p + "grc"), p + "liftc"))
 
 
 def main():

@@ -861,42 +861,42 @@
   }
  },
  "bg-clinic": {
-  "sha1": "aaa9abee87ab43bde24a8925dd7da963892b6de6",
+  "sha1": "b6c01d053975af57ad352e37d27332b49704518a",
   "w": 2400,
   "h": 1080
  },
  "bg-clinic-care": {
-  "sha1": "da0d09f49f630c89e6b9ae6b309b882b75a200fc",
+  "sha1": "728edf442b8c8b9e28f8e6e2dcb9fd884d484489",
   "w": 2400,
   "h": 1080
  },
  "bg-clinic-wait": {
-  "sha1": "93d719accc35482386c95dde413485a6b4900995",
+  "sha1": "ec3252b1f7d4e79a5d39e966bf131d455fcfa18d",
   "w": 2400,
   "h": 1080
  },
  "bg-farm": {
-  "sha1": "179d1075340fe4c2be9ac612ac245297fc086f03",
+  "sha1": "63b94611bdaf58f6a2f30c659d20e1cdf5ae558f",
   "w": 2400,
   "h": 1080
  },
  "bg-garden": {
-  "sha1": "f3e31aebe5df10f5b46ecfc287818fe73e615778",
+  "sha1": "2a55cde5573436cfba50ada43939c5cd8cd1b936",
   "w": 2400,
   "h": 1080
  },
  "bg-kitchen-landscape": {
-  "sha1": "00a938327874bc0c82f04742a180755e07ecd9f2",
+  "sha1": "a65c70158fcea49faef016b5b909deecaacc3104",
   "w": 2400,
   "h": 1080
  },
  "bg-lagoon": {
-  "sha1": "818a00207ecbf7b2116273b10bf061419c525fd1",
+  "sha1": "4f8519437a05726928daa2eaf3843c378d175a60",
   "w": 2400,
   "h": 1080
  },
  "bg-market": {
-  "sha1": "f272e9e7ca7aa37bc1fdc9b358edfcfad5054721",
+  "sha1": "6fd92366d4049df96395e5e787e46a10398bdb5a",
   "w": 2400,
   "h": 1080
  },
@@ -2069,6 +2069,11 @@
    "h": 226
   }
  },
+ "counter-cloth": {
+  "sha1": "77065a7f3bf2ac56c3845b8210acca8e3699fee8",
+  "w": 1300,
+  "h": 420
+ },
  "cow-bell": {
   "sha1": "014581a61634e15d72214f94b8b82cd19d30fb13",
   "w": 140,
@@ -2923,6 +2928,54 @@
    "w": 299,
    "h": 381
   }
+ },
+ "fg-basket": {
+  "sha1": "bcbf97cb47f5987e15f00b92b46e4c632b0cda7f",
+  "w": 380,
+  "h": 240
+ },
+ "fg-desk": {
+  "sha1": "67a2e80eabe5e7a2ad9f5b4322b5f3fb746a8bee",
+  "w": 420,
+  "h": 250,
+  "trim": {
+   "x": 0,
+   "y": 33,
+   "w": 420,
+   "h": 217
+  }
+ },
+ "fg-fence": {
+  "sha1": "38d2f5b1750593a127feb7ea73fafe335cc36f0d",
+  "w": 300,
+  "h": 560,
+  "trim": {
+   "x": 0,
+   "y": 90,
+   "w": 300,
+   "h": 470
+  }
+ },
+ "fg-leaves": {
+  "sha1": "1b9cfc8ab69b2a5d07e8d64369748eff2fe41eaf",
+  "w": 440,
+  "h": 330,
+  "trim": {
+   "x": 0,
+   "y": 64,
+   "w": 375,
+   "h": 266
+  }
+ },
+ "fg-lemons": {
+  "sha1": "1483fdb14dbe6e1fda4725f118d3254b5af1069f",
+  "w": 360,
+  "h": 230
+ },
+ "fg-napkin": {
+  "sha1": "d113aa4ce67e8abfe89d7c09f2f027060895a382",
+  "w": 300,
+  "h": 210
  },
  "flame": {
   "sha1": "0187f685bf0276260555d50d92230e2ca58324c3",

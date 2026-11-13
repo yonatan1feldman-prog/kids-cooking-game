@@ -23,6 +23,8 @@ CLOUD = "#B9C6CE"; CLOUD_D = "#98A7B2"; CLOUD_L = "#D6DFE4"
 SNAIL = "#E9C79A"; SNAIL_D = "#C79E6E"; SHELL = "#C0784A"; SHELL_D = "#94553A"; SHELL_L = "#E0A06A"
 
 
+from premium_bg import calm, SKY_SWAP  # noqa: E402,F401  (premium PR 2)
+
 def wr(x, y, w, h, rad, j=1.5, seed=1, step=40):
     return pb.wrect(x, y, w, h, rad, j, seed, step)
 
@@ -154,7 +156,7 @@ def bg_garden():
         fl += "".join(C(x + math.cos(a) * 8, y + math.sin(a) * 8, 6, col) for a in [k * 1.2566 for k in range(5)]) + C(x, y, 5, MUSTARD)
     L.append(G(fl, p + "sh"))
     defs = std_defs(p, "bg", seed=71, sh=(3, 3, .16), sh2=(4, 4, .18), blur=4) + grad
-    return svg(2400, 1080, defs, G("".join(L), p + "gr"))
+    return calm(svg(2400, 1080, defs, G("".join(L), p + "gr")), p, swap=SKY_SWAP)  # (premium PR 2: calmer, brighter: images-b/tools/premium_bg.py)
 
 
 # ---------------------------------------------------------------- the raised bed (1300x360): soil y 30-150, planks from 140

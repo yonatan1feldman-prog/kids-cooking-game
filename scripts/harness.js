@@ -447,6 +447,9 @@
     // Drawn together on purpose (the art agent's scenes): the tap stands on the sink's rim.
     const together = new Set(['sink/faucet', 'board/dough', 'grater/block', 'cutboard/knife', 'box/bowl', 'board/mitts']);
     for (let i = 0; i < vis.length; i++) for (let j = i + 1; j < vis.length; j++) if (ov(vis[i][1], vis[j][1]) && !together.has(`${vis[i][0]}/${vis[j][0]}`)) out.push(`overlap: ${vis[i][0]} / ${vis[j][0]}`);
+    // Premium PR 2: the world's front (core/scenery.ts addForeground) never over a step's item or a touch area (Mom and
+    // Pipa stand behind it by design).
+    for (const f of __fgBoxes(sc)) for (const [n, b] of [...vis, ...hits]) if (n !== 'mom' && ov(f.box, b)) out.push(`foreground ${f.key} over ${n}`);
     const pet = sc.ctx.character;
     const hs = hits.filter(([n]) => n !== 'dish' && !n.startsWith('slice'));
     for (let i = 0; i < hs.length; i++) for (let j = i + 1; j < hs.length; j++) if (ov(hs[i][1], hs[j][1]) && !(hs[i][0].startsWith('bin') && hs[j][0].startsWith('bin'))) out.push(`hit overlap: ${hs[i][0]} / ${hs[j][0]}`);
@@ -2096,4 +2099,41 @@ window.__songPlay = async (level = 1, opts = {}) => {
   await __run(2500);
   return { level, opts: Object.keys(opts), taps, secs: Math.round((__voice.now() - t0) / 1000), lagoon: game.scene.isActive('Lagoon'),
     shown: { ...s.shown, tunes: undefined, bells: undefined }, marks: window.__lagoonState?.marks, check: __voCheck(__voLog), keys: __voLog.map((e) => e.key).join(' ') };
+};
+
+// ---- The premium round, PR 2 (light and depth): the opaque box of each foreground piece in a scene (its cut WebP's box
+// inside the full frame, mirrored when flipped), and __fgCheck(scene): those boxes against every interactive object of
+// the scene (Phaser input) and the no-touch strips: what shows more than 60 units (x k) above the palm strip must stay in
+// the side strips (a lemon's top or a leaf's tip may peek a little over the palm line, never over a target).
+window.__fgBoxes = (sc) => sc.children.list.filter((o) => o.getData?.('foreground') && o.visible && o.alpha > 0).map((o) => {
+  const f = o.frame, b = o.getBounds(), sx = b.width / f.realWidth, sy = b.height / f.realHeight;
+  const t = f.trimmed ? f.data.spriteSourceSize : { x: 0, y: 0, w: f.realWidth, h: f.realHeight };
+  const x = o.flipX ? f.realWidth - t.x - t.w : t.x;
+  return { key: o.texture.key, img: o, box: { x0: b.x + x * sx, y0: b.y + t.y * sy, x1: b.x + (x + t.w) * sx, y1: b.y + (t.y + t.h) * sy } };
+});
+window.__fgCheck = (key) => {
+  const sc = game.scene.getScene(key), W = game.scale.width, H = game.scale.height, out = [];
+  const ov = (a, b) => Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0) > 2 && Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0) > 2;
+  const k = Math.min(1, (W * 0.92) / 1766, H / 1080), line = H * 0.92 - 60 * k, r = (v) => Math.round(v);
+  const fg = __fgBoxes(sc);
+  for (const f of fg) {
+    const b = f.box, o = f.img;
+    // the opaque pixels above the line (read from the cut WebP: its source is the box): their x extent in the world
+    const src = o.texture.getSourceImage(), c = document.createElement('canvas');
+    c.width = src.width; c.height = src.height;
+    const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(src, 0, 0);
+    const d = g.getImageData(0, 0, c.width, c.height).data, sy = (b.y1 - b.y0) / c.height, sx = (b.x1 - b.x0) / c.width;
+    let x0 = 1e9, x1 = -1e9, y0 = 1e9;
+    for (let y = 0; y < c.height && b.y0 + y * sy < line; y++) for (let x = 0; x < c.width; x++) if (d[(y * c.width + x) * 4 + 3] > 60) {
+      const wx = o.flipX ? b.x1 - (x + 1) * sx : b.x0 + x * sx;
+      x0 = Math.min(x0, wx); x1 = Math.max(x1, wx + sx); y0 = Math.min(y0, b.y0 + y * sy);
+    }
+    if (x1 > x0 && x1 > W * 0.04 && x0 < W * 0.96) out.push(`${f.key} above the palm strip outside the side strips: x ${r(x0)}-${r(x1)} from y ${r(y0)}`);
+    for (const q of sc.children.list) {
+      if (!q.input?.enabled || !q.visible || q.getData?.('foreground')) continue;
+      const gb = q.getBounds();
+      if (ov(b, { x0: gb.x, y0: gb.y, x1: gb.right, y1: gb.bottom })) out.push(`${f.key} over interactive ${q.texture?.key ?? q.type}`);
+    }
+  }
+  return { scene: key, foreground: fg.map((f) => f.key), problems: out };
 };
