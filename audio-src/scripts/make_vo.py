@@ -726,6 +726,8 @@ MOM_LINES = {
     "vo-song-done": "We made up a song together! Look, Marina is dancing!",
     # premium PR 4: the finale's "ta-da" (a recipe, a game, a visit: the moment before the photo)
     "vo-tada": "Ta-da! Look what you made!",
+    # the premium round, PR 3: her short laugh when she is tickled (Mom.tickle)
+    "vo-laugh": "Ha ha ha!",
 }
 SUFFIX = ""
 if len(sys.argv) > 1 and sys.argv[1] in ("mom", "mom-a"):

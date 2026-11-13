@@ -675,6 +675,14 @@ Same engine, voice and processing (Kokoro af_heart, `make_vo.py mom vo-tada`); n
 |---|---|
 | vo-tada | Ta-da! Look what you made! |
 
+### New in the premium round, PR 3 (Mom's laugh; 1 line)
+
+Same engine, voice and processing (Kokoro af_heart, `make_vo.py mom-a`); no fix was needed.
+
+| Key | Line |
+|-----|------|
+| vo-laugh | Ha ha ha! |
+
 ## Graphics (`images/`)
 
 All SVG files in `images/` were drawn for this project by the art agent (style B, paper cut-out; generators in

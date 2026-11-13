@@ -261,7 +261,6 @@ export class FeedStep extends Step<FeedParams> {
     this.setIdle(false);
     this.setMood('party');
     this.ctx.mom.celebrate();
-    const k = this.k;
     const t0 = this.scene.time.now;
     // "We made a pizza together!", then the cheer, then "That was fun! Bye bye!", then home (quietly).
     const bye = () =>
@@ -271,9 +270,8 @@ export class FeedStep extends Step<FeedParams> {
       });
     voice.say('vo-finale', { ttlMs: 5000, done: () => !this.aborted && sfxThen(this.scene, 'cheer', bye) });
     this.showerStars();
-    const hop = 110 * k * (this.ctx.character.scale / (0.62 * k));
-    this.scene.tweens.add({ targets: this.char, y: this.charRest.y - hop, duration: 260, yoyo: true, repeat: 5, ease: 'Quad.easeOut' });
-    this.scene.tweens.add({ targets: this.char, angle: { from: -8, to: 8 }, duration: 260, yoyo: true, repeat: 5, onComplete: () => this.char.setAngle(0) });
+    // (her party: three paper hops, a turn in the air on the middle one; she is big in the middle here, with room for it)
+    this.ctx.character.partyDance(true);
   }
 
   /**

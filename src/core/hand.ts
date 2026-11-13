@@ -169,7 +169,9 @@ export class MomHandView {
    * reads as pressing, not as a wave. The mark (a dent) shows under it while it is down.
    */
   private place(x: number, y: number, alpha: number, t: number, press = 0, total = 1) {
-    const base = this.base;
+    // (the premium round's paper language: the hand comes in like any paper thing, from a little smaller with a slight
+    // overshoot, core/paper.ts `appear`)
+    const base = this.base * (t < FADE ? 0.85 + 0.15 * Phaser.Math.Easing.Back.Out(t / FADE) : 1);
     const flat = this.kind === 'press';
     const down = (flat ? 34 : 12) * this.layout.k * press;
     this.img.setPosition(x, y + down).setAlpha(alpha);
