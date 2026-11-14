@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { IMAGES } from './assets';
 import { ART_SALON } from './salonAssets';
-import { CUSTOMER, GEM_SLOTS, hairHex, lipsHex, tailHex, type CustomerId, type Look } from './salon';
+import { CUSTOMER, GEM_SLOTS, hairHex, lipsHex, paintHex, tailHex, type CustomerId, type Look } from './salon';
 import { sfx } from './sfx';
 import type { CharacterDef } from '../recipes/types';
 import { Character } from '../steps/Character';
@@ -66,6 +66,8 @@ export class Dressing {
   look: Look;
   private named = new Map<string, Layer>();
   private extra: { slot: DressSlot; layer: Layer }[] = [];
+  /** salon PR 2: her face paint (blush, eye shadow), one small canvas of her own, and what it shows now. */
+  private paint: { key: string; tex: Phaser.Textures.CanvasTexture; sig: string } | null = null;
 
   constructor(private scene: Phaser.Scene, readonly ch: Character, readonly id: CustomerId, look: Look) {
     this.look = cloneLook(look);
@@ -73,6 +75,13 @@ export class Dressing {
     scene.events.on(Phaser.Scenes.Events.UPDATE, sync);
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => scene.events.off(Phaser.Scenes.Events.UPDATE, sync));
     ch.box.once(Phaser.GameObjects.Events.DESTROY, () => scene.events.off(Phaser.Scenes.Events.UPDATE, sync));
+    // (her face paint's canvas goes with her, and with the scene)
+    const freePaint = () => {
+      if (this.paint && scene.textures.exists(this.paint.key)) scene.textures.remove(this.paint.key);
+      this.paint = null;
+    };
+    ch.box.once(Phaser.GameObjects.Events.DESTROY, freePaint);
+    scene.events.once(Phaser.Scenes.Events.SHUTDOWN, freePaint);
     this.apply(look);
   }
 
@@ -97,7 +106,11 @@ export class Dressing {
     want.set('tail', { key: `tail-${look.tail}`, tint: tailHex(id, look.tailColour) });
     want.set('tail-shine', { key: `tail-${look.tail}-shine` });
     want.set('top', { key: `top-${look.top}` });
-    if (look.necklace === 'marina') want.set('necklace', { key: 'necklace-marina', at: { x: ART_SALON.neck.x, y: ART_SALON.neck.y }, base: 1 });
+    // salon PR 2: her blush and eye shadow, painted on her own small canvas (FACE_PAINT)
+    const painted = !!(look.blush || look.shadow);
+    if (painted) want.set('face', { key: this.paintKey(), at: FACE_PAINT.centre, base: 1 / FACE_PAINT.raster });
+    // (salon PR 2: the shell treasure's necklace a little smaller and higher, so its strings meet her neck)
+    if (look.necklace === 'marina') want.set('necklace', { key: 'necklace-marina', at: { x: ART_SALON.neck.x, y: ART_SALON.neck.y - 8 }, base: 0.86 });
     else if (look.necklace) want.set('necklace', { key: `necklace-${look.necklace}` });
     look.gems.forEach((g, i) => want.set(`gem-${i}`, { key: `gem-${g.kind}`, at: GEM_SLOTS[g.slot], base: ART_SALON.gemScale }));
     look.glitter.forEach((p, i) => want.set(`glitter-${i}`, { key: 'fx-sparkle', at: { x: p[0], y: p[1] }, base: 0.34, tint: i % 2 ? 0xfff4b8 : 0xffffff }));
@@ -125,13 +138,26 @@ export class Dressing {
         l = { img, at: w.at ?? null, base: w.base ?? 1, m: { dx: 0, dy: 0, grow: 1 } };
         this.named.set(name, l);
         added.push(img);
+        // (salon PR 2: a sparkle of glitter twinkles a little, each at its own pace)
+        if (name.startsWith('glitter-')) {
+          img.setAngle(Phaser.Math.Between(-25, 25));
+          this.scene.tweens.add({ targets: img, angle: img.angle + Phaser.Math.Between(30, 50), duration: Phaser.Math.Between(900, 1500), yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+        }
+      } else if (w.at) {
+        // (a gem moved to another place, the oldest sparkle replaced: the same picture somewhere else)
+        l.at = w.at;
+        l.base = w.base ?? 1;
       }
       if (w.tint !== undefined) l.img.setTint(w.tint);
       else l.img.clearTint();
     }
     // her mouth: the lipstick (salon PR 2), else her own lips' colour (the mouths are drawn white)
     this.ch.parts.mouth.setTint(lipsHex(id, look.lips));
-    for (const r of removed) this.ch.box.remove(r);
+    if (painted) this.paintFace(look.blush, look.shadow);
+    for (const r of removed) {
+      this.scene.tweens.killTweensOf(r);
+      this.ch.box.remove(r);
+    }
     this.restack();
     this.sync();
     return { added, removed };
@@ -169,6 +195,38 @@ export class Dressing {
     l.m.grow = 1.08;
     this.scene.tweens.add({ targets: img, alpha: 1, duration: (opts.ms ?? 300) * 0.6, delay: opts.delay ?? 0 });
     this.scene.tweens.add({ targets: l.m, dy: 0, grow: 1, duration: opts.ms ?? 300, delay: opts.delay ?? 0, ease: 'Back.easeOut' });
+  }
+
+  /** Her face paint's canvas (made the first time she gets any). */
+  private paintKey() {
+    if (!this.paint || !this.scene.textures.exists(this.paint.key)) {
+      const key = `salon-face-${++paintNo}`;
+      const tex = this.scene.textures.createCanvas(key, FACE_PAINT.w * FACE_PAINT.raster, FACE_PAINT.h * FACE_PAINT.raster)!;
+      this.paint = { key, tex, sig: '' };
+    }
+    return this.paint.key;
+  }
+
+  /**
+   * Paints her blush and eye shadow (the look's, or a stage's while she rubs: `look` is committed later). Only when it
+   * changed: the canvas is uploaded again each time.
+   */
+  paintFace(blush: Look['blush'], shadow: Look['shadow']) {
+    if (!blush && !shadow && !this.paint) return;
+    this.paintKey();
+    const p = this.paint!;
+    const sig = JSON.stringify([blush, shadow]);
+    if (sig === p.sig && this.named.has('face')) return;
+    p.sig = sig;
+    drawFacePaint(p.tex.context, blush, shadow);
+    p.tex.refresh();
+    // (a stage painting before the look has any: the layer comes now, the look follows when the stroke ends)
+    if (!this.named.has('face')) {
+      const img = new Phaser.GameObjects.Image(this.scene, 0, FOOT, p.key).setOrigin(0.5, 0.5);
+      this.named.set('face', { img, at: FACE_PAINT.centre, base: 1 / FACE_PAINT.raster, m: { dx: 0, dy: 0, grow: 1 } });
+      this.restack();
+      this.sync();
+    }
   }
 
   private restack() {
@@ -231,11 +289,121 @@ export class Dressing {
 
   /** Takes every added layer off her (her own layers stay). */
   undress() {
-    for (const l of this.named.values()) l.img.destroy();
+    for (const l of this.named.values()) {
+      this.scene.tweens.killTweensOf(l.img);
+      l.img.destroy();
+    }
     this.named.clear();
     for (const e of [...this.extra]) e.layer.img.destroy();
     this.extra = [];
   }
+}
+
+let paintNo = 0;
+
+/**
+ * Salon PR 2: her face paint's canvas covers her cheeks and eyelids only (frame x 140-460, y 190-376), at 1.5x her frame
+ * (her face is shown about 2x in the close-up): 480x279 (0.5 MB), not the whole 600x700 frame (1.7 MB).
+ */
+export const FACE_PAINT = { x0: 140, y0: 190, w: 320, h: 186, raster: 1.5, centre: { x: 300, y: 283 } } as const;
+
+const rgba = (hex: number, a: number) => `rgba(${(hex >> 16) & 255},${(hex >> 8) & 255},${hex & 255},${a})`;
+
+/** A heart's path, centred on (0, 0), `r` about its half width. */
+function heartPath(ctx: CanvasRenderingContext2D, r: number) {
+  ctx.beginPath();
+  ctx.moveTo(0, r * 0.9);
+  ctx.bezierCurveTo(-r * 1.25, r * 0.05, -r * 0.95, -r * 0.95, 0, -r * 0.42);
+  ctx.bezierCurveTo(r * 0.95, -r * 0.95, r * 1.25, r * 0.05, 0, r * 0.9);
+  ctx.closePath();
+}
+/** A plump five-pointed star's path, centred on (0, 0). */
+function starPath(ctx: CanvasRenderingContext2D, r: number) {
+  ctx.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const a = -Math.PI / 2 + (i * Math.PI) / 5;
+    const q = i % 2 ? r * 0.5 : r;
+    ctx.lineTo(Math.cos(a) * q, Math.sin(a) * q);
+  }
+  ctx.closePath();
+}
+
+/**
+ * Her blush and eye shadow on the face canvas (spec 5.3): soft paint, the more she rubbed the stronger (blush up to 0.85,
+ * shadow up to 0.72). Blush is a soft round, a heart or a star on each cheek, each cheek its own amount; the shadow a soft
+ * dome over both eyes (her eyes are drawn over it, so it shows on the lids, and all over them when she closes her eyes).
+ * Soft edges come from shadowBlur and gradients (ctx.filter is missing on older iPhones).
+ */
+export function drawFacePaint(ctx: CanvasRenderingContext2D, blush: Look['blush'], shadow: Look['shadow']) {
+  const R = FACE_PAINT.raster;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  ctx.setTransform(R, 0, 0, R, -FACE_PAINT.x0 * R, -FACE_PAINT.y0 * R);
+  const F = ART_SALON.face;
+  if (shadow && shadow.amount > 0) {
+    // (a soft dome over each eye, from her lash line up: her eye is drawn over its lower part)
+    const hex = paintHex(shadow.colour);
+    const a = Math.min(1, shadow.amount) * 0.72;
+    for (const lid of F.lids) {
+      const base = F.eyes[0].y - 8;
+      ctx.save();
+      ctx.shadowColor = rgba(hex, a);
+      ctx.shadowBlur = 10 * R;
+      const g = ctx.createLinearGradient(0, lid.y - lid.ry, 0, base);
+      g.addColorStop(0, rgba(hex, a * 0.35));
+      g.addColorStop(0.55, rgba(hex, a));
+      g.addColorStop(1, rgba(hex, a));
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.ellipse(lid.x, base, lid.rx + 4, base - (lid.y - lid.ry) + 2, 0, Math.PI, Math.PI * 2);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+  if (blush) {
+    const hex = paintHex(blush.colour);
+    F.cheeks.forEach((ch, i) => {
+      const amt = Math.min(1, blush.amount[i] ?? 0);
+      if (amt <= 0) return;
+      const a = amt * 0.85;
+      ctx.save();
+      ctx.translate(ch.x, ch.y);
+      if (blush.shape === 'round') {
+        // (rounder and rosier than the cheeks she is drawn with, a little light on top)
+        ctx.scale(1, 0.78);
+        const r = F.cheekSize.rx + 20;
+        const g = ctx.createRadialGradient(0, 0, 2, 0, 0, r);
+        g.addColorStop(0, rgba(hex, a));
+        g.addColorStop(0.6, rgba(hex, a * 0.88));
+        g.addColorStop(1, rgba(hex, 0));
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(0, 0, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = `rgba(255,255,255,${0.3 * amt})`;
+        ctx.beginPath();
+        ctx.ellipse(-14, -14, 10, 6, -0.5, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.rotate(i ? 0.18 : -0.18);
+        ctx.shadowColor = rgba(hex, a);
+        ctx.shadowBlur = 9 * R;
+        ctx.fillStyle = rgba(hex, a * 0.92);
+        if (blush.shape === 'heart') heartPath(ctx, 34);
+        else starPath(ctx, 36);
+        ctx.fill();
+        // (a little light on it, like paint that is still fresh)
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = `rgba(255,255,255,${0.28 * amt})`;
+        ctx.beginPath();
+        ctx.ellipse(-10, -8, 8, 5, -0.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    });
+  }
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
 }
 
 const slotOf = (name: string): DressSlot => {
