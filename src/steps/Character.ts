@@ -129,7 +129,8 @@ export class Character {
   }
 
   setMood(m: Mood) {
-    if (this._mood === m) return;
+    // (a timer of a Character that is gone, e.g. a salon customer who swam off mid-cheer: nothing to show)
+    if (this._mood === m || !this.eyes.active) return;
     this._mood = m;
     const d = this.def;
     if (m === 'rest') {
