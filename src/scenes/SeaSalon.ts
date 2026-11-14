@@ -7,7 +7,6 @@ import { tapMotion, type HandMotion, type MomHandView } from '../core/hand';
 import * as paper from '../core/paper';
 import { SALON_STAGES, type CustomerId, type Look, type SalonStageId } from '../core/salon';
 import { cloneLook, type Dressing } from '../core/salonDress';
-import '../core/salonPlaceholders';
 import { sfx } from '../core/sfx';
 import { TUNING } from '../core/tuning';
 import { iconButton } from '../core/ui';

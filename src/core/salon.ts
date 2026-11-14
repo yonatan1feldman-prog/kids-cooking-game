@@ -7,6 +7,8 @@ import { readMark, writeMark } from './sea';
 
 // ---------------------------------------------------------------- salon PR 1: the catalogue
 
+import { ART_SALON } from './salonAssets';
+
 /** The visit, in order (SeaSalon runs them; a stage with no class yet is skipped). */
 export const SALON_STAGES = ['pick', 'scrub', 'hair', 'face', 'outfit', 'sparkle', 'mirror'] as const;
 export type SalonStageId = (typeof SALON_STAGES)[number];
@@ -62,9 +64,7 @@ export interface Look {
  * The six places a gem sticks on her face (her 600x700 frame): forehead, over each eye, the two cheeks, the chin (salon
  * PR 2 places them; the numbers follow gen_kids' face, PR V's FACE_ANCHORS may move them).
  */
-export const GEM_SLOTS: readonly { x: number; y: number }[] = [
-  { x: 300, y: 148 }, { x: 232, y: 196 }, { x: 368, y: 196 }, { x: 206, y: 316 }, { x: 394, y: 316 }, { x: 300, y: 386 },
-];
+export const GEM_SLOTS: readonly { x: number; y: number }[] = ART_SALON.face.gemSlots;
 
 /** Each customer (spec 4): her skin (for the stand-ins), her own hair colour, her lips, the pitch of her giggle. */
 export const CUSTOMER = {
@@ -73,18 +73,10 @@ export const CUSTOMER = {
   pearl: { skin: '#FBE3D3', hair: '#2B2B38', lips: '#E68AA0', voiceRate: 1.12, style: 'bob' },
 } as const satisfies Record<CustomerId, { skin: string; hair: string; lips: string; voiceRate: number; style: HairStyle }>;
 
-/** Her tail's own colour before she sprays it (the natural tail). */
-export const NATURAL_TAIL: Record<CustomerId, string> = { marina: '#9A86E8', coral: '#3FB8A8', pearl: '#F58FB4' };
 
-/** The spray's colours. Light enough that a white-drawn hair keeps its shading under the tint (multiply). */
-export const DYE_HEX: Record<Dye, string> = {
-  pink: '#FF8FC0',
-  purple: '#A98BEF',
-  blue: '#62C3EE',
-  gold: '#F7CC52',
-  seagreen: '#5FD3B0',
-  pearl: '#F6F1F8',
-};
+/** The spray's colours (PR V's tints, compensated for the grey of the white-drawn hair: ART_SALON.dye). */
+const hex6 = (n: number) => '#' + n.toString(16).padStart(6, '0');
+export const DYE_HEX = Object.fromEntries(DYE.map((d) => [d, hex6(ART_SALON.dye[d])])) as Record<Dye, string>;
 export const PAINT_HEX: Record<Paint, string> = { pink: '#F58FB4', purple: '#9B7BE0', blue: '#4FB8E0', gold: '#F7C948' };
 
 /** Mom says a colour with the name lines she already has (gold is yellow, sea green is green, pearl is white). */
@@ -99,8 +91,10 @@ export const DYE_NAME: Record<Dye, string> = {
 
 /** A colour as a number for setTint. */
 export const hexOf = (h: string) => parseInt(h.replace('#', ''), 16);
-export const hairHex = (id: CustomerId, c: Dye | 'natural') => hexOf(c === 'natural' ? CUSTOMER[id].hair : DYE_HEX[c]);
-export const tailHex = (id: CustomerId, c: Dye | 'natural') => hexOf(c === 'natural' ? NATURAL_TAIL[id] : DYE_HEX[c]);
+export const hairHex = (id: CustomerId, c: Dye | 'natural') => ART_SALON.hair[c === 'natural' ? (`natural-${id}` as const) : c];
+export const tailHex = (id: CustomerId, c: Dye | 'natural') => ART_SALON.tail[c === 'natural' ? (`natural-${id}` as const) : c];
+/** Her mouth's tint: the lipstick, else her own lips (ART_SALON.lips). */
+export const lipsHex = (id: CustomerId, p: Paint | null) => ART_SALON.lips[p ?? (`natural-${id}` as const)];
 
 /** A customer who has never been to the salon: her own hair in her own style, the classic tail, the shell top. */
 export function defaultLook(id: CustomerId): Look {

@@ -1971,6 +1971,17 @@
    "h": 221
   }
  },
+ "clip-flower": {
+  "sha1": "f1f4598dc11654a44ef8637d91fa40848b6d9e73",
+  "w": 750,
+  "h": 875,
+  "trim": {
+   "x": 162,
+   "y": 118,
+   "w": 146,
+   "h": 136
+  }
+ },
  "colander": {
   "sha1": "1cdcf416045858709ed3bfa65c8529ba5e71eb43",
   "w": 820,
@@ -2094,6 +2105,303 @@
    "y": 7,
    "w": 120,
    "h": 146
+  }
+ },
+ "crown-coral": {
+  "sha1": "f5eb04e5973c46b9590d7a12b8745287ced6482b",
+  "w": 750,
+  "h": 875,
+  "trim": {
+   "x": 230,
+   "y": 9,
+   "w": 290,
+   "h": 173
+  }
+ },
+ "crown-pearl": {
+  "sha1": "b5419b67df9f51e4d37ac70f7daa6462cc832c33",
+  "w": 750,
+  "h": 875,
+  "trim": {
+   "x": 225,
+   "y": 20,
+   "w": 300,
+   "h": 159
+  }
+ },
+ "crown-starfish": {
+  "sha1": "86ba38f1c8707903069dbdbe8750532da542f64e",
+  "w": 750,
+  "h": 875,
+  "trim": {
+   "x": 228,
+   "y": 11,
+   "w": 294,
+   "h": 169
+  }
+ },
+ "cust-coral-body": {
+  "sha1": "fe1fe1b99ef801cf53fd26a8f927d9e56c572b93",
+  "w": 900,
+  "h": 1050,
+  "trim": {
+   "x": 168,
+   "y": 119,
+   "w": 563,
+   "h": 773
+  }
+ },
+ "cust-coral-eyes-blink": {
+  "sha1": "bfe8f1771bb8ef4fc48a13d7c16d9d2af1db5a9d",
+  "w": 900,
+  "h": 1050,
+  "trim": {
+   "x": 290,
+   "y": 376,
+   "w": 320,
+   "h": 51
+  }
+ },
+ "cust-coral-eyes-happy": {
+  "sha1": "718ccbdf89ca36a34b1d3cf84bc9391221bf1efc",
+  "w": 900,
+  "h": 1050,
+  "trim": {
+   "x": 286,
+   "y": 376,
+   "w": 328,
+   "h": 63
+  }
+ },
+ "cust-coral-eyes-open": {
+  "sha1": "7532627e250dbe8c44711845cc449f1ff697e6ca",
+  "w": 900,
+  "h": 1050,
+  "trim": {
+   "x": 283,
+   "y": 332,
+   "w": 334,
+   "h": 120
+  }
+ },
+ "cust-coral-eyes-surprised": {
+  "sha1": "2ad65d6fcfef8ff61bf2233d4029ede246375ad7",
+  "w": 900,
+  "h": 1050,
+  "trim": {
+   "x": 279,
+   "y": 277,
+   "w": 342,
+   "h": 175
+  }
+ },
+ "cust-coral-mouth-chew": {
+  "sha1": "30365e5aa8238b8bf5313f42184ad4efde41d9fb",
+  "w": 900,
+  "h": 1050,
+  "trim": {
+   "x": 383,
+   "y": 488,
+   "w": 134,
+   "h": 34
+  }
+ },
+ "cust-coral-mouth-closed": {
+  "sha1": "d4abfe88ce8e33c04f7cc0aed331d659072a65e5",
+  "w": 900,
+  "h": 1050,
+  "trim": {
+   "x": 379,
+   "y": 477,
+   "w": 142,
+   "h": 75
+  }
+ },
+ "cust-coral-mouth-open": {
+  "sha1": "0392e1483e29a63fb614075cb99e6ffd42a362a8",
+  "w": 900,
+  "h": 1050,
+  "trim": {
+   "x": 366,
+   "y": 469,
+   "w": 168,
+   "h": 116
+  }
+ },
+ "cust-marina-body": {
+  "sha1": "ba80b1c4f69dc40b278ac94fb9007c78275b53a6",
+  "w": 900,
+  "h": 1050,
+  "trim": {
+   "x": 167,
+   "y": 119,
+   "w": 564,
+   "h": 773
+  }
+ },
+ "cust-marina-eyes-blink": {
+  "sha1": "710d2be304a2362a60d823605af900075158bd05",
+  "w": 900,
+  "h": 1050,
+  "trim": {
+   "x": 290,
+   "y": 376,
+   "w": 320,
+   "h": 51
+  }
+ },
+ "cust-marina-eyes-happy": {
+  "sha1": "0156ad784394d57a212cf42ada908f19c5de2295",
+  "w": 900,
+  "h": 1050,
+  "trim": {
+   "x": 286,
+   "y": 376,
+   "w": 328,
+   "h": 63
+  }
+ },
+ "cust-marina-eyes-open": {
+  "sha1": "3208ca354d521e20bd64cf43a9525efcbd36f2de",
+  "w": 900,
+  "h": 1050,
+  "trim": {
+   "x": 283,
+   "y": 332,
+   "w": 334,
+   "h": 120
+  }
+ },
+ "cust-marina-eyes-surprised": {
+  "sha1": "a2a6d70393efca908b694ac151cbceec6a245392",
+  "w": 900,
+  "h": 1050,
+  "trim": {
+   "x": 279,
+   "y": 277,
+   "w": 342,
+   "h": 175
+  }
+ },
+ "cust-marina-mouth-chew": {
+  "sha1": "31323b67ef062ab1649448e6a125fcb0c8b6d1d6",
+  "w": 900,
+  "h": 1050,
+  "trim": {
+   "x": 383,
+   "y": 488,
+   "w": 134,
+   "h": 34
+  }
+ },
+ "cust-marina-mouth-closed": {
+  "sha1": "a058a94fd87af6c7012bae3fbc67fea0aedf3f2c",
+  "w": 900,
+  "h": 1050,
+  "trim": {
+   "x": 379,
+   "y": 477,
+   "w": 142,
+   "h": 75
+  }
+ },
+ "cust-marina-mouth-open": {
+  "sha1": "d96f27f94970e7c9539e061346e2875945975c40",
+  "w": 900,
+  "h": 1050,
+  "trim": {
+   "x": 366,
+   "y": 469,
+   "w": 168,
+   "h": 116
+  }
+ },
+ "cust-pearl-body": {
+  "sha1": "07fd472efa582f8d61f797d305e6373b788367ae",
+  "w": 900,
+  "h": 1050,
+  "trim": {
+   "x": 168,
+   "y": 119,
+   "w": 563,
+   "h": 773
+  }
+ },
+ "cust-pearl-eyes-blink": {
+  "sha1": "cb50553a8c4ee1b89613735733572f7de965df36",
+  "w": 900,
+  "h": 1050,
+  "trim": {
+   "x": 290,
+   "y": 376,
+   "w": 320,
+   "h": 51
+  }
+ },
+ "cust-pearl-eyes-happy": {
+  "sha1": "26d726ca3a50ef52b7554dfb24d6c5aee0020e14",
+  "w": 900,
+  "h": 1050,
+  "trim": {
+   "x": 286,
+   "y": 376,
+   "w": 328,
+   "h": 63
+  }
+ },
+ "cust-pearl-eyes-open": {
+  "sha1": "516150ac92cdbfaae6cdb3cbd1c46f57c7cf6251",
+  "w": 900,
+  "h": 1050,
+  "trim": {
+   "x": 283,
+   "y": 332,
+   "w": 334,
+   "h": 120
+  }
+ },
+ "cust-pearl-eyes-surprised": {
+  "sha1": "c785f3edca0ed2f59bc47b7933f0db34619a1186",
+  "w": 900,
+  "h": 1050,
+  "trim": {
+   "x": 279,
+   "y": 277,
+   "w": 342,
+   "h": 175
+  }
+ },
+ "cust-pearl-mouth-chew": {
+  "sha1": "fa76e6e1edc6b5c0409e5bbb64705ffd77712978",
+  "w": 900,
+  "h": 1050,
+  "trim": {
+   "x": 383,
+   "y": 488,
+   "w": 134,
+   "h": 34
+  }
+ },
+ "cust-pearl-mouth-closed": {
+  "sha1": "55563f56308cb7c91e7661e8b487d295e3111c35",
+  "w": 900,
+  "h": 1050,
+  "trim": {
+   "x": 379,
+   "y": 477,
+   "w": 142,
+   "h": 75
+  }
+ },
+ "cust-pearl-mouth-open": {
+  "sha1": "b9d05451b563242bb898cbcc129023f7be3129b5",
+  "w": 900,
+  "h": 1050,
+  "trim": {
+   "x": 366,
+   "y": 469,
+   "w": 168,
+   "h": 116
   }
  },
  "cutter-circle": {
@@ -2249,6 +2557,11 @@
  },
  "door-icon-ride": {
   "sha1": "e8007191cb507e79af6b98bd1b7ab7c594066d2f",
+  "w": 160,
+  "h": 160
+ },
+ "door-icon-salon": {
+  "sha1": "c4d8d8387da3b251076be9b1588ad3209e073267",
   "w": 160,
   "h": 160
  },
@@ -3570,6 +3883,16 @@
   "w": 200,
   "h": 320
  },
+ "gem-heart": {
+  "sha1": "85055d81bcab9e741405bb074d81ebf808469611",
+  "w": 90,
+  "h": 90
+ },
+ "gem-star": {
+  "sha1": "bbec7c1e40f3cf3e44fa747f714f79daec66908a",
+  "w": 90,
+  "h": 90
+ },
  "germ-a": {
   "sha1": "b55a7ded7f86279d2fdef5dbcf0a200765a38615",
   "w": 221,
@@ -3968,6 +4291,171 @@
    "y": 294,
    "w": 74,
    "h": 55
+  }
+ },
+ "hair-back-bob": {
+  "sha1": "443e42eb944e01a4b214ca314535b7b31a174fe3",
+  "w": 600,
+  "h": 700,
+  "trim": {
+   "x": 118,
+   "y": 198,
+   "w": 364,
+   "h": 195
+  }
+ },
+ "hair-back-braid": {
+  "sha1": "72af305ed655a2619f041477cc6604f509ff542f",
+  "w": 600,
+  "h": 700,
+  "trim": {
+   "x": 100,
+   "y": 190,
+   "w": 400,
+   "h": 170
+  }
+ },
+ "hair-back-bun": {
+  "sha1": "cbe4f72867e2d9e918f488afed29aa9b609c3958",
+  "w": 600,
+  "h": 700,
+  "trim": {
+   "x": 107,
+   "y": 181,
+   "w": 386,
+   "h": 143
+  }
+ },
+ "hair-back-curls": {
+  "sha1": "161aca7b240369bc1078360ad909d368d5085a01",
+  "w": 600,
+  "h": 700,
+  "trim": {
+   "x": 54,
+   "y": 11,
+   "w": 493,
+   "h": 473
+  }
+ },
+ "hair-back-waves": {
+  "sha1": "e7495d55585130e3ca8945a95eca49957c765a3f",
+  "w": 600,
+  "h": 700,
+  "trim": {
+   "x": 77,
+   "y": 60,
+   "w": 445,
+   "h": 530
+  }
+ },
+ "hair-front-bob": {
+  "sha1": "82146dfcdbfdabcd166635f86dcd96e1021b0e25",
+  "w": 750,
+  "h": 875,
+  "trim": {
+   "x": 155,
+   "y": 85,
+   "w": 440,
+   "h": 386
+  }
+ },
+ "hair-front-braid": {
+  "sha1": "32ccdc8a197976896a42694c2c1b79a9c1975b81",
+  "w": 750,
+  "h": 875,
+  "trim": {
+   "x": 158,
+   "y": 88,
+   "w": 437,
+   "h": 753
+  }
+ },
+ "hair-front-bun": {
+  "sha1": "366646dcb2fa3c52ea74294c3022a2fd9f59973d",
+  "w": 750,
+  "h": 875,
+  "trim": {
+   "x": 163,
+   "y": 13,
+   "w": 424,
+   "h": 370
+  }
+ },
+ "hair-front-curls": {
+  "sha1": "9d2eb4a83381639c023daf328a447cca364b1a59",
+  "w": 750,
+  "h": 875,
+  "trim": {
+   "x": 139,
+   "y": 81,
+   "w": 472,
+   "h": 365
+  }
+ },
+ "hair-front-waves": {
+  "sha1": "e0a9500cd585d837ad8fcf07470a01364a9c54c0",
+  "w": 750,
+  "h": 875,
+  "trim": {
+   "x": 142,
+   "y": 87,
+   "w": 478,
+   "h": 467
+  }
+ },
+ "hair-shine-bob": {
+  "sha1": "08ce97fca6e787a6b5f76e91448fedecc35a8f45",
+  "w": 600,
+  "h": 700,
+  "trim": {
+   "x": 125,
+   "y": 92,
+   "w": 311,
+   "h": 245
+  }
+ },
+ "hair-shine-braid": {
+  "sha1": "5dee8c82a1c68c79771563e0782c3d49afd72cea",
+  "w": 600,
+  "h": 700,
+  "trim": {
+   "x": 172,
+   "y": 99,
+   "w": 293,
+   "h": 442
+  }
+ },
+ "hair-shine-bun": {
+  "sha1": "2599e42c5697d314c97ae308b805851c2962725b",
+  "w": 600,
+  "h": 700,
+  "trim": {
+   "x": 182,
+   "y": 25,
+   "w": 281,
+   "h": 182
+  }
+ },
+ "hair-shine-curls": {
+  "sha1": "0712357ba451128bedd11fb336cb38b36eca3d66",
+  "w": 600,
+  "h": 700,
+  "trim": {
+   "x": 109,
+   "y": 71,
+   "w": 390,
+   "h": 288
+  }
+ },
+ "hair-shine-waves": {
+  "sha1": "b8acebf4ecf74ffe66b53e3143039cc2924b0ad6",
+  "w": 600,
+  "h": 700,
+  "trim": {
+   "x": 121,
+   "y": 94,
+   "w": 362,
+   "h": 293
   }
  },
  "hay-bale": {
@@ -6451,6 +6939,28 @@
    "h": 124
   }
  },
+ "necklace-pearl": {
+  "sha1": "ba8944f48b47ab0257a9fb991fed45283e600de0",
+  "w": 600,
+  "h": 700,
+  "trim": {
+   "x": 232,
+   "y": 390,
+   "w": 136,
+   "h": 95
+  }
+ },
+ "necklace-star": {
+  "sha1": "0b70e8e1f60b5352d8c5a45ed8b0b6d4e991dfc6",
+  "w": 600,
+  "h": 700,
+  "trim": {
+   "x": 237,
+   "y": 397,
+   "w": 126,
+   "h": 100
+  }
+ },
  "necklace-string": {
   "sha1": "6655eb25e24b147dcb02cdb662f7da62ca32c8e4",
   "w": 1400,
@@ -7083,6 +7593,88 @@
    "h": 625
   }
  },
+ "salon-bench": {
+  "sha1": "850f321e7cddfb8b3142c0fe774aeacba98375ad",
+  "w": 1300,
+  "h": 260,
+  "trim": {
+   "x": 0,
+   "y": 89,
+   "w": 1300,
+   "h": 171
+  }
+ },
+ "salon-chair": {
+  "sha1": "c06c41abe0ac544a343592e43af8b190e650b472",
+  "w": 700,
+  "h": 600
+ },
+ "salon-comb": {
+  "sha1": "273b6e9ba4a2e2d56497a9ee4e8b554680f2b8fb",
+  "w": 240,
+  "h": 240,
+  "trim": {
+   "x": 17,
+   "y": 44,
+   "w": 206,
+   "h": 149
+  }
+ },
+ "salon-mirror": {
+  "sha1": "3cc58aa470ea3e924ecb458c03d6b824a3260887",
+  "w": 560,
+  "h": 720,
+  "trim": {
+   "x": 62,
+   "y": 9,
+   "w": 436,
+   "h": 711
+  }
+ },
+ "salon-shower": {
+  "sha1": "3b942ac8a11a95f4c852825b514a04f1ebe4087a",
+  "w": 240,
+  "h": 240,
+  "trim": {
+   "x": 22,
+   "y": 40,
+   "w": 179,
+   "h": 198
+  }
+ },
+ "salon-sponge": {
+  "sha1": "031889e006b868851beb82223fb73dbdc2fde3ac",
+  "w": 240,
+  "h": 240,
+  "trim": {
+   "x": 15,
+   "y": 48,
+   "w": 208,
+   "h": 172
+  }
+ },
+ "salon-spray": {
+  "sha1": "7f21977dea87a6aab8b92042263d2fbaa8ba1d89",
+  "w": 240,
+  "h": 240,
+  "trim": {
+   "x": 40,
+   "y": 38,
+   "w": 159,
+   "h": 202
+  }
+ },
+ "salon-vanity": {
+  "sha1": "c34ed528df9c001c77e9f11b2292550658275274",
+  "w": 520,
+  "h": 300,
+  "trim": {
+   "x": 25,
+   "y": 2,
+   "w": 469,
+   "h": 298
+  }
+ },
  "salt-shaker": {
   "sha1": "ceff64323d820f24938593dfb8d7471806e7dcd9",
   "w": 260,
@@ -7104,6 +7696,11 @@
    "w": 260,
    "h": 99
   }
+ },
+ "sand-spot": {
+  "sha1": "5090b3d4cac264e372cbcfccaeac45b90ac32644",
+  "w": 120,
+  "h": 90
  },
  "sauce-blob": {
   "sha1": "d5ba55b5a29b4ea30debd3fec70835cb0cd539fe",
@@ -7369,6 +7966,17 @@
    "h": 180
   }
  },
+ "shell-surprise": {
+  "sha1": "6b74708e3ebf4e5cf482731e4288f46da8e07a5e",
+  "w": 220,
+  "h": 220,
+  "trim": {
+   "x": 3,
+   "y": 19,
+   "w": 214,
+   "h": 187
+  }
+ },
  "sick-bites": {
   "sha1": "177a5f7064e0303126c9912a09c490483e2e05c9",
   "w": 200,
@@ -7610,6 +8218,17 @@
    "h": 591
   }
  },
+ "spray-cap": {
+  "sha1": "627dfe30f83a8b7f6f046e80d561e4c63eeabb7a",
+  "w": 80,
+  "h": 80,
+  "trim": {
+   "x": 2,
+   "y": 15,
+   "w": 76,
+   "h": 65
+  }
+ },
  "sprinkles-cluster": {
   "sha1": "fb1239267e8b4e7b54088ace611b5c69fe445084",
   "w": 140,
@@ -7728,6 +8347,72 @@
    "h": 827
   }
  },
+ "tail-classic": {
+  "sha1": "d3dad1ec0f8127bba6e3428a6952dca252d5f3f3",
+  "w": 600,
+  "h": 700,
+  "trim": {
+   "x": 171,
+   "y": 388,
+   "w": 406,
+   "h": 312
+  }
+ },
+ "tail-classic-shine": {
+  "sha1": "0b1414870590dfccb3aacaed514b538088918eac",
+  "w": 600,
+  "h": 700,
+  "trim": {
+   "x": 242,
+   "y": 520,
+   "w": 331,
+   "h": 163
+  }
+ },
+ "tail-frilly": {
+  "sha1": "48f2e794ba3bf66880056edb3ce2a7c5e71ff37c",
+  "w": 600,
+  "h": 700,
+  "trim": {
+   "x": 162,
+   "y": 389,
+   "w": 418,
+   "h": 311
+  }
+ },
+ "tail-frilly-shine": {
+  "sha1": "db96617f5762069c83e884de934f8e563f043ab5",
+  "w": 600,
+  "h": 700,
+  "trim": {
+   "x": 249,
+   "y": 510,
+   "w": 328,
+   "h": 171
+  }
+ },
+ "tail-long": {
+  "sha1": "94ff1607b52d4fc409e0a6d1bd8f04e9dd7f11df",
+  "w": 600,
+  "h": 700,
+  "trim": {
+   "x": 16,
+   "y": 388,
+   "w": 412,
+   "h": 312
+  }
+ },
+ "tail-long-shine": {
+  "sha1": "475fce8e8c2e8bb3d77ab31a662d7d143300a333",
+  "w": 600,
+  "h": 700,
+  "trim": {
+   "x": 19,
+   "y": 490,
+   "w": 344,
+   "h": 198
+  }
+ },
  "temp-glow": {
   "sha1": "a2f3b3e65a11ba081e13c28dd8211007cfea0724",
   "w": 400,
@@ -7742,6 +8427,17 @@
    "y": 21,
    "w": 184,
    "h": 214
+  }
+ },
+ "tool-blush": {
+  "sha1": "1d165708a11b7e7bdeabc7b8b63ce1a70fc97054",
+  "w": 240,
+  "h": 240,
+  "trim": {
+   "x": 15,
+   "y": 14,
+   "w": 169,
+   "h": 215
   }
  },
  "tool-bow": {
@@ -7887,6 +8583,17 @@
    "h": 149
   }
  },
+ "tool-glitter": {
+  "sha1": "2bec152b7faddc3b6440d5250bc82bab50da24aa",
+  "w": 240,
+  "h": 240,
+  "trim": {
+   "x": 20,
+   "y": 14,
+   "w": 164,
+   "h": 215
+  }
+ },
  "tool-hat": {
   "sha1": "6ed0d3ebf71e77003b4c21fc4691cf21642a9251",
   "w": 240,
@@ -7940,6 +8647,17 @@
    "y": 40,
    "w": 173,
    "h": 174
+  }
+ },
+ "tool-lipstick": {
+  "sha1": "25237d090645a14d5fdfa48f7901e25ea102ff01",
+  "w": 240,
+  "h": 240,
+  "trim": {
+   "x": 41,
+   "y": 41,
+   "w": 148,
+   "h": 190
   }
  },
  "tool-magnet": {
@@ -8006,6 +8724,17 @@
    "y": 49,
    "w": 150,
    "h": 191
+  }
+ },
+ "tool-shadow": {
+  "sha1": "a4e542d812e7b6bbc28b96845cd12200f242f4fc",
+  "w": 240,
+  "h": 240,
+  "trim": {
+   "x": 35,
+   "y": 28,
+   "w": 167,
+   "h": 204
   }
  },
  "tool-shower": {
@@ -8275,6 +9004,39 @@
    "y": 21,
    "w": 132,
    "h": 157
+  }
+ },
+ "top-frill": {
+  "sha1": "5608d930c802e3dec96f4cb5758770f9acd1b862",
+  "w": 600,
+  "h": 700,
+  "trim": {
+   "x": 181,
+   "y": 392,
+   "w": 238,
+   "h": 166
+  }
+ },
+ "top-shells": {
+  "sha1": "ec476109ef0116101bc3191c6f0835b8cd88ecc9",
+  "w": 600,
+  "h": 700,
+  "trim": {
+   "x": 181,
+   "y": 397,
+   "w": 238,
+   "h": 161
+  }
+ },
+ "top-starfish": {
+  "sha1": "8f72cfce55d97ba4957805cfc04e6da2636edef2",
+  "w": 600,
+  "h": 700,
+  "trim": {
+   "x": 181,
+   "y": 392,
+   "w": 238,
+   "h": 166
   }
  },
  "topping-bin": {
@@ -8630,6 +9392,11 @@
   "sha1": "e893945d4aa6f17f93f9a2d594a8fb7a372a1f20",
   "w": 440,
   "h": 320
+ },
+ "weed-bit": {
+  "sha1": "ec36198387c5b8c803f95c790f49025d26f09f25",
+  "w": 90,
+  "h": 60
  },
  "wool-curl": {
   "sha1": "ade93509c36cb24559aefd7f78bd364580d46fcc",

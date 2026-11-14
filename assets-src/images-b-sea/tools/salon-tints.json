@@ -1,0 +1,82 @@
+{
+ "hair": {
+  "pink": "#FF9FC8",
+  "purple": "#AC88F8",
+  "blue": "#58CCF8",
+  "gold": "#FFD656",
+  "seagreen": "#46D4B1",
+  "pearl": "#FFF8FF",
+  "natural-marina": "#FFBB40",
+  "natural-coral": "#40281B",
+  "natural-pearl": "#30303E"
+ },
+ "tail": {
+  "pink": "#FF9FC8",
+  "purple": "#AC88F8",
+  "blue": "#58CCF8",
+  "gold": "#FFD656",
+  "seagreen": "#46D4B1",
+  "pearl": "#FFF8FF",
+  "natural-marina": "#AB95FF",
+  "natural-coral": "#FF9B87",
+  "natural-pearl": "#7BE1EF"
+ },
+ "lips": {
+  "pink": "#FF9FC8",
+  "purple": "#AC88F8",
+  "blue": "#58CCF8",
+  "gold": "#FFDF50",
+  "natural-marina": "#FF9995",
+  "natural-coral": "#CC6A64",
+  "natural-pearl": "#FFABB1"
+ },
+ "dye": {
+  "pink": "#FF9FC8",
+  "purple": "#AC88F8",
+  "blue": "#58CCF8",
+  "gold": "#FFD656",
+  "seagreen": "#46D4B1",
+  "pearl": "#FFF8FF"
+ },
+ "gemSlots": [
+  {
+   "x": 300,
+   "y": 202
+  },
+  {
+   "x": 196,
+   "y": 242
+  },
+  {
+   "x": 404,
+   "y": 242
+  },
+  {
+   "x": 222,
+   "y": 298
+  },
+  {
+   "x": 378,
+   "y": 298
+  },
+  {
+   "x": 300,
+   "y": 370
+  }
+ ],
+ "gemScale": 0.5,
+ "sprayCap": {
+  "x": 120,
+  "y": 56
+ },
+ "chairSeat": {
+  "x": 350,
+  "y": 590
+ },
+ "benchSeats": [
+  0.2,
+  0.5,
+  0.8
+ ],
+ "benchSeatY": 150
+}

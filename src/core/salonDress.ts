@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { IMAGES } from './assets';
 import { ART_SALON } from './salonAssets';
-import { CUSTOMER, GEM_SLOTS, hairHex, hexOf, PAINT_HEX, tailHex, type CustomerId, type Look } from './salon';
+import { CUSTOMER, GEM_SLOTS, hairHex, lipsHex, tailHex, type CustomerId, type Look } from './salon';
 import { sfx } from './sfx';
 import type { CharacterDef } from '../recipes/types';
 import { Character } from '../steps/Character';
@@ -96,9 +96,9 @@ export class Dressing {
     want.set('tail', { key: `tail-${look.tail}`, tint: tailHex(id, look.tailColour) });
     want.set('tail-shine', { key: `tail-${look.tail}-shine` });
     want.set('top', { key: `top-${look.top}` });
-    if (look.necklace === 'marina') want.set('necklace', { key: 'necklace-marina', at: { x: ART_SALON.neck.x, y: ART_SALON.neck.y + 34 }, base: 1 });
+    if (look.necklace === 'marina') want.set('necklace', { key: 'necklace-marina', at: { x: ART_SALON.neck.x, y: ART_SALON.neck.y }, base: 1 });
     else if (look.necklace) want.set('necklace', { key: `necklace-${look.necklace}` });
-    look.gems.forEach((g, i) => want.set(`gem-${i}`, { key: `gem-${g.kind}`, at: GEM_SLOTS[g.slot], base: 1 }));
+    look.gems.forEach((g, i) => want.set(`gem-${i}`, { key: `gem-${g.kind}`, at: GEM_SLOTS[g.slot], base: ART_SALON.gemScale }));
     look.glitter.forEach((p, i) => want.set(`glitter-${i}`, { key: 'fx-sparkle', at: { x: p[0], y: p[1] }, base: 0.34, tint: i % 2 ? 0xfff4b8 : 0xffffff }));
     want.set('hair-front', { key: `hair-front-${look.hair}`, tint: hairHex(id, look.hairColour) });
     if (look.shine) want.set('hair-shine', { key: `hair-shine-${look.hair}` });
@@ -129,7 +129,7 @@ export class Dressing {
       else l.img.clearTint();
     }
     // her mouth: the lipstick (salon PR 2), else her own lips' colour (the mouths are drawn white)
-    this.ch.parts.mouth.setTint(look.lips ? hexOf(PAINT_HEX[look.lips]) : hexOf(CUSTOMER[id].lips));
+    this.ch.parts.mouth.setTint(lipsHex(id, look.lips));
     for (const r of removed) this.ch.box.remove(r);
     this.restack();
     this.sync();

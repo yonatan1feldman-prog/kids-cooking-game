@@ -680,8 +680,8 @@ export function getStage(L: Layout): Stage {
   const bench = { x: salonRoom.x0 + roomW / 2, y: Y(994) - (BENCH.h / 2) * benchScale, scale: benchScale };
   const waitScale = Math.min(0.62 * k, (BENCH.w * benchScale) / 3 / 520);
   const benchSeat = (i: number) => {
-    const top = bench.y + (ART_SALON.benchTop - BENCH.h / 2) * benchScale;
-    return { x: bench.x + (ART_SALON.benchSeats[i] - 0.5) * BENCH.w * benchScale, y: top + 70 * waitScale - (CUST.foot - CUST.h / 2) * waitScale, scale: waitScale };
+    const foot = bench.y + (ART_SALON.benchSeatY - BENCH.h / 2) * benchScale;
+    return { x: bench.x + (ART_SALON.benchSeats[i] - 0.5) * BENCH.w * benchScale, y: foot - (CUST.foot - CUST.h / 2) * waitScale, scale: waitScale };
   };
   const closeScale = seatScale * 1.6;
   const closeUp = {
