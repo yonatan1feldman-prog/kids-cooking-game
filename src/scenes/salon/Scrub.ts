@@ -17,6 +17,11 @@ const PAIRS: readonly (readonly [number, number])[] = [[1, 3], [2, 4], [1, 4], [
 /** The forehead's spot (index 0): hard only, under her fringe. */
 const HIDDEN = 0;
 
+/** Where a spot of sand sits on her frame (hard's hidden one higher up, under her fringe: only its edge peeks out). */
+const spotPoint = (i: number) => {
+  const p = ART_SALON.sandSpots[i];
+  return i === HIDDEN ? { x: p.x, y: p.y - 44 } : p;
+};
 type Spot = { i: number; img: Phaser.GameObjects.Image; dirt: number; hidden: boolean; bubbleAt: number };
 type Weed = { img: Phaser.GameObjects.Image; at: P };
 
@@ -58,7 +63,7 @@ export class Scrub implements SalonStage {
     const which = hard ? [HIDDEN, ...pair] : [...pair];
     this.spots = which.map((i) => {
       const img = new Phaser.GameObjects.Image(h, 0, 0, 'sand-spot').setAngle(Phaser.Math.Between(-20, 20));
-      c.attach(img, 'skin', ART_SALON.sandSpots[i]);
+      c.attach(img, 'skin', spotPoint(i));
       return { i, img, dirt: 1, hidden: i === HIDDEN, bubbleAt: 0 };
     });
     this.weeds = ART_SALON.weedBits.map((at, j) => {
@@ -74,7 +79,7 @@ export class Scrub implements SalonStage {
   // ---------------------------------------------------------------- what is left
 
   private spotAt(s: Spot) {
-    return this.h.onHer(ART_SALON.sandSpots[s.i]);
+    return this.h.onHer(spotPoint(s.i));
   }
   private visible(s: Spot) {
     return s.dirt > 0 && (!s.hidden || this.lifted);

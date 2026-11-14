@@ -673,11 +673,14 @@ export function getStage(L: Layout): Stage {
   const chair = { x: seat.x, y: feetY - (ART_SALON.chairSeat.y - CHAIR.h / 2) * chairScale + 30 * k, scale: chairScale };
   const mirrorScale = Math.min(0.85 * k, (salonRoom.y1 - salonRoom.y0) * 0.75 / MIRROR.h);
   const mirror = { x: Math.min(seat.x + 330 * seatScale, salonRoom.x1 - (MIRROR.w / 2 - 40) * mirrorScale), y: Y(560), scale: mirrorScale };
+  // (down on the sand Mom's tail takes the right: what stands there ends where the lagoon's doors end)
+  const floorX1 = Math.min(salonRoom.x1, doorsRight);
+  const floorW = floorX1 - salonRoom.x0;
   const vanityScale = 0.62 * k;
-  const vanityRoom = salonRoom.x1 - (seat.x + 200 * seatScale);
-  const vanity = vanityRoom >= (VANITY.w - 60) * vanityScale ? { x: salonRoom.x1 - (VANITY.w / 2) * vanityScale, y: Y(994) - (VANITY.h / 2 - 10) * vanityScale, scale: vanityScale } : null;
-  const benchScale = Math.min(k, roomW / BENCH.w);
-  const bench = { x: salonRoom.x0 + roomW / 2, y: Y(994) - (BENCH.h / 2) * benchScale, scale: benchScale };
+  const vanityRoom = floorX1 - (seat.x + 200 * seatScale);
+  const vanity = vanityRoom >= (VANITY.w - 60) * vanityScale ? { x: floorX1 - (VANITY.w / 2) * vanityScale, y: Y(994) - (VANITY.h / 2 - 10) * vanityScale, scale: vanityScale } : null;
+  const benchScale = Math.min(k, floorW / BENCH.w);
+  const bench = { x: salonRoom.x0 + floorW / 2, y: Y(994) - (BENCH.h / 2) * benchScale, scale: benchScale };
   const waitScale = Math.min(0.62 * k, (BENCH.w * benchScale) / 3 / 520);
   const benchSeat = (i: number) => {
     const foot = bench.y + (ART_SALON.benchSeatY - BENCH.h / 2) * benchScale;

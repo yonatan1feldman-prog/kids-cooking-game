@@ -2214,9 +2214,10 @@ window.__salonPlay = async (level = 1, opts = {}) => {
       const styles = ['waves', 'curls', 'braid', 'bun', 'bob'];
       if (opts.wrong) {
         const c = m.cell('braid');
+        const home = { x: c.items[0].x, y: c.items[0].y };
         await __drag([[c.x, c.y], [c.x + 200 * k, c.y - 30 * k], [c.x + 260 * k, m.L.H - 260 * k]]);
         await __run(500);
-        log.push('wrong: style dropped beside her ' + (Math.hypot(c.items[0].x - c.x, c.items[0].y - (c.y + (350 - 235) * c.items[0].scaleX)) < 3 ? 'back' : 'NOT BACK') + ' hair=' + m.customer.look.hair);
+        log.push('wrong: style dropped beside her ' + (Math.hypot(c.items[0].x - home.x, c.items[0].y - home.y) < 3 ? 'back' : 'NOT BACK') + ' hair=' + m.customer.look.hair);
       }
       if (opts.random) {
         for (const s of styles.sort(() => Math.random() - 0.5).slice(0, 2)) { const c = m.cell(s); __tap(c.x, c.y); log.push('style ' + s); await __run(gap); }

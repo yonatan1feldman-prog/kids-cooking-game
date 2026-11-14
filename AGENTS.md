@@ -677,7 +677,30 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the mermaid salon PR V (art and sounds), the premium round PR 5 (home shelves, her photos on the cards, Pipa's idea, secrets), the premium round PR 4 (paper motion in every step, ta-da endings, scene changes), the premium round PR 3 (living characters), the premium round PR 2 (light and depth), the premium round PR 1 (cut WebPs, paper motion, scene changes, UI sounds), the mermaid world PR 4 (the shell song), the mermaid world PR 3 (cleaning, shells), the mermaid world PR 2 (the tail, the swim), the mermaid world PR 1 (the lagoon), the clinic-open fix, the clinic round 6 (part 3, four patients), the clinic round 6 (part 2, seven ailments), the clinic round 6 (part 1, the bowl), the clinic round 5 (part 3, more challenge), the clinic round 5 (part 2, the care rooms), the farm, the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+## Handoff notes (written for the next agent; the mermaid salon PR 1 (the salon's core: the sixth door, picking, the splash, the hair, the mirror), the mermaid salon PR V (art and sounds), the premium round PR 5 (home shelves, her photos on the cards, Pipa's idea, secrets), the premium round PR 4 (paper motion in every step, ta-da endings, scene changes), the premium round PR 3 (living characters), the premium round PR 2 (light and depth), the premium round PR 1 (cut WebPs, paper motion, scene changes, UI sounds), the mermaid world PR 4 (the shell song), the mermaid world PR 3 (cleaning, shells), the mermaid world PR 2 (the tail, the swim), the mermaid world PR 1 (the lagoon), the clinic-open fix, the clinic round 6 (part 3, four patients), the clinic round 6 (part 2, seven ailments), the clinic round 6 (part 1, the bowl), the clinic round 5 (part 3, more challenge), the clinic round 5 (part 2, the care rooms), the farm, the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 000000000000000000000000000000000000000000000000. The mermaid salon, PR 1 (the core: the sixth door, the scene, the pick, the splash, the hair, a simple mirror)
+Spec `/mnt/project-files/research/mermaid-dressup-spec.md` (sections 5, 6, 8, 12, 13). Salon PRs 2-4 build on this.
+- **Files:** `scenes/SeaSalon.ts` (a SeaGame: the stage registry `SALON_STAGE_CLASSES`, the column of cells, the done
+  button, the look, `zoom`), one class per stage in `scenes/salon/` (`Pick`, `Scrub`, `Hair`, `Mirror`; `carry.ts` = a
+  thing carried in her finger), `core/salon.ts` (the look, customers, colours via ART_SALON's tints, `savedLook` /
+  `keepLook` marks `salon.<id>` and `salon.last`), `core/salonDress.ts` (`Dressing`: her worn layers on a Character, in
+  the spec's order, `apply(look)` returns what came and went; `makeCustomer`, `delight`, `giggle`, `surprise`).
+- **Adding a stage (PRs 2, 3):** a class implementing `SalonStage` (begin/way/helpOnce/down/move/up/plan/end, `free`,
+  `hasDone`), registered in `SALON_STAGE_CLASSES` at its `SALON_STAGES` id; the scene skips ids without a class. A stage
+  with a done button calls `h.did()` on its first real change; Mom's hint/help then point at / tap the button
+  (`doneWay`, `doneHelp`). Change her look only through `h.setLook(look)`: it animates the layers and calls every
+  `h.onLookChanged` hook (PR 3's wish listens there). `h.zoom(true)` is the face close-up (PR 2).
+- **Loading:** `SEA_ACTIVITY.salon` (seaAssets.ts) lists every salon picture but the door's and the salon's sounds, plus
+  the colour names (`name-pink` ...). It replaced PR V's `SALON_PENDING_SOUNDS` stopgap. The two customers not picked are
+  released one frame after they swim off (`releaseImages(customerImages(id))`); the lagoon frees the rest on return.
+- **Layout:** `stage.ts` `salon` (room, seat, closeUp, chair, mirror, vanity or null, bench, benchSeat(i)); on the sand
+  things end where the lagoon's doors end (Mom's tail). The lagoon's doors are one row when each gets 200 units, else two
+  rows (3 + 3 at 16:9 and 4:3).
+- **Harness:** `__salonGo(level, {customer, first})`, `__salonPlay(level, {none, wrong, random, customer, mid})`,
+  `__salonLook()`. In `__fast(true)` the simulated voice clock drops queued lines it should not (seen as a missing
+  `name-*` or `vo-salon-splash`); check the voice order without `__fast`.
+- **Hair plates** fit each style by the drawn part of its trimmed frame (`drawnBox`, at each picture's raster).
+
 ### 00000000000000000000000000000000000000000000000. The mermaid salon, PR V (the art and the sounds of the salon)
 Spec `/mnt/project-files/research/mermaid-dressup-spec.md` sections 4, 9, 10, 11 (PR V). Art and audio only; the code is
 salon PRs 1-4. Drawing sheets: `/mnt/project-files/research/screens-salon/sheet-*.png`.
@@ -702,8 +725,8 @@ salon PRs 1-4. Drawing sheets: `/mnt/project-files/research/screens-salon/sheet-
   serve the repo root (`python3 -m http.server 8765`) and run `node assets-src/images-b-sea/tools/shot_salon.cjs <outdir>`.
 - **Sounds:** `audio-src/scripts/make_salon_sfx.py` (15 effects; the sponge uses the core `squish`), 33 lines in
   `make_vo.py` ("The mermaid salon"). None heard by a human yet.
-- **Until salon PR 1 merges:** a stopgap block in `seaAssets.ts` (`SALON_PENDING_SOUNDS`, listed in `RECIPE_ASSETS.mermaid`)
-  keeps the salon's sounds out of boot and out of the lagoon; PR 1's `SEA_ACTIVITY.salon` replaces it.
+- **Stopgap gone:** the `SALON_PENDING_SOUNDS` block PR V had in `seaAssets.ts` was replaced by salon PR 1's
+  `SEA_ACTIVITY.salon` (its sounds are the salon's, neither core nor the lagoon's).
 
 ### 0000000000000000000000000000000000000000000000. The premium round, PR 5 (the home shelves, her own dish on the cards, Pipa's idea, secrets)
 Spec `/mnt/project-files/research/premium-spec.md` 4.5 and PR 5. What she sees: the home screen is two wooden shelves (three

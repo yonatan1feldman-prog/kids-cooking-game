@@ -5,7 +5,7 @@ import * as paper from '../../core/paper';
 import { byVisit } from '../../core/sea';
 import { DYE, DYE_HEX, DYE_NAME, HAIR_STYLES, hairHex, hexOf, type Dye, type HairStyle } from '../../core/salon';
 import { ART_SALON } from '../../core/salonAssets';
-import { delight } from '../../core/salonDress';
+import { delight, rasterOf } from '../../core/salonDress';
 import { sfx } from '../../core/sfx';
 import { TUNING } from '../../core/tuning';
 import type { P } from '../MiniGame';
@@ -14,10 +14,6 @@ import { Carry } from './carry';
 
 const T = TUNING.salon;
 type Tool = 'spray' | 'comb' | 'style';
-/** A style cell shows the hair round this point of the frame (the middle of a head of hair). */
-const HAIR_MID = { x: 300, y: 235 };
-/** How wide a head of hair is in the frame (a style cell fits it on its plate). */
-const HAIR_W = 380;
 
 /**
  * The hair (spec 5.2): five styles, the spray, the comb and the surprise shell down the column. A tap on a style (or a
@@ -26,6 +22,14 @@ const HAIR_W = 380;
  * and rub it over her hair, and the hair turns that colour. The comb: drag it up and down her hair, and it shines. The
  * surprise shell: a new style in a new colour pops out of it. Free play; the done button after one thing (or 15 s).
  */
+/** The drawn part of a customer-frame picture (its trim), in the 600x700 frame. */
+function drawnBox(scene: Phaser.Scene, key: string) {
+  const f = scene.textures.getFrame(key);
+  const r = rasterOf(key);
+  const d = f?.trimmed ? (f as unknown as { data: { spriteSourceSize: { x: number; y: number; w: number; h: number } } }).data.spriteSourceSize : null;
+  return d ? { x0: d.x / r, y0: d.y / r, x1: (d.x + d.w) / r, y1: (d.y + d.h) / r } : { x0: 110, y0: 50, x1: 490, y1: 560 };
+}
+
 export class Hair implements SalonStage {
   readonly id = 'hair' as const;
   readonly free = true;
@@ -63,10 +67,14 @@ export class Hair implements SalonStage {
   private fill(id: string, cell: Cell): Phaser.GameObjects.Image[] {
     const h = this.h;
     if ((HAIR_STYLES as readonly string[]).includes(id)) {
-      const s = (0.86 * 220 * cell.s) / HAIR_W;
-      const y = cell.y + (350 - HAIR_MID.y) * s;
+      // (the style fills the plate: the drawn part of its back and front, centred; each at its own raster)
+      const keys = [`hair-back-${id}`, `hair-front-${id}`];
+      const b = keys.map((key) => drawnBox(h, key)).reduce((a, q) => ({ x0: Math.min(a.x0, q.x0), y0: Math.min(a.y0, q.y0), x1: Math.max(a.x1, q.x1), y1: Math.max(a.y1, q.y1) }));
+      const s = (0.84 * 220 * cell.s) / Math.max(b.x1 - b.x0, b.y1 - b.y0);
+      const x = cell.x + (300 - (b.x0 + b.x1) / 2) * s;
+      const y = cell.y + (350 - (b.y0 + b.y1) / 2) * s;
       const tint = hairHex(this.c.id, this.c.look.hairColour);
-      return [h.add.image(cell.x, y, `hair-back-${id}`).setScale(s).setTint(tint), h.add.image(cell.x, y, `hair-front-${id}`).setScale(s).setTint(tint)];
+      return keys.map((key) => h.add.image(x, y, key).setScale(s / rasterOf(key)).setTint(tint));
     }
     if (id === 'spray') {
       const s = cell.s * 0.95;

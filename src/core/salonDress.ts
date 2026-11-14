@@ -37,7 +37,8 @@ export function customerDef(id: CustomerId): CharacterDef {
   } as CharacterDef;
 }
 
-const rasterOf = (key: string) => ((IMAGES as Record<string, { raster?: number }>)[key]?.raster ?? 1);
+/** The size a picture was made at (its raster: 1.5 for her layers, 1.25 for the hair's front, else 1). */
+export const rasterOf = (key: string) => ((IMAGES as Record<string, { raster?: number }>)[key]?.raster ?? 1);
 
 /** Where an added layer sits: on her frame (hangs from her feet like her own layers) or at a point of it. */
 type Layer = {
