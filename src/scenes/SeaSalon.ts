@@ -17,6 +17,7 @@ import type { P } from './MiniGame';
 import { SeaGame } from './SeaGame';
 import { Hair } from './salon/Hair';
 import { Mirror } from './salon/Mirror';
+import { Outfit } from './salon/Outfit';
 import { Pick } from './salon/Pick';
 import { Scrub } from './salon/Scrub';
 
@@ -80,7 +81,7 @@ export const SALON_STAGE_CLASSES: Partial<Record<SalonStageId, new (host: SeaSal
   scrub: Scrub,
   hair: Hair,
   // salon PR 2: face: Face, sparkle: Sparkle,
-  // salon PR 3: outfit: Outfit,
+  outfit: Outfit, // salon PR 3
   mirror: Mirror,
 };
 

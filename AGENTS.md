@@ -678,6 +678,27 @@ explicitly approved that one push in the current round (see "Working rules" and 
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
 ## Handoff notes (written for the next agent; the mermaid salon PR 1 (the salon's core: the sixth door, picking, the splash, the hair, the mirror), the mermaid salon PR V (art and sounds), the premium round PR 5 (home shelves, her photos on the cards, Pipa's idea, secrets), the premium round PR 4 (paper motion in every step, ta-da endings, scene changes), the premium round PR 3 (living characters), the premium round PR 2 (light and depth), the premium round PR 1 (cut WebPs, paper motion, scene changes, UI sounds), the mermaid world PR 4 (the shell song), the mermaid world PR 3 (cleaning, shells), the mermaid world PR 2 (the tail, the swim), the mermaid world PR 1 (the lagoon), the clinic-open fix, the clinic round 6 (part 3, four patients), the clinic round 6 (part 2, seven ailments), the clinic round 6 (part 1, the bowl), the clinic round 5 (part 3, more challenge), the clinic round 5 (part 2, the care rooms), the farm, the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 0000000000000000000000000000000000000000000000000. The mermaid salon, PR 3 (the outfit, the customer's wish on hard, the surprise shell)
+Spec `/mnt/project-files/research/mermaid-dressup-spec.md` 5.0, 5.4, 6 (`WISH`). Built on salon PR 1's contract.
+- **Files:** `scenes/salon/Outfit.ts` (registered as `outfit` in `SALON_STAGE_CLASSES`), `core/salonWish.ts` (the wish:
+  its own bubble, not `Character.showWish`, so it can live small in the room's top right corner and carry ticks),
+  `core/salon.ts` block "salon PR 3" (`WishItem`, `WISH` 6 triplets, `WISH_SPARE`, `wishMet`, `wishStage`, `wishNext`).
+  One line each in `Pick.ts` (`startWish(h)` after `seat`) and `Hair.ts` (a wished style is the hint's style).
+- **Outfit column** two by two: tails down the left, tops down the right, then spray and surprise shell. The spray dyes the
+  TAIL here (`tailColour`, tail plates retinted). A tap on her tail swishes it: the tail and its shine turn round her
+  waist (`WAIST`, frame y 452) by setting the layer's angle plus the Dressing motion `dx` that keeps the waist in place
+  (the layers hang from her feet). Never tween those layers' own x/y/scale (Dressing.sync owns them).
+- **The wish** (hard only, `visits('sea-salon-wish')` picks the triplet): three things from three stages. A thing whose
+  stage has no class yet (salon PR 2's face/sparkle before it merges) is swapped for `WISH_SPARE` (hair/outfit things);
+  a thing she already wears is moved to the next of its kind (`wishNext`). It listens on `h.onLookChanged`: a find grows
+  the bubble, a green tick (`btn-done` small) lands on that picture, she claps, `vo-salon-found`; all three:
+  `vo-salon-granted`, the bubble bursts, `react('love')`, Mom celebrates. A tap on the bubble or on her = it shows big
+  for 2.6 s. It hides quietly when the stage is `mirror` (never sad, never required). In the face close-up it is smaller.
+  Mom's hint/help in Outfit (and Hair's style) go to a wished thing first; after that the done button as usual.
+- **Harness:** `__salonStageTry.outfit` (called by `__salonPlay` on random / wrong through a generic per-stage hook that
+  PRs 2/4 can use too: `window.__salonStageTry[id] = async (m, st, opts, log) => ...`), `__salonWish()`.
+  Wish variants from the page: `(await import('/kids-cooking-game/src/core/salonWish.ts')).chooseWish(look, n)`.
+
 ### 000000000000000000000000000000000000000000000000. The mermaid salon, PR 1 (the core: the sixth door, the scene, the pick, the splash, the hair, a simple mirror)
 Spec `/mnt/project-files/research/mermaid-dressup-spec.md` (sections 5, 6, 8, 12, 13). Salon PRs 2-4 build on this.
 - **Files:** `scenes/SeaSalon.ts` (a SeaGame: the stage registry `SALON_STAGE_CLASSES`, the column of cells, the done

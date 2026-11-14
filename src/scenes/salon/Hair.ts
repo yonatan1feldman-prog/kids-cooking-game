@@ -6,6 +6,7 @@ import { byVisit } from '../../core/sea';
 import { DYE, DYE_HEX, DYE_NAME, HAIR_STYLES, hairHex, hexOf, type Dye, type HairStyle } from '../../core/salon';
 import { ART_SALON } from '../../core/salonAssets';
 import { delight, rasterOf } from '../../core/salonDress';
+import { wishPending } from '../../core/salonWish';
 import { sfx } from '../../core/sfx';
 import { TUNING } from '../../core/tuning';
 import type { P } from '../MiniGame';
@@ -58,6 +59,7 @@ export class Hair implements SalonStage {
     this.cap = DYE.find((d) => d !== c.look.hairColour) ?? 'pink';
     const others = HAIR_STYLES.filter((s) => s !== c.look.hair);
     this.demoStyle = byVisit(others, h.firstVisit ? 0 : Math.floor(h.time.now / 1000));
+    this.demoStyle = wishPending(h, 'hair').find((w): w is { hair: HairStyle } => 'hair' in w)?.hair ?? this.demoStyle; // salon PR 3: a wished style first
     h.layColumn([...HAIR_STYLES, 'spray', 'comb', 'surprise'], (id, cell) => this.fill(id, cell));
     h.time.delayedCall(450, () => h.play('vo-salon-hair'));
     h.shown.cap = this.cap;

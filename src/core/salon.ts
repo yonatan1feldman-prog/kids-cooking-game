@@ -155,3 +155,76 @@ export function lookImages(look: Look): string[] {
 /** A customer's own layers (cust-<id>-*). */
 export const customerImages = (id: CustomerId) =>
   ['body', 'eyes-open', 'eyes-blink', 'eyes-happy', 'eyes-surprised', 'mouth-closed', 'mouth-open', 'mouth-chew'].map((l) => `cust-${id}-${l}`);
+
+// ---------------------------------------------------------------- salon PR 3: the wish (hard)
+
+/**
+ * One thing a customer wishes for on the hard level (spec 5.0, 6): a hair style or colour, a tail or its colour, a top
+ * (the outfit), a crown, a necklace or a gem (the sparkle), her lips (the face). `stage` is where it is found.
+ */
+export type WishItem =
+  | { hair: HairStyle }
+  | { hairColour: Dye }
+  | { tail: TailShape }
+  | { tailColour: Dye }
+  | { top: Top }
+  | { crown: Crown }
+  | { necklace: 'pearl' }
+  | { gem: Gem }
+  | { lips: Paint };
+
+/** The stage of the visit where a wished thing is found. */
+export function wishStage(w: WishItem): SalonStageId {
+  if ('hair' in w || 'hairColour' in w) return 'hair';
+  if ('tail' in w || 'tailColour' in w || 'top' in w) return 'outfit';
+  if ('lips' in w) return 'face';
+  return 'sparkle';
+}
+
+/** Her look has it (a gem: one of that kind anywhere on her face). */
+export function wishMet(w: WishItem, l: Look): boolean {
+  if ('hair' in w) return l.hair === w.hair;
+  if ('hairColour' in w) return l.hairColour === w.hairColour;
+  if ('tail' in w) return l.tail === w.tail;
+  if ('tailColour' in w) return l.tailColour === w.tailColour;
+  if ('top' in w) return l.top === w.top;
+  if ('crown' in w) return l.crown === w.crown;
+  if ('necklace' in w) return l.necklace === w.necklace;
+  if ('gem' in w) return l.gems.some((g) => g.kind === w.gem);
+  return l.lips === w.lips;
+}
+
+/**
+ * The six wishes (by visit): three things each, from three different stages, so the wish goes with her through the
+ * whole visit. (No star necklace: the shell treasure's necklace takes its cell once she has it.)
+ */
+export const WISH: readonly (readonly WishItem[])[] = [
+  [{ hairColour: 'purple' }, { crown: 'starfish' }, { lips: 'pink' }],
+  [{ hair: 'braid' }, { tail: 'long' }, { gem: 'heart' }],
+  [{ hairColour: 'blue' }, { top: 'starfish' }, { necklace: 'pearl' }],
+  [{ hair: 'bun' }, { lips: 'purple' }, { tail: 'frilly' }],
+  [{ hairColour: 'pink' }, { tailColour: 'purple' }, { crown: 'pearl' }],
+  [{ hair: 'curls' }, { top: 'frill' }, { gem: 'star' }],
+];
+
+/** When a stage of a wish is not in the game (yet), what she wishes for instead: things of the hair and the outfit. */
+export const WISH_SPARE: readonly WishItem[] = [
+  { tailColour: 'pink' }, { top: 'frill' }, { hairColour: 'seagreen' }, { tail: 'frilly' }, { tailColour: 'blue' }, { hair: 'bun' },
+];
+
+/** The same kind of wish, the next one along (a wish she already has on when she sits down is changed for this). */
+export function wishNext(w: WishItem): WishItem {
+  const next = <T>(list: readonly T[], v: T) => list[(list.indexOf(v) + 1) % list.length];
+  if ('hair' in w) return { hair: next(HAIR_STYLES, w.hair) };
+  if ('hairColour' in w) return { hairColour: next(DYE, w.hairColour) };
+  if ('tail' in w) return { tail: next(TAIL_SHAPES, w.tail) };
+  if ('tailColour' in w) return { tailColour: next(DYE, w.tailColour) };
+  if ('top' in w) return { top: next(TOPS, w.top) };
+  if ('crown' in w) return { crown: next(CROWNS, w.crown) };
+  if ('gem' in w) return { gem: next(GEMS, w.gem) };
+  if ('lips' in w) return { lips: next(PAINT, w.lips) };
+  return w;
+}
+
+/** A wish's kind (its key in the look): two wishes of one kind never go together. */
+export const wishKind = (w: WishItem) => Object.keys(w)[0] as keyof Look | 'gem';
