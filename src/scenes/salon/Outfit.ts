@@ -12,6 +12,7 @@ import { TUNING } from '../../core/tuning';
 import type { P } from '../MiniGame';
 import type { Cell, SalonPlan, SalonStage, SeaSalon } from '../SeaSalon';
 import { Carry } from './carry';
+import { DyeFan } from './dyeFan';
 
 const T = TUNING.salon;
 type Tool = 'tail' | 'top' | 'spray';
@@ -53,13 +54,17 @@ export class Outfit implements SalonStage {
   private toldTop = false;
   private toldSurprise = false;
   private toldSpray = false;
+  /** Salon review A3: the spray's six colours in view while she uses it. */
+  private fan: DyeFan;
   private demo = 'tail-frilly';
   /** Where she looks for a moment (her new top), until when. */
   private glance: { at: P; until: number } | null = null;
   private swishing = false;
   private ended = false;
 
-  constructor(private h: SeaSalon) {}
+  constructor(private h: SeaSalon) {
+    this.fan = new DyeFan(h, (d) => this.nextCap(d));
+  }
 
   private get c() {
     return this.h.customer!;
@@ -311,6 +316,7 @@ export class Outfit implements SalonStage {
   down(p: Phaser.Input.Pointer, at: P) {
     const h = this.h;
     if (this.carry || this.dyeing) return;
+    if (this.fan.hit(at)) return;
     const cell = h.cellAt(at);
     if (!cell) {
       // nothing in the finger: a tap on her tail swishes it, anywhere else on her she giggles
@@ -330,6 +336,7 @@ export class Outfit implements SalonStage {
     if (cell.id === 'spray') {
       this.tool = 'spray';
       this.carry = new Carry(h, cell.items, at, h.k, { lift: 40 });
+      this.fan.show(cell);
       if (!this.toldSpray && !h.shown.tailDyed) {
         this.toldSpray = true;
         h.speak('vo-salon-spray', { ttlMs: 5000 });
@@ -505,5 +512,6 @@ export class Outfit implements SalonStage {
     this.ended = true;
     this.carry = null;
     this.glance = null;
+    this.fan.close();
   }
 }

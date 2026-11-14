@@ -123,9 +123,12 @@ export const ART_SALON = {
     pink: 0xff9fc8, purple: 0xac88f8, blue: 0x58ccf8, gold: 0xffd656, seagreen: 0x46d4b1, pearl: 0xfff8ff,
     'natural-marina': 0xab95ff, 'natural-coral': 0xff9b87, 'natural-pearl': 0x7be1ef,
   },
-  /** Tints for the three mouth layers: lipstick colours, or her own lips. */
+  /**
+   * Tints for the three mouth layers: lipstick colours, or her own lips. (Salon review A4: blue and gold are softer on
+   * lips than the paint: a light lilac blue ~#8FB8E6 and a peach gold ~#F2B36A, not a cold cyan and a yellow.)
+   */
   lips: {
-    pink: 0xff9fc8, purple: 0xac88f8, blue: 0x58ccf8, gold: 0xffdf50,
+    pink: 0xff9fc8, purple: 0xac88f8, blue: 0x9fccf9, gold: 0xffc673,
     'natural-marina': 0xff9995, 'natural-coral': 0xcc6a64, 'natural-pearl': 0xffabb1,
   },
   /** spray-cap's tint for each dye (the same as the hair's). */

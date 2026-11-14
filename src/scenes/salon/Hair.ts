@@ -12,6 +12,7 @@ import { TUNING } from '../../core/tuning';
 import type { P } from '../MiniGame';
 import type { Cell, SalonPlan, SalonStage, SeaSalon } from '../SeaSalon';
 import { Carry } from './carry';
+import { DyeFan } from './dyeFan';
 
 const T = TUNING.salon;
 type Tool = 'spray' | 'comb' | 'style';
@@ -45,8 +46,12 @@ export class Hair implements SalonStage {
   private toldSurprise = false;
   private combSparkle = 0;
   private demoStyle: HairStyle = 'curls';
+  /** Salon review A3: the spray's six colours in view while she uses it. */
+  private fan: DyeFan;
 
-  constructor(private h: SeaSalon) {}
+  constructor(private h: SeaSalon) {
+    this.fan = new DyeFan(h, (d) => this.nextCap(d));
+  }
 
   private get c() {
     return this.h.customer!;
@@ -159,11 +164,10 @@ export class Hair implements SalonStage {
     h.did();
   }
 
-  /** The spray's next colour: its cap shows it, Mom says it. */
-  private nextCap() {
+  /** The spray's next colour (or `to`, from the fan): its cap shows it, Mom says it. */
+  private nextCap(to?: Dye) {
     const h = this.h;
-    const i = DYE.indexOf(this.cap);
-    this.cap = DYE[(i + 1) % DYE.length];
+    this.cap = to ?? DYE[(DYE.indexOf(this.cap) + 1) % DYE.length];
     const cap = h.cell('spray')?.items[1];
     if (cap) {
       cap.setTint(hexOf(DYE_HEX[this.cap]));
@@ -230,6 +234,7 @@ export class Hair implements SalonStage {
   down(p: Phaser.Input.Pointer, at: P) {
     const h = this.h;
     if (this.carry) return;
+    if (this.fan.hit(at)) return;
     const cell = h.cellAt(at);
     if (!cell) {
       h.tickleCustomer(at);
@@ -246,6 +251,7 @@ export class Hair implements SalonStage {
     }
     this.tool = cell.id as Tool;
     this.carry = new Carry(h, cell.items, at, h.k, { lift: 40 });
+    if (this.tool === 'spray') this.fan.show(cell);
     if (this.tool === 'spray' && !this.toldSpray && !h.shown.dyed) {
       this.toldSpray = true;
       h.speak('vo-salon-spray', { ttlMs: 5000 });
@@ -366,5 +372,6 @@ export class Hair implements SalonStage {
 
   end() {
     this.carry = null;
+    this.fan.close();
   }
 }

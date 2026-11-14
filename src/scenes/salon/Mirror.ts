@@ -62,6 +62,8 @@ export class Mirror implements SalonStage {
   private bubbleMs = 0;
   private things: Phaser.GameObjects.GameObject[] = [];
   private glinted = 0;
+  /** How far she leaned aside to look in the mirror (salon review A7). */
+  private leaned = 0;
 
   constructor(private h: SeaSalon) {}
 
@@ -164,6 +166,18 @@ export class Mirror implements SalonStage {
     // (a little to the right, in front of the chair, behind her: the glass clear of her hair)
     const to = { x: Math.min(S.mirror.x + 50 * k, S.room.x1 - (MIRROR.w / 2 - 30) * S.mirror.scale), y: S.mirror.y };
     this.openShell();
+    // (salon review A7: where the mirror stands close behind her (4:3), she leans aside to look in it, chair and all,
+    // so her hair does not hide the glass; she comes back before she spins)
+    const g0 = this.glassAt(to);
+    const c = h.customer;
+    if (c?.ch.box.active) {
+      const hb = ART_SALON.hairBox;
+      const right = c.toWorld({ x: hb.x1, y: 300 }).x;
+      const left = c.toWorld({ x: hb.x0, y: 300 }).x;
+      const need = right - (g0.x - g0.w / 2) + 16 * k;
+      const shift = Math.min(need, 170 * k, Math.max(0, left - (S.room.x0 - 60 * k)));
+      if (shift > 4 * k) this.lean(-shift);
+    }
     m.setPosition(to.x, to.y).setScale(S.mirror.scale).setAngle(0).clearTint().setDepth(4).setVisible(true);
     m.setData({ restScaleX: S.mirror.scale, restScaleY: S.mirror.scale });
     h.time.delayedCall(260, () => {
@@ -180,6 +194,18 @@ export class Mirror implements SalonStage {
       h.sparkle({ x: g.x + g.w * 0.3, y: g.y - g.h * 0.42 }, [0xffffff, 0xfff4b8], 5);
       this.showReflection(g);
     });
+  }
+
+  /** She (and her chair) move `dx` from her seat, or back to it (0). */
+  private lean(dx: number) {
+    const h = this.h;
+    const c = h.customer;
+    const S = h.table.salon;
+    if (!c?.ch.box.active || this.leaned === dx) return;
+    this.leaned = dx;
+    c.ch.moveTo({ x: S.seat.x + dx, y: S.seat.y, scale: S.seat.scale }, 500);
+    h.tweens.add({ targets: h.chair, x: S.chair.x + dx, duration: 500, ease: 'Sine.easeInOut' });
+    h.shown.mirror = { ...(h.shown.mirror as object), leaned: Math.round(dx) };
   }
 
   /** The lid swings up round its hinge with a shell's pop and a few sparkles, then the shell leaves (the mirror is there). */
@@ -275,6 +301,7 @@ export class Mirror implements SalonStage {
     h.time.delayedCall(700, () => h.theMom?.celebrate());
     h.time.delayedCall(2600, () => {
       if (!c?.ch.box.active || this.part !== 'look') return;
+      this.lean(0);
       c.ch.setMood('rest');
       c.ch.partyDance(true);
       giggle(h, c.id);

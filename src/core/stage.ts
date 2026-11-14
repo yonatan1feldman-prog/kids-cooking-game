@@ -306,6 +306,9 @@ const CHAIR = { w: 700, h: 600 };
 const MIRROR = { w: 560, h: 720 };
 const VANITY = { w: 520, h: 300 };
 const BENCH = { w: 1300, h: 260 };
+/** The tallest crown's top (crown-coral, frame y 7) and the lowest face gem's foot (gem slot y 370 + 30), in the frame. */
+const CROWN_TOP = 7;
+const CLOSE_CHIN = 400;
 /** How many shell doors the lagoon has (seaAssets.ts SEA_DOORS: tail, ride, clean, shells, song, salon). */
 const LAGOON_DOORS = 6;
 const ROCK = { h: 400 };
@@ -686,10 +689,15 @@ export function getStage(L: Layout): Stage {
     const foot = bench.y + (ART_SALON.benchSeatY - BENCH.h / 2) * benchScale;
     return { x: bench.x + (ART_SALON.benchSeats[i] - 0.5) * BENCH.w * benchScale, y: foot - (CUST.foot - CUST.h / 2) * waitScale, scale: waitScale };
   };
-  const closeScale = seatScale * 1.6;
+  // (salon review A2: the close-up keeps the tallest crown whole, frame y CROWN_TOP just under the room's top, and her
+  // chin's lowest gem, frame y CLOSE_CHIN, above its bottom; it is smaller than 1.6x only where both do not fit)
+  const closeScale = Math.min(seatScale * 1.6, (salonRoom.y1 - salonRoom.y0 - 8 * k) / (CLOSE_CHIN - CROWN_TOP));
   const closeUp = {
     x: salonRoom.x0 + roomW / 2 - (ART_SALON.faceCentre.x - CUST.w / 2) * closeScale,
-    y: (salonRoom.y0 + salonRoom.y1) / 2 - (ART_SALON.faceCentre.y - CUST.h / 2) * closeScale,
+    y: Math.max(
+      (salonRoom.y0 + salonRoom.y1) / 2 - (ART_SALON.faceCentre.y - CUST.h / 2) * closeScale,
+      salonRoom.y0 - 4 * k + (CUST.h / 2 - CROWN_TOP) * closeScale,
+    ),
     scale: closeScale,
   };
   const salon = { room: salonRoom, seat, closeUp, chair, mirror, vanity, bench, benchSeat };
