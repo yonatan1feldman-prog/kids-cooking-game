@@ -4,6 +4,7 @@ import * as paper from '../../core/paper';
 import { CUSTOMERS, customerImages, savedLook, type CustomerId } from '../../core/salon';
 import { delight, makeCustomer, type Dressing } from '../../core/salonDress';
 import { readMark } from '../../core/sea';
+import { startWish } from '../../core/salonWish';
 import { sfx } from '../../core/sfx';
 import { TUNING } from '../../core/tuning';
 import { releaseImages } from '../BootScene';
@@ -139,6 +140,7 @@ export class Pick implements SalonStage {
     this.waiting = [d];
     h.time.delayedCall(700, () => {
       h.seat(d);
+      startWish(h); // salon PR 3: hard, her wish
       h.stageOver(900);
     });
   }

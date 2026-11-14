@@ -18,6 +18,7 @@ import { SeaGame } from './SeaGame';
 import { Face } from './salon/Face';
 import { Hair } from './salon/Hair';
 import { Mirror } from './salon/Mirror';
+import { Outfit } from './salon/Outfit';
 import { Pick } from './salon/Pick';
 import { Scrub } from './salon/Scrub';
 import { Sparkle } from './salon/Sparkle';
@@ -83,7 +84,7 @@ export const SALON_STAGE_CLASSES: Partial<Record<SalonStageId, new (host: SeaSal
   hair: Hair,
   face: Face, // salon PR 2
   sparkle: Sparkle, // salon PR 2
-  // salon PR 3: outfit: Outfit,
+  outfit: Outfit, // salon PR 3
   mirror: Mirror,
 };
 
