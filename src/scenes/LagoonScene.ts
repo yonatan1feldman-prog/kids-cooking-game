@@ -20,7 +20,7 @@ import { readMark, type TailMark } from '../core/sea'; // mermaid PR 2
 import { paintMomTail } from './SeaTail'; // mermaid PR 2
 import { cleanLagoonLife, hasMark, wearNecklace } from '../core/seaSort';
 import { addSecrets } from '../core/secrets';
-import { marinaWear, newMarina } from '../core/marinaLook'; // salon PR 4
+import { marinaLookReady, marinaWear, newMarina } from '../core/marinaLook'; // salon PR 4
 import { takeShowOff } from '../core/salon'; // salon PR 4
 
 /** What each shell door says when it opens (Mom, before the activity starts). */
@@ -92,8 +92,12 @@ export class LagoonScene extends Phaser.Scene {
     const keep = new Set(wear?.keys ?? []);
     // Back from an activity: its own pictures and sounds are freed (the lagoon's stay).
     releaseImages(this.game, activityImages().filter((k) => !keep.has(k)));
+    const wait = (p: Promise<unknown>) => Promise.race([p.catch(() => undefined), new Promise((r) => setTimeout(r, MARINA_LOOK_WAIT_MS))]);
+    // (QA salon: when her look is not in in time, her own layers come back first; they were freed the last time she
+    // came dressed, and without them she was Phaser's green box. Her rig is freed in the salon when another girl is picked.)
     const dressed: Promise<unknown> = wear
-      ? Promise.race([loadImages(this.game, wear.keys as ImageKey[]).catch(() => undefined), new Promise((r) => setTimeout(r, MARINA_LOOK_WAIT_MS))])
+      ? wait(loadImages(this.game, wear.keys as ImageKey[])).then(() =>
+          marinaLookReady(this) ? undefined : wait(loadImages(this.game, [...MARINA_IMAGES] as ImageKey[])))
       : Promise.resolve();
     releaseSounds(activitySounds());
     music.play('sea');

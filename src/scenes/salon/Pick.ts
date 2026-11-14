@@ -131,7 +131,9 @@ export class Pick implements SalonStage {
           o.undress();
           o.ch.box.destroy();
           // (one frame later: nothing shows them any more)
-          h.time.delayedCall(30, () => releaseImages(h.game, customerImages(o.id)));
+          // (QA salon: Marina dressed keeps her rig: the lagoon shows her in her look right after, and reloading it there
+          // on a slow phone left her a green box; about 1.6 MB while another girl is styled)
+          if (o.id !== 'marina' || !readMark('salon.marina')) h.time.delayedCall(30, () => releaseImages(h.game, customerImages(o.id)));
         },
       });
     });
