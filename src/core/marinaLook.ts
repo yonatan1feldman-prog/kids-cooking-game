@@ -23,7 +23,9 @@ export function marinaWear(): { look: Look; keys: string[] } | null {
   const look = savedLook('marina');
   // (the shell treasure's necklace, when she has it and the look has none: she wore it before, she keeps it)
   if (!look.necklace && hasMark('necklace')) look.necklace = 'marina';
-  return { look, keys: [...customerImages('marina'), ...lookImages(look)] };
+  // (her glitter is drawn with fx-sparkle, which lookImages leaves out: it is the activities' own picture)
+  const sparkle = look.glitter.length ? ['fx-sparkle'] : [];
+  return { look, keys: [...customerImages('marina'), ...lookImages(look), ...sparkle] };
 }
 
 /** Her look if every picture of it is in memory now, else null. */
