@@ -4360,14 +4360,14 @@
   }
  },
  "hair-front-braid": {
-  "sha1": "32ccdc8a197976896a42694c2c1b79a9c1975b81",
+  "sha1": "564b1983eedcf27d463158ca33e769389c378e9c",
   "w": 750,
   "h": 875,
   "trim": {
    "x": 158,
    "y": 88,
-   "w": 437,
-   "h": 753
+   "w": 508,
+   "h": 755
   }
  },
  "hair-front-bun": {
@@ -4415,14 +4415,14 @@
   }
  },
  "hair-shine-braid": {
-  "sha1": "5dee8c82a1c68c79771563e0782c3d49afd72cea",
+  "sha1": "690c594d978489b08240e7c499768447a4306a7f",
   "w": 600,
   "h": 700,
   "trim": {
    "x": 172,
    "y": 99,
-   "w": 293,
-   "h": 442
+   "w": 371,
+   "h": 448
   }
  },
  "hair-shine-bun": {
@@ -7594,14 +7594,14 @@
   }
  },
  "salon-bench": {
-  "sha1": "850f321e7cddfb8b3142c0fe774aeacba98375ad",
+  "sha1": "b0358b2e7bcf93aa8ac17a6e51183442e140066e",
   "w": 1300,
   "h": 260,
   "trim": {
    "x": 0,
-   "y": 89,
+   "y": 74,
    "w": 1300,
-   "h": 171
+   "h": 186
   }
  },
  "salon-chair": {
@@ -7631,6 +7631,28 @@
    "h": 711
   }
  },
+ "salon-mirror-closed": {
+  "sha1": "ff917d975b1d6adc276094befd4da661b841d455",
+  "w": 448,
+  "h": 576,
+  "trim": {
+   "x": 69,
+   "y": 314,
+   "w": 310,
+   "h": 262
+  }
+ },
+ "salon-mirror-lid": {
+  "sha1": "926df5f6d4203c11547e926ed78605aea7bdd61e",
+  "w": 448,
+  "h": 576,
+  "trim": {
+   "x": 63,
+   "y": 142,
+   "w": 322,
+   "h": 216
+  }
+ },
  "salon-shower": {
   "sha1": "3b942ac8a11a95f4c852825b514a04f1ebe4087a",
   "w": 240,
@@ -7643,14 +7665,14 @@
   }
  },
  "salon-sponge": {
-  "sha1": "031889e006b868851beb82223fb73dbdc2fde3ac",
+  "sha1": "26b540ff642bec0ca727e5ee7e936c2d57a9f792",
   "w": 240,
   "h": 240,
   "trim": {
    "x": 15,
-   "y": 48,
+   "y": 28,
    "w": 208,
-   "h": 172
+   "h": 192
   }
  },
  "salon-spray": {
@@ -7698,9 +7720,15 @@
   }
  },
  "sand-spot": {
-  "sha1": "5090b3d4cac264e372cbcfccaeac45b90ac32644",
+  "sha1": "951078167671f1628e2add6eaabe77e6e333ed23",
   "w": 120,
-  "h": 90
+  "h": 90,
+  "trim": {
+   "x": 14,
+   "y": 16,
+   "w": 96,
+   "h": 59
+  }
  },
  "sauce-blob": {
   "sha1": "d5ba55b5a29b4ea30debd3fec70835cb0cd539fe",

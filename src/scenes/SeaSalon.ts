@@ -7,6 +7,7 @@ import { tapMotion, type HandMotion, type MomHandView } from '../core/hand';
 import * as paper from '../core/paper';
 import { SALON_STAGES, type CustomerId, type Look, type SalonStageId } from '../core/salon';
 import { cloneLook, type Dressing } from '../core/salonDress';
+import { ART_SALON } from '../core/salonAssets';
 import { sfx } from '../core/sfx';
 import { TUNING } from '../core/tuning';
 import { iconButton } from '../core/ui';
@@ -118,6 +119,9 @@ export class SeaSalon extends SeaGame {
   private doneSaid = false;
   chair!: Phaser.GameObjects.Image;
   mirror!: Phaser.GameObjects.Image;
+  /** salon review B1: the closed shell (its lower half and its lid) that opens into the mirror at the end. */
+  shell?: Phaser.GameObjects.Image;
+  lid?: Phaser.GameObjects.Image;
   /** salon PR 4: the little coral table (its secret: salon/vanity.ts), where there is room for it. */
   vanity?: Phaser.GameObjects.Image;
   zoomed = false;
@@ -146,8 +150,17 @@ export class SeaSalon extends SeaGame {
   protected build() {
     const S = this.S.salon;
     this.water(false);
-    // salon PR 4: the mirror stands turned away until the end (narrow, a little in shadow); Mirror turns it round to her
-    this.mirror = this.add.image(S.mirror.x, S.mirror.y, 'salon-mirror').setScale(S.mirror.scale * 0.3, S.mirror.scale).setDepth(2).setAngle(4).setTint(0xc9d3df);
+    // salon review B1: all visit long a closed shell stands where the mirror will be (it breathes a little); at the end
+    // Mirror opens it and the mirror appears in its place (hidden until then)
+    this.mirror = this.add.image(S.mirror.x, S.mirror.y, 'salon-mirror').setScale(S.mirror.scale).setDepth(2).setVisible(false);
+    this.shell = this.add.image(S.mirror.x, S.mirror.y, 'salon-mirror-closed').setScale(S.mirror.scale).setDepth(2);
+    const hg = ART_SALON.lidHinge;
+    this.lid = this.add
+      .image(S.mirror.x + (hg.x - 280) * S.mirror.scale, S.mirror.y + (hg.y - 360) * S.mirror.scale, 'salon-mirror-lid')
+      .setOrigin(hg.x / 560, hg.y / 720)
+      .setScale(S.mirror.scale)
+      .setDepth(2.01);
+    this.tweens.add({ targets: [this.shell, this.lid], scaleY: S.mirror.scale * 1.018, duration: 700, yoyo: true, hold: 120, repeat: -1, repeatDelay: 5300, ease: 'Sine.easeInOut' });
     this.chair = this.add.image(S.chair.x, S.chair.y, 'salon-chair').setScale(S.chair.scale).setDepth(3);
     this.vanity = S.vanity ? this.add.image(S.vanity.x, S.vanity.y, 'salon-vanity').setScale(S.vanity.scale).setDepth(4) : undefined;
     this.shown.stage = null;
