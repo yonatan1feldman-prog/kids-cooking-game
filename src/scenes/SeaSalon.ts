@@ -15,7 +15,7 @@ import type { Mom } from '../steps/Mom';
 import type { Layout } from '../core/layout';
 import type { Stage } from '../core/stage';
 import type { P } from './MiniGame';
-import { SeaGame } from './SeaGame';
+import { SeaGame, breath } from './SeaGame';
 import { Face } from './salon/Face';
 import { Hair } from './salon/Hair';
 import { Mirror } from './salon/Mirror';
@@ -165,6 +165,24 @@ export class SeaSalon extends SeaGame {
     this.vanity = S.vanity ? this.add.image(S.vanity.x, S.vanity.y, 'salon-vanity').setScale(S.vanity.scale).setDepth(4) : undefined;
     this.shown.stage = null;
     this.time.delayedCall(400, () => this.nextStage());
+    this.chairBubbles();
+  }
+
+  /**
+   * Salon review A6 (spec 0, the salon's one living extra): every 8-12 s a few bubbles rise from one side of the shell
+   * chair, like Marina's breath in the lagoon; not in the face close-up and not at the mirror and the show.
+   */
+  private chairBubbles() {
+    this.time.delayedCall(Phaser.Math.Between(8000, 12000), () => {
+      if (!this.scene.isActive() || this.leaving) return;
+      const ch = this.chair;
+      if (ch?.active && !this.zoomed && this.stage && this.stage.id !== 'mirror') {
+        const side = Math.random() < 0.5 ? -1 : 1;
+        breath(this, ch.x + side * 270 * ch.scaleX, ch.y - 60 * ch.scaleY, this.L.k, Phaser.Math.Between(3, 4));
+        this.shown.chairBubbles = ((this.shown.chairBubbles as number | undefined) ?? 0) + 1;
+      }
+      this.chairBubbles();
+    });
   }
 
   // ---------------------------------------------------------------- the stages

@@ -475,11 +475,12 @@ export class Character {
     });
   }
 
-  /** A short burst of joy at the end of a step: happy face and a little hop (squash, stretch, a sway in the air). */
-  cheer() {
+  /** A short burst of joy at the end of a step: happy face and a little hop (squash, stretch, a sway in the air); `bigger`
+   * makes the hop higher (the salon's loud Coral). */
+  cheer(bigger = 1) {
     if (this._mood !== 'rest' || !this.box.visible) return;
     this.setMood('happy');
-    this.hop(HOP);
+    this.hop(HOP * bigger);
     this.scene.tweens.add({ targets: this.box, angle: { from: -4, to: 4 }, delay: 80, duration: 100, yoyo: true, repeat: 1, ease: 'Sine.easeInOut', onComplete: () => this.box.setAngle(0) });
     this.scene.time.delayedCall(900, () => {
       if (this._mood === 'happy') this.setMood('rest');

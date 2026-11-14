@@ -439,15 +439,33 @@ export function giggle(scene: Phaser.Scene, id: CustomerId, n?: 1 | 2 | 3) {
   sfx(scene, `giggle-${which}`, { rate: CUSTOMER[id].voiceRate, pitch: 'vary', minGapMs: 350 });
 }
 
-/** She likes it: happy eyes and mouth, a little hop, her giggle (every thing she gets is answered like this). */
+/**
+ * She likes it: happy eyes and mouth, a little hop, her giggle (every thing she gets is answered like this). Each girl her
+ * own way (salon review A5): shy Pearl is surprised for a blink first and giggles softly, Coral hops higher and laughs
+ * out loud, Marina as she always was.
+ */
 export function delight(scene: Phaser.Scene, d: Dressing, opts: { hop?: boolean; voice?: boolean } = {}) {
   const ch = d.ch;
-  if (opts.hop !== false && ch.mood === 'rest') ch.cheer();
+  const hop = opts.hop !== false && ch.mood === 'rest';
+  if (d.id === 'pearl' && hop) {
+    ch.setMood('expect');
+    scene.time.delayedCall(250, () => {
+      if (!ch.box.active || ch.mood !== 'expect') return;
+      ch.setMood('rest');
+      ch.cheer();
+    });
+    if (opts.voice !== false) scene.time.delayedCall(250, () => ch.box.active && sfx(scene, `giggle-${Phaser.Math.Between(1, 3) as 1 | 2 | 3}`, { rate: CUSTOMER.pearl.voiceRate, pitch: 'vary', volume: 0.7, minGapMs: 350 }));
+    return;
+  }
+  if (hop) ch.cheer(d.id === 'coral' ? 1.15 : 1);
   else {
     ch.setMood('happy');
     scene.time.delayedCall(800, () => ch.box.active && ch.mood === 'happy' && ch.setMood('rest'));
   }
-  if (opts.voice !== false) giggle(scene, d.id);
+  if (opts.voice === false) return;
+  giggle(scene, d.id);
+  // (Coral laughs out loud: a second giggle runs into the first)
+  if (d.id === 'coral') scene.time.delayedCall(380, () => ch.box.active && giggle(scene, d.id));
 }
 
 /** A little surprise, then a smile (the shower, the lipstick). */
