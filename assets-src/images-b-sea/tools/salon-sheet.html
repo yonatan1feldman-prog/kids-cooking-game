@@ -1,0 +1,164 @@
+<!doctype html>
+<!-- The mermaid salon's drawing check (research/mermaid-dressup-spec.md 10, PR V), like momsheet.html: every customer in
+     every hairstyle and colour, every tail in colours, the tops and crowns on Coral (dark skin: contrast), the gems on a
+     face, the tools and the furniture. Layers are put together in the game's order (spec 6) and the tinted ones are
+     multiplied by their colour exactly like Phaser's tint (rgb x tint, alpha kept).
+     Open over any static server from the repo root:  /assets-src/images-b-sea/tools/salon-sheet.html?sheet=hair
+     sheets: customers, hair, tint, tails, outfit, jewels, tools, room. tools/shot_salon.cjs screenshots them all. -->
+<html><head><meta charset="utf-8"><title>salon sheet</title>
+<style>
+  body { margin: 0; background: #5FC2C6; font: 14px sans-serif; color: #2b2b38; }
+  #grid { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px; }
+  figure { margin: 0; background: #9BE3DC; border-radius: 8px; padding: 4px; text-align: center; }
+  figure.dark { background: #2E7FA6; color: #fff; }
+  canvas { display: block; }
+  h1 { margin: 8px; font-size: 18px; }
+</style></head>
+<body><h1 id="title"></h1><div id="grid"></div>
+<script>
+const SRC = '../';                     // images-b-sea/
+const imgs = {};
+const load = (key) => imgs[key] ??= new Promise((ok, bad) => {
+  const i = new Image(); i.onload = () => ok(i); i.onerror = () => bad(new Error('missing ' + key)); i.src = SRC + key + '.svg';
+});
+const RAST = 1;
+async function layer(ctx, key, tint, at = { x: 0, y: 0, s: 1 }) {
+  const img = await load(key);
+  const w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const g = c.getContext('2d');
+  g.drawImage(img, 0, 0, w, h);
+  if (tint) {
+    g.globalCompositeOperation = 'multiply'; g.fillStyle = tint; g.fillRect(0, 0, w, h);
+    g.globalCompositeOperation = 'destination-in'; g.drawImage(img, 0, 0, w, h);
+  }
+  ctx.drawImage(c, at.x, at.y, w * at.s, h * at.s);
+}
+// the tints as the game will use them (ART_SALON in core/salonAssets.ts: colour / base value of the tinted art)
+const T = window.TINTS = {};
+async function tints() {
+  const r = await fetch('salon-tints.json'); Object.assign(T, await r.json());
+}
+/** A customer wearing a look, in the game's layer order (spec 6). */
+async function dress(ctx, id, look, at = { x: 0, y: 0, s: 1 }) {
+  const L = [];
+  const hairT = T.hair[look.hairColour ?? 'natural-' + id];
+  const tailT = T.tail[look.tailColour ?? 'natural-' + id];
+  L.push(['hair-back-' + look.hair, hairT]);
+  L.push(['tail-' + look.tail, tailT]);
+  L.push(['tail-' + look.tail + '-shine']);
+  L.push([`cust-${id}-body`]);
+  if (look.top) L.push(['top-' + look.top]);
+  if (look.necklace) L.push(['necklace-' + look.necklace]);
+  L.push([`cust-${id}-eyes-${look.eyes ?? 'open'}`]);
+  L.push([`cust-${id}-mouth-${look.mouth ?? 'closed'}`, look.lips ? T.lips[look.lips] : T.lips['natural-' + id]]);
+  for (const g of look.gems ?? []) L.push(['gem-' + g.kind, null, g]);
+  L.push(['hair-front-' + look.hair, hairT]);
+  if (look.shine) L.push(['hair-shine-' + look.hair]);
+  if (look.clip) L.push(['clip-flower']);
+  if (look.crown) L.push(['crown-' + look.crown]);
+  for (const [key, tint, gem] of L) {
+    try {
+      if (gem) {
+        const s = at.s * (T.gemScale ?? 0.5), slot = T.gemSlots[gem.slot];
+        await layer(ctx, key, null, { x: at.x + (slot.x - 45 * (T.gemScale ?? 0.5)) * at.s, y: at.y + (slot.y - 45 * (T.gemScale ?? 0.5)) * at.s, s });
+      } else await layer(ctx, key, tint, at);
+    } catch (e) { console.warn(String(e)); }
+  }
+}
+function cell(label, w, h, dark) {
+  const f = document.createElement('figure'); if (dark) f.className = 'dark';
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const cap = document.createElement('figcaption'); cap.textContent = label;
+  f.append(c, cap); document.getElementById('grid').append(f);
+  return c.getContext('2d');
+}
+const IDS = ['marina', 'coral', 'pearl'];
+const HAIR = ['waves', 'curls', 'braid', 'bun', 'bob'];
+const DYE = ['pink', 'purple', 'blue', 'gold', 'seagreen', 'pearl'];
+const TAILS = ['classic', 'frilly', 'long'];
+const base = (id) => ({ hair: { marina: 'waves', coral: 'curls', pearl: 'bob' }[id], tail: 'classic', top: 'shells' });
+const S = 0.5;   // 600x700 -> 300x350
+const SHEETS = {
+  async customers() {
+    for (const id of IDS) for (const e of ['open', 'blink', 'happy', 'surprised']) {
+      await dress(cell(`${id} ${e}`, 300, 350), id, { ...base(id), eyes: e }, { x: 0, y: 0, s: S });
+    }
+    for (const id of IDS) for (const m of ['closed', 'open', 'chew']) {
+      await dress(cell(`${id} mouth ${m}`, 300, 350), id, { ...base(id), mouth: m }, { x: 0, y: 0, s: S });
+    }
+    for (const id of IDS) {   // bare: what is under any item
+      const ctx = cell(`${id} bare body`, 300, 350);
+      await layer(ctx, `cust-${id}-body`, null, { x: 0, y: 0, s: S });
+      await layer(ctx, `cust-${id}-eyes-open`, null, { x: 0, y: 0, s: S });
+      await layer(ctx, `cust-${id}-mouth-closed`, T.lips['natural-' + id], { x: 0, y: 0, s: S });
+    }
+  },
+  async hair() {
+    for (const id of IDS) for (const h of HAIR) for (const col of [null, 'pink', 'blue']) {
+      await dress(cell(`${id} ${h} ${col ?? 'natural'}`, 300, 350), id, { ...base(id), hair: h, hairColour: col ?? undefined, shine: col === 'blue' }, { x: 0, y: 0, s: S });
+    }
+  },
+  async tint() {   // the spec's tint check: hair-front-waves in the six colours on Coral and on Pearl, close up
+    for (const id of ['coral', 'pearl']) for (const col of [null, ...DYE]) for (const shine of [false, true]) {
+      const ctx = cell(`${id} waves ${col ?? 'natural'}${shine ? ' +comb' : ''}`, 360, 300);
+      await dress(ctx, id, { ...base(id), hair: 'waves', hairColour: col ?? undefined, shine }, { x: -120, y: -40, s: 1 });
+    }
+  },
+  async tails() {
+    for (const t of TAILS) for (const col of [null, 'pink', 'purple', 'seagreen', 'gold', 'pearl']) {
+      await dress(cell(`tail ${t} ${col ?? 'natural'}`, 300, 350), 'marina', { ...base('marina'), tail: t, tailColour: col ?? undefined }, { x: 0, y: 0, s: S });
+    }
+  },
+  async outfit() {
+    for (const top of ['shells', 'starfish', 'frill']) for (const t of TAILS) {
+      await dress(cell(`coral top ${top} tail ${t}`, 300, 350), 'coral', { hair: 'braid', hairColour: 'purple', top, tail: t, tailColour: 'blue' }, { x: 0, y: 0, s: S });
+    }
+  },
+  async jewels() {
+    const looks = [
+      { crown: 'pearl', necklace: 'pearl', clip: true }, { crown: 'starfish', necklace: 'star' }, { crown: 'coral', clip: true },
+    ];
+    for (const id of IDS) for (const j of looks) {
+      await dress(cell(`${id} ${j.crown} ${j.necklace ?? ''} ${j.clip ? 'clip' : ''}`, 300, 350), id, { ...base(id), ...j, top: 'starfish' }, { x: 0, y: 0, s: S });
+    }
+    const gems = [0, 1, 2, 3, 4, 5].map((slot) => ({ kind: slot % 2 ? 'heart' : 'star', slot }));
+    for (const id of IDS) {
+      await dress(cell(`${id} face: 6 gems, lips pink, crown`, 400, 380), id, { ...base(id), hair: 'bun', hairColour: 'gold', gems, lips: 'pink', crown: 'pearl', shine: true, eyes: 'happy' }, { x: -100, y: -10, s: 0.84 });
+    }
+    for (const lips of ['pink', 'purple', 'blue', 'gold']) {
+      await dress(cell(`pearl lips ${lips} (open)`, 300, 300), 'pearl', { ...base('pearl'), lips, mouth: 'open' }, { x: -150, y: -150, s: 1 });
+    }
+  },
+  async tools() {
+    for (const k of ['salon-sponge', 'salon-shower', 'salon-spray', 'salon-comb', 'tool-blush', 'tool-shadow', 'tool-lipstick', 'tool-glitter', 'shell-surprise', 'door-icon-salon', 'gem-star', 'gem-heart', 'sand-spot', 'weed-bit']) {
+      const img = await load(k).catch(() => null);
+      const ctx = cell(k, 240, 240);
+      if (!img) continue;
+      const s = Math.min(240 / img.width, 240 / img.height, k.startsWith('gem') || k === 'weed-bit' || k === 'sand-spot' ? 2 : 1);
+      await layer(ctx, k, null, { x: (240 - img.width * s) / 2, y: (240 - img.height * s) / 2, s });
+      if (k === 'salon-spray') for (const [i, col] of ['pink', 'blue'].entries()) await layer(ctx, 'spray-cap', T.dye[col], { x: T.sprayCap.x - 40 + i * 0, y: T.sprayCap.y - 40, s: 1 });
+    }
+  },
+  async room() {
+    const ctx = cell('the salon corner (chair, mirror, vanity; Coral in the chair)', 1300, 760);
+    await layer(ctx, 'salon-mirror', null, { x: 700, y: 20, s: 1 });
+    await layer(ctx, 'salon-chair', null, { x: 80, y: 140, s: 1 });
+    await dress(ctx, 'coral', { ...base('coral'), hairColour: 'pink', crown: 'starfish' }, { x: 80 + T.chairSeat.x - 300 * 1, y: 140 + T.chairSeat.y - 684, s: 1 });
+    await layer(ctx, 'salon-vanity', null, { x: 760, y: 450, s: 1 });
+    const b = cell('the bench with the three', 1300, 520);
+    await layer(b, 'salon-bench', null, { x: 0, y: 260, s: 1 });
+    for (const [i, id] of IDS.entries()) {
+      const s = 0.6;
+      await dress(b, id, base(id), { x: T.benchSeats[i] * 1300 - 300 * s, y: 260 + T.benchSeatY - 684 * s, s });
+    }
+  },
+};
+(async () => {
+  await tints();
+  const sheet = new URLSearchParams(location.search).get('sheet') || 'customers';
+  document.getElementById('title').textContent = 'salon sheet: ' + sheet;
+  if (SHEETS[sheet]) await SHEETS[sheet]();
+  window.__done = true;
+})().catch((e) => { document.body.append(String(e)); window.__done = true; });
+</script></body></html>

@@ -10,7 +10,7 @@
  */
 /** The guests' layers are made at this fraction of their native size (they are never shown bigger). */
 import { FARM_IMAGES, FARM_SFX, FARM_VOICE } from './farmAssets';
-import { SEA_ACTIVITY, SEA_IMAGES, SEA_LAGOON, SEA_SFX, SEA_WORLD_IMAGES } from './seaAssets';
+import { SALON_PENDING_SOUNDS, SEA_ACTIVITY, SEA_IMAGES, SEA_LAGOON, SEA_SFX, SEA_WORLD_IMAGES } from './seaAssets';
 import { DRESSING_BY_WORLD, DRESSING_IMAGES } from './dressingAssets';
 import { SECRET_IMAGES, SECRET_WORLD_IMAGES } from './secretAssets';
 
@@ -1247,7 +1247,7 @@ RECIPE_ASSETS.farm = {
  * and the runtime cache; what is loaded when is SEA_LAGOON (going in) and SEA_ACTIVITY (each shell door), seaAssets.ts. */
 RECIPE_ASSETS.mermaid = {
   images: SEA_WORLD_IMAGES as ImageKey[],
-  sounds: [...new Set([...SEA_LAGOON.sounds, ...Object.values(SEA_ACTIVITY).flatMap((a) => a.sounds)])],
+  sounds: [...new Set([...SEA_LAGOON.sounds, ...Object.values(SEA_ACTIVITY).flatMap((a) => a.sounds), ...SALON_PENDING_SOUNDS])],
 };
 /** The premium round, PR 2: each world loads its own dressing (core/dressingAssets.ts; the eight recipes share theirs). */
 // (the recipes are the entries that share the guests' cards: every recipe ends by sharing)

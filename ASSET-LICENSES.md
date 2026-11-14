@@ -668,6 +668,55 @@ drawn by `assets-src/images-b-sea/tools/gen_sea.py`.
 | vo-song-sing | Now I'll sing along! |
 | vo-song-done | We made up a song together! Look, Marina is dancing! |
 
+### New in the mermaid salon, PR V (the art and sounds of the salon; 33 lines, 15 effects, 73 pictures)
+
+Same engine, voice and processing (Kokoro af_heart, `make_vo.py mom-a`); no fix was needed (the phonemizer reads "Coral"
+as k-AW-ruhl, not "corral"). The effects weed-pluck, shower, hair-swish, spray-click, spray-hiss, comb-strokes,
+blush-brush, lipstick-pop, splash-soft, jewel-ting, gem-click, mirror-chime and giggle-1..3 (the little mermaids'
+wordless giggles: a synthesised buzz through child vowel formants, not a recording) are own work, synthesised by
+`audio-src/scripts/make_salon_sfx.py` (numpy + scipy + ffmpeg; no samples), -18 LUFS. The pictures (the customers
+cust-marina/coral/pearl-*, hair-back/front/shine-*, tail-*, top-*, crown-*, clip-flower, necklace-pearl/star, gem-star/heart,
+salon-sponge/shower/spray/comb, spray-cap, tool-blush/shadow/lipstick/glitter, shell-surprise, salon-chair/mirror/bench/
+vanity, sand-spot, weed-bit, door-icon-salon) are own work, drawn by `assets-src/images-b-sea/tools/gen_customers.py` and
+`gen_salon.py` (original characters and items; only the dress-up genre's conventions were taken from other games). Not
+heard or seen on the phone by a human yet.
+
+| Key | Line |
+|---|---|
+| vo-pick-salon | Let's open our mermaid salon! |
+| vo-salon-who | Who is coming to the salon today? |
+| vo-salon-sit | Sit down, make yourself comfy! |
+| vo-salon-wish | She has a wish! Let's see what she likes. |
+| name-marina | Marina! |
+| name-coral | Coral! |
+| name-pearl | Pearl! |
+| vo-salon-splash | First a splash! Rub the sand off with the sponge. |
+| vo-salon-peek | Something's hiding under her hair! |
+| vo-salon-rinse | Now the shower! Tap it! |
+| vo-salon-clean | All clean and fresh! |
+| vo-salon-hair | Hair time! Pick a style, or spray a new colour. |
+| vo-salon-spray | Tap the spray for a new colour, then rub it on! |
+| vo-salon-shiny | So shiny! |
+| vo-salon-surprise | Surprise! Do you like it? |
+| vo-salon-face | Let's do her face! Pick a brush and a colour, then rub gently. |
+| vo-salon-rosy | Rosy cheeks! |
+| vo-salon-shadow | Pretty colours over her eyes! |
+| vo-salon-lips | What a happy colour! |
+| vo-salon-glitter | Sparkles everywhere! |
+| vo-salon-outfit | Now the outfit! A tail and a top. |
+| vo-salon-tail | A new tail! Can you swish it? |
+| vo-salon-top | That top is lovely with it! |
+| vo-salon-sparkle | Sparkle time! Crowns, clips and jewels. |
+| vo-salon-crown | You picked a crown! |
+| vo-salon-gem | A little star on her cheek! |
+| vo-salon-off | Off it comes. Try another one! |
+| vo-salon-found | That's what she wished for! |
+| vo-salon-granted | All three wishes! You listened so well! |
+| vo-salon-mirror | Ready? Look in the mirror! |
+| vo-salon-look | Look what you made! She loves it! |
+| vo-salon-show | Swim, little mermaid, show us your new look! |
+| vo-salon-bye | Come back any time, our mermaid salon is always open! |
+
 ### Premium round, PR 4 (the finale's "ta-da")
 Same engine, voice and processing (Kokoro af_heart, `make_vo.py mom vo-tada`); no fix was needed. Not heard by a human yet.
 
