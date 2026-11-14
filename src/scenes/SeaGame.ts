@@ -11,6 +11,8 @@ import type { Spot } from '../core/stage';
 import type { Character } from '../steps/Character';
 import type { CharacterDef } from '../recipes/types';
 import { MiniGame } from './MiniGame';
+import { marinaLookReady } from '../core/marinaLook'; // salon PR 4
+import { customerDef, dress } from '../core/salonDress'; // salon PR 4
 import { go } from '../core/transition';
 
 /** How far Marina floats up and down (world units at k 1) and how long one float takes. */
@@ -89,10 +91,14 @@ export abstract class SeaGame extends MiniGame {
   protected readonly homeScene = 'Lagoon' as const;
 
   protected companion() {
-    return MARINA;
+    // salon PR 4: once she has a salon look, Marina wears it beside Mom too (its pictures stay loaded from the lagoon)
+    return marinaLookReady(this) ? customerDef('marina') : MARINA;
   }
 
   protected ready() {
+    // salon PR 4: dressed in her salon look (the companion is then the customers' rig: companion())
+    const look = this.pipa?.parts.def.body === 'cust-marina-body' ? marinaLookReady(this) : null;
+    if (this.pipa && look) this.pipa.box.setData('dressing', dress(this, this.pipa, 'marina', look));
     if (this.pipa && this.S.pet) marinaSwims(this, this.pipa, this.S.pet, this.L.k);
   }
 

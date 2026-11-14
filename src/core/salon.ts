@@ -251,3 +251,11 @@ export function wishNext(w: WishItem): WishItem {
 
 /** A wish's kind (its key in the look): two wishes of one kind never go together. */
 export const wishKind = (w: WishItem) => Object.keys(w)[0] as keyof Look | 'gem';
+
+// ---------------------------------------------------------------- salon PR 4: the ending, the look in the lagoon
+
+/** Who has just come from the salon in a new look (this session): back in the lagoon she shows it off once. */
+const showOff = new Set<CustomerId>();
+export const markShowOff = (id: CustomerId) => void showOff.add(id);
+/** True once after `markShowOff(id)`. */
+export const takeShowOff = (id: CustomerId) => showOff.delete(id);

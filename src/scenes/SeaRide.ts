@@ -8,6 +8,7 @@ import { sfx } from '../core/sfx';
 import { Character } from '../steps/Character';
 import { visits, type P } from './MiniGame';
 import { breath, MARINA, SeaGame } from './SeaGame';
+import { newMarina } from '../core/marinaLook'; // salon PR 4
 
 /** A stretch of Marina's way: a dense polyline with its length; a fork has the way over the red ring and the way through it. */
 interface Leg {
@@ -242,7 +243,8 @@ export class SeaRide extends SeaGame {
 
     // Marina at the start of the path.
     const start = at(M, 0);
-    this.rider = new Character(this, MARINA, { x: start.x, y: start.y, scale: RIDER * k }, { x: start.x, y: start.y, scale: RIDER * k });
+    // (salon PR 4: in her salon look once she has one)
+    this.rider = newMarina(this, MARINA, { x: start.x, y: start.y, scale: RIDER * k }, { x: start.x, y: start.y, scale: RIDER * k });
     this.rider.box.setDepth(30);
     this.rider.enter(300);
     this.time.delayedCall(700, () => this.begin('swim', 'vo-ride-start'));

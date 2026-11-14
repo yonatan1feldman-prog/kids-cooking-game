@@ -8,7 +8,7 @@ import { tickles, touchRipples } from '../core/juice';
 import { getLayout, inNoTouchZone, keepLayoutOnResize } from '../core/layout';
 import { ensurePlaceholders } from '../core/placeholders';
 import { addLight, seaLife } from '../core/scenery';
-import { SEA_ACTIVITY, SEA_DOORS, SEA_LAGOON, type SeaDoor } from '../core/seaAssets';
+import { MARINA as MARINA_IMAGES, SEA_ACTIVITY, SEA_DOORS, SEA_LAGOON, type SeaDoor } from '../core/seaAssets';
 import { sfx } from '../core/sfx';
 import { getStage } from '../core/stage';
 import { iconButton, otherPointerDown } from '../core/ui';
@@ -20,6 +20,8 @@ import { readMark, type TailMark } from '../core/sea'; // mermaid PR 2
 import { paintMomTail } from './SeaTail'; // mermaid PR 2
 import { cleanLagoonLife, hasMark, wearNecklace } from '../core/seaSort';
 import { addSecrets } from '../core/secrets';
+import { marinaWear, newMarina } from '../core/marinaLook'; // salon PR 4
+import { takeShowOff } from '../core/salon'; // salon PR 4
 
 /** What each shell door says when it opens (Mom, before the activity starts). */
 const PICK_LINE = {
@@ -33,6 +35,8 @@ const PICK_LINE = {
 
 /** An activity that takes longer than this to load (a very slow phone) starts anyway, with stand-ins (spec 9). */
 const ACTIVITY_WATCHDOG_MS = 20000;
+/** salon PR 4: how long the lagoon waits for Marina's salon look to load before she comes as her old self. */
+const MARINA_LOOK_WAIT_MS = 3000;
 /** A door whose activity is not built yet (mermaid PR 1) closes again this long after it opened. */
 const PLACEHOLDER_CLOSE_MS = 2600;
 
@@ -66,7 +70,7 @@ const activitySounds = () => {
  */
 export class LagoonScene extends Phaser.Scene {
   /** For the test harness (window.__lagoonState). */
-  shown: { doors: number; opened: SeaDoor[]; started: string | null; marks: string[] } = { doors: 0, opened: [], started: null, marks: [] };
+  shown: { doors: number; opened: SeaDoor[]; started: string | null; marks: string[]; marina?: 'salon' | 'own' } = { doors: 0, opened: [], started: null, marks: [] };
 
   constructor() {
     super('Lagoon');
@@ -83,8 +87,14 @@ export class LagoonScene extends Phaser.Scene {
     (window as unknown as { __lagoonState: LagoonScene['shown'] }).__lagoonState = this.shown;
     keepLayoutOnResize(this, L, { relayout: true, canRelayout: () => !going && !busy });
 
+    // salon PR 4: Marina wears her salon look (core/marinaLook.ts): her rig and its pictures stay, or load now
+    const wear = marinaWear();
+    const keep = new Set(wear?.keys ?? []);
     // Back from an activity: its own pictures and sounds are freed (the lagoon's stay).
-    releaseImages(this.game, activityImages());
+    releaseImages(this.game, activityImages().filter((k) => !keep.has(k)));
+    const dressed: Promise<unknown> = wear
+      ? Promise.race([loadImages(this.game, wear.keys as ImageKey[]).catch(() => undefined), new Promise((r) => setTimeout(r, MARINA_LOOK_WAIT_MS))])
+      : Promise.resolve();
     releaseSounds(activitySounds());
     music.play('sea');
 
@@ -111,7 +121,7 @@ export class LagoonScene extends Phaser.Scene {
     let mom: Mom | null = null;
     let marina: Character | null = null;
     let hint: ReturnType<typeof screenHint> | undefined;
-    assetsReady().then(() => {
+    Promise.all([assetsReady(), dressed]).then(() => {
       if (!this.scene.isActive()) return;
       const m = (mom = new Mom(this, S.mom, 'mermaid'));
       // mermaid PR 2: Mom's tail the way she painted it
@@ -120,11 +130,26 @@ export class LagoonScene extends Phaser.Scene {
       m.followHand(() => hint?.active() ?? false);
       m.box.setAlpha(0);
       this.tweens.add({ targets: m.box, alpha: 1, duration: 300 });
-      marina = new Character(this, MARINA, lg.friend, S.feedPet);
+      // salon PR 4: in her salon look once she has one (the necklace is part of it then), else her own layers
+      marina = newMarina(this, MARINA, lg.friend, S.feedPet);
+      this.shown.marina = marina.box.getData('dressing') ? 'salon' : 'own';
+      // (dressed, her own drawn layers are not shown anywhere in the sea: they go, the look's memory instead of theirs;
+      // the activities dress her the same way, and the next way in from the title loads them again)
+      if (this.shown.marina === 'salon') releaseImages(this.game, [...MARINA_IMAGES]);
       marinaSwims(this, marina, lg.friend, k);
       // mermaid PR 3: Marina wears the shell necklace she was given
-      if (hasMark('necklace')) wearNecklace(this, marina);
+      if (hasMark('necklace') && this.shown.marina === 'own') wearNecklace(this, marina);
       marina.enter(150);
+      // salon PR 4: straight back from the salon in her new look, she shows it off (a twirl, a sparkle)
+      if (this.shown.marina === 'salon' && takeShowOff('marina')) {
+        const mm = marina;
+        this.time.delayedCall(700, () => {
+          if (!mm.box.active) return;
+          mm.partyDance(true);
+          stars(this, mm.box.x, mm.box.y - 120 * lg.friend.scale, 10, 50 * k);
+          sfx(this, 'bubble-breath');
+        });
+      }
       tickles(this, () => [m, marina], () => !going && !busy);
       const look = () => {
         const p = this.input.manager.pointers.find((q) => q.isDown);
