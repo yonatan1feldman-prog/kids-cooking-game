@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { FX_SOFT } from '../../core/assets';
 import { music } from '../../core/audio';
+import * as paper from '../../core/paper';
 import { stars } from '../../core/fx';
 import type { HandMotion } from '../../core/hand';
 import { keepLook, markShowOff } from '../../core/salon';
@@ -78,6 +79,7 @@ export class Mirror implements SalonStage {
     h.shown.mirror = { part: 'mirror' };
     h.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.end());
     h.zoom(false);
+    this.setVanity();
     // (taps are answered from now on: she giggles, the mirror glints, a pirouette in the show)
     h.play(null);
     h.time.delayedCall(T.zoomMs + 60, () => this.snapReflection());
@@ -87,6 +89,25 @@ export class Mirror implements SalonStage {
       h.theMom?.aimArmAt(g.x, g.y);
     });
     h.time.delayedCall(T.zoomMs + 900, () => this.turnMirror());
+  }
+
+  /**
+   * The little coral table with its jars (and its secret, salon/vanity.ts): where the room has space for it the salon
+   * stood it on the sand all visit; elsewhere (most screens: the column takes the sand) it comes now, where the column
+   * was, under the photo that will be pinned there.
+   */
+  private setVanity() {
+    const h = this.h;
+    if (h.vanity?.active || !h.textures.exists('salon-vanity')) return;
+    const L = h.layout;
+    const S = h.table.salon;
+    const k = this.k;
+    const s = Math.min(0.62 * k, (S.room.x0 * 0.85) / 520);
+    if (s < 0.3 * k) return;
+    const v = h.add.image(Math.max(S.room.x0 * 0.5, 260 * s), L.Y(994) - 140 * s, 'salon-vanity').setScale(s).setDepth(4);
+    paper.appear(h, v, 2);
+    h.vanity = v;
+    h.shown.vanity = { x: v.x, y: v.y };
   }
 
   // ---------------------------------------------------------------- 1. the mirror
@@ -283,7 +304,7 @@ export class Mirror implements SalonStage {
     if (p?.active) {
       const L = h.layout;
       const S = h.table.salon;
-      const to = { x: Math.max(S.room.x0 * 0.5, 190 * this.k), y: L.H * 0.5 };
+      const to = { x: Math.max(S.room.x0 * 0.5, 190 * this.k), y: L.H * 0.42 };
       const f = Math.min(0.8, Math.max(300 * this.k, S.room.x0 * 0.85) / Math.max(1, p.getBounds().width));
       sfx(h, 'whoosh-soft', { pitch: 'vary', volume: 0.7 });
       h.tweens.killTweensOf(p);

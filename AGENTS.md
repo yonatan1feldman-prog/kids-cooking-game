@@ -693,8 +693,9 @@ Spec `/mnt/project-files/research/mermaid-dressup-spec.md` 5.6, 7, 8.
   Marina carries her `Dressing` in `box.getData('dressing')`; `wearNecklace` (seaSort.ts) then puts the shell necklace
   in the look's necklace place (never two necklaces). Straight back from the salon she twirls once (`takeShowOff`).
 - **The coral table's secret:** `scenes/salon/vanity.ts`, called from SeaSalon `down` for a tap on nobody else's
-  thing (bubbles, a heart jewel hopping, a fish peeking; `cooking.secret.mermaid.vanity`). The table is only drawn
-  where there is room (`stage.ts` `salon.vanity`).
+  thing (bubbles, a heart jewel hopping, a fish peeking; `cooking.secret.mermaid.vanity`). `stage.ts` `salon.vanity`
+  is null at every ratio measured (the column takes the sand), so Mirror stands the table where the column was at the
+  ending (`setVanity`), under the pinned photo.
 - **Harness:** `__salonTo(stage, {customer, look})` (jump to a stage with a look on her), `__salonMarina()`,
   `__salonPlay(..., {pirouette: true})` taps her once during the swim.
 

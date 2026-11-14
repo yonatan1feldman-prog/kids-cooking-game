@@ -451,7 +451,7 @@ export class SeaSalon extends SeaGame {
     if (!this.stage || this.phase !== 'play') return;
     if (this.doneBtn && this.near(at, this.doneBtn, 150 * this.L.k)) return;
     // salon PR 4: the coral table's secret answers a tap that is nobody else's (never on her, never on a cell)
-    if (!this.onCustomer(at) && !this.cellAt(at) && vanityTap(this, this.vanity, at)) return;
+    if (!this.onCustomer(at) && !this.customer?.ch.box.getBounds().contains(at.x, at.y) && !this.cellAt(at) && vanityTap(this, this.vanity, at)) return;
     this.stage.down(p, at);
   }
   protected move(p: Phaser.Input.Pointer) {
