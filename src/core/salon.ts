@@ -156,6 +156,29 @@ export function lookImages(look: Look): string[] {
 export const customerImages = (id: CustomerId) =>
   ['body', 'eyes-open', 'eyes-blink', 'eyes-happy', 'eyes-surprised', 'mouth-closed', 'mouth-open', 'mouth-chew'].map((l) => `cust-${id}-${l}`);
 
+// ---------------------------------------------------------------- salon PR 2: the face and the sparkle
+
+/** The face's four tools (spec 5.3), in the column's order; each remembers its own colour. */
+export const FACE_TOOLS = ['blush', 'shadow', 'lipstick', 'glitter'] as const;
+export type FaceTool = (typeof FACE_TOOLS)[number];
+
+/** Mom says a make-up colour with the name lines she already has (gold is yellow). */
+export const PAINT_NAME: Record<Paint, string> = { pink: 'name-pink', purple: 'name-purple', blue: 'name-blue', gold: 'name-yellow' };
+
+/** The sparkle stage's column (spec 5.5): three crowns, the clip, two necklaces, two face gems. */
+export const SPARKLE_CELLS = ['crown-pearl', 'crown-starfish', 'crown-coral', 'clip', 'necklace-1', 'necklace-2', 'gem-star', 'gem-heart'] as const;
+export type SparkleCell = (typeof SPARKLE_CELLS)[number];
+
+/**
+ * Where a tapped gem goes (GEM_SLOTS' indices): the cheeks first ("A little star on her cheek!"), then the forehead, over
+ * each eye, the chin. A seventh replaces the oldest.
+ */
+export const GEM_TAP_ORDER = [3, 4, 0, 1, 2, 5] as const;
+export type GemSlot = 0 | 1 | 2 | 3 | 4 | 5;
+
+/** A make-up colour as a number. */
+export const paintHex = (p: Paint) => hexOf(PAINT_HEX[p]);
+
 // ---------------------------------------------------------------- salon PR 3: the wish (hard)
 
 /**

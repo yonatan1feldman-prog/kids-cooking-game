@@ -677,8 +677,8 @@ explicitly approved that one push in the current round (see "Working rules" and 
   and voice lines only "end" by their safety timer. One real click (the computer tool's left_click on the play button)
   unlocks it for the rest of that page's life. For a voice log, play in real time (`__real`), see Handoff notes.
 
-## Handoff notes (written for the next agent; the mermaid salon PR 1 (the salon's core: the sixth door, picking, the splash, the hair, the mirror), the mermaid salon PR V (art and sounds), the premium round PR 5 (home shelves, her photos on the cards, Pipa's idea, secrets), the premium round PR 4 (paper motion in every step, ta-da endings, scene changes), the premium round PR 3 (living characters), the premium round PR 2 (light and depth), the premium round PR 1 (cut WebPs, paper motion, scene changes, UI sounds), the mermaid world PR 4 (the shell song), the mermaid world PR 3 (cleaning, shells), the mermaid world PR 2 (the tail, the swim), the mermaid world PR 1 (the lagoon), the clinic-open fix, the clinic round 6 (part 3, four patients), the clinic round 6 (part 2, seven ailments), the clinic round 6 (part 1, the bowl), the clinic round 5 (part 3, more challenge), the clinic round 5 (part 2, the care rooms), the farm, the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
-### 0000000000000000000000000000000000000000000000000. The mermaid salon, PR 3 (the outfit, the customer's wish on hard, the surprise shell)
+## Handoff notes (written for the next agent; the mermaid salon PR 3 (the outfit, the wish, the surprise shell), the mermaid salon PR 2 (the face and the sparkle), the mermaid salon PR 1 (the salon's core: the sixth door, picking, the splash, the hair, the mirror), the mermaid salon PR V (art and sounds), the premium round PR 5 (home shelves, her photos on the cards, Pipa's idea, secrets), the premium round PR 4 (paper motion in every step, ta-da endings, scene changes), the premium round PR 3 (living characters), the premium round PR 2 (light and depth), the premium round PR 1 (cut WebPs, paper motion, scene changes, UI sounds), the mermaid world PR 4 (the shell song), the mermaid world PR 3 (cleaning, shells), the mermaid world PR 2 (the tail, the swim), the mermaid world PR 1 (the lagoon), the clinic-open fix, the clinic round 6 (part 3, four patients), the clinic round 6 (part 2, seven ailments), the clinic round 6 (part 1, the bowl), the clinic round 5 (part 3, more challenge), the clinic round 5 (part 2, the care rooms), the farm, the clinic round 5 (part 1), challenge round B (the four games that are not cooking), challenge round A, the clinic round 4, the clinic round 3, the clinic round 2, the clinic, the market and garden round 3, the art corner, the music round, the mini-games round, visual round 6 (Mom's poses), gameplay round 5 (the difficulty level), the garden, gameplay round 4 (cutting, challenges), visual round 5 (more around the kitchen), visual round 4 (the living window), the puzzle, gameplay round 3, the final QA round, the guests round, gameplay round 2, round 14 (polish) and round 13 (skewers) on top; rounds 2-12 below still hold)
+### 00000000000000000000000000000000000000000000000000. The mermaid salon, PR 3 (the outfit, the customer's wish on hard, the surprise shell)
 Spec `/mnt/project-files/research/mermaid-dressup-spec.md` 5.0, 5.4, 6 (`WISH`). Built on salon PR 1's contract.
 - **Files:** `scenes/salon/Outfit.ts` (registered as `outfit` in `SALON_STAGE_CLASSES`), `core/salonWish.ts` (the wish:
   its own bubble, not `Character.showWish`, so it can live small in the room's top right corner and carry ticks),
@@ -698,6 +698,32 @@ Spec `/mnt/project-files/research/mermaid-dressup-spec.md` 5.0, 5.4, 6 (`WISH`).
 - **Harness:** `__salonStageTry.outfit` (called by `__salonPlay` on random / wrong through a generic per-stage hook that
   PRs 2/4 can use too: `window.__salonStageTry[id] = async (m, st, opts, log) => ...`), `__salonWish()`.
   Wish variants from the page: `(await import('/kids-cooking-game/src/core/salonWish.ts')).chooseWish(look, n)`.
+### 0000000000000000000000000000000000000000000000000. The mermaid salon, PR 2 (the face and the sparkle)
+Spec `/mnt/project-files/research/mermaid-dressup-spec.md` 5.3, 5.5. Two stages on PR 1's frame, in the close-up.
+- **Files:** `scenes/salon/Face.ts`, `scenes/salon/Sparkle.ts` (registered in `SALON_STAGE_CLASSES`), `core/salon.ts`
+  block "salon PR 2" (`FACE_TOOLS`, `PAINT_NAME`, `SPARKLE_CELLS`, `GEM_TAP_ORDER`, `paintHex`), `core/salonDress.ts`
+  (the face paint), `seaAssets.ts` (`paint-blob` in `SEA_ACTIVITY.salon`), `harness.js` (`__salonPlay` random / wrong
+  cover both stages). No new art or sound: PR V's tools, gems, jewels, lines and effects.
+- **Face paint:** blush and eye shadow are drawn from the `Look` (amounts, colour, shape) by `drawFacePaint` into one
+  small canvas per `Dressing` (`salon-face-<n>`, 480x279: frame x 140-460, y 190-376 at 1.5x, `FACE_PAINT`), a point
+  layer in the `face` slot (under her eyes). Soft edges with gradients and `shadowBlur` (no `ctx.filter`: old iPhones).
+  The canvas goes with her box (DESTROY) and the scene (SHUTDOWN). While she rubs, `Face` calls `Dressing.paintFace`
+  (redraws only when it changed) and commits the look with `h.setLook` when the finger lifts (so `onLookChanged` hears a
+  stroke once, not every move). The lagoon (PR 4) gets the paint for free through `dress()`.
+- **Dressing changes:** a point layer whose place changes (a gem moved, the oldest glitter replaced) now moves (`at`
+  updated); glitter twinkles (an angle tween, killed when it goes). `lookImages` does not list `fx-sparkle` for glitter:
+  PR 4 must load it in the lagoon when `look.glitter.length`.
+- **Face:** tools blush / shadow / lipstick / glitter + colours pink / purple / blue / gold. A tap picks a tool (glow);
+  the blush picked again = next shape (round, heart, star), its cell's dot shows the shape in its colour. Zones are
+  forgiving (the tool decides, risk 4): blush below the eyes -> nearer cheek; shadow above the eyes (she shuts her eyes);
+  lipstick below the nose -> the lips (tint moves toward the colour as she rubs, `lipsStroke`); glitter anywhere on the
+  face, one sparkle per 55 units, 12 max. `TIP` = each tool's painting point from its picture's centre. The face stage's
+  `end()` zooms out unless the next registered stage is `sparkle`.
+- **Sparkle:** lilac plates (pearl things on white shells did not show). Tap = on / again = off (`vo-salon-off` once);
+  a drag onto her head (neck) puts it on at once. `necklace-2` is `necklace-marina` when `hasMark('necklace')`. Gems: a tap
+  fills `GEM_TAP_ORDER` (cheeks first), a drag goes to the nearest of the six places, a gem on her face drags to another
+  place or off her face (it falls). `vo-salon-gem` ("A little star on her cheek!") only when the first gem is a star on a
+  cheek.
 
 ### 000000000000000000000000000000000000000000000000. The mermaid salon, PR 1 (the core: the sixth door, the scene, the pick, the splash, the hair, a simple mirror)
 Spec `/mnt/project-files/research/mermaid-dressup-spec.md` (sections 5, 6, 8, 12, 13). Salon PRs 2-4 build on this.

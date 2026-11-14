@@ -224,6 +224,8 @@ export const SEA_ACTIVITY: Record<SeaDoor, { scene?: string; images: readonly st
     images: [
       ...(Object.keys(SALON_IMAGES) as SalonImageKey[]).filter((k) => k !== 'door-icon-salon'),
       'shell-paint', 'fx-sparkle', 'little-fish', 'photo-frame-sea',
+      // (salon PR 2: the face's colour shells)
+      'paint-blob',
     ],
     sounds: [
       ...SALON_SFX, ...SALON_VOICE.filter((k) => k !== 'vo-pick-salon'), 'glitter', 'shimmer',

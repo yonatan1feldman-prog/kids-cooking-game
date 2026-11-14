@@ -15,11 +15,13 @@ import type { Layout } from '../core/layout';
 import type { Stage } from '../core/stage';
 import type { P } from './MiniGame';
 import { SeaGame } from './SeaGame';
+import { Face } from './salon/Face';
 import { Hair } from './salon/Hair';
 import { Mirror } from './salon/Mirror';
 import { Outfit } from './salon/Outfit';
 import { Pick } from './salon/Pick';
 import { Scrub } from './salon/Scrub';
+import { Sparkle } from './salon/Sparkle';
 
 const T = TUNING.salon;
 
@@ -80,7 +82,8 @@ export const SALON_STAGE_CLASSES: Partial<Record<SalonStageId, new (host: SeaSal
   pick: Pick,
   scrub: Scrub,
   hair: Hair,
-  // salon PR 2: face: Face, sparkle: Sparkle,
+  face: Face, // salon PR 2
+  sparkle: Sparkle, // salon PR 2
   outfit: Outfit, // salon PR 3
   mirror: Mirror,
 };
