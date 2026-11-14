@@ -2181,6 +2181,21 @@ window.__salonLook = () => {
   for (const id of ['marina', 'coral', 'pearl']) { try { out[id] = JSON.parse(localStorage.getItem('lagoon.salon.' + id)); } catch { out[id] = null; } }
   return out;
 };
+// salon PR 4: __salonTo(stage, {customer, look}) goes into the salon, picks `customer` and jumps to `stage` (e.g. 'mirror'),
+// with `look` (a partial Look) put on her first; __salonMarina() is how Marina shows in the lagoon ('salon' | 'own').
+window.__salonTo = async (stage, opts = {}) => {
+  const m = await __salonGo(opts.level ?? 1, opts);
+  for (let i = 0; i < 100 && !(m.stage && m.stage.id === 'pick' && m.phase === 'play'); i++) await __run(100);
+  const p = m.plan(); if (p) __tap(p.at.x, p.at.y);
+  for (let i = 0; i < 100 && !(m.stage && m.stage.id !== 'pick'); i++) await __run(100);
+  await __run(500);
+  if (opts.look) m.setLook({ ...JSON.parse(JSON.stringify(m.customer.look)), ...opts.look });
+  const order = ['pick', 'scrub', 'hair', 'face', 'outfit', 'sparkle', 'mirror'];
+  m.stage.end?.(); m.stageIndex = order.indexOf(stage) - 1; m.nextStage();
+  await __run(300);
+  return m;
+};
+window.__salonMarina = () => window.__lagoonState?.marina ?? null;
 window.__salonPlay = async (level = 1, opts = {}) => {
   const m = await __salonGo(level, opts);
   const n0 = (window.__voLog || []).length;
@@ -2240,6 +2255,10 @@ window.__salonPlay = async (level = 1, opts = {}) => {
         log.push('dragged ' + c.id + ' -> ' + m.customer.look.hair);
       }
       continue;
+    }
+    if (id === 'mirror' && opts.pirouette && st.swimming && !did.pirouette) {
+      did.pirouette = 1;
+      const b = m.customer.ch.box; __tap(b.x, b.y - 40 * k); log.push('pirouette'); await __run(300); continue;
     }
     const p = m.plan();
     if (!p) { await __run(300); continue; }

@@ -155,3 +155,11 @@ export function lookImages(look: Look): string[] {
 /** A customer's own layers (cust-<id>-*). */
 export const customerImages = (id: CustomerId) =>
   ['body', 'eyes-open', 'eyes-blink', 'eyes-happy', 'eyes-surprised', 'mouth-closed', 'mouth-open', 'mouth-chew'].map((l) => `cust-${id}-${l}`);
+
+// ---------------------------------------------------------------- salon PR 4: the ending, the look in the lagoon
+
+/** Who has just come from the salon in a new look (this session): back in the lagoon she shows it off once. */
+const showOff = new Set<CustomerId>();
+export const markShowOff = (id: CustomerId) => void showOff.add(id);
+/** True once after `markShowOff(id)`. */
+export const takeShowOff = (id: CustomerId) => showOff.delete(id);

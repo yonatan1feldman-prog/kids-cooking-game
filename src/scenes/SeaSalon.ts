@@ -19,6 +19,7 @@ import { Hair } from './salon/Hair';
 import { Mirror } from './salon/Mirror';
 import { Pick } from './salon/Pick';
 import { Scrub } from './salon/Scrub';
+import { vanityTap } from './salon/vanity';
 
 const T = TUNING.salon;
 
@@ -113,6 +114,8 @@ export class SeaSalon extends SeaGame {
   private doneSaid = false;
   chair!: Phaser.GameObjects.Image;
   mirror!: Phaser.GameObjects.Image;
+  /** salon PR 4: the little coral table (its secret: salon/vanity.ts), where there is room for it. */
+  vanity?: Phaser.GameObjects.Image;
   zoomed = false;
 
   constructor() {
@@ -139,9 +142,10 @@ export class SeaSalon extends SeaGame {
   protected build() {
     const S = this.S.salon;
     this.water(false);
-    this.mirror = this.add.image(S.mirror.x, S.mirror.y, 'salon-mirror').setScale(S.mirror.scale).setDepth(2).setAngle(6);
+    // salon PR 4: the mirror stands turned away until the end (narrow, a little in shadow); Mirror turns it round to her
+    this.mirror = this.add.image(S.mirror.x, S.mirror.y, 'salon-mirror').setScale(S.mirror.scale * 0.3, S.mirror.scale).setDepth(2).setAngle(4).setTint(0xc9d3df);
     this.chair = this.add.image(S.chair.x, S.chair.y, 'salon-chair').setScale(S.chair.scale).setDepth(3);
-    if (S.vanity) this.add.image(S.vanity.x, S.vanity.y, 'salon-vanity').setScale(S.vanity.scale).setDepth(4);
+    this.vanity = S.vanity ? this.add.image(S.vanity.x, S.vanity.y, 'salon-vanity').setScale(S.vanity.scale).setDepth(4) : undefined;
     this.shown.stage = null;
     this.time.delayedCall(400, () => this.nextStage());
   }
@@ -446,6 +450,8 @@ export class SeaSalon extends SeaGame {
   protected down(p: Phaser.Input.Pointer, at: P) {
     if (!this.stage || this.phase !== 'play') return;
     if (this.doneBtn && this.near(at, this.doneBtn, 150 * this.L.k)) return;
+    // salon PR 4: the coral table's secret answers a tap that is nobody else's (never on her, never on a cell)
+    if (!this.onCustomer(at) && !this.cellAt(at) && vanityTap(this, this.vanity, at)) return;
     this.stage.down(p, at);
   }
   protected move(p: Phaser.Input.Pointer) {

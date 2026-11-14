@@ -56,6 +56,21 @@ const MARINA_NECK = { x: 300, y: 440 };
 /** Marina wears her shell necklace (in her own container, so it floats and hops with her). `pop`: it appears with a bounce. */
 export function wearNecklace(scene: Phaser.Scene, marina: Character, pop = false) {
   if (!scene.textures.exists('necklace-marina')) return null;
+  // salon PR 4: Marina in her salon look (core/marinaLook.ts) wears it in her look's necklace place (never two necklaces)
+  const dressing = marina.box.getData('dressing') as
+    | { look: { necklace: string | null }; apply: (l: never) => { added: Phaser.GameObjects.Image[] }; get: (n: string) => Phaser.GameObjects.Image | undefined }
+    | undefined;
+  if (dressing) {
+    if (dressing.look.necklace !== 'marina') dressing.apply({ ...dressing.look, necklace: 'marina' } as never);
+    const n = dressing.get('necklace');
+    if (n && pop) {
+      const sx = n.scaleX;
+      const sy = n.scaleY;
+      n.setScale(0);
+      scene.tweens.add({ targets: n, scaleX: sx, scaleY: sy, duration: 420, ease: 'Back.easeOut' });
+    }
+    return n ?? null;
+  }
   const n = new Phaser.GameObjects.Image(scene, MARINA_NECK.x - 300, MARINA_NECK.y - 350, 'necklace-marina');
   marina.box.add(n);
   if (pop) {
