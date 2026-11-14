@@ -54,6 +54,11 @@ export const SALON_IMAGES = {
   // the salon's corner
   'salon-chair': { size: [700, 600] },
   'salon-mirror': { size: [560, 720] },
+  // salon review B1: the closed shell that stands where the mirror will be all visit (lower half + coral stand, and its
+  // lid on the same frame); at the end the lid swings up round ART_SALON.lidHinge and the mirror appears
+  // (raster 0.8: they show at most at 0.85 of their size, and the shell must cost the GPU about half a megabyte)
+  'salon-mirror-closed': { size: [560, 720], raster: 0.8 },
+  'salon-mirror-lid': { size: [560, 720], raster: 0.8 },
   'salon-bench': { size: [1300, 260] },
   'salon-vanity': { size: [520, 300] },
   'sand-spot': { size: [120, 90] },
@@ -100,6 +105,8 @@ export const ART_SALON = {
   benchSeatY: 150,
   /** salon-mirror (560x720): the clear glass, where the reflection goes. */
   mirrorWindow: { x: 122, y: 196, w: 316, h: 352 },
+  /** salon-mirror-lid (560x720, the frame of salon-mirror-closed): the hinge it swings open round. */
+  lidHinge: { x: 462, y: 410 },
   /** salon-spray (240): where spray-cap's centre sits. */
   sprayCap: { x: 120, y: 56 },
   /** A face gem's scale on the customer (90 -> 45 units). */

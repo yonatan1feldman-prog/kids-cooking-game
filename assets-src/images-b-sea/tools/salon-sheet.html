@@ -131,7 +131,7 @@ const SHEETS = {
     }
   },
   async tools() {
-    for (const k of ['salon-sponge', 'salon-shower', 'salon-spray', 'salon-comb', 'tool-blush', 'tool-shadow', 'tool-lipstick', 'tool-glitter', 'shell-surprise', 'door-icon-salon', 'gem-star', 'gem-heart', 'sand-spot', 'weed-bit']) {
+    for (const k of ['salon-sponge', 'salon-shower', 'salon-spray', 'salon-comb', 'tool-blush', 'tool-shadow', 'tool-lipstick', 'tool-glitter', 'shell-surprise', 'door-icon-salon', 'gem-star', 'gem-heart', 'sand-spot', 'weed-bit', 'salon-mirror-closed', 'salon-mirror-lid']) {
       const img = await load(k).catch(() => null);
       const ctx = cell(k, 240, 240);
       if (!img) continue;
@@ -146,6 +146,14 @@ const SHEETS = {
     await layer(ctx, 'salon-chair', null, { x: 80, y: 140, s: 1 });
     await dress(ctx, 'coral', { ...base('coral'), hairColour: 'pink', crown: 'starfish' }, { x: 80 + T.chairSeat.x - 300 * 1, y: 140 + T.chairSeat.y - 684, s: 1 });
     await layer(ctx, 'salon-vanity', null, { x: 760, y: 450, s: 1 });
+    const m = cell('the closed shell all visit (salon-mirror-closed + salon-mirror-lid), then the lid swung open', 1300, 760);
+    await layer(m, 'salon-mirror-closed', null, { x: 40, y: 20, s: 1 });
+    await layer(m, 'salon-mirror-lid', null, { x: 40, y: 20, s: 1 });
+    await layer(m, 'salon-mirror', null, { x: 680, y: 20, s: 1 });
+    {
+      const lid = await load('salon-mirror-lid');
+      m.save(); m.translate(680 + T.lidHinge.x, 20 + T.lidHinge.y); m.rotate(Math.PI * 100 / 180); m.drawImage(lid, -T.lidHinge.x, -T.lidHinge.y); m.restore();
+    }
     const b = cell('the bench with the three', 1300, 520);
     await layer(b, 'salon-bench', null, { x: 0, y: 260, s: 1 });
     for (const [i, id] of IDS.entries()) {
