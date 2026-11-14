@@ -10,7 +10,8 @@
  * lagoon (`SEA_LAGOON`); each activity loads its own (`SEA_ACTIVITY[id]`) when its shell door is tapped and frees it
  * again back in the lagoon. Every later activity adds its block below, marked with its PR.
  */
-import { SALON_IMAGES, SALON_SFX, SALON_VOICE } from './salonAssets';
+import { SALON_IMAGES, SALON_SFX, SALON_VOICE, type SalonImageKey } from './salonAssets';
+
 export const SEA_IMAGES = {
   // the title's card (core: the title shows it before anything else)
   'world-card-mermaid': { size: [700, 760] },
@@ -101,7 +102,7 @@ export const SEA_IMAGES = {
   'bell-shell-5': { size: [200, 200] },
   'note-bubble': { size: [120, 120] },
   'shell-glow': { size: [320, 320] },
-  // the mermaid salon (core/salonAssets.ts)
+  // the Mermaid Salon (core/salonAssets.ts; research/mermaid-dressup-spec.md)
   ...SALON_IMAGES,
 } as const;
 export type SeaImageKey = keyof typeof SEA_IMAGES;
@@ -116,7 +117,7 @@ export const SEA_SFX = [
   'splash-trash', 'murk-clear', 'dolphin-click', 'turtle-blub', 'net-off', 'basket-pop', 'shell-thread',
   // mermaid PR 4: the bell shells' five notes, a soft bubble (a note that is not the tune's), Mom singing "la" (hard)
   'shell-note-1', 'shell-note-2', 'shell-note-3', 'shell-note-4', 'shell-note-5', 'bubble-pop-soft', 'sing-1', 'sing-2', 'sing-3',
-  // the mermaid salon (core/salonAssets.ts)
+  // the Mermaid Salon (core/salonAssets.ts)
   ...SALON_SFX,
 ] as const;
 
@@ -136,7 +137,7 @@ export const SEA_VOICE = [
   'vo-shell-marina', 'vo-shell-pretty', 'vo-fact-starfish', 'name-shell', 'name-swirly', 'name-starfish',
   // mermaid PR 4: the shell song
   'vo-song-start', 'vo-song-listen', 'vo-song-copy', 'vo-song-again', 'vo-song-yes', 'vo-song-sing', 'vo-song-done',
-  // the mermaid salon (core/salonAssets.ts)
+  // the Mermaid Salon (core/salonAssets.ts)
   ...SALON_VOICE,
 ] as const;
 export type SeaVoiceKey = (typeof SEA_VOICE)[number];
@@ -164,13 +165,16 @@ export const SEA_LAGOON: { images: readonly SeaImageKey[]; sounds: readonly stri
     'necklace-marina',
     // mermaid PR 4: the lagoon's mark of the song (three little bell shells by its door)
     'bell-shell-1', 'bell-shell-3', 'bell-shell-5',
+    // the Mermaid Salon: only its door's picture (the salon loads on its door)
+    'door-icon-salon',
   ],
   sounds: [...SEA_SFX, ...SEA_VOICE.filter((k) => k !== 'vo-world-mermaid'), ...SEA_SONG],
 };
 
 
-/** The five activities behind the shell doors, in the doors' order (left to right). */
-export const SEA_DOORS = ['tail', 'ride', 'clean', 'shells', 'song'] as const;
+/** The six activities behind the shell doors, in the doors' order (left to right; two rows of three where one row is too
+ * narrow: stage.ts). */
+export const SEA_DOORS = ['tail', 'ride', 'clean', 'shells', 'song', 'salon'] as const;
 export type SeaDoor = (typeof SEA_DOORS)[number];
 
 /**
@@ -212,6 +216,21 @@ export const SEA_ACTIVITY: Record<SeaDoor, { scene?: string; images: readonly st
     images: ['bell-shell-1', 'bell-shell-2', 'bell-shell-3', 'bell-shell-4', 'bell-shell-5', 'note-bubble', 'shell-glow', 'photo-frame-sea'],
     sounds: [...SONG_ONLY],
   },
+  // the Mermaid Salon (research/mermaid-dressup-spec.md 9): every file of it on its door; the customers not chosen are
+  // freed right after the choice (SeaSalon), the rest back in the lagoon. No core sound here (the lagoon frees the list):
+  // the sponge's `squish`, `pop`, the bells, `camera`, `vo-help`, `vo-praise-*`, `vo-done-hint` are core.
+  salon: {
+    scene: 'SeaSalon',
+    images: [
+      ...(Object.keys(SALON_IMAGES) as SalonImageKey[]).filter((k) => k !== 'door-icon-salon'),
+      'shell-paint', 'fx-sparkle', 'little-fish', 'photo-frame-sea',
+    ],
+    sounds: [
+      ...SALON_SFX, ...SALON_VOICE.filter((k) => k !== 'vo-pick-salon'), 'glitter', 'shimmer',
+      // the spray's colours, said with the names the tail uses (gold is yellow, sea green is green, pearl is white)
+      'name-pink', 'name-purple', 'name-blue', 'name-yellow', 'name-green', 'name-white',
+    ],
+  },
 };
 
 // (mermaid PR 2: an activity's own effects and lines load on its door, not with the lagoon, though SEA_SFX and
@@ -219,15 +238,6 @@ export const SEA_ACTIVITY: Record<SeaDoor, { scene?: string; images: readonly st
 {
   const own = new Set(Object.values(SEA_ACTIVITY).flatMap((a) => a.sounds));
   SEA_LAGOON.sounds = SEA_LAGOON.sounds.filter((k) => !own.has(k));
-}
-
-// salon PR V stopgap (until salon PR 1's SEA_ACTIVITY.salon lists them; that PR replaces this block): the salon's own
-// sounds are not the lagoon's, but the world lists them (RECIPE_ASSETS.mermaid, assets.ts), so they are neither core
-// nor loaded with the lagoon.
-export const SALON_PENDING_SOUNDS: readonly string[] = [...SALON_SFX, ...SALON_VOICE];
-{
-  const salon = new Set<string>(SALON_PENDING_SOUNDS);
-  SEA_LAGOON.sounds = SEA_LAGOON.sounds.filter((k) => !salon.has(k));
 }
 
 /** Every image of the world but the title's card (that one is core): RECIPE_ASSETS.mermaid. */

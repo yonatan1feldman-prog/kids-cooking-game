@@ -71,6 +71,11 @@ export class Character {
     return this._mood;
   }
 
+  /** Her own layers (the Mermaid Salon dresses her around them and tints her mouth: core/salonDress.ts). */
+  get parts() {
+    return { body: this.layers[this.def.back ? 1 : 0], eyes: this.eyes, mouth: this.mouth, def: this.def };
+  }
+
   get visible() {
     return this.box.visible;
   }

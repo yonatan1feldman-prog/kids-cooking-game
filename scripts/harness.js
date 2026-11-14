@@ -2154,3 +2154,105 @@ window.__fgCheck = (key) => {
   }
   return { scene: key, foreground: fg.map((f) => f.key), problems: out };
 };
+
+// ---------------------------------------------------------------- the Mermaid Salon (research/mermaid-dressup-spec.md)
+// __salonGo(level, {customer, first}) goes in the way she does (the title's card, the lagoon, the salon's shell door) and
+// waits for the salon; __salonPlay(level, {none, wrong, random, customer, first, gap, mid}) plays a whole visit like a
+// child and returns what happened once she is back in the lagoon. none: no touch at all (Mom's hint and help finish
+// every stage); wrong: once per stage the "not like that" (sand tapped without the sponge, a style dropped beside her, a
+// drag cut by a lost finger); random: the hair stage tries everything (styles, the spray's colours, spraying, the comb,
+// the surprise shell, a drag onto her head); customer: 'marina' | 'coral' | 'pearl'; mid(label): called before each
+// action (screenshots). __salonLook() is the look in the chair (or the saved ones).
+window.__salonGo = async (level = 1, opts = {}) => {
+  window.__level = level;
+  window.__salonCustomer = opts.customer;
+  if (opts.first) localStorage.removeItem('cooking.runs.sea-salon'); else if (opts.first === false || opts.first === undefined) localStorage.setItem('cooking.runs.sea-salon', '3');
+  if (!game.scene.isActive('Lagoon')) await __lagoon();
+  for (let i = 0; i < 100 && !window.__seaDoorAt; i++) await __run(50);
+  await __seaDoor('salon', 200);
+  for (let i = 0; i < 600 && !game.scene.isActive('SeaSalon'); i++) { await __run(50); await new Promise((q) => setTimeout(q, 10)); }
+  await __run(opts.wait ?? 600);
+  return game.scene.getScene('SeaSalon');
+};
+window.__salonLook = () => {
+  const m = game.scene.getScene('SeaSalon');
+  if (m?.scene.isActive() && m.customer) return { id: m.customer.id, look: m.customer.look };
+  const out = {};
+  for (const id of ['marina', 'coral', 'pearl']) { try { out[id] = JSON.parse(localStorage.getItem('lagoon.salon.' + id)); } catch { out[id] = null; } }
+  return out;
+};
+window.__salonPlay = async (level = 1, opts = {}) => {
+  const m = await __salonGo(level, opts);
+  const n0 = (window.__voLog || []).length;
+  const t0 = __voice.now ? __voice.now() : 0;
+  const log = [];
+  const did = {};
+  const gap = opts.gap ?? 700;
+  const k = m.L.k;
+  const P = (q) => [q.x, q.y];
+  const tex = { start: game.textures.getTextureKeys().length };
+  for (let i = 0; i < (opts.max ?? 600) && m.scene.isActive() && !m.shown.done; i++) {
+    if (opts.none || m.helping || m.phase !== 'play') { await __run(250); continue; }
+    const st = m.stage;
+    const id = st.id;
+    if (opts.mid) await opts.mid(id + ':' + (m.plan()?.what ?? '-'));
+    if (id === 'pick') tex.pick = game.textures.getTextureKeys().length;
+    if (id === 'scrub' && opts.wrong && !did.scrub) {
+      did.scrub = 1;
+      const s = st.dirty.find((q) => st.visible(q));
+      if (s) { const a = st.spotAt(s); __tap(a.x, a.y); log.push('wrong: tapped sand'); await __run(gap); }
+      const sp = m.cell('sponge');
+      __touch('start', 1, sp.x, sp.y);
+      for (let j = 1; j <= 8; j++) __touch('move', 1, sp.x + j * 30 * k, sp.y - j * 20 * k);
+      __touch('cancel', 1, sp.x + 240 * k, sp.y - 160 * k);
+      await __run(500);
+      log.push('wrong: sponge cut ' + (Math.hypot(sp.items[0].x - sp.x, sp.items[0].y - sp.y) < 2 ? 'back' : 'NOT BACK'));
+      continue;
+    }
+    if (id === 'hair' && (opts.random || opts.wrong) && !did.hair) {
+      did.hair = 1;
+      const styles = ['waves', 'curls', 'braid', 'bun', 'bob'];
+      if (opts.wrong) {
+        const c = m.cell('braid');
+        const home = { x: c.items[0].x, y: c.items[0].y };
+        await __drag([[c.x, c.y], [c.x + 200 * k, c.y - 30 * k], [c.x + 260 * k, m.L.H - 260 * k]]);
+        await __run(500);
+        log.push('wrong: style dropped beside her ' + (Math.hypot(c.items[0].x - home.x, c.items[0].y - home.y) < 3 ? 'back' : 'NOT BACK') + ' hair=' + m.customer.look.hair);
+      }
+      if (opts.random) {
+        for (const s of styles.sort(() => Math.random() - 0.5).slice(0, 2)) { const c = m.cell(s); __tap(c.x, c.y); log.push('style ' + s); await __run(gap); }
+        const sp = m.cell('spray');
+        const taps = 1 + Math.floor(Math.random() * 4);
+        for (let j = 0; j < taps; j++) { __tap(sp.x, sp.y); await __run(450); }
+        log.push('cap ' + m.shown.cap);
+        await __drag(st.hairPath('spray').map(P)); await __run(gap);
+        log.push('dyed ' + m.customer.look.hairColour);
+        __tap(sp.x, sp.y); await __run(450);
+        await __drag(st.hairPath('spray').map(P)); await __run(gap);
+        log.push('dyed ' + m.customer.look.hairColour);
+        await __drag(st.hairPath('comb').map(P)); await __run(gap);
+        log.push('shine ' + m.customer.look.shine);
+        const su = m.cell('surprise'); __tap(su.x, su.y); await __run(1200);
+        log.push('surprise ' + m.customer.look.hair + '/' + m.customer.look.hairColour);
+        const c = m.cell(styles.find((s) => s !== m.customer.look.hair));
+        const head = m.customer.toWorld({ x: 300, y: 200 });
+        await __drag([[c.x, c.y], [(c.x + head.x) / 2, head.y + 60 * k], [head.x, head.y + 60 * k]]); await __run(gap);
+        log.push('dragged ' + c.id + ' -> ' + m.customer.look.hair);
+      }
+      continue;
+    }
+    const p = m.plan();
+    if (!p) { await __run(300); continue; }
+    if (p.kind === 'drag') await __drag(p.path.map(P));
+    else __tap(p.at.x, p.at.y);
+    log.push(id + ' ' + p.kind + ' ' + p.what);
+    await __run(p.kind === 'done' ? 1500 : gap);
+  }
+  const look = m.customer ? JSON.parse(JSON.stringify(m.customer.look)) : null;
+  for (let i = 0; i < 160 && !game.scene.isActive('Lagoon'); i++) await __run(250);
+  await __run(600);
+  const vo = (window.__voLog || []).slice(n0);
+  return { level, log, shown: m.shown, look, lagoon: game.scene.isActive('Lagoon'), helps: vo.filter((e) => e.key === 'vo-help').length,
+    secs: Math.round(((__voice.now ? __voice.now() : 0) - t0) / 1000), tex: { ...tex, back: game.textures.getTextureKeys().length },
+    check: window.__voCheck ? __voCheck(vo) : null, keys: vo.map((e) => e.key).join(' ') };
+};
