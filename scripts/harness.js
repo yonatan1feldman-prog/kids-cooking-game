@@ -2162,7 +2162,8 @@ window.__fgCheck = (key) => {
 // every stage); wrong: once per stage the "not like that" (sand tapped without the sponge, a style dropped beside her, a
 // drag cut by a lost finger); random: the hair stage tries everything (styles, the spray's colours, spraying, the comb,
 // the surprise shell, a drag onto her head); customer: 'marina' | 'coral' | 'pearl'; mid(label): called before each
-// action (screenshots). __salonLook() is the look in the chair (or the saved ones).
+// action (screenshots). __salonLook() is the look in the chair (or the saved ones). Salon PR 2: random / wrong also
+// play the face (every tool, colours, shapes) and the sparkle (crowns, gems placed, moved, dragged off her face).
 window.__salonGo = async (level = 1, opts = {}) => {
   window.__level = level;
   window.__salonCustomer = opts.customer;
@@ -2238,6 +2239,63 @@ window.__salonPlay = async (level = 1, opts = {}) => {
         const head = m.customer.toWorld({ x: 300, y: 200 });
         await __drag([[c.x, c.y], [(c.x + head.x) / 2, head.y + 60 * k], [head.x, head.y + 60 * k]]); await __run(gap);
         log.push('dragged ' + c.id + ' -> ' + m.customer.look.hair);
+      }
+      continue;
+    }
+    // salon PR 2: the face (every tool, colours, the blush's shapes) and the sparkle (crowns on/off, gems placed,
+    // moved and dragged off her face); wrong: a tool dropped beside her / cut by a lost finger, a gem dropped off her face
+    if (id === 'face' && (opts.random || opts.wrong) && !did.face) {
+      did.face = 1;
+      const tap = async (c) => { const q = m.cell(c); __tap(q.x, q.y); await __run(350); };
+      if (opts.wrong) {
+        const c = m.cell('lipstick');
+        await __drag([[c.x, c.y], [c.x + 160 * k, c.y + 40 * k], [c.x + 200 * k, m.L.H - 120 * k]]); await __run(500);
+        log.push('wrong: lipstick dropped beside her ' + (Math.hypot(c.items[0].x - c.x, c.items[0].y - (c.y - 6 * c.s)) < 3 ? 'back' : 'NOT BACK') + ' lips=' + m.customer.look.lips);
+        const sh = m.cell('shadow');
+        __touch('start', 1, sh.x, sh.y);
+        for (let j = 1; j <= 6; j++) __touch('move', 1, sh.x + j * 40 * k, sh.y - j * 10 * k);
+        __touch('cancel', 1, sh.x + 240 * k, sh.y - 60 * k);
+        await __run(500);
+        log.push('wrong: shadow cut ' + (Math.hypot(sh.items[0].x - sh.x, sh.items[0].y - (sh.y - 6 * sh.s)) < 3 ? 'back' : 'NOT BACK'));
+      }
+      if (opts.random) {
+        const pick = (a) => a[Math.floor(Math.random() * a.length)];
+        for (const tool of ['blush', 'shadow', 'lipstick', 'glitter'].sort(() => Math.random() - 0.5)) {
+          await tap(tool);
+          if (tool === 'blush') for (let j = Math.floor(Math.random() * 3); j > 0; j--) await tap('blush');
+          await tap(pick(['pink', 'purple', 'blue', 'gold']));
+          await __drag(st.toolPath(tool, Math.floor(Math.random() * 2)).map(P)); await __run(gap);
+          log.push(tool + ' ' + JSON.stringify(tool === 'blush' ? m.customer.look.blush : tool === 'shadow' ? m.customer.look.shadow : tool === 'lipstick' ? m.customer.look.lips : m.customer.look.glitter.length));
+        }
+      }
+      continue;
+    }
+    if (id === 'sparkle' && (opts.random || opts.wrong) && !did.sparkle) {
+      did.sparkle = 1;
+      const tap = async (c) => { const q = m.cell(c); __tap(q.x, q.y); await __run(gap); };
+      if (opts.random) {
+        const cells = ['crown-pearl', 'crown-starfish', 'crown-coral', 'clip', 'necklace-1', 'necklace-2', 'gem-star', 'gem-heart'];
+        for (const c of cells.sort(() => Math.random() - 0.5).slice(0, 5)) await tap(c);
+        const L = m.customer.look;
+        log.push('worn ' + [L.crown, L.clip, L.necklace, L.gems.length].join('/'));
+        await __drag(st.dragPath('crown-coral').map(P)); await __run(gap);
+        log.push('crown dragged ' + m.customer.look.crown);
+        await __drag(st.dragPath('gem-heart', 5).map(P)); await __run(gap);
+        log.push('gem on chin ' + m.customer.look.gems.some((g) => g.slot === 5 && g.kind === 'heart'));
+      }
+      if (opts.wrong) {
+        if (!m.customer.look.gems.length) await tap('gem-star');
+        const g = m.customer.look.gems[0];
+        const n = m.customer.look.gems.length;
+        await __drag(st.gemDrag(g.slot, { x: m.cell('clip').x + 60 * k, y: m.L.H - 30 * k }).map(P)); await __run(900);
+        log.push('wrong: gem dragged off her face ' + (m.customer.look.gems.length === n - 1 ? 'gone' : 'STILL THERE'));
+        const c = m.cell('crown-pearl');
+        const home = { x: c.items[0].x, y: c.items[0].y };
+        __touch('start', 1, c.x, c.y);
+        for (let j = 1; j <= 5; j++) __touch('move', 1, c.x + j * 40 * k, c.y + j * 30 * k);
+        __touch('cancel', 1, c.x + 200 * k, c.y + 150 * k);
+        await __run(600);
+        log.push('wrong: crown cut ' + (Math.hypot(c.items[0].x - home.x, c.items[0].y - home.y) < 3 ? 'back' : 'NOT BACK') + ' crown=' + m.customer.look.crown);
       }
       continue;
     }
