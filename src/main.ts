@@ -23,6 +23,7 @@ import { SeaClean } from './scenes/SeaClean';
 import { SeaShells } from './scenes/SeaShells';
 // mermaid PR 4
 import { SeaSongScene } from './scenes/SeaSong';
+import { SeaSalon } from './scenes/SeaSalon';
 
 function start() {
   const game = new Phaser.Game({
@@ -47,7 +48,7 @@ function start() {
     input: { activePointers: 3 },
     scene: [BootScene, TitleScene, HomeScene, RecipeScene, AlbumScene, PuzzleScene, GardenScene, MarketScene, DishesScene, ArtScene, ClinicScene, FarmScene, LagoonScene, SeaTail, SeaRide, SeaSongScene,
       // mermaid PR 3
-      SeaClean, SeaShells],
+      SeaClean, SeaShells, SeaSalon],
   });
 
   blockBrowserGestures();

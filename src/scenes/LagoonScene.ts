@@ -28,6 +28,7 @@ const PICK_LINE = {
   clean: 'vo-pick-clean',
   shells: 'vo-pick-shells',
   song: 'vo-pick-song',
+  salon: 'vo-pick-salon', // the Mermaid Salon
 } as const satisfies Record<SeaDoor, string>;
 
 /** An activity that takes longer than this to load (a very slow phone) starts anyway, with stand-ins (spec 9). */
@@ -54,9 +55,9 @@ const activitySounds = () => {
 
 /**
  * The lagoon, the mermaid world's hub ("Mermaid with Mom", research/mermaid-spec.md 2): under the water, Mom the mermaid
- * on her rock on the right, Marina the little mermaid girl swimming beside her, and on the sand five big closed shells, the doors to
- * the five activities, each with its picture above it (a sparkly tail, a bubble through a ring, a net with a dolphin, a
- * basket of shells, a shell with notes). Like the clinic's waiting room: nothing starts by itself, no order, no "all
+ * on her rock on the right, Marina the little mermaid girl swimming beside her, and on the sand six big closed shells, the doors to
+ * the six activities, each with its picture above it (a sparkly tail, a bubble through a ring, a net with a dolphin, a
+ * basket of shells, a shell with notes, a comb and a mirror for the salon). Like the clinic's waiting room: nothing starts by itself, no order, no "all
  * done". A tap on a shell: it opens with a glow, Mom says what they will do, the activity's own pictures load (a small
  * ring on the shell if it takes a moment) and it starts; back from it, she is here again ("What shall we do next?").
  * Only the lagoon is loaded on the way in; each activity loads on its door and is freed again here (spec 9).
@@ -149,7 +150,7 @@ export class LagoonScene extends Phaser.Scene {
       }
     });
 
-    // The five shell doors, each with its picture over it: shell and picture are one touch area.
+    // The six shell doors (one row, or two when the screen is narrow), each with its picture over it: shell and picture are one touch area.
     const doors = SEA_DOORS.map((id, i) => {
       const at = lg.door(i);
       const shell = this.add.image(at.x, at.y, 'door-shell').setScale(lg.doorScale).setDepth(10);

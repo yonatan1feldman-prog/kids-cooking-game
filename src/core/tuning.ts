@@ -414,6 +414,21 @@ export const TUNING = {
    * The rest: the pace of her own presses, rubs and strokes.
    */
   help: { againMs: 12000, againHintMs: 4000, netMs: 30000, pressEveryMs: 420, rubMs: 2600, stirMs: 2400, grateMs: 2600, pickGapMs: 150, chopEveryMs: 950, openMs: 1500, tempEveryMs: 1100, peelEveryMs: 900, candleEveryMs: 700, threadEveryMs: 700 },
+  /**
+   * The Mermaid Salon (research/mermaid-dressup-spec.md 5-6). Finger travel (world units at k 1): `rub` cleans a spot of
+   * sand with the sponge, `spray` dyes the hair, `comb` makes it shine, `blushFull` / `shadowFull` / `lipsStroke` are
+   * salon PR 2's. `doneAfterMs`: the done button comes after one thing done in a stage, or after this long anyway;
+   * `hintFreeMs`: the free stages (hair, outfit...) wait this long for the hint, like free decorating; `pickHintMs` /
+   * `pickHelpMs`: who comes to the salon (the bench is a screen hint, quicker; then Mom picks one). `drag`: a finger that
+   * moves this far is carrying, less is a tap. `zoom` / `zoomMs`: the face close-up. `sand`: spots of sand, easy / hard
+   * (hard: one hides under her hair). `showMs`: salon PR 4's swim.
+   */
+  salon: {
+    rub: 180, spray: 150, comb: 220, blushFull: 200, shadowFull: 160, lipsStroke: 120,
+    doneAfterMs: 15000, hintFreeMs: 15000, pickHintMs: 5000, pickHelpMs: 15000, drag: 24,
+    zoom: 1.6, zoomMs: 500, gemSlots: 6, glitterMax: 12, showMs: 2600,
+    sand: { easy: 2, hard: 3 }, showerMs: 1200,
+  },
 } as const;
 
 /** How a cut is made on the current level (`cut`, with `big.cut` on the big-chef level). */

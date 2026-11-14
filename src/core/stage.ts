@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import type { Layout } from './layout';
+import { ART_SALON } from './salonAssets';
 
 type Pt = { x: number; y: number };
 /** A box in world coordinates. */
@@ -59,7 +60,7 @@ export interface Stage {
   world: { kitchen: Pt; clinic: Pt; mermaid: Pt };
   worldScale: number;
   /**
-   * The lagoon (the mermaid world's hub, LagoonScene): the five shell doors on the sand (`door(i)`, their scale), the
+   * The lagoon (the mermaid world's hub, LagoonScene): the six shell doors on the sand (one row, or 3 + 3 on a narrow screen) (`door(i)`, their scale), the
    * picture over each one (`doorIcon(i)`, `iconScale`), the rock Mom sits on (in front of her waist), Marina the little
    * mermaid girl beside her (`friend`) and the treasure chest by the wreck.
    */
@@ -73,6 +74,23 @@ export interface Stage {
     friend: Spot;
     chest: Spot;
     seaweed: Spot;
+  };
+  /**
+   * The Mermaid Salon (SeaSalon, research/mermaid-dressup-spec.md 3): its corner of the lagoon between the column of
+   * things (`bin(i, n)`, n up to 8) and Mom's face. `seat`: the customer in the big shell chair (her 600x700 frame's centre
+   * and scale, as big as the room allows, at most 1.3); `closeUp`: her face 1.6x as big, in the middle of the room (salon
+   * PR 2); `bench` and `benchSeat(i)`: the three customers waiting; the mirror right behind the chair; the little coral
+   * table on the sand where there is room (not at 4:3).
+   */
+  salon: {
+    room: Box;
+    seat: Spot;
+    closeUp: Spot;
+    chair: Spot;
+    mirror: Spot;
+    vanity: Spot | null;
+    bench: Spot;
+    benchSeat: (i: number) => Spot;
   };
   /**
    * Home (premium round): where card i of n stands on the shelves (before any swipe), and the cards' scale. Two wooden
@@ -282,6 +300,14 @@ const BUBBLE_W = 420;
 const LAGOON_TAIL_X0 = 40;
 /** door-icon-* (160 square) and lagoon-rock (900x400), native size. */
 const ICON = 160;
+/** The salon's art (salonAssets.ts), native size: the customers' frame (feet at y 684), the chair, mirror, table, bench. */
+const CUST = { w: 600, h: 700, foot: 684 };
+const CHAIR = { w: 700, h: 600 };
+const MIRROR = { w: 560, h: 720 };
+const VANITY = { w: 520, h: 300 };
+const BENCH = { w: 1300, h: 260 };
+/** How many shell doors the lagoon has (seaAssets.ts SEA_DOORS: tail, ride, clean, shells, song, salon). */
+const LAGOON_DOORS = 6;
 const ROCK = { h: 400 };
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
@@ -593,45 +619,78 @@ export function getStage(L: Layout): Stage {
   const clinicX = titleX;
   const mermaidX = titleX + worldGap + cardW;
 
-  // The lagoon: five shell doors on the sand, from the left thumb strip to just left of Mom's tail (it curls left over
-  // the rock from LAGOON_TAIL_X0 of her frame), each with its picture above it; door and picture are one touch area.
-  // One row where every door can be at least 200 units wide (20:9, 16:9), else three at the back and two in front (4:3).
+  // The lagoon: the shell doors (LAGOON_DOORS: six since the Mermaid Salon) on the sand, from the left thumb strip to just
+  // left of Mom's tail (it curls left over the rock from LAGOON_TAIL_X0 of her frame), each with its picture above it; door
+  // and picture are one touch area. One row where every door can be at least 200 units wide (20:9), else two rows, the
+  // back one ceil(n/2) doors, the front one the rest, centred under it (16:9, 4:3: three and three).
   // Marina swims up in the water, left of Mom's face (at 4:3 right of the back row of doors).
+  const nDoors = LAGOON_DOORS;
   const doorsLeft = m + 24 * k;
   const doorsRight = momLeft + LAGOON_TAIL_X0 * s - 24 * k;
   const doorGap = 28 * k;
   const pictureH = (ICON + 22) * k; // the picture over a door, and the space between them (at the door's scale)
-  const rowScale = Math.min(k, (doorsRight - doorsLeft - 4 * doorGap) / (5 * DOOR.w));
+  const rowScale = Math.min(k, (doorsRight - doorsLeft - (nDoors - 1) * doorGap) / (nDoors * DOOR.w));
   const oneRow = DOOR.w * rowScale >= 200;
   const doorBottom = Y(986) - 30 * k;
+  const back = oneRow ? nDoors : Math.ceil(nDoors / 2);
   let doorScale: number;
   let doorAt: (i: number) => Pt;
   if (oneRow) {
     doorScale = rowScale;
     const step = DOOR.w * doorScale + doorGap;
-    const x0 = doorsLeft + (doorsRight - doorsLeft - 4 * step) / 2;
+    const x0 = doorsLeft + (doorsRight - doorsLeft - (nDoors - 1) * step) / 2;
     doorAt = (i) => ({ x: x0 + i * step, y: doorBottom - (DOOR.h / 2) * doorScale });
   } else {
     // (two rows: each row a door and its picture high, the back row's door clear of the front row's picture)
     const rowH = (h: number) => (DOOR.h + 30) * h + pictureH * (h / k);
     const top = home.y + homeR + 20 * k;
-    doorScale = Math.min(k, (doorsRight - doorsLeft - 2 * doorGap) / (3 * DOOR.w), (doorBottom - top) / (2 * rowH(1) / 1));
+    doorScale = Math.min(k, (doorsRight - doorsLeft - (back - 1) * doorGap) / (back * DOOR.w), (doorBottom - top) / (2 * rowH(1) / 1));
     const step = DOOR.w * doorScale + doorGap;
-    const x0 = doorsLeft + (doorsRight - doorsLeft - 2 * step) / 2;
+    const x0 = doorsLeft + (doorsRight - doorsLeft - (back - 1) * step) / 2;
     const frontY = doorBottom - (DOOR.h / 2) * doorScale;
     const backY = frontY - rowH(doorScale);
-    doorAt = (i) => (i < 3 ? { x: x0 + i * step, y: backY } : { x: x0 + (i - 3 + 0.5) * step, y: frontY });
+    const front = nDoors - back;
+    doorAt = (i) => (i < back ? { x: x0 + i * step, y: backY } : { x: x0 + (i - back + (back - front) / 2) * step, y: frontY });
   }
   const iconScale = doorScale;
   const iconOver = (DOOR.h / 2) * doorScale + pictureH * (doorScale / k) - (ICON / 2) * iconScale;
   const bubbleScale = pet ? petRefScale / PET_SMALL : 0;
   // (at 4:3 in the open water right of the back row of doors)
-  const backRight = doorAt(2).x + (DOOR.w / 2) * doorScale;
+  const backRight = doorAt(back - 1).x + (DOOR.w / 2) * doorScale;
   const room = pet
     ? { x: Math.min(momFace.x0 - (BUBBLE_W / 2 + 30) * bubbleScale, (doorsRight + momFace.x0) / 2), y: Y(370), scale: bubbleScale }
     : { x: (backRight + W - m) / 2, y: Y(330), scale: Math.min(0.9 * k, (W - m - backRight - 40 * k) / BUBBLE_W) };
   // (her 600x700 frame in that round room of 420: 0.6 of it)
   const friend = { x: room.x, y: room.y + 10 * k, scale: room.scale * 0.6 };
+  // The Mermaid Salon's corner: right of the column of things (two columns of cells, `bin`), left of Mom's face, from
+  // near the top down to the sand above the palm strip.
+  const salonRoom = { x0: m + leftW + gap, y0: 16 * k, x1: momFace.x0 - 16 * k, y1: Y(994) };
+  const roomW = salonRoom.x1 - salonRoom.x0;
+  const seatScale = Math.min(((salonRoom.y1 - salonRoom.y0) / CUST.h) * 0.99, roomW / CUST.w, 1.3 * k);
+  const seat = { x: salonRoom.x0 + roomW * 0.44, y: salonRoom.y1 - (CUST.h / 2) * seatScale, scale: seatScale };
+  const feetY = seat.y + (CUST.foot - CUST.h / 2) * seatScale;
+  const chairScale = seatScale * 0.92;
+  const chair = { x: seat.x, y: feetY - (ART_SALON.chairSeat.y - CHAIR.h / 2) * chairScale + 30 * k, scale: chairScale };
+  const mirrorScale = Math.min(0.85 * k, (salonRoom.y1 - salonRoom.y0) * 0.75 / MIRROR.h);
+  const mirror = { x: Math.min(seat.x + 330 * seatScale, salonRoom.x1 - (MIRROR.w / 2 - 40) * mirrorScale), y: Y(560), scale: mirrorScale };
+  const vanityScale = 0.62 * k;
+  const vanityRoom = salonRoom.x1 - (seat.x + 200 * seatScale);
+  const vanity = vanityRoom >= (VANITY.w - 60) * vanityScale ? { x: salonRoom.x1 - (VANITY.w / 2) * vanityScale, y: Y(994) - (VANITY.h / 2 - 10) * vanityScale, scale: vanityScale } : null;
+  const benchScale = Math.min(k, roomW / BENCH.w);
+  const bench = { x: salonRoom.x0 + roomW / 2, y: Y(994) - (BENCH.h / 2) * benchScale, scale: benchScale };
+  const waitScale = Math.min(0.62 * k, (BENCH.w * benchScale) / 3 / 520);
+  const benchSeat = (i: number) => {
+    const top = bench.y + (ART_SALON.benchTop - BENCH.h / 2) * benchScale;
+    return { x: bench.x + (ART_SALON.benchSeats[i] - 0.5) * BENCH.w * benchScale, y: top + 70 * waitScale - (CUST.foot - CUST.h / 2) * waitScale, scale: waitScale };
+  };
+  const closeScale = seatScale * 1.6;
+  const closeUp = {
+    x: salonRoom.x0 + roomW / 2 - (ART_SALON.faceCentre.x - CUST.w / 2) * closeScale,
+    y: (salonRoom.y0 + salonRoom.y1) / 2 - (ART_SALON.faceCentre.y - CUST.h / 2) * closeScale,
+    scale: closeScale,
+  };
+  const salon = { room: salonRoom, seat, closeUp, chair, mirror, vanity, bench, benchSeat };
+
   const lagoon = {
     door: doorAt,
     doorScale,
@@ -654,6 +713,7 @@ export function getStage(L: Layout): Stage {
     world: { kitchen: { x: kitchenX, y: titleY }, clinic: { x: clinicX, y: titleY }, mermaid: { x: mermaidX, y: titleY } },
     worldScale,
     lagoon,
+    salon,
     card,
     cardScale: (n) => (n === 1 ? k : cardScale(n)),
     shelves,

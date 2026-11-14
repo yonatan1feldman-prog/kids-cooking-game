@@ -237,6 +237,15 @@ const DRAW: Partial<Record<ImageKey, Draw>> = {
   },
 };
 
+/**
+ * A world adds its own stand-ins (the Mermaid Salon: core/salonPlaceholders.ts), drawn on the same terms: only for a key
+ * with no texture, at its texture size. Call at module load, before any `ensurePlaceholders`.
+ */
+export function addPlaceholderDraws(draws: Partial<Record<ImageKey, Draw>>) {
+  Object.assign(DRAW, draws);
+}
+export type PlaceholderDraw = Draw;
+
 /** Generic stand-in: a soft cream shape with an ink outline, so a missing file is visible but harmless. */
 const plain: Draw = (g, w, h) => {
   g.fillStyle(CREAM, 0.9).fillRoundedRect(w * 0.1, h * 0.1, w * 0.8, h * 0.8, Math.min(w, h) * 0.2);
