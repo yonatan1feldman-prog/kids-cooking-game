@@ -2318,6 +2318,8 @@ window.__salonPlay = async (level = 1, opts = {}) => {
       }
       continue;
     }
+    // (salon PRs 2-4: a stage's own tries, once, on random / wrong: window.__salonStageTry[id](m, st, opts, log))
+    if ((opts.random || opts.wrong) && window.__salonStageTry?.[id] && !did[id]) { did[id] = 1; await __salonStageTry[id](m, st, opts, log); continue; }
     const p = m.plan();
     if (!p) { await __run(300); continue; }
     if (p.kind === 'drag') await __drag(p.path.map(P));
@@ -2332,4 +2334,57 @@ window.__salonPlay = async (level = 1, opts = {}) => {
   return { level, log, shown: m.shown, look, lagoon: game.scene.isActive('Lagoon'), helps: vo.filter((e) => e.key === 'vo-help').length,
     secs: Math.round(((__voice.now ? __voice.now() : 0) - t0) / 1000), tex: { ...tex, back: game.textures.getTextureKeys().length },
     check: window.__voCheck ? __voCheck(vo) : null, keys: vo.map((e) => e.key).join(' ') };
+};
+// ---------------------------------------------------------------- salon PR 3: the outfit, the wish (hard)
+// __salonStageTry.outfit (used by __salonPlay on random / wrong): random taps every tail and top, taps the spray round
+// some colours and rubs it on her tail, taps her tail (a swish), opens the surprise shell, drags a tail and a top onto
+// her; wrong drops a top beside her (it goes back) and cuts a spray rub with a lost finger. __salonWish() is the wish of
+// the visit in the chair: its things, which came true, granted.
+window.__salonStageTry = window.__salonStageTry || {};
+window.__salonStageTry.outfit = async (m, st, opts, log) => {
+  const k = m.L.k;
+  const gap = opts.gap ?? 700;
+  const P = (q) => [q.x, q.y];
+  const L = () => m.customer.look;
+  if (opts.wrong) {
+    const c = m.cell('top-frill');
+    const home = { x: c.items[0].x, y: c.items[0].y };
+    await __drag([[c.x, c.y], [c.x + 160 * k, c.y - 20 * k], [c.x + 200 * k, m.L.H - 120 * k]]);
+    await __run(500);
+    log.push('wrong: top dropped beside her ' + (Math.hypot(c.items[0].x - home.x, c.items[0].y - home.y) < 3 ? 'back' : 'NOT BACK') + ' top=' + L().top);
+    const sp = m.cell('spray');
+    const path = st.tailPath();
+    __touch('start', 1, sp.x, sp.y);
+    for (let j = 1; j < 4; j++) __touch('move', 1, path[j].x, path[j].y);
+    __touch('cancel', 1, path[3].x, path[3].y);
+    await __run(500);
+    log.push('wrong: spray cut ' + (Math.hypot(sp.items[0].x - sp.x, sp.items[0].y - sp.y) < 2 ? 'back' : 'NOT BACK') + ' tail=' + L().tailColour);
+  }
+  if (opts.random) {
+    for (const id of ['tail-classic', 'tail-frilly', 'tail-long', 'top-shells', 'top-starfish', 'top-frill'].sort(() => Math.random() - 0.5).slice(0, 3)) {
+      const c = m.cell(id); __tap(c.x, c.y); await __run(gap); log.push(id + ' -> ' + L().tail + '/' + L().top);
+    }
+    const sp = m.cell('spray');
+    const taps = 1 + Math.floor(Math.random() * 5);
+    for (let j = 0; j < taps; j++) { __tap(sp.x, sp.y); await __run(450); }
+    log.push('cap ' + m.shown.cap);
+    await __drag(st.tailPath().map(P)); await __run(gap);
+    log.push('tail dyed ' + L().tailColour);
+    const fin = m.customer.toWorld({ x: 330, y: 600 });
+    __tap(fin.x, fin.y); await __run(gap);
+    log.push('swish ' + (m.shown.swishes ?? 0));
+    const su = m.cell('surprise'); __tap(su.x, su.y); await __run(1400);
+    log.push('surprise ' + L().tail + '/' + L().tailColour + '/' + L().top);
+    const t = m.cell('tail-' + ['classic', 'frilly', 'long'].find((s) => s !== L().tail));
+    const mid = m.customer.toWorld({ x: 300, y: 500 });
+    await __drag([[t.x, t.y], [(t.x + mid.x) / 2, mid.y], [mid.x, mid.y]]); await __run(gap);
+    log.push('dragged ' + t.id + ' -> ' + L().tail);
+    const o = m.cell('top-' + ['shells', 'starfish', 'frill'].find((s) => s !== L().top));
+    await __drag([[o.x, o.y], [(o.x + mid.x) / 2, mid.y - 60 * k], [mid.x, mid.y - 80 * k]]); await __run(gap);
+    log.push('dragged ' + o.id + ' -> ' + L().top);
+  }
+};
+window.__salonWish = () => {
+  const m = game.scene.getScene('SeaSalon');
+  return m?.shown?.wish ?? null;
 };
