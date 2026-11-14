@@ -152,7 +152,8 @@ export class Mirror implements SalonStage {
     }
   }
 
-  /** The mirror turns round to her (narrow and dim → its face), the glass shows her reflection. */
+  /** The closed shell opens (its lid swings up round the hinge) and the mirror appears in its place, facing her; the
+   * glass shows her reflection (salon review B1). */
   private turnMirror() {
     const h = this.h;
     const m = h.mirror;
@@ -160,18 +161,17 @@ export class Mirror implements SalonStage {
     const k = this.k;
     if (!m?.active || this.part !== 'mirror') return;
     h.tweens.killTweensOf(m);
-    // (a little to the right and upright, in front of the chair, behind her: the glass clear of her hair)
+    // (a little to the right, in front of the chair, behind her: the glass clear of her hair)
     const to = { x: Math.min(S.mirror.x + 50 * k, S.room.x1 - (MIRROR.w / 2 - 30) * S.mirror.scale), y: S.mirror.y };
-    m.setDepth(4);
-    h.tweens.add({ targets: m, x: to.x, y: to.y, angle: 0, duration: 700, ease: 'Sine.easeInOut' });
-    h.tweens.chain({
-      targets: m,
-      tweens: [
-        { scaleX: 0, duration: 260, ease: 'Quad.easeIn', onComplete: () => m.clearTint() },
-        { scaleX: S.mirror.scale * 1.06, duration: 300, ease: 'Quad.easeOut' },
-        { scaleX: S.mirror.scale, scaleY: S.mirror.scale, duration: 220, ease: 'Sine.easeInOut' },
-      ],
+    this.openShell();
+    m.setPosition(to.x, to.y).setScale(S.mirror.scale).setAngle(0).clearTint().setDepth(4).setVisible(true);
+    m.setData({ restScaleX: S.mirror.scale, restScaleY: S.mirror.scale });
+    h.time.delayedCall(260, () => {
+      if (!m.active) return;
+      m.setScale(S.mirror.scale * 0.9).setAlpha(0);
+      h.tweens.add({ targets: m, scale: S.mirror.scale, alpha: 1, duration: 340, ease: 'Back.easeOut' });
     });
+    m.setAlpha(0);
     h.time.delayedCall(560, () => {
       sfx(h, 'mirror-chime');
       const g = this.glassAt(to);
@@ -179,6 +179,24 @@ export class Mirror implements SalonStage {
       this.glow(g, 0xfff4d6, 1.5);
       h.sparkle({ x: g.x + g.w * 0.3, y: g.y - g.h * 0.42 }, [0xffffff, 0xfff4b8], 5);
       this.showReflection(g);
+    });
+  }
+
+  /** The lid swings up round its hinge with a shell's pop and a few sparkles, then the shell leaves (the mirror is there). */
+  private openShell() {
+    const h = this.h;
+    const { shell, lid } = h;
+    if (!shell?.active || !lid?.active) return;
+    h.tweens.killTweensOf([shell, lid]);
+    shell.setScale(h.table.salon.mirror.scale);
+    lid.setScale(h.table.salon.mirror.scale);
+    sfx(h, 'shell-open');
+    lid.setDepth(4.05); // (in front of the mirror coming up behind it while it swings)
+    h.tweens.add({ targets: lid, angle: 100, duration: 450, ease: 'Back.easeOut' });
+    h.sparkle({ x: shell.x, y: shell.y + (ART_SALON.lidHinge.y - 360) * shell.scaleY }, [0xffffff, 0xfff4b8, 0xffc8dc], 6);
+    h.time.delayedCall(420, () => {
+      for (const t of [shell, lid]) if (t.active) paper.vanish(h, t);
+      h.shell = h.lid = undefined;
     });
   }
 

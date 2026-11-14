@@ -128,7 +128,9 @@ def hair_shine_curls():
     return svg(W, H, "", s)
 
 
-BRAID = [(424, HY + 20), (428, HY + 70), (424, HY + 120), (414, HY + 170), (404, HY + 220), (398, HY + 268), (396, HY + 312)]
+# (salon review B2: the braid hangs from behind her ear down over her shoulder, outside her face's outline: head
+#  ellipse (300, HY) 150x146, the right cheek (394, HY + 80) and gem slot 4 stay clear of it)
+BRAID = [(452, HY + 24), (472, HY + 72), (484, HY + 122), (490, HY + 172), (490, HY + 222), (486, HY + 270), (480, HY + 314)]
 
 
 def hair_back_braid():
@@ -147,15 +149,18 @@ def hair_front_braid():
     s = G(P(front_cap(fringe), T_BASE), p + "cut")
     s += "".join(stroke(f"M{x},{HY - 132} Q{x + 36},{HY - 104} {x + 70},{HY - 64}", T_MID, 5, f' opacity="{SH_OP + .15}"') for x in (226, 262, 298))
     s += P(f"M196,{HY - 112} Q250,{HY - 146} 320,{HY - 140} Q258,{HY - 128} 210,{HY - 98}Z", T_HI, ' opacity="0.8"')
+    # where the braid starts: a smooth lock from the side of her head, behind her ear
+    seg = G(lock([(446, HY - 40), (452, HY - 6), (456, HY + 28)], [34, 36, 30], 839), p + "sh")
     # the braid: plaits alternating left and right of its line, getting smaller
-    seg = ""
+
     for i, (x, y) in enumerate(BRAID):
-        w = 40 - i * 2.4
+        w = 38 - i * 2.2
         sgn = -1 if i % 2 else 1
-        seg += G(P(wob(x + sgn * 9, y, w * .78, 30, .05, 840 + i, 16, sgn * 28), T_DARK, ' transform="translate(2 4)"')
-                 + P(wob(x + sgn * 9, y, w * .78, 30, .05, 840 + i, 16, sgn * 28), T_BASE)
-                 + stroke(f"M{n(x + sgn * 9 - 18)},{n(y - 12)} Q{n(x + sgn * 9)},{n(y - 22)} {n(x + sgn * 9 + 18)},{n(y - 10)}", T_HI, 4, ' opacity="0.75"')
-                 + stroke(f"M{n(x - sgn * 14)},{n(y + 18)} Q{n(x + sgn * 4)},{n(y + 24)} {n(x + sgn * 22)},{n(y + 14)}", T_MID, 4, f' opacity="{SH_OP + .2}"'), p + "sh")
+        ox = sgn * 7
+        seg += G(P(wob(x + ox, y, w * .76, 30, .05, 840 + i, 16, sgn * 28), T_DARK, ' transform="translate(2 4)"')
+                 + P(wob(x + ox, y, w * .76, 30, .05, 840 + i, 16, sgn * 28), T_BASE)
+                 + stroke(f"M{n(x + ox - 16)},{n(y - 12)} Q{n(x + ox)},{n(y - 22)} {n(x + ox + 16)},{n(y - 10)}", T_HI, 4, ' opacity="0.75"')
+                 + stroke(f"M{n(x - sgn * 12)},{n(y + 18)} Q{n(x + sgn * 4)},{n(y + 24)} {n(x + sgn * 20)},{n(y + 14)}", T_MID, 4, f' opacity="{SH_OP + .2}"'), p + "sh")
     tx, ty = BRAID[-1][0], BRAID[-1][1] + 34
     seg += G(P(wrect(tx - 18, ty - 10, 36, 18, 8, 1, 851), T_DEEP), p + "sh")   # the band (tinted darker)
     tuft = smooth([(tx - 16, ty + 6), (tx - 28, ty + 44), (tx - 12, ty + 70), (tx, ty + 56), (tx + 14, ty + 74), (tx + 28, ty + 44), (tx + 16, ty + 6)])
@@ -166,8 +171,8 @@ def hair_front_braid():
 
 def hair_shine_braid():
     s = stroke(smooth_open(arc(208, 300, 134, 128, k=8), .2), WHITE, 14, ' opacity="0.5"')
-    s += "".join(stroke(f"M{n(x + (-1 if i % 2 else 1) * 9 - 12)},{n(y - 14)} Q{n(x + (-1 if i % 2 else 1) * 9)},{n(y - 20)} {n(x + (-1 if i % 2 else 1) * 9 + 10)},{n(y - 12)}", WHITE, 5, ' opacity="0.85"') for i, (x, y) in enumerate(BRAID))
-    s += sparkle(226, HY - 120, 13) + sparkle(452, HY + 160, 11) + sparkle(370, HY + 290, 9)
+    s += "".join(stroke(f"M{n(x + (-1 if i % 2 else 1) * 7 - 12)},{n(y - 14)} Q{n(x + (-1 if i % 2 else 1) * 7)},{n(y - 20)} {n(x + (-1 if i % 2 else 1) * 7 + 10)},{n(y - 12)}", WHITE, 5, ' opacity="0.85"') for i, (x, y) in enumerate(BRAID))
+    s += sparkle(226, HY - 120, 13) + sparkle(530, HY + 160, 11) + sparkle(448, HY + 300, 9)
     return svg(W, H, "", s)
 
 
@@ -530,7 +535,11 @@ def tool_sponge():
     s += "".join(E(x, y, r, r * .78, "#D69E2A", ' opacity="0.8"') + E(x - 1, y - 2, r * .6, r * .42, "#C68A20", ' opacity="0.5"')
                  for x, y, r in holes if ((x - 120) / 80) ** 2 + ((y - 128) / 62) ** 2 < 1)
     s += P(wob(98, 98, 40, 16, .08, 953, 14, -14), "#FFF1B8", ' opacity="0.6"')
+    # soap foam on top and two soap bubbles (salon review B4: the sponge must not look like the sand on her)
+    foam = "".join(C(x, y, r, WHITE) for x, y, r in ((86, 70, 16), (108, 62, 20), (134, 64, 18), (156, 74, 14), (70, 82, 11), (122, 78, 14)))
+    s += G(foam, p + "sh") + "".join(C(x, y, r, "#D8F1FA", ' opacity="0.8"') for x, y, r in ((104, 58, 6), (142, 60, 5)))
     s += bubble(186, 70, 16) + bubble(206, 104, 10) + bubble(54, 64, 12)
+    s += C(196, 44, 13, "#BFE6F5", ' opacity="0.55"') + bubble(196, 44, 13, .9) + C(34, 104, 9, "#BFE6F5", ' opacity="0.55"') + bubble(34, 104, 9, .9)
     return doc(p, 240, 240, s, "rough", seed=954, cut={"rim": 2.6, "rough": 4})
 
 
@@ -675,26 +684,113 @@ def salon_mirror():
     return doc(p, 560, 720, s, "smooth", seed=1032, cut={"rim": 3, "rough": 4})
 
 
+# salon review B1: all visit long a closed shell stands where the mirror will be (salon-mirror-closed: its lower half
+# and the coral stand; salon-mirror-lid: its upper half on the same 560x720 frame). At the end the lid swings up round
+# its hinge (LID_HINGE, the seam's right end) and the mirror appears in its place.
+SEAM_Y = 410
+LID_HINGE = (462, SEAM_Y)
+
+
+def shell_seam(k=9, x0=98, x1=462, y=SEAM_Y, dip=12):
+    """The scalloped seam where the two halves meet, left to right: a bump down for every rib."""
+    pts = []
+    for i in range(k * 6 + 1):
+        t = i / (k * 6)
+        x = x0 + (x1 - x0) * t
+        pts.append((x, y + dip * abs(math.sin(math.pi * t * k)) - 4 * math.sin(math.pi * t)))
+    return pts
+
+
+def salon_mirror_closed():
+    """560x720: the shell's lower half (pearls peeping out of its seam, a glow inside) on a tall coral stand."""
+    p = "smc-"
+    # the coral stand: a stem and two branches with round tips, on a little mound of sand
+    st = "M280,520 L280,708 M280,610 Q244,646 214,700 M280,610 Q316,650 350,702 M280,560 Q236,560 214,530 M280,590 Q326,586 350,556"
+    s = G(stroke(st, CORALC_D, 26, ' transform="translate(0 4)"') + stroke(st, CORALC, 20), p + "cut")
+    s += G(C(214, 530, 13, CORALC) + C(350, 556, 13, CORALC), p + "sh")
+    s += G(P(wob(280, 708, 120, 14, .05, 1031, 18), SAND_D), p + "sh")
+    # the lower half: a pearly bowl with ribs meeting at its foot
+    seam = shell_seam()
+    bowl = smooth(seam + [(450, SEAM_Y + 40), (410, SEAM_Y + 92), (340, SEAM_Y + 120), (280, SEAM_Y + 126), (220, SEAM_Y + 120), (150, SEAM_Y + 92), (110, SEAM_Y + 40)], 1 / 10)
+    s += G(P(bowl, "#C9707F", ' transform="translate(0 6)"') + P(bowl, "#EE9CAB"), p + "cut")
+    s += f'<clipPath id="{p}bc"><path d="{bowl}"/></clipPath><g clip-path="url(#{p}bc)">'
+    s += "".join(stroke(f"M280,{SEAM_Y + 150} L{n(280 + (x - 280) * 1.1)},{SEAM_Y - 10}", "#C9707F", 6, ' opacity="0.5"') for x in range(98, 470, 40))
+    s += P(f"M120,{SEAM_Y + 30} Q280,{SEAM_Y + 70} 440,{SEAM_Y + 30} Q280,{SEAM_Y + 52} 120,{SEAM_Y + 30}Z", "#FFE3E8", ' opacity="0.7"') + "</g>"
+    # the light inside, peeping out of the seam, and the pearls caught in it
+    s += E(280, SEAM_Y + 2, 150, 16, "#FFF2C8", ' opacity="0.85"')
+    s += "".join(C(x, SEAM_Y + 4, 13, PEARL, ' stroke="#D9D2C4" stroke-width="1.5"') + C(x - 4, SEAM_Y, 4, WHITE) for x in (146, 206, 354, 414))
+    s += "".join(C(x, SEAM_Y + 22, 11, PEARL, ' stroke="#D9D2C4" stroke-width="1.4"') + C(x - 3, SEAM_Y + 18, 3.4, WHITE) for x in (176, 240, 320, 384))
+    return doc(p, 560, 720, s, "smooth", seed=1035, cut={"rim": 3, "rough": 4})
+
+
+def salon_mirror_lid():
+    """560x720 (the same frame): the shell's upper half, a ribbed pink dome, a starfish clasp on its front edge."""
+    p = "sml-"
+    seam = shell_seam()
+    dome = []
+    for i in range(1, 24):
+        a = math.radians(180 + 180 * i / 24)
+        dome.append((280 + math.cos(a) * 190, SEAM_Y - 8 + math.sin(a) * 214))
+    lid = smooth(seam[::-1] + dome, 1 / 10)
+    s = G(P(lid, SHELL_D, ' transform="translate(0 6)"') + P(lid, SHELL), p + "cut")
+    s += f'<linearGradient id="{p}lg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE3E8" stop-opacity="0.75"/><stop offset="1" stop-color="#FFE3E8" stop-opacity="0"/></linearGradient>'
+    s += f'<clipPath id="{p}lc"><path d="{lid}"/></clipPath><g clip-path="url(#{p}lc)">'
+    s += P(lid, f"url(#{p}lg)")
+    # ribs fanning out from the hinge behind it, each a raised band with a light edge
+    for j in range(9):
+        a = math.radians(-162 + 144 * (j + .5) / 9)
+        x2, y2 = 280 + math.cos(a) * 260, SEAM_Y + 60 + math.sin(a) * 300
+        s += stroke(f"M280,{SEAM_Y + 60} L{n(x2)},{n(y2)}", SHELL_D, 7, ' opacity="0.5"')
+        s += stroke(f"M{n(280 + 6)},{SEAM_Y + 60} L{n(x2 + 6)},{n(y2)}", "#FFE9EC", 4, ' opacity="0.6"')
+    s += "</g>"
+    s += P(f"M150,{SEAM_Y - 120} Q230,{SEAM_Y - 210} 350,{SEAM_Y - 196}", "none", f' stroke="{SHELL_L}" stroke-width="14" stroke-linecap="round" opacity="0.7"')
+    # pearls along its rim, a starfish clasp at the front
+    s += "".join(C(x, y, 7, PEARL, ' stroke="#D9D2C4" stroke-width="1.2"') + C(x - 2, y - 2, 2.4, WHITE) for x, y in dome[2:-2:3])
+    s += G(starfish(280, SEAM_Y - 6, 34, "#F4883C"), p + "sh")
+    s += sparkle(400, SEAM_Y - 150, 13) + sparkle(170, SEAM_Y - 70, 9)
+    return doc(p, 560, 720, s, "smooth", seed=1036, cut={"rim": 3, "rough": 4})
+
+
 BENCH_SEATS = (0.2, 0.5, 0.8)
 BENCH_SEAT_Y = 150   # in salon-bench: where a customer's frame y 684 goes (her tail rests on the bench)
 
 
 def salon_bench():
-    """1300x260: a long low bench of sea rock with three soft shell cushions (one for each girl)."""
+    """1300x260: a long low bench of warm sand-coral stone with a pink scallop trim and three plump shell cushions."""
     p = "sbn-"
-    top = smooth([(30, 150), (90, 112), (240, 100), (420, 108), (650, 98), (880, 108), (1060, 100), (1210, 112), (1272, 150), (1250, 236), (650, 252), (50, 236)])
-    s = G(P(top, ROCK_D, ' transform="translate(0 6)"') + P(top, ROCK), p + "cut")
-    s += P(smooth([(60, 140), (240, 116), (650, 112), (1060, 116), (1240, 140), (1060, 132), (650, 128), (240, 132)]), ROCK_L, ' opacity="0.8"')
+    SAND_B, SAND_BD, SAND_BL = "#F1D9B8", "#D9B98F", "#FBEBD3"
+    # the stone: a soft slab, its front face a little darker under a lighter top
+    top = smooth([(34, 148), (90, 116), (240, 104), (420, 110), (650, 102), (880, 110), (1060, 104), (1210, 116), (1268, 148), (1252, 234), (650, 250), (48, 234)])
+    s = G(P(top, SAND_BD, ' transform="translate(0 7)"') + P(top, SAND_B), p + "cut")
+    s += P(smooth([(54, 146), (240, 120), (650, 116), (1060, 120), (1248, 146), (1060, 140), (650, 136), (240, 140)]), SAND_BL, ' opacity="0.9"')
+    front = smooth([(52, 180), (650, 196), (1248, 180), (1240, 230), (650, 246), (60, 230)])
+    s += P(front, SAND_BD, ' opacity="0.35"')
+    # the pink scallop trim along its front edge, a pearl in every dip
+    trim = ""
+    xs = list(range(70, 1240, 46))
+    for j, x in enumerate(xs):
+        y = 172 + 6 * math.sin(j * .5)
+        trim += P(f"M{n(x - 24)},{n(y)} Q{n(x)},{n(y + 30)} {n(x + 24)},{n(y)}Z", SHELL_D, ' transform="translate(0 3)"') + P(f"M{n(x - 24)},{n(y)} Q{n(x)},{n(y + 30)} {n(x + 24)},{n(y)}Z", SHELL)
+        trim += stroke(f"M{n(x)},{n(y + 2)} L{n(x)},{n(y + 16)}", SHELL_D, 3, ' opacity="0.5"')
+        if j:
+            trim += C(x - 23, y + 2, 6, PEARL, ' stroke="#D9D2C4" stroke-width="1.2"') + C(x - 25, y, 2, WHITE)
+    s += G(trim, p + "sh")
     rr = random.Random(1041)
-    s += "".join(E(rr.uniform(80, 1220), rr.uniform(170, 226), rr.uniform(10, 26), rr.uniform(6, 12), ROCK_D, ' opacity="0.45"') for _ in range(16))
+    s += "".join(C(rr.uniform(90, 1210), rr.uniform(206, 232), rr.uniform(2, 4), rr.choice((SAND_BD, SAND_BL)), ' opacity="0.7"') for _ in range(40))
+    # three plump cushions, each a little scallop, standing clear above the girls' tails
     for i, f in enumerate(BENCH_SEATS):
         x = 1300 * f
-        cush = wob(x, 132, 150, 30, .03, 1042 + i, 22)
-        col, dark = ((SHELL, SHELL_D), (LILAC, "#9A7EBA"), (TURQ_L, TURQ_D))[i]
-        s += G(P(cush, dark, ' transform="translate(0 5)"') + P(cush, col), p + "sh")
-        s += "".join(stroke(f"M{n(x + dx)},{116} Q{n(x + dx * 1.1)},{132} {n(x + dx * 1.2)},{150}", dark, 4, ' opacity="0.45"') for dx in (-90, -45, 0, 45, 90))
-    s += G(starfish(70, 226, 26, "#F3A65A") + scallop(1220, 236, 26, 32, SHELL, SHELL_D, SHELL_L, 6), p + "sh")
-    s += "".join(G(P(wob(x, 250, 50, 10, .06, 1050 + j, 14), KELP), p + "sh") for j, x in enumerate((360, 940)))
+        col, dark, light = ((SHELL, SHELL_D, "#FFE9EC"), (LILAC, "#9A7EBA", "#EFE6FA"), (TURQ_L, TURQ_D, "#DDF6F3"))[i]
+        cush = smooth([(x - 176, 140), (x - 150, 104), (x - 90, 86), (x, 80), (x + 90, 86), (x + 150, 104), (x + 176, 140), (x + 120, 158), (x, 162), (x - 120, 158)])
+        s += G(P(cush, dark, ' transform="translate(0 6)"') + P(cush, col), p + "sh")
+        s += "".join(stroke(f"M{n(x + dx * .55)},{n(150)} Q{n(x + dx * .8)},{n(118)} {n(x + dx)},{n(96 + abs(dx) * .1)}", dark, 4, ' opacity="0.5"') for dx in (-150, -100, -50, 0, 50, 100, 150))
+        s += P(f"M{n(x - 120)},{n(104)} Q{n(x - 40)},{n(84)} {n(x + 40)},{n(90)} Q{n(x - 30)},{n(96)} {n(x - 110)},{n(114)}Z", light, ' opacity="0.85"')
+        s += C(x, 160, 9, PEARL, ' stroke="#D9D2C4" stroke-width="1.4"') + C(x - 3, 157, 3, WHITE)
+    # a starfish and a scallop at the ends, a pearl pair, two sprigs of sea grass
+    s += G(starfish(62, 214, 30, "#F3A65A") + scallop(1232, 236, 30, 36, SHELL, SHELL_D, SHELL_L, 6), p + "sh")
+    s += G(C(1186, 230, 9, PEARL) + C(1166, 236, 7, PEARL), p + "sh")
+    s += "".join(G(stroke(f"M{x},{252} Q{x - 8},{226} {x + 4},{206} M{x + 10},{252} Q{x + 16},{230} {x + 26},{214}", KELP, 7), p + "sh") for x in (360, 930))
+    s += sparkle(300, 92, 12) + sparkle(1020, 88, 10)
     return doc(p, 1300, 260, s, "rough", seed=1051, cut={"rim": 3, "rough": 4})
 
 
@@ -716,12 +812,28 @@ def salon_vanity():
 
 
 def sand_spot():
-    """120x90: a patch of wet sand stuck on her skin (the sponge rubs it off)."""
+    """120x90: a damp patch of sand on her skin (the sponge rubs it off): flat and see-through, an uneven edge, coarse
+    grains and two little shell bits; no paper rim, no shadow and no yellow, so it never reads as the sponge."""
     p = "ssp-"
-    s = P(wob(60, 46, 50, 34, .12, 1071, 20), SAND_D, ' opacity="0.9"') + P(wob(56, 42, 38, 24, .14, 1072, 18), "#EBD29C", ' opacity="0.9"')
-    rr = random.Random(1073)
-    s += "".join(C(rr.uniform(22, 98), rr.uniform(20, 72), rr.uniform(1.6, 3.4), rr.choice(("#C9A86A", "#FFF4D6", "#B8955A"))) for _ in range(40) if True)
-    return doc(p, 120, 90, G(s, p + "sh"), "rough", seed=1074)
+    rr = random.Random(1071)
+    pts = []
+    for i in range(14):
+        a = i / 14 * 2 * math.pi
+        f = rr.uniform(.62, 1.0) if i % 3 else rr.uniform(.9, 1.08)
+        pts.append((60 + math.cos(a) * 52 * f, 46 + math.sin(a) * 30 * f))
+    s = P(smooth(pts), "#E9D5A8", ' opacity="0.75"')
+    s += P(smooth([(x * .72 + 60 * .28 - 4, y * .7 + 46 * .3 - 3) for x, y in pts]), "#F3E4C2", ' opacity="0.55"')
+    rg = random.Random(1073)
+    grains = []
+    while len(grains) < 15:
+        x, y = rg.uniform(18, 102), rg.uniform(20, 72)
+        if ((x - 60) / 48) ** 2 + ((y - 46) / 27) ** 2 < .8:
+            grains.append((x, y))
+    s += "".join(E(x, y, rg.uniform(2.6, 4.2), rg.uniform(2.2, 3.4), rg.choice(("#C9A86A", "#B8955A", "#FFF4D6", "#D8BC84"))) for x, y in grains)
+    # two tiny bits of pink shell
+    s += P("M30,38 L40,33 L42,42 Z", "#F6C9C0") + stroke("M33,38 L39,36", "#E3A79C", 1.4)
+    s += P("M82,56 Q90,50 96,57 Q89,62 82,56Z", "#F6C9C0") + stroke("M85,56 L93,56", "#E3A79C", 1.4)
+    return doc(p, 120, 90, s, "rough", seed=1074)
 
 
 def weed_bit():
@@ -754,7 +866,7 @@ ITEMS = {
     "salon-sponge": tool_sponge, "salon-shower": tool_shower, "salon-spray": tool_spray, "spray-cap": spray_cap, "salon-comb": tool_comb,
     "tool-blush": tool_blush, "tool-shadow": tool_shadow, "tool-lipstick": tool_lipstick, "tool-glitter": tool_glitter,
     "shell-surprise": shell_surprise,
-    "salon-chair": salon_chair, "salon-mirror": salon_mirror, "salon-bench": salon_bench, "salon-vanity": salon_vanity,
+    "salon-chair": salon_chair, "salon-mirror": salon_mirror, "salon-mirror-closed": salon_mirror_closed, "salon-mirror-lid": salon_mirror_lid, "salon-bench": salon_bench, "salon-vanity": salon_vanity,
     "sand-spot": sand_spot, "weed-bit": weed_bit, "door-icon-salon": icon_salon,
 }
 
@@ -779,7 +891,7 @@ def tints():
     lips = {k: tint_of(v, gcu.LIP_BASE) for k, v in PAINT.items()} | {f"natural-{k}": tint_of(v, gcu.LIP_BASE) for k, v in NATURAL_LIPS.items()}
     return dict(hair=hair, tail=tail, lips=lips, dye={k: tint_of(v) for k, v in DYE.items()},
                 gemSlots=gcu.FACE_ANCHORS["gemSlots"], gemScale=0.5, sprayCap={"x": SPRAY_CAP[0], "y": SPRAY_CAP[1]},
-                chairSeat={"x": CHAIR_SEAT[0], "y": CHAIR_SEAT[1]}, benchSeats=list(BENCH_SEATS), benchSeatY=BENCH_SEAT_Y)
+                chairSeat={"x": CHAIR_SEAT[0], "y": CHAIR_SEAT[1]}, lidHinge={"x": LID_HINGE[0], "y": LID_HINGE[1]}, benchSeats=list(BENCH_SEATS), benchSeatY=BENCH_SEAT_Y)
 
 
 def save(name, s):
@@ -797,4 +909,4 @@ if __name__ == "__main__":
             save(k, fn())
     with open(os.path.join(HERE, "salon-tints.json"), "w", encoding="utf8") as f:
         json.dump(tints(), f, indent=1)
-    print("ART_SALON: chairSeat", CHAIR_SEAT, "benchSeats", BENCH_SEATS, "benchSeatY", BENCH_SEAT_Y, "mirrorWindow", MIRROR_WIN, "sprayCap", SPRAY_CAP)
+    print("ART_SALON: chairSeat", CHAIR_SEAT, "benchSeats", BENCH_SEATS, "benchSeatY", BENCH_SEAT_Y, "mirrorWindow", MIRROR_WIN, "sprayCap", SPRAY_CAP, "lidHinge", LID_HINGE)
